@@ -1,5 +1,4 @@
-# SyzbotBisect
-How Well Delta Debugging Works in Real-world Fault Localization - A Study on Linux Kernel.
+# How Well Delta Debugging Works in Real-world Fault Localization - A Study on Linux Kernel.
 
 ## Prerequisites
 - python environment
