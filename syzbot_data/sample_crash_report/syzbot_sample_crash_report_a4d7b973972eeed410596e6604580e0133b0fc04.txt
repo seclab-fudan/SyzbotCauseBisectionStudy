@@ -1,0 +1,51 @@
+==================================================================
+BUG: KCSAN: data-race in tomoyo_supervisor / tomoyo_supervisor
+
+write to 0xffffffff863559e4 of 4 bytes by task 3993 on cpu 1:
+ tomoyo_update_stat security/tomoyo/common.c:2340 [inline]
+ tomoyo_supervisor+0x1c9/0xd20 security/tomoyo/common.c:2077
+ tomoyo_audit_path_log security/tomoyo/file.c:168 [inline]
+ tomoyo_path_permission security/tomoyo/file.c:587 [inline]
+ tomoyo_path_permission+0x121/0x160 security/tomoyo/file.c:573
+ tomoyo_check_open_permission+0x2b9/0x320 security/tomoyo/file.c:780
+ tomoyo_file_open security/tomoyo/tomoyo.c:319 [inline]
+ tomoyo_file_open+0x75/0x90 security/tomoyo/tomoyo.c:314
+ security_file_open+0x69/0x210 security/security.c:1497
+ do_dentry_open+0x211/0x970 fs/open.c:784
+ vfs_open+0x62/0x80 fs/open.c:914
+ do_last fs/namei.c:3420 [inline]
+ path_openat+0xf9f/0x3580 fs/namei.c:3537
+ do_filp_open+0x11e/0x1b0 fs/namei.c:3567
+ do_sys_open+0x3b3/0x4f0 fs/open.c:1097
+ __do_sys_open fs/open.c:1115 [inline]
+ __se_sys_open fs/open.c:1110 [inline]
+ __x64_sys_open+0x55/0x70 fs/open.c:1110
+ do_syscall_64+0xcc/0x3a0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffffffff863559e4 of 4 bytes by task 8181 on cpu 0:
+ tomoyo_update_stat security/tomoyo/common.c:2340 [inline]
+ tomoyo_supervisor+0x1b0/0xd20 security/tomoyo/common.c:2077
+ tomoyo_audit_path_log security/tomoyo/file.c:168 [inline]
+ tomoyo_path_permission security/tomoyo/file.c:587 [inline]
+ tomoyo_path_permission+0x121/0x160 security/tomoyo/file.c:573
+ tomoyo_check_open_permission+0x2fd/0x320 security/tomoyo/file.c:777
+ tomoyo_file_open security/tomoyo/tomoyo.c:319 [inline]
+ tomoyo_file_open+0x75/0x90 security/tomoyo/tomoyo.c:314
+ security_file_open+0x69/0x210 security/security.c:1497
+ do_dentry_open+0x211/0x970 fs/open.c:784
+ vfs_open+0x62/0x80 fs/open.c:914
+ do_last fs/namei.c:3420 [inline]
+ path_openat+0xf9f/0x3580 fs/namei.c:3537
+ do_filp_open+0x11e/0x1b0 fs/namei.c:3567
+ do_sys_open+0x3b3/0x4f0 fs/open.c:1097
+ __do_sys_open fs/open.c:1115 [inline]
+ __se_sys_open fs/open.c:1110 [inline]
+ __x64_sys_open+0x55/0x70 fs/open.c:1110
+ do_syscall_64+0xcc/0x3a0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 8181 Comm: udevd Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

@@ -1,0 +1,43 @@
+audit: type=1800 audit(1551058447.820:33): pid=7672 uid=0 auid=4294967295 ses=4294967295 subj=system_u:system_r:kernel_t:s0 op=collect_data cause=failed(directio) comm="startpar" name="rc.local" dev="sda1" ino=2432 res=0
+kauditd_printk_skb: 2 callbacks suppressed
+audit: type=1400 audit(1551058455.750:36): avc:  denied  { map } for  pid=7861 comm="syz-executor144" path="/root/syz-executor144129638" dev="sda1" ino=16483 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 1 PID: 7861 Comm: syz-executor144 Not tainted 5.0.0-rc7+ #86
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ assign_lock_key kernel/locking/lockdep.c:731 [inline]
+ register_lock_class+0x1bdc/0x1bf0 kernel/locking/lockdep.c:757
+ __lock_acquire+0x11f/0x4700 kernel/locking/lockdep.c:3224
+ lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:3841
+ __flush_work+0x640/0x840 kernel/workqueue.c:2935
+ flush_work+0x18/0x20 kernel/workqueue.c:2961
+ vkms_atomic_crtc_destroy_state drivers/gpu/drm/vkms/vkms_crtc.c:133 [inline]
+ vkms_atomic_crtc_destroy_state+0x2d/0x40 drivers/gpu/drm/vkms/vkms_crtc.c:125
+ drm_atomic_state_default_clear+0x37c/0xd60 drivers/gpu/drm/drm_atomic.c:171
+ drm_atomic_state_clear+0x9d/0xc0 drivers/gpu/drm/drm_atomic.c:240
+ __drm_atomic_state_free+0x3c/0xf0 drivers/gpu/drm/drm_atomic.c:256
+ kref_put include/linux/kref.h:67 [inline]
+ drm_atomic_state_put include/drm/drm_atomic.h:385 [inline]
+ drm_atomic_helper_set_config+0xe5/0x160 drivers/gpu/drm/drm_atomic_helper.c:2947
+ drm_mode_setcrtc+0x613/0x1490 drivers/gpu/drm/drm_crtc.c:748
+ drm_ioctl_kernel+0x23b/0x2e0 drivers/gpu/drm/drm_ioctl.c:758
+ drm_ioctl+0x545/0xa50 drivers/gpu/drm/drm_ioctl.c:858
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd6e/0x1390 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x443de9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b d8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffed95d76b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000443de9
+RDX: 0000000020000180 RSI: 00000000c06864a2 RDI: 0000000000000003
+RBP: 00000000006ce018

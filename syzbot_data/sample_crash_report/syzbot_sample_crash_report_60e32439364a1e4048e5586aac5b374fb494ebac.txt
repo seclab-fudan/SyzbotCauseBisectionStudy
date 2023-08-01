@@ -1,0 +1,176 @@
+==================================================================
+BUG: KASAN: use-after-free in macvlan_dev_get_iflink+0x5f/0x70 drivers/net/macvlan.c:1137
+Read of size 4 at addr ffff888014dec0d0 by task syz-executor945/11928
+
+CPU: 0 PID: 11928 Comm: syz-executor945 Not tainted 5.13.0-rc2-next-20210518-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x13e/0x1d6 lib/dump_stack.c:129
+ print_address_description.constprop.0.cold+0x6c/0x309 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:436
+ macvlan_dev_get_iflink+0x5f/0x70 drivers/net/macvlan.c:1137
+ dev_get_iflink+0x73/0xe0 net/core/dev.c:819
+ default_operstate net/core/link_watch.c:41 [inline]
+ rfc2863_policy+0x233/0x2d0 net/core/link_watch.c:53
+ linkwatch_do_dev+0x2a/0x1b0 net/core/link_watch.c:160
+ linkwatch_forget_dev+0x16a/0x200 net/core/link_watch.c:237
+ netdev_wait_allrefs net/core/dev.c:10453 [inline]
+ netdev_run_todo+0x402/0xa80 net/core/dev.c:10570
+ rtnl_unlock net/core/rtnetlink.c:112 [inline]
+ rtnetlink_rcv_msg+0x420/0xb80 net/core/rtnetlink.c:5551
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2502
+ netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1338
+ netlink_sendmsg+0x84c/0xd90 net/netlink/af_netlink.c:1927
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:674
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2350
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2404
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
+ do_syscall_64+0x31/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x445eb9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 11 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f149c7be308 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004cb478 RCX: 0000000000445eb9
+RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000006
+RBP: 00000000004cb470 R08: 0000000000000008 R09: 0000000000000000
+R10: 0000000000000005 R11: 0000000000000246 R12: 00000000004cb47c
+R13: 000000000049b074 R14: 006e616c7663616d R15: 0000000000022000
+
+Allocated by task 11914:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:431 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:510 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:469 [inline]
+ __kasan_kmalloc+0x9b/0xd0 mm/kasan/common.c:519
+ kmalloc_node include/linux/slab.h:613 [inline]
+ kvmalloc_node+0x61/0xf0 mm/util.c:587
+ kvmalloc include/linux/mm.h:808 [inline]
+ kvzalloc include/linux/mm.h:816 [inline]
+ alloc_netdev_mqs+0x98/0xe80 net/core/dev.c:10783
+ rtnl_create_link+0x1a4/0xae0 net/core/rtnetlink.c:3168
+ __rtnl_newlink+0xf72/0x1710 net/core/rtnetlink.c:3430
+ rtnl_newlink+0x64/0xa0 net/core/rtnetlink.c:3488
+ rtnetlink_rcv_msg+0x413/0xb80 net/core/rtnetlink.c:5550
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2502
+ netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1338
+ netlink_sendmsg+0x84c/0xd90 net/netlink/af_netlink.c:1927
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:674
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2350
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2404
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
+ do_syscall_64+0x31/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 11940:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:357
+ ____kasan_slab_free mm/kasan/common.c:363 [inline]
+ ____kasan_slab_free mm/kasan/common.c:328 [inline]
+ __kasan_slab_free+0xfb/0x130 mm/kasan/common.c:371
+ kasan_slab_free include/linux/kasan.h:212 [inline]
+ slab_free_hook mm/slub.c:1623 [inline]
+ slab_free_freelist_hook+0xdf/0x240 mm/slub.c:1648
+ slab_free mm/slub.c:3208 [inline]
+ kfree+0xeb/0x650 mm/slub.c:4274
+ kvfree+0x42/0x50 mm/util.c:616
+ device_release+0x9f/0x240 drivers/base/core.c:2186
+ kobject_cleanup lib/kobject.c:705 [inline]
+ kobject_release lib/kobject.c:736 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x1c8/0x540 lib/kobject.c:753
+ netdev_run_todo+0x75a/0xa80 net/core/dev.c:10593
+ rtnl_unlock net/core/rtnetlink.c:112 [inline]
+ rtnetlink_rcv_msg+0x420/0xb80 net/core/rtnetlink.c:5551
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2502
+ netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1338
+ netlink_sendmsg+0x84c/0xd90 net/netlink/af_netlink.c:1927
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:674
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2350
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2404
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
+ do_syscall_64+0x31/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff888014dec000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 208 bytes inside of
+ 4096-byte region [ffff888014dec000, ffff888014ded000)
+The buggy address belongs to the page:
+page:ffffea0000537a00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x14de8
+head:ffffea0000537a00 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 0000000000000000 0000000100000001 ffff888011042140
+raw: 0000000000000000 0000000000040004 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd2040(__GFP_IO|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 4861, ts 145797285780, free_ts 145696904212
+ prep_new_page mm/page_alloc.c:2377 [inline]
+ get_page_from_freelist+0x125c/0x2ed0 mm/page_alloc.c:4038
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5239
+ alloc_pages+0x18c/0x2a0 mm/mempolicy.c:2272
+ alloc_slab_page mm/slub.c:1686 [inline]
+ allocate_slab+0x2c2/0x4c0 mm/slub.c:1826
+ new_slab mm/slub.c:1889 [inline]
+ new_slab_objects mm/slub.c:2635 [inline]
+ ___slab_alloc+0x4ba/0x820 mm/slub.c:2798
+ __slab_alloc.constprop.0+0xa7/0xf0 mm/slub.c:2838
+ slab_alloc_node mm/slub.c:2920 [inline]
+ slab_alloc mm/slub.c:2962 [inline]
+ __kmalloc+0x312/0x330 mm/slub.c:4112
+ kmalloc include/linux/slab.h:595 [inline]
+ tomoyo_realpath_from_path+0xc3/0x620 security/tomoyo/realpath.c:254
+ tomoyo_get_realpath security/tomoyo/file.c:151 [inline]
+ tomoyo_path_perm+0x21b/0x400 security/tomoyo/file.c:822
+ security_inode_getattr+0xcf/0x140 security/security.c:1332
+ vfs_getattr fs/stat.c:139 [inline]
+ vfs_fstat+0x43/0xb0 fs/stat.c:164
+ __do_sys_newfstat+0x81/0x100 fs/stat.c:404
+ do_syscall_64+0x31/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1305 [inline]
+ __free_pages_ok+0x4cb/0xf30 mm/page_alloc.c:1586
+ unfreeze_partials+0x17c/0x1d0 mm/slub.c:2416
+ put_cpu_partial+0x13d/0x230 mm/slub.c:2452
+ qlink_free mm/kasan/quarantine.c:146 [inline]
+ qlist_free_all+0x5a/0xc0 mm/kasan/quarantine.c:165
+ kasan_quarantine_reduce+0x180/0x200 mm/kasan/quarantine.c:272
+ __kasan_slab_alloc+0x8e/0xa0 mm/kasan/common.c:441
+ kasan_slab_alloc include/linux/kasan.h:236 [inline]
+ slab_post_alloc_hook mm/slab.h:512 [inline]
+ slab_alloc_node mm/slub.c:2954 [inline]
+ slab_alloc mm/slub.c:2962 [inline]
+ kmem_cache_alloc+0x285/0x4a0 mm/slub.c:2967
+ ptlock_alloc mm/memory.c:5277 [inline]
+ ptlock_init include/linux/mm.h:2224 [inline]
+ pmd_ptlock_init include/linux/mm.h:2310 [inline]
+ pgtable_pmd_page_ctor include/linux/mm.h:2346 [inline]
+ pmd_alloc_one include/asm-generic/pgalloc.h:129 [inline]
+ __pmd_alloc+0xbf/0x5c0 mm/memory.c:4685
+ pmd_alloc include/linux/mm.h:2174 [inline]
+ __handle_mm_fault+0xd6c/0x5200 mm/memory.c:4474
+ handle_mm_fault+0x1b9/0x7e0 mm/memory.c:4610
+ do_user_addr_fault+0x483/0x1210 arch/x86/mm/fault.c:1390
+ handle_page_fault arch/x86/mm/fault.c:1475 [inline]
+ exc_page_fault+0x9e/0x180 arch/x86/mm/fault.c:1531
+ asm_exc_page_fault+0x1e/0x30 arch/x86/include/asm/idtentry.h:577
+
+Memory state around the buggy address:
+ ffff888014debf80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888014dec000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888014dec080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                 ^
+ ffff888014dec100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888014dec180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

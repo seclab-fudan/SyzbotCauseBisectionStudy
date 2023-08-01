@@ -1,0 +1,89 @@
+==================================================================
+BUG: KASAN: use-after-free in __list_add_valid+0xb1/0xd0 lib/list_debug.c:23
+Read of size 8 at addr ffff8801c393ad30 by task syz-executor0/4028
+
+CPU: 0 PID: 4028 Comm: syz-executor0 Not tainted 4.13.0+ #82
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ __list_add_valid+0xb1/0xd0 lib/list_debug.c:23
+ __list_add_rcu include/linux/rculist.h:51 [inline]
+ list_add_rcu include/linux/rculist.h:78 [inline]
+ dev_add_pack+0x113/0x2b0 net/core/dev.c:411
+ register_prot_hook.part.49+0x95/0xb0 net/packet/af_packet.c:346
+ register_prot_hook include/linux/compiler.h:305 [inline]
+ packet_create+0x820/0xb00 net/packet/af_packet.c:3251
+ __sock_create+0x4d4/0x850 net/socket.c:1262
+ sock_create net/socket.c:1302 [inline]
+ SYSC_socket net/socket.c:1332 [inline]
+ SyS_socket+0xeb/0x200 net/socket.c:1312
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x451e59
+RSP: 002b:00007f289350fc08 EFLAGS: 00000216 ORIG_RAX: 0000000000000029
+RAX: ffffffffffffffda RBX: 0000000000718000 RCX: 0000000000451e59
+RDX: 0000000000000300 RSI: 0000000000000802 RDI: 0000000000000011
+RBP: 0000000000000082 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000216 R12: 0000000000000000
+R13: 0000000000a6f7ef R14: 00007f28935109c0 R15: 0000000000000000
+
+Allocated by task 4024:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3627
+ kmalloc include/linux/slab.h:493 [inline]
+ kzalloc include/linux/slab.h:666 [inline]
+ fanout_add+0xa50/0x1190 net/packet/af_packet.c:1733
+ packet_setsockopt+0xfdc/0x1e80 net/packet/af_packet.c:3795
+ SYSC_setsockopt net/socket.c:1852 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1831
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 4021:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ packet_release+0xa8f/0xd70 net/packet/af_packet.c:3033
+ sock_release+0x8d/0x1e0 net/socket.c:597
+ sock_close+0x16/0x20 net/socket.c:1126
+ __fput+0x333/0x7f0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:246
+ task_work_run+0x199/0x270 kernel/task_work.c:112
+ exit_task_work include/linux/task_work.h:21 [inline]
+ do_exit+0xa52/0x1b40 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x7e8/0x17e0 kernel/signal.c:2334
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:808
+ exit_to_usermode_loop+0x224/0x300 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath+0x42f/0x500 arch/x86/entry/common.c:266
+ entry_SYSCALL_64_fastpath+0xbc/0xbe
+
+The buggy address belongs to the object at ffff8801c393a480
+ which belongs to the cache kmalloc-4096 of size 4096
+The buggy address is located 2224 bytes inside of
+ 4096-byte region [ffff8801c393a480, ffff8801c393b480)
+The buggy address belongs to the page:
+page:ffffea00070e4e80 count:1 mapcount:0 mapping:ffff8801c393a480 index:0x0 compound_mapcount: 0
+flags: 0x200000000008100(slab|head)
+raw: 0200000000008100 ffff8801c393a480 0000000000000000 0000000100000001
+raw: ffffea00070fa420 ffffea00070e79a0 ffff8801dac00dc0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c393ac00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c393ac80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801c393ad00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff8801c393ad80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c393ae00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

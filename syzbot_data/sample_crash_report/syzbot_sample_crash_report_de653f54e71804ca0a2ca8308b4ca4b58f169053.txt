@@ -1,0 +1,113 @@
+reiserfs: enabling write barrier flush mode
+REISERFS warning (device loop3): jdm-20006 create_privroot: xattrs/ACLs enabled and couldn't find/create .reiserfs_priv. Failing mount.
+======================================================
+WARNING: possible circular locking dependency detected
+6.3.0-rc7-syzkaller-00060-g789b4a41c247 #0 Not tainted
+------------------------------------------------------
+syz-executor.3/9269 is trying to acquire lock:
+ffff888029a47090 (
+&sbi->lock){+.+.}-{3:3}, at: reiserfs_write_lock+0x7a/0xd0 fs/reiserfs/lock.c:27
+
+but task is already holding lock:
+ffff88803568a460 (sb_writers#33){.+.+}-{0:0}, at: file_accessed include/linux/fs.h:2181 [inline]
+ffff88803568a460 (sb_writers#33){.+.+}-{0:0}, at: iterate_dir+0x488/0x570 fs/readdir.c:70
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (sb_writers#33){.+.+}-{0:0}:
+       lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+       percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
+       __sb_start_write include/linux/fs.h:1477 [inline]
+       sb_start_write+0x4d/0x1c0 include/linux/fs.h:1552
+       mnt_want_write_file+0x5e/0x1f0 fs/namespace.c:438
+       reiserfs_ioctl+0x174/0x340 fs/reiserfs/ioctl.c:103
+       vfs_ioctl fs/ioctl.c:51 [inline]
+       __do_sys_ioctl fs/ioctl.c:870 [inline]
+       __se_sys_ioctl+0xf1/0x160 fs/ioctl.c:856
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&sbi->lock){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3098 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+       validate_chain+0x166b/0x58e0 kernel/locking/lockdep.c:3832
+       __lock_acquire+0x125b/0x1f80 kernel/locking/lockdep.c:5056
+       lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+       __mutex_lock_common+0x1d8/0x2530 kernel/locking/mutex.c:603
+       __mutex_lock kernel/locking/mutex.c:747 [inline]
+       mutex_lock_nested+0x1b/0x20 kernel/locking/mutex.c:799
+       reiserfs_write_lock+0x7a/0xd0 fs/reiserfs/lock.c:27
+       reiserfs_dirty_inode+0xf2/0x240 fs/reiserfs/super.c:704
+       __mark_inode_dirty+0x305/0xd90 fs/fs-writeback.c:2421
+       generic_update_time fs/inode.c:1860 [inline]
+       inode_update_time fs/inode.c:1873 [inline]
+       touch_atime+0x3fe/0x680 fs/inode.c:1945
+       file_accessed include/linux/fs.h:2181 [inline]
+       iterate_dir+0x488/0x570 fs/readdir.c:70
+       __do_sys_getdents64 fs/readdir.c:369 [inline]
+       __se_sys_getdents64+0x20d/0x4f0 fs/readdir.c:354
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(sb_writers#33);
+                               lock(&sbi->lock);
+                               lock(sb_writers#33);
+  lock(&sbi->lock);
+
+ *** DEADLOCK ***
+
+3 locks held by syz-executor.3/9269:
+ #0: ffff8880215bdc68 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0x254/0x2f0 fs/file.c:1047
+ #1: ffff8880351e1d60 (&type->i_mutex_dir_key#22){++++}-{3:3}, at: iterate_dir+0x10e/0x570 fs/readdir.c:55
+ #2: ffff88803568a460 (sb_writers#33){.+.+}-{0:0}, at: file_accessed include/linux/fs.h:2181 [inline]
+ #2: ffff88803568a460 (sb_writers#33){.+.+}-{0:0}, at: iterate_dir+0x488/0x570 fs/readdir.c:70
+
+stack backtrace:
+CPU: 0 PID: 9269 Comm: syz-executor.3 Not tainted 6.3.0-rc7-syzkaller-00060-g789b4a41c247 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ check_noncircular+0x2fe/0x3b0 kernel/locking/lockdep.c:2178
+ check_prev_add kernel/locking/lockdep.c:3098 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+ validate_chain+0x166b/0x58e0 kernel/locking/lockdep.c:3832
+ __lock_acquire+0x125b/0x1f80 kernel/locking/lockdep.c:5056
+ lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+ __mutex_lock_common+0x1d8/0x2530 kernel/locking/mutex.c:603
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x1b/0x20 kernel/locking/mutex.c:799
+ reiserfs_write_lock+0x7a/0xd0 fs/reiserfs/lock.c:27
+ reiserfs_dirty_inode+0xf2/0x240 fs/reiserfs/super.c:704
+ __mark_inode_dirty+0x305/0xd90 fs/fs-writeback.c:2421
+ generic_update_time fs/inode.c:1860 [inline]
+ inode_update_time fs/inode.c:1873 [inline]
+ touch_atime+0x3fe/0x680 fs/inode.c:1945
+ file_accessed include/linux/fs.h:2181 [inline]
+ iterate_dir+0x488/0x570 fs/readdir.c:70
+ __do_sys_getdents64 fs/readdir.c:369 [inline]
+ __se_sys_getdents64+0x20d/0x4f0 fs/readdir.c:354
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fb90a48c169
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fb90b10f168 EFLAGS: 00000246 ORIG_RAX: 00000000000000d9
+RAX: ffffffffffffffda RBX: 00007fb90a5abf80 RCX: 00007fb90a48c169
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000006
+RBP: 00007fb90a4e7ca1 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffebceef3bf R14: 00007fb90b10f300 R15: 0000000000022000
+ </TASK>

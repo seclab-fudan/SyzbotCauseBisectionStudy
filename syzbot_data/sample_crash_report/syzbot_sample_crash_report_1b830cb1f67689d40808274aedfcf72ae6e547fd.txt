@@ -1,0 +1,38 @@
+==================================================================
+BUG: KCSAN: data-race in __skb_recv_udp / datagram_poll
+
+write to 0xffff888123ae8b50 of 8 bytes by task 10254 on cpu 1:
+ __skb_queue_head_init include/linux/skbuff.h:1815 [inline]
+ skb_queue_splice_tail_init include/linux/skbuff.h:1929 [inline]
+ __skb_recv_udp+0x29b/0x500 net/ipv4/udp.c:1664
+ udpv6_recvmsg+0x29e/0xe90 net/ipv6/udp.c:288
+ inet6_recvmsg+0xbb/0x240 net/ipv6/af_inet6.c:592
+ sock_recvmsg_nosec+0x5c/0x70 net/socket.c:871
+ ___sys_recvmsg+0x1a0/0x3e0 net/socket.c:2480
+ do_recvmmsg+0x19a/0x5c0 net/socket.c:2601
+ __sys_recvmmsg+0x1ef/0x200 net/socket.c:2680
+ __do_sys_recvmmsg net/socket.c:2703 [inline]
+ __se_sys_recvmmsg net/socket.c:2696 [inline]
+ __x64_sys_recvmmsg+0x89/0xb0 net/socket.c:2696
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffff888123ae8b50 of 8 bytes by task 10281 on cpu 0:
+ skb_queue_empty include/linux/skbuff.h:1494 [inline]
+ datagram_poll+0x16e/0x300 net/core/datagram.c:780
+ udp_poll+0x30/0x110 net/ipv4/udp.c:2712
+ sock_poll+0xed/0x250 net/socket.c:1256
+ vfs_poll include/linux/poll.h:90 [inline]
+ do_pollfd fs/select.c:859 [inline]
+ do_poll fs/select.c:907 [inline]
+ do_sys_poll+0x4ac/0x990 fs/select.c:1001
+ __do_sys_ppoll fs/select.c:1101 [inline]
+ __se_sys_ppoll fs/select.c:1081 [inline]
+ __x64_sys_ppoll+0x161/0x1a0 fs/select.c:1081
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 10281 Comm: syz-executor.3 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

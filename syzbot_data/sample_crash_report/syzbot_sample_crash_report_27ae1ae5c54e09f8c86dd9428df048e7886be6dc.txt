@@ -1,0 +1,129 @@
+==================================================================
+BUG: KASAN: use-after-free in dev_net include/linux/netdevice.h:2220 [inline]
+BUG: KASAN: use-after-free in rt6_uncached_list_del+0x25f/0x2f0 net/ipv6/route.c:148
+Read of size 8 at addr ffff888098c8a588 by task swapper/1/0
+
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.6.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x32 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:641
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ dev_net include/linux/netdevice.h:2220 [inline]
+ rt6_uncached_list_del+0x25f/0x2f0 net/ipv6/route.c:148
+ ip6_dst_destroy+0xbb/0x2a0 net/ipv6/route.c:374
+ dst_destroy+0x114/0x3c0 net/core/dst.c:120
+ dst_destroy_rcu+0x16/0x19 net/core/dst.c:142
+ rcu_do_batch kernel/rcu/tree.c:2186 [inline]
+ rcu_core+0x5e1/0x1390 kernel/rcu/tree.c:2410
+ rcu_core_si+0x9/0x10 kernel/rcu/tree.c:2419
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:546 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1146
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:61
+Code: e8 0e c5 f9 eb 8a cc cc cc cc cc cc e9 07 00 00 00 0f 00 2d 04 5a 59 00 f4 c3 66 90 e9 07 00 00 00 0f 00 2d f4 59 59 00 fb f4 <c3> cc 55 48 89 e5 41 57 41 56 41 55 41 54 53 e8 5e c6 73 f9 e8 b9
+RSP: 0018:ffffc90000d3fd68 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff136761a RBX: ffff8880a99fc340 RCX: 0000000000000000
+RDX: dffffc0000000000 RSI: 0000000000000006 RDI: ffff8880a99fcbd4
+RBP: ffffc90000d3fd98 R08: ffff8880a99fc340 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: dffffc0000000000
+R13: ffffffff8aa5a3c0 R14: 0000000000000000 R15: 0000000000000001
+ arch_cpu_idle+0xa/0x10 arch/x86/kernel/process.c:686
+ default_idle_call+0x84/0xb0 kernel/sched/idle.c:94
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x3c8/0x6e0 kernel/sched/idle.c:269
+ cpu_startup_entry+0x1b/0x20 kernel/sched/idle.c:361
+ start_secondary+0x2f4/0x410 arch/x86/kernel/smpboot.c:264
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:242
+
+Allocated by task 9761:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:488
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:529
+ __do_kmalloc_node mm/slab.c:3616 [inline]
+ __kmalloc_node+0x4e/0x70 mm/slab.c:3623
+ kmalloc_node include/linux/slab.h:578 [inline]
+ kvmalloc_node+0x68/0x100 mm/util.c:574
+ kvmalloc include/linux/mm.h:645 [inline]
+ kvzalloc include/linux/mm.h:653 [inline]
+ alloc_netdev_mqs+0x98/0xe40 net/core/dev.c:9797
+ rtnl_create_link+0x22d/0xaf0 net/core/rtnetlink.c:3047
+ __rtnl_newlink+0xf9f/0x1790 net/core/rtnetlink.c:3309
+ rtnl_newlink+0x69/0xa0 net/core/rtnetlink.c:3377
+ rtnetlink_rcv_msg+0x45e/0xaf0 net/core/rtnetlink.c:5438
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5456
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ __sys_sendto+0x262/0x380 net/socket.c:1998
+ __do_compat_sys_socketcall net/compat.c:771 [inline]
+ __se_compat_sys_socketcall net/compat.c:719 [inline]
+ __ia32_compat_sys_socketcall+0x530/0x710 net/compat.c:719
+ do_syscall_32_irqs_on arch/x86/entry/common.c:337 [inline]
+ do_fast_syscall_32+0x27b/0xe16 arch/x86/entry/common.c:408
+ entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+
+Freed by task 9761:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:476
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:485
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ __netdev_name_node_alt_destroy+0x1ff/0x2a0 net/core/dev.c:322
+ netdev_name_node_alt_destroy+0x57/0x80 net/core/dev.c:334
+ rtnl_alt_ifname net/core/rtnetlink.c:3518 [inline]
+ rtnl_linkprop.isra.0+0x575/0x6f0 net/core/rtnetlink.c:3567
+ rtnl_dellinkprop+0x46/0x60 net/core/rtnetlink.c:3588
+ rtnetlink_rcv_msg+0x45e/0xaf0 net/core/rtnetlink.c:5438
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5456
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2343
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2397
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
+ __compat_sys_sendmsg net/compat.c:642 [inline]
+ __do_compat_sys_sendmsg net/compat.c:649 [inline]
+ __se_compat_sys_sendmsg net/compat.c:646 [inline]
+ __ia32_compat_sys_sendmsg+0x7a/0xb0 net/compat.c:646
+ do_syscall_32_irqs_on arch/x86/entry/common.c:337 [inline]
+ do_fast_syscall_32+0x27b/0xe16 arch/x86/entry/common.c:408
+ entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+
+The buggy address belongs to the object at ffff888098c8a000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 1416 bytes inside of
+ 4096-byte region [ffff888098c8a000, ffff888098c8b000)
+The buggy address belongs to the page:
+page:ffffea0002632280 refcount:1 mapcount:0 mapping:ffff8880aa402000 index:0x0 compound_mapcount: 0
+flags: 0xfffe0000010200(slab|head)
+raw: 00fffe0000010200 ffffea0002607488 ffffea00025af788 ffff8880aa402000
+raw: 0000000000000000 ffff888098c8a000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888098c8a480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888098c8a500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888098c8a580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff888098c8a600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888098c8a680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

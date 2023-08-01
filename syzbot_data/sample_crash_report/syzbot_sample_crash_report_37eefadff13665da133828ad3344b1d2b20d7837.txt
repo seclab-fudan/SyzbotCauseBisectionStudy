@@ -1,0 +1,93 @@
+device lo entered promiscuous mode
+==================================================================
+BUG: KASAN: use-after-free in ipv6_prefix_equal include/net/ipv6.h:540 [inline]
+BUG: KASAN: use-after-free in fib6_add_1+0x165f/0x1790 net/ipv6/ip6_fib.c:618
+Read of size 8 at addr ffff8801d908e198 by task syzkaller577016/3684
+
+CPU: 0 PID: 3684 Comm: syzkaller577016 Not tainted 4.15.0-rc7-next-20180115+ #97
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23b/0x360 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ ipv6_prefix_equal include/net/ipv6.h:540 [inline]
+ fib6_add_1+0x165f/0x1790 net/ipv6/ip6_fib.c:618
+ fib6_add+0x5fa/0x1540 net/ipv6/ip6_fib.c:1214
+ __ip6_ins_rt+0x6c/0x90 net/ipv6/route.c:1003
+ ip6_route_add+0x141/0x190 net/ipv6/route.c:2790
+ ipv6_route_ioctl+0x4db/0x6b0 net/ipv6/route.c:3299
+ inet6_ioctl+0xef/0x1e0 net/ipv6/af_inet6.c:520
+ sock_do_ioctl+0x65/0xb0 net/socket.c:958
+ sock_ioctl+0x2c2/0x440 net/socket.c:1055
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x4461f9
+RSP: 002b:00007f6936750da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000006dbc24 RCX: 00000000004461f9
+RDX: 0000000020fd7000 RSI: 000000000000890b RDI: 000000000000000e
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc20
+R13: 0001000000000003 R14: 0100000000000000 R15: 0000000000000001
+
+Allocated by task 3685:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3541
+ dst_alloc+0x11f/0x1a0 net/core/dst.c:104
+ __ip6_dst_alloc+0x35/0x90 net/ipv6/route.c:361
+ ip6_dst_alloc+0x29/0xb0 net/ipv6/route.c:376
+ ip6_route_info_create+0x4ff/0x2e20 net/ipv6/route.c:2538
+ ip6_route_add+0xa2/0x190 net/ipv6/route.c:2779
+ ipv6_route_ioctl+0x4db/0x6b0 net/ipv6/route.c:3299
+ inet6_ioctl+0xef/0x1e0 net/ipv6/af_inet6.c:520
+ sock_do_ioctl+0x65/0xb0 net/socket.c:958
+ sock_ioctl+0x2c2/0x440 net/socket.c:1055
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 3683:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3485 [inline]
+ kmem_cache_free+0x86/0x2b0 mm/slab.c:3743
+ dst_destroy+0x257/0x370 net/core/dst.c:140
+ dst_destroy_rcu+0x16/0x20 net/core/dst.c:153
+ __rcu_reclaim kernel/rcu/rcu.h:172 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2674 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2933 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2900 [inline]
+ rcu_process_callbacks+0xd6c/0x17f0 kernel/rcu/tree.c:2917
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801d908e0c0
+ which belongs to the cache ip6_dst_cache of size 320
+The buggy address is located 216 bytes inside of
+ 320-byte region [ffff8801d908e0c0, ffff8801d908e200)
+The buggy address belongs to the page:
+page:ffffea0007642380 count:1 mapcount:0 mapping:ffff8801d908e0c0 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d908e0c0 0000000000000000 000000010000000a
+raw: ffffea0006eccde0 ffffea000764f6e0 ffff8801d2d9f900 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d908e080: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8801d908e100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801d908e180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff8801d908e200: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8801d908e280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

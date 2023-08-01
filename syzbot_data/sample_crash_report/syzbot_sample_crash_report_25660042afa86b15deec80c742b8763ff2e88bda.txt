@@ -1,0 +1,40 @@
+------------[ cut here ]------------
+refcount_t: addition on 0; use-after-free.
+WARNING: CPU: 1 PID: 6853 at lib/refcount.c:25 refcount_warn_saturate+0x169/0x1e0 lib/refcount.c:25
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 6853 Comm: kworker/u5:2 Not tainted 5.8.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: hci0 hci_rx_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ panic+0x2e3/0x75c kernel/panic.c:231
+ __warn.cold+0x20/0x45 kernel/panic.c:600
+ report_bug+0x1bd/0x210 lib/bug.c:198
+ handle_bug+0x38/0x90 arch/x86/kernel/traps.c:234
+ exc_invalid_op+0x14/0x40 arch/x86/kernel/traps.c:254
+ asm_exc_invalid_op+0x12/0x20 arch/x86/include/asm/idtentry.h:536
+RIP: 0010:refcount_warn_saturate+0x169/0x1e0 lib/refcount.c:25
+Code: 07 31 ff 89 de e8 c7 ea da fd 84 db 0f 85 36 ff ff ff e8 7a ee da fd 48 c7 c7 a0 aa 93 88 c6 05 1c 6e 13 07 01 e8 19 fa ab fd <0f> 0b e9 17 ff ff ff e8 5b ee da fd 0f b6 1d 01 6e 13 07 31 ff 89
+RSP: 0018:ffffc900055c7908 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff88809769a480 RSI: ffffffff815db887 RDI: fffff52000ab8f13
+RBP: 0000000000000002 R08: 0000000000000001 R09: ffff8880ae731927
+R10: 0000000000000000 R11: 0000000035383654 R12: dffffc0000000000
+R13: 0000000000000001 R14: ffff8880a6c18000 R15: 0000000000000003
+ refcount_add include/linux/refcount.h:204 [inline]
+ refcount_inc include/linux/refcount.h:241 [inline]
+ kref_get include/linux/kref.h:45 [inline]
+ l2cap_chan_hold net/bluetooth/l2cap_core.c:495 [inline]
+ l2cap_global_chan_by_psm+0x53f/0x5b0 net/bluetooth/l2cap_core.c:1978
+ l2cap_conless_channel net/bluetooth/l2cap_core.c:7595 [inline]
+ l2cap_recv_frame+0xc3b/0xae10 net/bluetooth/l2cap_core.c:7665
+ l2cap_recv_acldata+0x7f6/0x8e0 net/bluetooth/l2cap_core.c:8314
+ hci_acldata_packet net/bluetooth/hci_core.c:4703 [inline]
+ hci_rx_work+0x4c7/0xb50 net/bluetooth/hci_core.c:4894
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

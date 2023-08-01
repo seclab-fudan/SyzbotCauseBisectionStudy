@@ -1,0 +1,77 @@
+usb 1-1: config 0 has no interface number 0
+usb 1-1: New USB device found, idVendor=0cf3, idProduct=9375, bcdDevice=d4.90
+usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+usb 1-1: config 0 descriptor??
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+CPU: 1 PID: 22 Comm: kworker/1:1 Not tainted 5.3.0-rc7+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+RIP: 0010:__lock_acquire+0x10b0/0x3b50 kernel/locking/lockdep.c:3753
+Code: 00 0f 85 5a 1e 00 00 48 81 c4 f0 00 00 00 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 b8 00 00 00 00 00 fc ff df 4c 89 f2 48 c1 ea 03 <80> 3c 02 00 0f 85 56 1f 00 00 49 81 3e e0 58 67 88 0f 84 11 f0 ff
+RSP: 0018:ffff8881d9686fa0 EFLAGS: 00010006
+RAX: dffffc0000000000 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: 0000000000000003 RSI: 0000000000000000 RDI: 0000000000000018
+RBP: ffff8881da236000 R08: 0000000000000001 R09: 0000000000000001
+R10: fffffbfff0f13ce7 R11: ffffffff8789e73f R12: 0000000000000001
+R13: 0000000000000000 R14: 0000000000000018 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8881db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fa8c6fea000 CR3: 00000001d387d000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ lock_acquire+0x127/0x320 kernel/locking/lockdep.c:4412
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x32/0x50 kernel/locking/spinlock.c:159
+ ath6kl_usb_alloc_urb_from_pipe+0x44/0x2b0 drivers/net/wireless/ath/ath6kl/usb.c:135
+ ath6kl_usb_post_recv_transfers.constprop.0+0x22e/0x400 drivers/net/wireless/ath/ath6kl/usb.c:410
+ ath6kl_usb_start_recv_pipes drivers/net/wireless/ath/ath6kl/usb.c:484 [inline]
+ hif_start drivers/net/wireless/ath/ath6kl/usb.c:682 [inline]
+ ath6kl_usb_power_on+0x88/0x120 drivers/net/wireless/ath/ath6kl/usb.c:1041
+ ath6kl_hif_power_on drivers/net/wireless/ath/ath6kl/hif-ops.h:136 [inline]
+ ath6kl_core_init+0x154/0x10b0 drivers/net/wireless/ath/ath6kl/core.c:97
+ ath6kl_usb_probe+0xc7a/0x1180 drivers/net/wireless/ath/ath6kl/usb.c:1147
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x101/0x1b0 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2165
+ usb_set_configuration+0xdf6/0x1670 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x101/0x1b0 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2165
+ usb_new_device.cold+0x6a4/0xe79 drivers/usb/core/hub.c:2536
+ hub_port_connect drivers/usb/core/hub.c:5098 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x1b5c/0x3640 drivers/usb/core/hub.c:5441
+ process_one_work+0x92b/0x1530 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+---[ end trace 65cec9eebe55dcc9 ]---
+RIP: 0010:__lock_acquire+0x10b0/0x3b50 kernel/locking/lockdep.c:3753
+Code: 00 0f 85 5a 1e 00 00 48 81 c4 f0 00 00 00 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 b8 00 00 00 00 00 fc ff df 4c 89 f2 48 c1 ea 03 <80> 3c 02 00 0f 85 56 1f 00 00 49 81 3e e0 58 67 88 0f 84 11 f0 ff
+RSP: 0018:ffff8881d9686fa0 EFLAGS: 00010006
+RAX: dffffc0000000000 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: 0000000000000003 RSI: 0000000000000000 RDI: 0000000000000018
+RBP: ffff8881da236000 R08: 0000000000000001 R09: 0000000000000001
+R10: fffffbfff0f13ce7 R11: ffffffff8789e73f R12: 0000000000000001
+R13: 0000000000000000 R14: 0000000000000018 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8881db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fa8c6fea000 CR3: 00000001d387d000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

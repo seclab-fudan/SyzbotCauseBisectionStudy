@@ -1,0 +1,174 @@
+================================
+WARNING: inconsistent lock state
+6.0.0-syzkaller-02734-g0326074ff465 #0 Not tainted
+--------------------------------
+inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
+ksoftirqd/0/16 [HC0[0]:SC1[1]:HE1:SE0] takes:
+ffffffff8c0c3aa0 (fs_reclaim){+.?.}-{0:0}, at: might_alloc include/linux/sched/mm.h:271 [inline]
+ffffffff8c0c3aa0 (fs_reclaim){+.?.}-{0:0}, at: slab_pre_alloc_hook mm/slab.h:700 [inline]
+ffffffff8c0c3aa0 (fs_reclaim){+.?.}-{0:0}, at: slab_alloc_node mm/slub.c:3162 [inline]
+ffffffff8c0c3aa0 (fs_reclaim){+.?.}-{0:0}, at: slab_alloc mm/slub.c:3256 [inline]
+ffffffff8c0c3aa0 (fs_reclaim){+.?.}-{0:0}, at: kmem_cache_alloc_trace+0x40/0x3e0 mm/slub.c:3287
+{SOFTIRQ-ON-W} state was registered at:
+  lock_acquire kernel/locking/lockdep.c:5666 [inline]
+  lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
+  __fs_reclaim_acquire mm/page_alloc.c:4674 [inline]
+  fs_reclaim_acquire+0x115/0x160 mm/page_alloc.c:4688
+  might_alloc include/linux/sched/mm.h:271 [inline]
+  slab_pre_alloc_hook mm/slab.h:700 [inline]
+  slab_alloc_node mm/slub.c:3162 [inline]
+  slab_alloc mm/slub.c:3256 [inline]
+  kmem_cache_alloc_trace+0x40/0x3e0 mm/slub.c:3287
+  kmalloc include/linux/slab.h:600 [inline]
+  kzalloc include/linux/slab.h:733 [inline]
+  alloc_workqueue_attrs+0x39/0xc0 kernel/workqueue.c:3394
+  wq_numa_init kernel/workqueue.c:5964 [inline]
+  workqueue_init+0x12f/0x8ae kernel/workqueue.c:6091
+  kernel_init_freeable+0x3fb/0x73a init/main.c:1607
+  kernel_init+0x1a/0x1d0 init/main.c:1512
+  ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+irq event stamp: 4264960
+hardirqs last  enabled at (4264960): [<ffffffff81481860>] __local_bh_enable_ip+0xa0/0x120 kernel/softirq.c:401
+hardirqs last disabled at (4264959): [<ffffffff81481883>] __local_bh_enable_ip+0xc3/0x120 kernel/softirq.c:378
+softirqs last  enabled at (4264898): [<ffffffff8148178d>] run_ksoftirqd kernel/softirq.c:934 [inline]
+softirqs last  enabled at (4264898): [<ffffffff8148178d>] run_ksoftirqd+0x2d/0x60 kernel/softirq.c:926
+softirqs last disabled at (4264903): [<ffffffff8148178d>] run_ksoftirqd kernel/softirq.c:934 [inline]
+softirqs last disabled at (4264903): [<ffffffff8148178d>] run_ksoftirqd+0x2d/0x60 kernel/softirq.c:926
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(fs_reclaim);
+  <Interrupt>
+    lock(fs_reclaim);
+
+ *** DEADLOCK ***
+
+4 locks held by ksoftirqd/0/16:
+ #0: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: __skb_unlink include/linux/skbuff.h:2322 [inline]
+ #0: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: __skb_dequeue include/linux/skbuff.h:2337 [inline]
+ #0: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: process_backlog+0x34b/0x7c0 net/core/dev.c:5925
+ #1: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: __skb_pull include/linux/skbuff.h:2607 [inline]
+ #1: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: ip_local_deliver_finish+0x206/0x4c0 net/ipv4/ip_input.c:230
+ #2: ffff888026abb0b0 (slock-AF_INET/1){+.-.}-{2:2}, at: tcp_v4_rcv+0x3019/0x38c0 net/ipv4/tcp_ipv4.c:2096
+ #3: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: __refcount_add include/linux/refcount.h:200 [inline]
+ #3: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: __refcount_inc include/linux/refcount.h:250 [inline]
+ #3: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: refcount_inc include/linux/refcount.h:267 [inline]
+ #3: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: skb_get include/linux/skbuff.h:1847 [inline]
+ #3: ffffffff8bf86740 (rcu_read_lock){....}-{1:2}, at: sk_psock_verdict_recv+0xa3/0x750 net/core/skmsg.c:1183
+
+stack backtrace:
+CPU: 0 PID: 16 Comm: ksoftirqd/0 Not tainted 6.0.0-syzkaller-02734-g0326074ff465 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_usage_bug kernel/locking/lockdep.c:3961 [inline]
+ valid_state kernel/locking/lockdep.c:3973 [inline]
+ mark_lock_irq kernel/locking/lockdep.c:4176 [inline]
+ mark_lock.part.0.cold+0x18/0xd8 kernel/locking/lockdep.c:4632
+ mark_lock kernel/locking/lockdep.c:4596 [inline]
+ mark_usage kernel/locking/lockdep.c:4527 [inline]
+ __lock_acquire+0x11d9/0x56d0 kernel/locking/lockdep.c:5007
+ lock_acquire kernel/locking/lockdep.c:5666 [inline]
+ lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
+ __fs_reclaim_acquire mm/page_alloc.c:4674 [inline]
+ fs_reclaim_acquire+0x115/0x160 mm/page_alloc.c:4688
+ might_alloc include/linux/sched/mm.h:271 [inline]
+ slab_pre_alloc_hook mm/slab.h:700 [inline]
+ slab_alloc_node mm/slub.c:3162 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ kmem_cache_alloc_trace+0x40/0x3e0 mm/slub.c:3287
+ kmalloc include/linux/slab.h:600 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ alloc_sk_msg+0x38/0xa0 net/core/skmsg.c:507
+ sk_psock_skb_ingress_self+0x25/0x320 net/core/skmsg.c:600
+ sk_psock_verdict_apply+0x429/0x540 net/core/skmsg.c:1014
+ sk_psock_verdict_recv+0x3a3/0x750 net/core/skmsg.c:1201
+ tcp_read_skb+0x173/0x670 net/ipv4/tcp.c:1770
+ sk_psock_verdict_data_ready+0x9d/0xc0 net/core/skmsg.c:1215
+ tcp_data_ready+0x106/0x520 net/ipv4/tcp_input.c:5004
+ tcp_rcv_established+0x1a9f/0x20e0 net/ipv4/tcp_input.c:5971
+ tcp_v4_do_rcv+0x66c/0x9b0 net/ipv4/tcp_ipv4.c:1681
+ tcp_v4_rcv+0x329d/0x38c0 net/ipv4/tcp_ipv4.c:2100
+ ip_protocol_deliver_rcu+0x9b/0x7c0 net/ipv4/ip_input.c:205
+ ip_local_deliver_finish+0x2e8/0x4c0 net/ipv4/ip_input.c:233
+ NF_HOOK include/linux/netfilter.h:302 [inline]
+ NF_HOOK include/linux/netfilter.h:296 [inline]
+ ip_local_deliver+0x1aa/0x200 net/ipv4/ip_input.c:254
+ dst_input include/net/dst.h:455 [inline]
+ ip_rcv_finish+0x1cb/0x2f0 net/ipv4/ip_input.c:444
+ NF_HOOK include/linux/netfilter.h:302 [inline]
+ NF_HOOK include/linux/netfilter.h:296 [inline]
+ ip_rcv+0xaa/0xd0 net/ipv4/ip_input.c:564
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5485
+ __netif_receive_skb+0x1f/0x1c0 net/core/dev.c:5599
+ process_backlog+0x3a0/0x7c0 net/core/dev.c:5927
+ __napi_poll+0xb3/0x6d0 net/core/dev.c:6494
+ napi_poll net/core/dev.c:6561 [inline]
+ net_rx_action+0x9c1/0xd90 net/core/dev.c:6672
+ __do_softirq+0x1d0/0x9c8 kernel/softirq.c:571
+ run_ksoftirqd kernel/softirq.c:934 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:926
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:274
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 16, name: ksoftirqd/0
+preempt_count: 101, expected: 0
+RCU nest depth: 3, expected: 0
+INFO: lockdep is turned off.
+Preemption disabled at:
+[<ffffffff89c000e1>] softirq_handle_begin kernel/softirq.c:409 [inline]
+[<ffffffff89c000e1>] __do_softirq+0xe1/0x9c8 kernel/softirq.c:547
+CPU: 0 PID: 16 Comm: ksoftirqd/0 Not tainted 6.0.0-syzkaller-02734-g0326074ff465 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __might_resched.cold+0x222/0x26b kernel/sched/core.c:9893
+ might_alloc include/linux/sched/mm.h:274 [inline]
+ slab_pre_alloc_hook mm/slab.h:700 [inline]
+ slab_alloc_node mm/slub.c:3162 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ kmem_cache_alloc_trace+0x2f9/0x3e0 mm/slub.c:3287
+ kmalloc include/linux/slab.h:600 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ alloc_sk_msg+0x38/0xa0 net/core/skmsg.c:507
+ sk_psock_skb_ingress_self+0x25/0x320 net/core/skmsg.c:600
+ sk_psock_verdict_apply+0x429/0x540 net/core/skmsg.c:1014
+ sk_psock_verdict_recv+0x3a3/0x750 net/core/skmsg.c:1201
+ tcp_read_skb+0x173/0x670 net/ipv4/tcp.c:1770
+ sk_psock_verdict_data_ready+0x9d/0xc0 net/core/skmsg.c:1215
+ tcp_data_ready+0x106/0x520 net/ipv4/tcp_input.c:5004
+ tcp_rcv_established+0x1a9f/0x20e0 net/ipv4/tcp_input.c:5971
+ tcp_v4_do_rcv+0x66c/0x9b0 net/ipv4/tcp_ipv4.c:1681
+ tcp_v4_rcv+0x329d/0x38c0 net/ipv4/tcp_ipv4.c:2100
+ ip_protocol_deliver_rcu+0x9b/0x7c0 net/ipv4/ip_input.c:205
+ ip_local_deliver_finish+0x2e8/0x4c0 net/ipv4/ip_input.c:233
+ NF_HOOK include/linux/netfilter.h:302 [inline]
+ NF_HOOK include/linux/netfilter.h:296 [inline]
+ ip_local_deliver+0x1aa/0x200 net/ipv4/ip_input.c:254
+ dst_input include/net/dst.h:455 [inline]
+ ip_rcv_finish+0x1cb/0x2f0 net/ipv4/ip_input.c:444
+ NF_HOOK include/linux/netfilter.h:302 [inline]
+ NF_HOOK include/linux/netfilter.h:296 [inline]
+ ip_rcv+0xaa/0xd0 net/ipv4/ip_input.c:564
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5485
+ __netif_receive_skb+0x1f/0x1c0 net/core/dev.c:5599
+ process_backlog+0x3a0/0x7c0 net/core/dev.c:5927
+ __napi_poll+0xb3/0x6d0 net/core/dev.c:6494
+ napi_poll net/core/dev.c:6561 [inline]
+ net_rx_action+0x9c1/0xd90 net/core/dev.c:6672
+ __do_softirq+0x1d0/0x9c8 kernel/softirq.c:571
+ run_ksoftirqd kernel/softirq.c:934 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:926
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>

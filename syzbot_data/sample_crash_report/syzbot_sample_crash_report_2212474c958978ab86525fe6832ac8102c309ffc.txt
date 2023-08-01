@@ -1,0 +1,194 @@
+==================================================================
+BUG: KASAN: use-after-free in mini_qdisc_pair_swap+0x1a9/0x1c0 net/sched/sch_generic.c:1573
+Write of size 8 at addr ffff888083333b08 by task syz-executor.3/10246
+
+CPU: 0 PID: 10246 Comm: syz-executor.3 Not tainted 6.2.0-rc8-syzkaller-00021-ge1c04510f521 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x163/0x4f0 mm/kasan/report.c:417
+ kasan_report+0x13a/0x170 mm/kasan/report.c:517
+ mini_qdisc_pair_swap+0x1a9/0x1c0 net/sched/sch_generic.c:1573
+ tcf_chain_head_change_item net/sched/cls_api.c:391 [inline]
+ tcf_chain0_head_change net/sched/cls_api.c:405 [inline]
+ tcf_chain_tp_insert net/sched/cls_api.c:1679 [inline]
+ tcf_chain_tp_insert_unique+0xb06/0xce0 net/sched/cls_api.c:1728
+ tc_new_tfilter+0x1674/0x1ad0 net/sched/cls_api.c:2111
+ rtnetlink_rcv_msg+0x815/0xe90 net/core/rtnetlink.c:6132
+ netlink_rcv_skb+0x1df/0x430 net/netlink/af_netlink.c:2574
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x7c3/0x990 net/netlink/af_netlink.c:1365
+ netlink_sendmsg+0xa02/0xd10 net/netlink/af_netlink.c:1942
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0x5a2/0x8f0 net/socket.c:2476
+ ___sys_sendmsg net/socket.c:2530 [inline]
+ __sys_sendmmsg+0x3af/0x730 net/socket.c:2616
+ __do_sys_sendmmsg net/socket.c:2645 [inline]
+ __se_sys_sendmmsg net/socket.c:2642 [inline]
+ __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2642
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f324a08c0f9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f3248bfe168 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
+RAX: ffffffffffffffda RBX: 00007f324a1abf80 RCX: 00007f324a08c0f9
+RDX: 040000000000009f RSI: 00000000200002c0 RDI: 0000000000000006
+RBP: 00007f324a0e7ae9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffefd4aa32f R14: 00007f3248bfe300 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 10249:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4f/0x80 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:374 [inline]
+ __kasan_kmalloc+0x9b/0xb0 mm/kasan/common.c:383
+ kasan_kmalloc include/linux/kasan.h:211 [inline]
+ __do_kmalloc_node mm/slab_common.c:968 [inline]
+ __kmalloc_node+0xb3/0x190 mm/slab_common.c:975
+ kmalloc_node include/linux/slab.h:610 [inline]
+ kzalloc_node include/linux/slab.h:731 [inline]
+ qdisc_alloc+0x94/0x950 net/sched/sch_generic.c:938
+ qdisc_create+0x189/0x1130 net/sched/sch_api.c:1236
+ tc_modify_qdisc+0x9a5/0x1a50 net/sched/sch_api.c:1678
+ rtnetlink_rcv_msg+0x7c7/0xe90 net/core/rtnetlink.c:6141
+ netlink_rcv_skb+0x1df/0x430 net/netlink/af_netlink.c:2574
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x7c3/0x990 net/netlink/af_netlink.c:1365
+ netlink_sendmsg+0xa02/0xd10 net/netlink/af_netlink.c:1942
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0x5a2/0x8f0 net/socket.c:2476
+ ___sys_sendmsg net/socket.c:2530 [inline]
+ __sys_sendmmsg+0x3af/0x730 net/socket.c:2616
+ __do_sys_sendmmsg net/socket.c:2645 [inline]
+ __se_sys_sendmmsg net/socket.c:2642 [inline]
+ __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2642
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 10080:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4f/0x80 mm/kasan/common.c:52
+ kasan_save_free_info+0x2b/0x40 mm/kasan/generic.c:523
+ ____kasan_slab_free+0xd6/0x120 mm/kasan/common.c:236
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ slab_free_hook mm/slub.c:1781 [inline]
+ slab_free_freelist_hook mm/slub.c:1807 [inline]
+ slab_free mm/slub.c:3787 [inline]
+ __kmem_cache_free+0x264/0x3c0 mm/slub.c:3800
+ rcu_do_batch kernel/rcu/tree.c:2246 [inline]
+ rcu_core+0xa9e/0x17a0 kernel/rcu/tree.c:2506
+ __do_softirq+0x308/0xb15 kernel/softirq.c:571
+
+Last potentially related work creation:
+ kasan_save_stack+0x3f/0x60 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xb0/0xc0 mm/kasan/generic.c:493
+ __call_rcu_common kernel/rcu/tree.c:2755 [inline]
+ call_rcu+0x167/0xac0 kernel/rcu/tree.c:2868
+ qdisc_put_unlocked+0x59/0x90 net/sched/sch_generic.c:1097
+ tcf_block_release net/sched/cls_api.c:1257 [inline]
+ tc_new_tfilter+0x1f3/0x1ad0 net/sched/cls_api.c:2176
+ rtnetlink_rcv_msg+0x815/0xe90 net/core/rtnetlink.c:6132
+ netlink_rcv_skb+0x1df/0x430 net/netlink/af_netlink.c:2574
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x7c3/0x990 net/netlink/af_netlink.c:1365
+ netlink_sendmsg+0xa02/0xd10 net/netlink/af_netlink.c:1942
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0x5a2/0x8f0 net/socket.c:2476
+ ___sys_sendmsg net/socket.c:2530 [inline]
+ __sys_sendmmsg+0x3af/0x730 net/socket.c:2616
+ __do_sys_sendmmsg net/socket.c:2645 [inline]
+ __se_sys_sendmmsg net/socket.c:2642 [inline]
+ __x64_sys_sendmmsg+0xa0/0xb0 net/socket.c:2642
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff888083333800
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 776 bytes inside of
+ 1024-byte region [ffff888083333800, ffff888083333c00)
+
+The buggy address belongs to the physical page:
+page:ffffea00020ccc00 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff888083337800 pfn:0x83330
+head:ffffea00020ccc00 order:3 compound_mapcount:0 subpages_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffff888012441dc0 ffffea0001e7c010 ffffea0001ec0e10
+raw: ffff888083337800 000000000010000f 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0x152a20(GFP_ATOMIC|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_HARDWALL), pid 5848, tgid 5848 (kworker/u4:16), ts 465328418848, free_ts 464681834819
+ prep_new_page mm/page_alloc.c:2531 [inline]
+ get_page_from_freelist+0x3449/0x35c0 mm/page_alloc.c:4283
+ __alloc_pages+0x291/0x7e0 mm/page_alloc.c:5549
+ alloc_slab_page+0x6a/0x160 mm/slub.c:1851
+ allocate_slab mm/slub.c:1998 [inline]
+ new_slab+0x84/0x2f0 mm/slub.c:2051
+ ___slab_alloc+0xa85/0x10a0 mm/slub.c:3193
+ __slab_alloc mm/slub.c:3292 [inline]
+ __slab_alloc_node mm/slub.c:3345 [inline]
+ slab_alloc_node mm/slub.c:3442 [inline]
+ __kmem_cache_alloc_node+0x1b8/0x2a0 mm/slub.c:3491
+ __do_kmalloc_node mm/slab_common.c:967 [inline]
+ __kmalloc+0xa2/0x1a0 mm/slab_common.c:981
+ kmalloc include/linux/slab.h:584 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ ieee802_11_parse_elems_full+0x112/0x2a40 net/mac80211/util.c:1619
+ ieee802_11_parse_elems_crc net/mac80211/ieee80211_i.h:2260 [inline]
+ ieee802_11_parse_elems net/mac80211/ieee80211_i.h:2267 [inline]
+ ieee80211_bss_info_update+0x99c/0xef0 net/mac80211/scan.c:212
+ ieee80211_rx_bss_info net/mac80211/ibss.c:1120 [inline]
+ ieee80211_rx_mgmt_probe_beacon net/mac80211/ibss.c:1609 [inline]
+ ieee80211_ibss_rx_queued_mgmt+0x19a0/0x2e00 net/mac80211/ibss.c:1638
+ ieee80211_iface_process_skb net/mac80211/iface.c:1583 [inline]
+ ieee80211_iface_work+0x7bd/0xd00 net/mac80211/iface.c:1637
+ process_one_work+0x8fa/0x1370 kernel/workqueue.c:2289
+ worker_thread+0xa63/0x1210 kernel/workqueue.c:2436
+ kthread+0x270/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1446 [inline]
+ free_pcp_prepare mm/page_alloc.c:1496 [inline]
+ free_unref_page_prepare+0xf3a/0x1040 mm/page_alloc.c:3369
+ free_unref_page+0x37/0x3f0 mm/page_alloc.c:3464
+ discard_slab mm/slub.c:2098 [inline]
+ __unfreeze_partials+0x1b1/0x1f0 mm/slub.c:2637
+ put_cpu_partial+0x116/0x180 mm/slub.c:2713
+ qlist_free_all+0x22/0x60 mm/kasan/quarantine.c:187
+ kasan_quarantine_reduce+0x15a/0x170 mm/kasan/quarantine.c:294
+ __kasan_slab_alloc+0x23/0x80 mm/kasan/common.c:305
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook+0x68/0x390 mm/slab.h:761
+ slab_alloc_node mm/slub.c:3452 [inline]
+ __kmem_cache_alloc_node+0x14c/0x2a0 mm/slub.c:3491
+ __do_kmalloc_node mm/slab_common.c:967 [inline]
+ __kmalloc+0xa2/0x1a0 mm/slab_common.c:981
+ kmalloc include/linux/slab.h:584 [inline]
+ allocate_probes kernel/tracepoint.c:109 [inline]
+ func_remove kernel/tracepoint.c:267 [inline]
+ tracepoint_remove_func kernel/tracepoint.c:403 [inline]
+ tracepoint_probe_unregister+0x248/0x960 kernel/tracepoint.c:551
+ bpf_raw_tp_link_release+0x63/0x90 kernel/bpf/syscall.c:3144
+ bpf_link_free kernel/bpf/syscall.c:2727 [inline]
+ bpf_link_put+0x238/0x2c0 kernel/bpf/syscall.c:2753
+ bpf_link_release+0x3b/0x40 kernel/bpf/syscall.c:2762
+ __fput+0x3b7/0x890 fs/file_table.c:320
+ task_work_run+0x24a/0x300 kernel/task_work.c:179
+
+Memory state around the buggy address:
+ ffff888083333a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888083333a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888083333b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff888083333b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888083333c00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

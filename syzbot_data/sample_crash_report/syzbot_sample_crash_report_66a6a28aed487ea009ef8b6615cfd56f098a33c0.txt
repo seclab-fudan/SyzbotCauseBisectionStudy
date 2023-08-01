@@ -1,0 +1,127 @@
+INFO: task kworker/u4:4:1154 blocked for more than 143 seconds.
+      Not tainted 5.15.0-rc7-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:kworker/u4:4    state:D stack:23240 pid: 1154 ppid:     2 flags:0x00004000
+Workqueue: events_unbound io_ring_exit_work
+Call Trace:
+ context_switch kernel/sched/core.c:4940 [inline]
+ __schedule+0xb44/0x5960 kernel/sched/core.c:6287
+ schedule+0xd3/0x270 kernel/sched/core.c:6366
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6425
+ __mutex_lock_common kernel/locking/mutex.c:669 [inline]
+ __mutex_lock+0xa34/0x12f0 kernel/locking/mutex.c:729
+ io_uring_try_cancel_iowq fs/io_uring.c:9567 [inline]
+ io_uring_try_cancel_requests+0x7d1/0xc30 fs/io_uring.c:9597
+ io_ring_exit_work+0x137/0x19a0 fs/io_uring.c:9397
+ process_one_work+0x9bf/0x16b0 kernel/workqueue.c:2297
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2444
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/27:
+ #0: ffffffff8b981b20 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6446
+3 locks held by kworker/u4:4/1154:
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1198 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:634 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:661 [inline]
+ #0: ffff888010c69138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: process_one_work+0x8a3/0x16b0 kernel/workqueue.c:2268
+ #1: ffffc90004dffdb0 ((work_completion)(&ctx->exit_work)){+.+.}-{0:0}, at: process_one_work+0x8d7/0x16b0 kernel/workqueue.c:2272
+ #2: ffff888079b800a8 (&ctx->uring_lock){+.+.}-{3:3}, at: io_uring_try_cancel_iowq fs/io_uring.c:9567 [inline]
+ #2: ffff888079b800a8 (&ctx->uring_lock){+.+.}-{3:3}, at: io_uring_try_cancel_requests+0x7d1/0xc30 fs/io_uring.c:9597
+1 lock held by in:imklog/6239:
+ #0: ffff88801d1320f0 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:990
+1 lock held by syz-executor741/6562:
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 27 Comm: khungtaskd Not tainted 5.15.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x47/0x144 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1ae/0x220 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:210 [inline]
+ watchdog+0xc1d/0xf50 kernel/hung_task.c:295
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 6562 Comm: syz-executor741 Not tainted 5.15.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__orc_find+0x8f/0xf0 arch/x86/kernel/unwind_orc.c:49
+Code: d8 48 c1 e8 03 42 0f b6 14 38 48 89 d8 83 e0 07 83 c0 03 38 d0 7c 04 84 d2 75 48 48 63 03 48 01 d8 48 39 c1 73 b0 4c 8d 63 fc <49> 39 ec 73 b3 4d 29 ee 49 c1 fe 02 4b 8d 04 76 48 8d 04 46 48 83
+RSP: 0018:ffffc90002cdf6c8 EFLAGS: 00000283
+RAX: ffffffff814cffd7 RBX: ffffffff8d7c3a78 RCX: ffffffff814cff4c
+RDX: 0000000000000000 RSI: ffffffff8dea44c2 RDI: ffffffff8d7c3a68
+RBP: ffffffff8d7c3a68 R08: 0000000000000000 R09: ffffffff8dea44c2
+R10: fffff5200059bf08 R11: 0000000000086089 R12: ffffffff8d7c3a74
+R13: ffffffff8d7c3a68 R14: ffffffff8d7c3a68 R15: dffffc0000000000
+FS:  00007fbd0833d700(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fbd083e0ff8 CR3: 00000000720b7000 CR4: 0000000000350ee0
+Call Trace:
+ orc_find arch/x86/kernel/unwind_orc.c:173 [inline]
+ unwind_next_frame+0x32a/0x1ce0 arch/x86/kernel/unwind_orc.c:443
+ arch_stack_walk+0x7d/0xe0 arch/x86/kernel/stacktrace.c:25
+ stack_trace_save+0x8c/0xc0 kernel/stacktrace.c:121
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:513 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:472 [inline]
+ __kasan_kmalloc+0xa4/0xd0 mm/kasan/common.c:522
+ kmalloc include/linux/slab.h:591 [inline]
+ io_add_buffers fs/io_uring.c:4382 [inline]
+ io_provide_buffers fs/io_uring.c:4416 [inline]
+ io_issue_sqe+0x3289/0x7180 fs/io_uring.c:6728
+ __io_queue_sqe+0x90/0xb30 fs/io_uring.c:6957
+ io_req_task_submit+0xbf/0x1b0 fs/io_uring.c:2231
+ tctx_task_work+0x189/0x6c0 fs/io_uring.c:2156
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ tracehook_notify_signal include/linux/tracehook.h:214 [inline]
+ handle_signal_work kernel/entry/common.c:146 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x256/0x290 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:300
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7fbd0838bd79
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 71 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fbd0833d2f8 EFLAGS: 00000246 ORIG_RAX: 00000000000001aa
+RAX: 0000000000000800 RBX: 00007fbd08415408 RCX: 00007fbd0838bd79
+RDX: 0000000000000000 RSI: 0000000000006019 RDI: 0000000000000003
+RBP: 00007fbd08415400 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000001000
+R13: 0000000000000003 R14: 00007fbd0833d400 R15: 0000000000022000
+----------------
+Code disassembly (best guess):
+   0:	d8 48 c1             	fmuls  -0x3f(%rax)
+   3:	e8 03 42 0f b6       	callq  0xb60f420b
+   8:	14 38                	adc    $0x38,%al
+   a:	48 89 d8             	mov    %rbx,%rax
+   d:	83 e0 07             	and    $0x7,%eax
+  10:	83 c0 03             	add    $0x3,%eax
+  13:	38 d0                	cmp    %dl,%al
+  15:	7c 04                	jl     0x1b
+  17:	84 d2                	test   %dl,%dl
+  19:	75 48                	jne    0x63
+  1b:	48 63 03             	movslq (%rbx),%rax
+  1e:	48 01 d8             	add    %rbx,%rax
+  21:	48 39 c1             	cmp    %rax,%rcx
+  24:	73 b0                	jae    0xffffffd6
+  26:	4c 8d 63 fc          	lea    -0x4(%rbx),%r12
+* 2a:	49 39 ec             	cmp    %rbp,%r12 <-- trapping instruction
+  2d:	73 b3                	jae    0xffffffe2
+  2f:	4d 29 ee             	sub    %r13,%r14
+  32:	49 c1 fe 02          	sar    $0x2,%r14
+  36:	4b 8d 04 76          	lea    (%r14,%r14,2),%rax
+  3a:	48 8d 04 46          	lea    (%rsi,%rax,2),%rax
+  3e:	48                   	rex.W
+  3f:	83                   	.byte 0x83

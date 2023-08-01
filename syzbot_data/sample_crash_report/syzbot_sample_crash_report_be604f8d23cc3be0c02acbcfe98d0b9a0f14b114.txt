@@ -1,0 +1,53 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in __ext4_check_dir_entry+0x2de/0x320 fs/ext4/dir.c:69
+Read of size 2 at addr ffff8801ad833002 by task syzkaller726813/4419
+
+CPU: 1 PID: 4419 Comm: syzkaller726813 Not tainted 4.16.0-rc7+ #9
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load2_noabort+0x14/0x20 mm/kasan/report.c:431
+ __ext4_check_dir_entry+0x2de/0x320 fs/ext4/dir.c:69
+ ext4_readdir+0xd00/0x3600 fs/ext4/dir.c:237
+ iterate_dir+0x1ca/0x530 fs/readdir.c:51
+ SYSC_getdents64 fs/readdir.c:314 [inline]
+ SyS_getdents64+0x221/0x420 fs/readdir.c:295
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43fd69
+RSP: 002b:00007ffc4562e698 EFLAGS: 00000203 ORIG_RAX: 00000000000000d9
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd69
+RDX: 00000000200015fc RSI: 0000000020001540 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000203 R12: 0000000000401690
+R13: 0000000000401720 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 0:
+(stack is not available)
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801ad833040
+ which belongs to the cache vm_area_struct of size 200
+The buggy address is located 62 bytes to the left of
+ 200-byte region [ffff8801ad833040, ffff8801ad833108)
+The buggy address belongs to the page:
+page:ffffea0006b60cc0 count:1 mapcount:0 mapping:ffff8801ad833040 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801ad833040 0000000000000000 000000010000000f
+raw: ffffea0006b63860 ffffea0006b51420 ffff8801da5d6840 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ad832f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801ad832f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801ad833000: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                   ^
+ ffff8801ad833080: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801ad833100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

@@ -1,0 +1,78 @@
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x3e6f/0x54c0 kernel/locking/lockdep.c:4770
+Read of size 8 at addr ffff8881444a3a88 by task iou-sqp-7185/7188
+
+CPU: 0 PID: 7188 Comm: iou-sqp-7185 Not tainted 5.11.0-next-20210225-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0xfa/0x151 lib/dump_stack.c:120
+ print_address_description.constprop.0.cold+0x5b/0x2f8 mm/kasan/report.c:232
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report.cold+0x7c/0xd8 mm/kasan/report.c:416
+ __lock_acquire+0x3e6f/0x54c0 kernel/locking/lockdep.c:4770
+ lock_acquire kernel/locking/lockdep.c:5510 [inline]
+ lock_acquire+0x1ab/0x730 kernel/locking/lockdep.c:5475
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x39/0x50 kernel/locking/spinlock.c:159
+ complete+0x13/0x60 kernel/sched/completion.c:32
+ io_sq_thread+0x1225/0x19a0 fs/io_uring.c:6808
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Allocated by task 7185:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:427 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:506 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:465 [inline]
+ __kasan_kmalloc+0x99/0xc0 mm/kasan/common.c:515
+ kmalloc include/linux/slab.h:554 [inline]
+ kzalloc include/linux/slab.h:684 [inline]
+ io_get_sq_data fs/io_uring.c:7202 [inline]
+ io_sq_offload_create fs/io_uring.c:7875 [inline]
+ io_uring_create fs/io_uring.c:9465 [inline]
+ io_uring_setup+0x173e/0x2c20 fs/io_uring.c:9550
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 10279:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:357
+ ____kasan_slab_free mm/kasan/common.c:360 [inline]
+ ____kasan_slab_free mm/kasan/common.c:325 [inline]
+ __kasan_slab_free+0xf5/0x130 mm/kasan/common.c:367
+ kasan_slab_free include/linux/kasan.h:199 [inline]
+ slab_free_hook mm/slub.c:1562 [inline]
+ slab_free_freelist_hook+0x72/0x1b0 mm/slub.c:1600
+ slab_free mm/slub.c:3161 [inline]
+ kfree+0xe5/0x7b0 mm/slub.c:4213
+ io_put_sq_data fs/io_uring.c:7142 [inline]
+ io_sq_thread_finish+0x474/0x580 fs/io_uring.c:7164
+ io_ring_ctx_free fs/io_uring.c:8408 [inline]
+ io_ring_exit_work+0x7e/0x4a0 fs/io_uring.c:8540
+ process_one_work+0x98d/0x1600 kernel/workqueue.c:2275
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
+ kthread+0x3b1/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+The buggy address belongs to the object at ffff8881444a3800
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 648 bytes inside of
+ 1024-byte region [ffff8881444a3800, ffff8881444a3c00)
+The buggy address belongs to the page:
+page:00000000299b6ff4 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1444a0
+head:00000000299b6ff4 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0x57ff00000010200(slab|head)
+raw: 057ff00000010200 dead000000000100 dead000000000122 ffff888010841dc0
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881444a3980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881444a3a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881444a3a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff8881444a3b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881444a3b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

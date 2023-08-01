@@ -1,0 +1,67 @@
+list_del corruption. prev->next should be ffff888147a5bc68, but was ffff888021d39840
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:51!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 8455 Comm: syz-executor871 Not tainted 5.12.0-next-20210507-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__list_del_entry_valid.cold+0xf/0x4a lib/list_debug.c:51
+Code: e8 26 a3 f2 ff 0f 0b 48 89 f1 48 c7 c7 c0 f6 c2 89 4c 89 e6 e8 12 a3 f2 ff 0f 0b 48 89 ee 48 c7 c7 60 f8 c2 89 e8 01 a3 f2 ff <0f> 0b 4c 89 ea 48 89 ee 48 c7 c7 a0 f7 c2 89 e8 ed a2 f2 ff 0f 0b
+RSP: 0000:ffffc90000ebf928 EFLAGS: 00010282
+RAX: 0000000000000054 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: ffff888027830000 RSI: ffffffff815ccd25 RDI: fffff520001d7f17
+RBP: ffff888147a5bc68 R08: 0000000000000054 R09: 0000000000000000
+R10: ffffffff815c6b8e R11: 0000000000000000 R12: ffff8881409cdc68
+R13: ffff8881409cdc68 R14: ffff888147a5bc60 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f0f9b39b030 CR3: 0000000018e92000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:132 [inline]
+ list_del include/linux/list.h:146 [inline]
+ klist_release+0x66/0x480 lib/klist.c:189
+ kref_put include/linux/kref.h:65 [inline]
+ klist_dec_and_del lib/klist.c:206 [inline]
+ klist_put+0xf7/0x1d0 lib/klist.c:217
+ device_del+0x245/0xd40 drivers/base/core.c:3486
+ hci_conn_del_sysfs+0xdc/0x180 net/bluetooth/hci_sysfs.c:78
+ hci_conn_cleanup+0x2e7/0x6c0 net/bluetooth/hci_conn.c:138
+ hci_conn_del+0x2a0/0x790 net/bluetooth/hci_conn.c:678
+ hci_conn_hash_flush+0x19c/0x260 net/bluetooth/hci_conn.c:1609
+ hci_dev_do_close+0x569/0x1110 net/bluetooth/hci_core.c:1780
+ hci_unregister_dev+0x263/0x1130 net/bluetooth/hci_core.c:3994
+ vhci_release+0x70/0xe0 drivers/bluetooth/hci_vhci.c:340
+ __fput+0x288/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ exit_task_work include/linux/task_work.h:32 [inline]
+ do_exit+0xbfc/0x2a60 kernel/exit.c:826
+ do_group_exit+0x125/0x310 kernel/exit.c:923
+ __do_sys_exit_group kernel/exit.c:934 [inline]
+ __se_sys_exit_group kernel/exit.c:932 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:932
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x444739
+Code: Unable to access opcode bytes at RIP 0x44470f.
+RSP: 002b:00007ffee45719d8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00000000004cb370 RCX: 0000000000444739
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000001
+RBP: 0000000000000001 R08: ffffffffffffffbc R09: 000000ffe4571ad0
+R10: 00007ffee45714a0 R11: 0000000000000246 R12: 00000000004cb370
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+Modules linked in:
+---[ end trace 4825748abd92c1fc ]---
+RIP: 0010:__list_del_entry_valid.cold+0xf/0x4a lib/list_debug.c:51
+Code: e8 26 a3 f2 ff 0f 0b 48 89 f1 48 c7 c7 c0 f6 c2 89 4c 89 e6 e8 12 a3 f2 ff 0f 0b 48 89 ee 48 c7 c7 60 f8 c2 89 e8 01 a3 f2 ff <0f> 0b 4c 89 ea 48 89 ee 48 c7 c7 a0 f7 c2 89 e8 ed a2 f2 ff 0f 0b
+RSP: 0000:ffffc90000ebf928 EFLAGS: 00010282
+RAX: 0000000000000054 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: ffff888027830000 RSI: ffffffff815ccd25 RDI: fffff520001d7f17
+RBP: ffff888147a5bc68 R08: 0000000000000054 R09: 0000000000000000
+R10: ffffffff815c6b8e R11: 0000000000000000 R12: ffff8881409cdc68
+R13: ffff8881409cdc68 R14: ffff888147a5bc60 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f0f9b39b030 CR3: 0000000018e92000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

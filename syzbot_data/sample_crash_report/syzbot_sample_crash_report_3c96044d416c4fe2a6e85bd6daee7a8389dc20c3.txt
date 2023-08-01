@@ -1,0 +1,141 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.3.0-rc7-syzkaller-00152-g2af3e53a4dc0 #0 Not tainted
+------------------------------------------------------
+kworker/u4:2/41 is trying to acquire lock:
+ffff88801e280120 (&wnd->rw_lock/1){++++}-{3:3}, at: ntfs_mark_rec_free+0x3f/0x2b0 fs/ntfs3/fsntfs.c:741
+
+but task is already holding lock:
+ffff88804cdd5980 (&ni->ni_lock){+.+.}-{3:3}, at: ni_trylock fs/ntfs3/ntfs_fs.h:1144 [inline]
+ffff88804cdd5980 (&ni->ni_lock){+.+.}-{3:3}, at: ni_write_inode+0x155/0x1250 fs/ntfs3/frecord.c:3255
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&ni->ni_lock){+.+.}-{3:3}:
+       lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+       __mutex_lock_common+0x1d8/0x2530 kernel/locking/mutex.c:603
+       __mutex_lock kernel/locking/mutex.c:747 [inline]
+       mutex_lock_nested+0x1b/0x20 kernel/locking/mutex.c:799
+       ntfs_set_state+0x21b/0x6f0 fs/ntfs3/fsntfs.c:946
+       attr_set_size+0x3311/0x4290 fs/ntfs3/attrib.c:867
+       ntfs_extend_mft+0x2fa/0x4b0 fs/ntfs3/fsntfs.c:526
+       ntfs_look_free_mft+0x43d/0x10b0 fs/ntfs3/fsntfs.c:589
+       ni_create_attr_list+0x9d4/0x1510 fs/ntfs3/frecord.c:873
+       ni_ins_attr_ext+0x334/0xc00 fs/ntfs3/frecord.c:968
+       ni_insert_attr+0x358/0x900 fs/ntfs3/frecord.c:1135
+       ni_insert_resident+0xf8/0x3c0 fs/ntfs3/frecord.c:1519
+       ntfs_set_ea+0xabc/0x1670 fs/ntfs3/xattr.c:432
+       ntfs_save_wsl_perm+0x13d/0x490 fs/ntfs3/xattr.c:962
+       ntfs3_setattr+0x98d/0xb80 fs/ntfs3/file.c:722
+       notify_change+0xc8b/0xf40 fs/attr.c:482
+       chown_common+0x500/0x850 fs/open.c:774
+       do_fchownat+0x16d/0x240 fs/open.c:805
+       __do_sys_lchown fs/open.c:830 [inline]
+       __se_sys_lchown fs/open.c:828 [inline]
+       __x64_sys_lchown+0x85/0x90 fs/open.c:828
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #1 (&ni->file.run_lock#2){++++}-{3:3}:
+       lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+       down_read+0x3d/0x50 kernel/locking/rwsem.c:1520
+       mi_read+0x179/0x560 fs/ntfs3/record.c:129
+       mi_format_new+0x1ab/0x5d0 fs/ntfs3/record.c:372
+       ni_add_subrecord+0xe2/0x430 fs/ntfs3/frecord.c:371
+       ntfs_look_free_mft+0x878/0x10b0 fs/ntfs3/fsntfs.c:714
+       ni_create_attr_list+0xa17/0x1510 fs/ntfs3/frecord.c:873
+       attr_data_get_block+0x1686/0x2da0 fs/ntfs3/attrib.c:1091
+       ntfs_get_block_vbo+0x36a/0xd00 fs/ntfs3/inode.c:573
+       __block_write_begin_int+0x548/0x1a50 fs/buffer.c:2034
+       __block_write_begin fs/buffer.c:2084 [inline]
+       block_write_begin+0x9c/0x1f0 fs/buffer.c:2145
+       generic_perform_write+0x300/0x5e0 mm/filemap.c:3926
+       __generic_file_write_iter+0x17a/0x400 mm/filemap.c:4054
+       ntfs_file_write_iter+0x5fe/0x6d0 fs/ntfs3/file.c:1069
+       do_iter_write+0x6ea/0xc50 fs/read_write.c:861
+       iter_file_splice_write+0x843/0xfe0 fs/splice.c:778
+       do_splice_from fs/splice.c:856 [inline]
+       direct_splice_actor+0xe7/0x1c0 fs/splice.c:1022
+       splice_direct_to_actor+0x4c4/0xbd0 fs/splice.c:977
+       do_splice_direct+0x283/0x3d0 fs/splice.c:1065
+       do_sendfile+0x620/0xff0 fs/read_write.c:1255
+       __do_sys_sendfile64 fs/read_write.c:1323 [inline]
+       __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1309
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&wnd->rw_lock/1){++++}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3098 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+       validate_chain+0x166b/0x58e0 kernel/locking/lockdep.c:3832
+       __lock_acquire+0x125b/0x1f80 kernel/locking/lockdep.c:5056
+       lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+       down_write_nested+0x3d/0x50 kernel/locking/rwsem.c:1689
+       ntfs_mark_rec_free+0x3f/0x2b0 fs/ntfs3/fsntfs.c:741
+       ni_write_inode+0x437/0x1250 fs/ntfs3/frecord.c:3348
+       write_inode fs/fs-writeback.c:1456 [inline]
+       __writeback_single_inode+0x69b/0xfb0 fs/fs-writeback.c:1668
+       writeback_sb_inodes+0x8ef/0x11d0 fs/fs-writeback.c:1894
+       wb_writeback+0x458/0xc70 fs/fs-writeback.c:2068
+       wb_do_writeback fs/fs-writeback.c:2211 [inline]
+       wb_workfn+0x400/0xff0 fs/fs-writeback.c:2251
+       process_one_work+0x8a0/0x10e0 kernel/workqueue.c:2390
+       worker_thread+0xa63/0x1210 kernel/workqueue.c:2537
+       kthread+0x270/0x300 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+other info that might help us debug this:
+
+Chain exists of:
+  &wnd->rw_lock/1 --> &ni->file.run_lock#2 --> &ni->ni_lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&ni->ni_lock);
+                               lock(&ni->file.run_lock#2);
+                               lock(&ni->ni_lock);
+  lock(&wnd->rw_lock/1);
+
+ *** DEADLOCK ***
+
+3 locks held by kworker/u4:2/41:
+ #0: ffff8880177fc138 ((wq_completion)writeback){+.+.}-{0:0}, at: process_one_work+0x77e/0x10e0 kernel/workqueue.c:2363
+ #1: ffffc90000b27d20 ((work_completion)(&(&wb->dwork)->work)){+.+.}-{0:0}, at: process_one_work+0x7c8/0x10e0 kernel/workqueue.c:2365
+ #2: ffff88804cdd5980 (&ni->ni_lock){+.+.}-{3:3}, at: ni_trylock fs/ntfs3/ntfs_fs.h:1144 [inline]
+ #2: ffff88804cdd5980 (&ni->ni_lock){+.+.}-{3:3}, at: ni_write_inode+0x155/0x1250 fs/ntfs3/frecord.c:3255
+
+stack backtrace:
+CPU: 1 PID: 41 Comm: kworker/u4:2 Not tainted 6.3.0-rc7-syzkaller-00152-g2af3e53a4dc0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+Workqueue: writeback wb_workfn (flush-7:2)
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ check_noncircular+0x2fe/0x3b0 kernel/locking/lockdep.c:2178
+ check_prev_add kernel/locking/lockdep.c:3098 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+ validate_chain+0x166b/0x58e0 kernel/locking/lockdep.c:3832
+ __lock_acquire+0x125b/0x1f80 kernel/locking/lockdep.c:5056
+ lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+ down_write_nested+0x3d/0x50 kernel/locking/rwsem.c:1689
+ ntfs_mark_rec_free+0x3f/0x2b0 fs/ntfs3/fsntfs.c:741
+ ni_write_inode+0x437/0x1250 fs/ntfs3/frecord.c:3348
+ write_inode fs/fs-writeback.c:1456 [inline]
+ __writeback_single_inode+0x69b/0xfb0 fs/fs-writeback.c:1668
+ writeback_sb_inodes+0x8ef/0x11d0 fs/fs-writeback.c:1894
+ wb_writeback+0x458/0xc70 fs/fs-writeback.c:2068
+ wb_do_writeback fs/fs-writeback.c:2211 [inline]
+ wb_workfn+0x400/0xff0 fs/fs-writeback.c:2251
+ process_one_work+0x8a0/0x10e0 kernel/workqueue.c:2390
+ worker_thread+0xa63/0x1210 kernel/workqueue.c:2537
+ kthread+0x270/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>

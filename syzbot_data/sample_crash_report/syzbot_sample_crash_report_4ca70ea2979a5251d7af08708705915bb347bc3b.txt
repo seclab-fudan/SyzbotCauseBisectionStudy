@@ -1,0 +1,92 @@
+sysv_free_block: flc_count > flc_size
+sysv_free_block: flc_count > flc_size
+sysv_free_block: flc_count > flc_size
+sysv_free_block: flc_count > flc_size
+sysv_free_block: flc_count > flc_size
+sysv_free_block: flc_count > flc_size
+==================================================================
+BUG: KASAN: use-after-free in sysv_new_block+0x78c/0x960 fs/sysv/balloc.c:113
+Read of size 4 at addr ffff888072d2f0c8 by task syz-executor213/5073
+
+CPU: 1 PID: 5073 Comm: syz-executor213 Not tainted 6.3.0-rc4-syzkaller-00161-g62bad54b26db #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:319 [inline]
+ print_report+0x163/0x540 mm/kasan/report.c:430
+ kasan_report+0x176/0x1b0 mm/kasan/report.c:536
+ sysv_new_block+0x78c/0x960 fs/sysv/balloc.c:113
+ alloc_branch fs/sysv/itree.c:134 [inline]
+ get_block+0x2fc/0x16a0 fs/sysv/itree.c:251
+ __block_write_begin_int+0x548/0x1a50 fs/buffer.c:2034
+ __block_write_begin fs/buffer.c:2084 [inline]
+ block_write_begin+0x9c/0x1f0 fs/buffer.c:2145
+ sysv_write_begin+0x31/0x70 fs/sysv/itree.c:485
+ generic_perform_write+0x300/0x5e0 mm/filemap.c:3926
+ __generic_file_write_iter+0x17a/0x400 mm/filemap.c:4054
+ generic_file_write_iter+0xaf/0x310 mm/filemap.c:4086
+ call_write_iter include/linux/fs.h:1851 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x7b2/0xbb0 fs/read_write.c:584
+ ksys_write+0x1a0/0x2c0 fs/read_write.c:637
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fa612edfe99
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 d1 17 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffc2160cf88 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0030656c69662f2e RCX: 00007fa612edfe99
+RDX: 00000000fffffd5e RSI: 000000002000ad00 RDI: 0000000000000004
+RBP: 0000000000000000 R08: 0000000000000140 R09: 0000000000000140
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffc2160cfc0
+R13: 00007ffc2160d0a0 R14: 431bde82d7b634db R15: 00007ffc2160cfa0
+ </TASK>
+
+The buggy address belongs to the physical page:
+page:ffffea0001cb4bc0 refcount:0 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x72d2f
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 ffffea0001cb4c08 ffffea0001cb4b88 0000000000000000
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as freed
+page last allocated via order 0, migratetype Movable, gfp_mask 0x8(__GFP_MOVABLE), pid 1, tgid 1 (swapper/0), ts 16687348309, free_ts 18019806101
+ split_map_pages+0x24a/0x510 mm/compaction.c:97
+ isolate_freepages_range+0x480/0x4e0 mm/compaction.c:734
+ alloc_contig_range+0x62e/0x9a0 mm/page_alloc.c:9410
+ __alloc_contig_pages mm/page_alloc.c:9433 [inline]
+ alloc_contig_pages+0x3e8/0x4e0 mm/page_alloc.c:9510
+ debug_vm_pgtable_alloc_huge_page+0xb9/0x110 mm/debug_vm_pgtable.c:1090
+ init_args+0x836/0xb10 mm/debug_vm_pgtable.c:1273
+ debug_vm_pgtable+0xa8/0x490 mm/debug_vm_pgtable.c:1311
+ do_one_initcall+0x23d/0x7d0 init/main.c:1310
+ do_initcall_level+0x157/0x210 init/main.c:1383
+ do_initcalls+0x3f/0x80 init/main.c:1399
+ kernel_init_freeable+0x477/0x630 init/main.c:1638
+ kernel_init+0x1d/0x2a0 init/main.c:1526
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1454 [inline]
+ free_pcp_prepare mm/page_alloc.c:1504 [inline]
+ free_unref_page_prepare+0xe2f/0xe70 mm/page_alloc.c:3388
+ free_unref_page+0x37/0x3f0 mm/page_alloc.c:3483
+ free_contig_range+0x9e/0x150 mm/page_alloc.c:9532
+ destroy_args+0x102/0x9a0 mm/debug_vm_pgtable.c:1023
+ debug_vm_pgtable+0x405/0x490 mm/debug_vm_pgtable.c:1403
+ do_one_initcall+0x23d/0x7d0 init/main.c:1310
+ do_initcall_level+0x157/0x210 init/main.c:1383
+ do_initcalls+0x3f/0x80 init/main.c:1399
+ kernel_init_freeable+0x477/0x630 init/main.c:1638
+ kernel_init+0x1d/0x2a0 init/main.c:1526
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+Memory state around the buggy address:
+ ffff888072d2ef80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888072d2f000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff888072d2f080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                              ^
+ ffff888072d2f100: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888072d2f180: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

@@ -1,0 +1,250 @@
+radio-si470x 1-1:0.0: non-zero urb status (-71)
+==================================================================
+BUG: KASAN: use-after-free in si470x_int_in_callback.cold+0x96/0xbf drivers/media/radio/si470x/radio-si470x-usb.c:378
+Read of size 8 at addr ffff8880745f8ac0 by task kworker/0:1/15
+
+CPU: 0 PID: 15 Comm: kworker/0:1 Not tainted 6.0.0-syzkaller-09589-g55be6084c8e0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:317 [inline]
+ print_report.cold+0x2ba/0x719 mm/kasan/report.c:433
+ kasan_report+0xb1/0x1e0 mm/kasan/report.c:495
+ si470x_int_in_callback.cold+0x96/0xbf drivers/media/radio/si470x/radio-si470x-usb.c:378
+ __usb_hcd_giveback_urb+0x2b0/0x5c0 drivers/usb/core/hcd.c:1671
+ usb_hcd_giveback_urb+0x380/0x430 drivers/usb/core/hcd.c:1754
+ dummy_timer+0x11ff/0x32c0 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x1a0/0x6b0 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers.part.0+0x674/0xa80 kernel/time/timer.c:1790
+ __run_timers kernel/time/timer.c:1768 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1803
+ __do_softirq+0x1d0/0x9c8 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:preempt_count arch/x86/include/asm/preempt.h:27 [inline]
+RIP: 0010:check_kcov_mode kernel/kcov.c:166 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x0/0x60 kernel/kcov.c:200
+Code: 48 89 ef 5d e9 f1 c4 4c 00 5d be 03 00 00 00 e9 d6 43 84 02 66 0f 1f 44 00 00 48 8b be a8 01 00 00 e8 b4 ff ff ff 31 c0 c3 90 <65> 8b 05 f9 24 87 7e 89 c1 48 8b 34 24 81 e1 00 01 00 00 65 48 8b
+RSP: 0018:ffffc90000146e70 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888011a73b00 RSI: ffffffff8160ec05 RDI: 0000000000000007
+RBP: ffffc90000147018 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000200 R11: 69732d6f69646172 R12: 0000000000000001
+R13: ffffffff9119cda0 R14: 0000000000000200 R15: ffffffff8ca38e58
+ console_emit_next_record.constprop.0+0x4fb/0x840 arch/x86/include/asm/irqflags.h:45
+ console_flush_all kernel/printk/printk.c:2794 [inline]
+ console_unlock+0x37a/0x5a0 kernel/printk/printk.c:2861
+ vprintk_emit+0x1b9/0x5f0 kernel/printk/printk.c:2271
+ vprintk+0x80/0x90 kernel/printk/printk_safe.c:50
+ _printk+0xba/0xed kernel/printk/printk.c:2292
+ call_driver_probe drivers/base/dd.c:576 [inline]
+ really_probe.cold+0x69/0x175 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d0/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbd5/0x1e90 drivers/base/core.c:3517
+ usb_set_configuration+0x1019/0x1900 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd4/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d0/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbd5/0x1e90 drivers/base/core.c:3517
+ usb_new_device.cold+0x685/0x10ad drivers/usb/core/hub.c:2573
+ hub_port_connect drivers/usb/core/hub.c:5353 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5497 [inline]
+ port_event drivers/usb/core/hub.c:5653 [inline]
+ hub_event+0x26c7/0x45e0 drivers/usb/core/hub.c:5735
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+
+Allocated by task 15:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:437 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:516 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:475 [inline]
+ __kasan_kmalloc+0xa9/0xd0 mm/kasan/common.c:525
+ kmalloc include/linux/slab.h:600 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ si470x_usb_driver_probe+0x51/0xf90 drivers/media/radio/si470x/radio-si470x-usb.c:573
+ usb_probe_interface+0x30b/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d0/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbd5/0x1e90 drivers/base/core.c:3517
+ usb_set_configuration+0x1019/0x1900 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd4/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d0/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbd5/0x1e90 drivers/base/core.c:3517
+ usb_new_device.cold+0x685/0x10ad drivers/usb/core/hub.c:2573
+ hub_port_connect drivers/usb/core/hub.c:5353 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5497 [inline]
+ port_event drivers/usb/core/hub.c:5653 [inline]
+ hub_event+0x26c7/0x45e0 drivers/usb/core/hub.c:5735
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Freed by task 15:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:367 [inline]
+ ____kasan_slab_free+0x166/0x1c0 mm/kasan/common.c:329
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ slab_free_hook mm/slub.c:1759 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1785
+ slab_free mm/slub.c:3539 [inline]
+ kfree+0xe2/0x580 mm/slub.c:4567
+ si470x_usb_driver_probe+0xb3d/0xf90 drivers/media/radio/si470x/radio-si470x-usb.c:760
+ usb_probe_interface+0x30b/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d0/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbd5/0x1e90 drivers/base/core.c:3517
+ usb_set_configuration+0x1019/0x1900 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd4/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d0/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbd5/0x1e90 drivers/base/core.c:3517
+ usb_new_device.cold+0x685/0x10ad drivers/usb/core/hub.c:2573
+ hub_port_connect drivers/usb/core/hub.c:5353 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5497 [inline]
+ port_event drivers/usb/core/hub.c:5653 [inline]
+ hub_event+0x26c7/0x45e0 drivers/usb/core/hub.c:5735
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+The buggy address belongs to the object at ffff8880745f8000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 2752 bytes inside of
+ 4096-byte region [ffff8880745f8000, ffff8880745f9000)
+
+The buggy address belongs to the physical page:
+page:ffffea0001d17e00 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff8880745fa000 pfn:0x745f8
+head:ffffea0001d17e00 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffffea0001d50e08 ffffea0001d8c608 ffff888011842140
+raw: ffff8880745fa000 0000000000040001 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd2040(__GFP_IO|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 3002, tgid 3002 (v4l_id), ts 13703109583, free_ts 9844300769
+ prep_new_page mm/page_alloc.c:2532 [inline]
+ get_page_from_freelist+0x109b/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages+0x1c7/0x510 mm/page_alloc.c:5549
+ alloc_pages+0x1a6/0x270 mm/mempolicy.c:2270
+ alloc_slab_page mm/slub.c:1829 [inline]
+ allocate_slab+0x27e/0x3d0 mm/slub.c:1974
+ new_slab mm/slub.c:2034 [inline]
+ ___slab_alloc+0x84f/0xe80 mm/slub.c:3036
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3123
+ slab_alloc_node mm/slub.c:3214 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ __kmalloc+0x32b/0x340 mm/slub.c:4425
+ kmalloc include/linux/slab.h:605 [inline]
+ tomoyo_realpath_from_path+0xbf/0x600 security/tomoyo/realpath.c:251
+ tomoyo_get_realpath security/tomoyo/file.c:151 [inline]
+ tomoyo_path_perm+0x21b/0x400 security/tomoyo/file.c:822
+ security_inode_getattr+0xcf/0x140 security/security.c:1347
+ vfs_getattr fs/stat.c:158 [inline]
+ vfs_statx+0x16e/0x430 fs/stat.c:233
+ vfs_fstatat+0x8c/0xb0 fs/stat.c:267
+ __do_sys_newfstatat+0x94/0x120 fs/stat.c:437
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1449 [inline]
+ free_pcp_prepare+0x5e4/0xd20 mm/page_alloc.c:1499
+ free_unref_page_prepare mm/page_alloc.c:3380 [inline]
+ free_unref_page+0x19/0x4d0 mm/page_alloc.c:3476
+ free_contig_range+0xb1/0x180 mm/page_alloc.c:9457
+ destroy_args+0xa8/0x646 mm/debug_vm_pgtable.c:1031
+ debug_vm_pgtable+0x2945/0x29d6 mm/debug_vm_pgtable.c:1354
+ do_one_initcall+0xfe/0x650 init/main.c:1296
+ do_initcall_level init/main.c:1369 [inline]
+ do_initcalls init/main.c:1385 [inline]
+ do_basic_setup init/main.c:1404 [inline]
+ kernel_init_freeable+0x6b1/0x73a init/main.c:1623
+ kernel_init+0x1a/0x1d0 init/main.c:1512
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Memory state around the buggy address:
+ ffff8880745f8980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880745f8a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8880745f8a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                           ^
+ ffff8880745f8b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880745f8b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
+----------------
+Code disassembly (best guess):
+   0:	48 89 ef             	mov    %rbp,%rdi
+   3:	5d                   	pop    %rbp
+   4:	e9 f1 c4 4c 00       	jmpq   0x4cc4fa
+   9:	5d                   	pop    %rbp
+   a:	be 03 00 00 00       	mov    $0x3,%esi
+   f:	e9 d6 43 84 02       	jmpq   0x28443ea
+  14:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+  1a:	48 8b be a8 01 00 00 	mov    0x1a8(%rsi),%rdi
+  21:	e8 b4 ff ff ff       	callq  0xffffffda
+  26:	31 c0                	xor    %eax,%eax
+  28:	c3                   	retq
+  29:	90                   	nop
+* 2a:	65 8b 05 f9 24 87 7e 	mov    %gs:0x7e8724f9(%rip),%eax        # 0x7e87252a <-- trapping instruction
+  31:	89 c1                	mov    %eax,%ecx
+  33:	48 8b 34 24          	mov    (%rsp),%rsi
+  37:	81 e1 00 01 00 00    	and    $0x100,%ecx
+  3d:	65                   	gs
+  3e:	48                   	rex.W
+  3f:	8b                   	.byte 0x8b

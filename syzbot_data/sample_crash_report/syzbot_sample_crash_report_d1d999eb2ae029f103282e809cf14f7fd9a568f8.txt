@@ -1,0 +1,56 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000003: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000018-0x000000000000001f]
+CPU: 0 PID: 7828 Comm: kworker/u4:13 Not tainted 6.3.0-rc6-syzkaller-00183-ga7a55e27ad72 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+Workqueue: netns cleanup_net
+RIP: 0010:tipc_conn_close+0x48/0x1c0 net/tipc/topsrv.c:158
+Code: fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 63 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b 5d 08 48 8d 7b 18 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 4d 01 00 00 4c 8b 6b 18 4d 8d a5 a0 03 00 00 4c
+RSP: 0018:ffffc90005e77bb0 EFLAGS: 00010206
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000003 RSI: ffffffff89a3d1b4 RDI: 0000000000000018
+RBP: ffff888025bd1400 R08: 0000000000000001 R09: ffffffff914d2b8f
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff88806ad2c458
+R13: ffffed100d5a5893 R14: ffff888025bd1408 R15: ffff888025bd1400
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020215000 CR3: 000000007b0aa000 CR4: 00000000003506f0
+Call Trace:
+ <TASK>
+ tipc_topsrv_stop net/tipc/topsrv.c:708 [inline]
+ tipc_topsrv_exit_net+0x146/0x3b0 net/tipc/topsrv.c:730
+ ops_exit_list+0xb0/0x170 net/core/net_namespace.c:169
+ cleanup_net+0x4ee/0xb10 net/core/net_namespace.c:613
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:tipc_conn_close+0x48/0x1c0 net/tipc/topsrv.c:158
+Code: fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 63 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b 5d 08 48 8d 7b 18 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 4d 01 00 00 4c 8b 6b 18 4d 8d a5 a0 03 00 00 4c
+RSP: 0018:ffffc90005e77bb0 EFLAGS: 00010206
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000003 RSI: ffffffff89a3d1b4 RDI: 0000000000000018
+RBP: ffff888025bd1400 R08: 0000000000000001 R09: ffffffff914d2b8f
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff88806ad2c458
+R13: ffffed100d5a5893 R14: ffff888025bd1408 R15: ffff888025bd1400
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000002006a000 CR3: 000000007b0aa000 CR4: 00000000003506f0
+----------------
+Code disassembly (best guess), 3 bytes skipped:
+   0:	48 c1 ea 03          	shr    $0x3,%rdx
+   4:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+   8:	0f 85 63 01 00 00    	jne    0x171
+   e:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  15:	fc ff df
+  18:	48 8b 5d 08          	mov    0x8(%rbp),%rbx
+  1c:	48 8d 7b 18          	lea    0x18(%rbx),%rdi
+  20:	48 89 fa             	mov    %rdi,%rdx
+  23:	48 c1 ea 03          	shr    $0x3,%rdx
+* 27:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2b:	0f 85 4d 01 00 00    	jne    0x17e
+  31:	4c 8b 6b 18          	mov    0x18(%rbx),%r13
+  35:	4d 8d a5 a0 03 00 00 	lea    0x3a0(%r13),%r12
+  3c:	4c                   	rex.WR

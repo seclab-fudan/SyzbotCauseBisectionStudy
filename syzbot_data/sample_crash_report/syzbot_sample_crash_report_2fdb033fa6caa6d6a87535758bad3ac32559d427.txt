@@ -1,0 +1,324 @@
+=====================================================
+WARNING: HARDIRQ-safe -> HARDIRQ-unsafe lock order detected
+5.14.0-syzkaller #0 Not tainted
+-----------------------------------------------------
+syz-executor378/8462 [HC0[0]:SC0[0]:HE0:SE1] is trying to acquire:
+ffff888021316138 (&f->f_owner.lock){.+.+}-{2:2}, at: send_sigio+0x24/0x380 fs/fcntl.c:795
+
+and this task is already holding:
+ffff88801cfd0018 (&new->fa_lock){....}-{2:2}, at: kill_fasync_rcu fs/fcntl.c:1012 [inline]
+ffff88801cfd0018 (&new->fa_lock){....}-{2:2}, at: kill_fasync fs/fcntl.c:1033 [inline]
+ffff88801cfd0018 (&new->fa_lock){....}-{2:2}, at: kill_fasync+0x132/0x460 fs/fcntl.c:1026
+which would create a new lock dependency:
+ (&new->fa_lock){....}-{2:2} -> (&f->f_owner.lock){.+.+}-{2:2}
+
+but this new dependency connects a HARDIRQ-irq-safe lock:
+ (&timer->lock){-...}-{2:2}
+
+... which became HARDIRQ-irq-safe at:
+  lock_acquire kernel/locking/lockdep.c:5625 [inline]
+  lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+  __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+  _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+  spin_lock include/linux/spinlock.h:354 [inline]
+  snd_hrtimer_callback+0x4f/0x3c0 sound/core/hrtimer.c:38
+  __run_hrtimer kernel/time/hrtimer.c:1537 [inline]
+  __hrtimer_run_queues+0x609/0xe50 kernel/time/hrtimer.c:1601
+  hrtimer_interrupt+0x330/0xa00 kernel/time/hrtimer.c:1663
+  local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1089 [inline]
+  __sysvec_apic_timer_interrupt+0x146/0x530 arch/x86/kernel/apic/apic.c:1106
+  sysvec_apic_timer_interrupt+0x8e/0xc0 arch/x86/kernel/apic/apic.c:1100
+  asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+  lock_acquire+0x1ef/0x510 kernel/locking/lockdep.c:5593
+  fs_reclaim_acquire mm/page_alloc.c:4571 [inline]
+  fs_reclaim_acquire+0xd2/0x160 mm/page_alloc.c:4562
+  might_alloc include/linux/sched/mm.h:198 [inline]
+  slab_pre_alloc_hook mm/slab.h:492 [inline]
+  slab_alloc_node mm/slub.c:2880 [inline]
+  slab_alloc mm/slub.c:2967 [inline]
+  __kmalloc+0x58/0x330 mm/slub.c:4111
+  kmalloc_array include/linux/slab.h:631 [inline]
+  kcalloc include/linux/slab.h:660 [inline]
+  realloc_user_queue+0x98/0x300 sound/core/timer.c:1467
+  snd_timer_user_tread sound/core/timer.c:2059 [inline]
+  __snd_timer_user_ioctl.isra.0+0x800/0x24c0 sound/core/timer.c:2089
+  snd_timer_user_ioctl+0x77/0xb0 sound/core/timer.c:2129
+  vfs_ioctl fs/ioctl.c:51 [inline]
+  __do_sys_ioctl fs/ioctl.c:1069 [inline]
+  __se_sys_ioctl fs/ioctl.c:1055 [inline]
+  __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+  do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+  entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+to a HARDIRQ-irq-unsafe lock:
+ (&f->f_owner.lock){.+.+}-{2:2}
+
+... which became HARDIRQ-irq-unsafe at:
+...
+  lock_acquire kernel/locking/lockdep.c:5625 [inline]
+  lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+  __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+  _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+  f_getown+0x23/0x2a0 fs/fcntl.c:153
+  do_fcntl+0xbd8/0x1210 fs/fcntl.c:388
+  __do_sys_fcntl fs/fcntl.c:471 [inline]
+  __se_sys_fcntl fs/fcntl.c:456 [inline]
+  __x64_sys_fcntl+0x165/0x1e0 fs/fcntl.c:456
+  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+  do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+  entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+other info that might help us debug this:
+
+Chain exists of:
+  &timer->lock --> &new->fa_lock --> &f->f_owner.lock
+
+ Possible interrupt unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&f->f_owner.lock);
+                               local_irq_disable();
+                               lock(&timer->lock);
+                               lock(&new->fa_lock);
+  <Interrupt>
+    lock(&timer->lock);
+
+ *** DEADLOCK ***
+
+4 locks held by syz-executor378/8462:
+ #0: ffff88802b900568 (&tu->ioctl_lock){+.+.}-{3:3}, at: snd_timer_user_ioctl+0x4c/0xb0 sound/core/timer.c:2128
+ #1: ffff888026ad4148 (&timer->lock){-...}-{2:2}, at: snd_timer_start1+0x5a/0x800 sound/core/timer.c:541
+ #2: ffffffff8b97c280 (rcu_read_lock){....}-{1:2}, at: kill_fasync+0x3d/0x460 fs/fcntl.c:1031
+ #3: ffff88801cfd0018 (&new->fa_lock){....}-{2:2}, at: kill_fasync_rcu fs/fcntl.c:1012 [inline]
+ #3: ffff88801cfd0018 (&new->fa_lock){....}-{2:2}, at: kill_fasync fs/fcntl.c:1033 [inline]
+ #3: ffff88801cfd0018 (&new->fa_lock){....}-{2:2}, at: kill_fasync+0x132/0x460 fs/fcntl.c:1026
+
+the dependencies between HARDIRQ-irq-safe lock and the holding lock:
+ -> (&timer->lock){-...}-{2:2} {
+    IN-HARDIRQ-W at:
+                      lock_acquire kernel/locking/lockdep.c:5625 [inline]
+                      lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+                      __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+                      _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+                      spin_lock include/linux/spinlock.h:354 [inline]
+                      snd_hrtimer_callback+0x4f/0x3c0 sound/core/hrtimer.c:38
+                      __run_hrtimer kernel/time/hrtimer.c:1537 [inline]
+                      __hrtimer_run_queues+0x609/0xe50 kernel/time/hrtimer.c:1601
+                      hrtimer_interrupt+0x330/0xa00 kernel/time/hrtimer.c:1663
+                      local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1089 [inline]
+                      __sysvec_apic_timer_interrupt+0x146/0x530 arch/x86/kernel/apic/apic.c:1106
+                      sysvec_apic_timer_interrupt+0x8e/0xc0 arch/x86/kernel/apic/apic.c:1100
+                      asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+                      lock_acquire+0x1ef/0x510 kernel/locking/lockdep.c:5593
+                      fs_reclaim_acquire mm/page_alloc.c:4571 [inline]
+                      fs_reclaim_acquire+0xd2/0x160 mm/page_alloc.c:4562
+                      might_alloc include/linux/sched/mm.h:198 [inline]
+                      slab_pre_alloc_hook mm/slab.h:492 [inline]
+                      slab_alloc_node mm/slub.c:2880 [inline]
+                      slab_alloc mm/slub.c:2967 [inline]
+                      __kmalloc+0x58/0x330 mm/slub.c:4111
+                      kmalloc_array include/linux/slab.h:631 [inline]
+                      kcalloc include/linux/slab.h:660 [inline]
+                      realloc_user_queue+0x98/0x300 sound/core/timer.c:1467
+                      snd_timer_user_tread sound/core/timer.c:2059 [inline]
+                      __snd_timer_user_ioctl.isra.0+0x800/0x24c0 sound/core/timer.c:2089
+                      snd_timer_user_ioctl+0x77/0xb0 sound/core/timer.c:2129
+                      vfs_ioctl fs/ioctl.c:51 [inline]
+                      __do_sys_ioctl fs/ioctl.c:1069 [inline]
+                      __se_sys_ioctl fs/ioctl.c:1055 [inline]
+                      __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+                      do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                      do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+                      entry_SYSCALL_64_after_hwframe+0x44/0xae
+    INITIAL USE at:
+                     lock_acquire kernel/locking/lockdep.c:5625 [inline]
+                     lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+                     __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+                     _raw_spin_lock_irqsave+0x39/0x50 kernel/locking/spinlock.c:159
+                     snd_timer_resolution+0x55/0x100 sound/core/timer.c:489
+                     initialize_timer+0x183/0x290 sound/core/seq/seq_timer.c:373
+                     seq_timer_start sound/core/seq/seq_timer.c:391 [inline]
+                     snd_seq_timer_start+0x151/0x290 sound/core/seq/seq_timer.c:405
+                     snd_seq_queue_process_event sound/core/seq/seq_queue.c:650 [inline]
+                     snd_seq_control_queue+0x872/0xaa0 sound/core/seq/seq_queue.c:711
+                     snd_seq_deliver_single_event.constprop.0+0x42b/0x820 sound/core/seq/seq_clientmgr.c:640
+                     snd_seq_deliver_event+0x4e7/0x970 sound/core/seq/seq_clientmgr.c:841
+                     snd_seq_kernel_client_dispatch+0x145/0x180 sound/core/seq/seq_clientmgr.c:2339
+                     send_timer_event.isra.0+0x10b/0x160 sound/core/seq/oss/seq_oss_timer.c:140
+                     snd_seq_oss_timer_start+0x1c3/0x310 sound/core/seq/oss/seq_oss_timer.c:161
+                     old_event sound/core/seq/oss/seq_oss_event.c:113 [inline]
+                     snd_seq_oss_process_event+0xda5/0x27d0 sound/core/seq/oss/seq_oss_event.c:88
+                     insert_queue sound/core/seq/oss/seq_oss_rw.c:167 [inline]
+                     snd_seq_oss_write+0x227/0x780 sound/core/seq/oss/seq_oss_rw.c:135
+                     odev_write+0x55/0x90 sound/core/seq/oss/seq_oss.c:168
+                     vfs_write+0x28e/0xa40 fs/read_write.c:603
+                     ksys_write+0x12d/0x250 fs/read_write.c:658
+                     do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                     do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+                     entry_SYSCALL_64_after_hwframe+0x44/0xae
+  }
+  ... key      at: [<ffffffff90592260>] __key.12+0x0/0x40
+-> (&new->fa_lock){....}-{2:2} {
+   INITIAL READ USE at:
+                        lock_acquire kernel/locking/lockdep.c:5625 [inline]
+                        lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+                        __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                        _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+                        kill_fasync_rcu fs/fcntl.c:1012 [inline]
+                        kill_fasync fs/fcntl.c:1033 [inline]
+                        kill_fasync+0x132/0x460 fs/fcntl.c:1026
+                        snd_timer_user_ccallback+0x298/0x330 sound/core/timer.c:1387
+                        snd_timer_notify1+0x11c/0x3b0 sound/core/timer.c:516
+                        snd_timer_start1+0x4d4/0x800 sound/core/timer.c:578
+                        snd_timer_start sound/core/timer.c:697 [inline]
+                        snd_timer_start sound/core/timer.c:690 [inline]
+                        snd_timer_user_start.isra.0+0x1e3/0x260 sound/core/timer.c:1985
+                        __snd_timer_user_ioctl.isra.0+0xda8/0x24c0 sound/core/timer.c:2108
+                        snd_timer_user_ioctl+0x77/0xb0 sound/core/timer.c:2129
+                        vfs_ioctl fs/ioctl.c:51 [inline]
+                        __do_sys_ioctl fs/ioctl.c:1069 [inline]
+                        __se_sys_ioctl fs/ioctl.c:1055 [inline]
+                        __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+                        do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                        do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+                        entry_SYSCALL_64_after_hwframe+0x44/0xae
+ }
+ ... key      at: [<ffffffff90293100>] __key.0+0x0/0x40
+ ... acquired at:
+   __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+   _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+   kill_fasync_rcu fs/fcntl.c:1012 [inline]
+   kill_fasync fs/fcntl.c:1033 [inline]
+   kill_fasync+0x132/0x460 fs/fcntl.c:1026
+   snd_timer_user_ccallback+0x298/0x330 sound/core/timer.c:1387
+   snd_timer_notify1+0x11c/0x3b0 sound/core/timer.c:516
+   snd_timer_start1+0x4d4/0x800 sound/core/timer.c:578
+   snd_timer_start sound/core/timer.c:697 [inline]
+   snd_timer_start sound/core/timer.c:690 [inline]
+   snd_timer_user_start.isra.0+0x1e3/0x260 sound/core/timer.c:1985
+   __snd_timer_user_ioctl.isra.0+0xda8/0x24c0 sound/core/timer.c:2108
+   snd_timer_user_ioctl+0x77/0xb0 sound/core/timer.c:2129
+   vfs_ioctl fs/ioctl.c:51 [inline]
+   __do_sys_ioctl fs/ioctl.c:1069 [inline]
+   __se_sys_ioctl fs/ioctl.c:1055 [inline]
+   __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+   do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+   do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+   entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+
+the dependencies between the lock to be acquired
+ and HARDIRQ-irq-unsafe lock:
+-> (&f->f_owner.lock){.+.+}-{2:2} {
+   HARDIRQ-ON-R at:
+                    lock_acquire kernel/locking/lockdep.c:5625 [inline]
+                    lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+                    __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                    _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+                    f_getown+0x23/0x2a0 fs/fcntl.c:153
+                    do_fcntl+0xbd8/0x1210 fs/fcntl.c:388
+                    __do_sys_fcntl fs/fcntl.c:471 [inline]
+                    __se_sys_fcntl fs/fcntl.c:456 [inline]
+                    __x64_sys_fcntl+0x165/0x1e0 fs/fcntl.c:456
+                    do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                    do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+                    entry_SYSCALL_64_after_hwframe+0x44/0xae
+   SOFTIRQ-ON-R at:
+                    lock_acquire kernel/locking/lockdep.c:5625 [inline]
+                    lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+                    __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                    _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+                    f_getown+0x23/0x2a0 fs/fcntl.c:153
+                    do_fcntl+0xbd8/0x1210 fs/fcntl.c:388
+                    __do_sys_fcntl fs/fcntl.c:471 [inline]
+                    __se_sys_fcntl fs/fcntl.c:456 [inline]
+                    __x64_sys_fcntl+0x165/0x1e0 fs/fcntl.c:456
+                    do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                    do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+                    entry_SYSCALL_64_after_hwframe+0x44/0xae
+   INITIAL READ USE at:
+                        lock_acquire kernel/locking/lockdep.c:5625 [inline]
+                        lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+                        __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                        _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+                        f_getown+0x23/0x2a0 fs/fcntl.c:153
+                        do_fcntl+0xbd8/0x1210 fs/fcntl.c:388
+                        __do_sys_fcntl fs/fcntl.c:471 [inline]
+                        __se_sys_fcntl fs/fcntl.c:456 [inline]
+                        __x64_sys_fcntl+0x165/0x1e0 fs/fcntl.c:456
+                        do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                        do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+                        entry_SYSCALL_64_after_hwframe+0x44/0xae
+ }
+ ... key      at: [<ffffffff90292320>] __key.5+0x0/0x40
+ ... acquired at:
+   lock_acquire kernel/locking/lockdep.c:5625 [inline]
+   lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+   __raw_read_lock_irqsave include/linux/rwlock_api_smp.h:159 [inline]
+   _raw_read_lock_irqsave+0x70/0x90 kernel/locking/spinlock.c:231
+   send_sigio+0x24/0x380 fs/fcntl.c:795
+   kill_fasync_rcu fs/fcntl.c:1019 [inline]
+   kill_fasync fs/fcntl.c:1033 [inline]
+   kill_fasync+0x1ec/0x460 fs/fcntl.c:1026
+   snd_timer_user_ccallback+0x298/0x330 sound/core/timer.c:1387
+   snd_timer_notify1+0x11c/0x3b0 sound/core/timer.c:516
+   snd_timer_start1+0x4d4/0x800 sound/core/timer.c:578
+   snd_timer_start sound/core/timer.c:697 [inline]
+   snd_timer_start sound/core/timer.c:690 [inline]
+   snd_timer_user_start.isra.0+0x1e3/0x260 sound/core/timer.c:1985
+   __snd_timer_user_ioctl.isra.0+0xda8/0x24c0 sound/core/timer.c:2108
+   snd_timer_user_ioctl+0x77/0xb0 sound/core/timer.c:2129
+   vfs_ioctl fs/ioctl.c:51 [inline]
+   __do_sys_ioctl fs/ioctl.c:1069 [inline]
+   __se_sys_ioctl fs/ioctl.c:1055 [inline]
+   __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+   do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+   do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+   entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+
+stack backtrace:
+CPU: 1 PID: 8462 Comm: syz-executor378 Not tainted 5.14.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ print_bad_irq_dependency kernel/locking/lockdep.c:2565 [inline]
+ check_irq_usage.cold+0x4c1/0x6b0 kernel/locking/lockdep.c:2804
+ check_prev_add kernel/locking/lockdep.c:3055 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3174 [inline]
+ validate_chain kernel/locking/lockdep.c:3789 [inline]
+ __lock_acquire+0x2a1f/0x54a0 kernel/locking/lockdep.c:5015
+ lock_acquire kernel/locking/lockdep.c:5625 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+ __raw_read_lock_irqsave include/linux/rwlock_api_smp.h:159 [inline]
+ _raw_read_lock_irqsave+0x70/0x90 kernel/locking/spinlock.c:231
+ send_sigio+0x24/0x380 fs/fcntl.c:795
+ kill_fasync_rcu fs/fcntl.c:1019 [inline]
+ kill_fasync fs/fcntl.c:1033 [inline]
+ kill_fasync+0x1ec/0x460 fs/fcntl.c:1026
+ snd_timer_user_ccallback+0x298/0x330 sound/core/timer.c:1387
+ snd_timer_notify1+0x11c/0x3b0 sound/core/timer.c:516
+ snd_timer_start1+0x4d4/0x800 sound/core/timer.c:578
+ snd_timer_start sound/core/timer.c:697 [inline]
+ snd_timer_start sound/core/timer.c:690 [inline]
+ snd_timer_user_start.isra.0+0x1e3/0x260 sound/core/timer.c:1985
+ __snd_timer_user_ioctl.isra.0+0xda8/0x24c0 sound/core/timer.c:2108
+ snd_timer_user_ioctl+0x77/0xb0 sound/core/timer.c:2129
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:1069 [inline]
+ __se_sys_ioctl fs/ioctl.c:1055 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x43fbd9
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd34105e68 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 000000000043fbd9
+RDX: 0000000000000000 RSI: 00000000000054a0 RDI: 0000000000000005
+RBP: 0000000000403bc0 R08: 0000000000400488 R09: 0000000000400488
+R10: 0000000000400488 R11: 0000000000000246 R12: 0000000000403c50
+R13: 0000000000000000 R14: 00000000004ad018 

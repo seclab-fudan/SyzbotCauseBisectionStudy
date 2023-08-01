@@ -1,0 +1,85 @@
+audit: type=1400 audit(1514753657.623:7): avc:  denied  { map } for  pid=3504 comm="syzkaller926656" path="/root/syzkaller926656864" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: slab-out-of-bounds in cap_inode_getsecurity+0x621/0x7d0 security/commoncap.c:408
+Read of size 4 at addr ffff8801bea30b00 by task syzkaller926656/3504
+
+CPU: 1 PID: 3504 Comm: syzkaller926656 Not tainted 4.15.0-rc5+ #244
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ cap_inode_getsecurity+0x621/0x7d0 security/commoncap.c:408
+ security_inode_getsecurity+0xcd/0x110 security/security.c:809
+ xattr_getsecurity+0xd3/0x1f0 fs/xattr.c:244
+ vfs_getxattr+0xc8/0x110 fs/xattr.c:333
+ getxattr+0x116/0x2a0 fs/xattr.c:540
+ path_getxattr+0xed/0x170 fs/xattr.c:568
+ SYSC_getxattr fs/xattr.c:580 [inline]
+ SyS_getxattr+0x33/0x40 fs/xattr.c:577
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x43fd09
+RSP: 002b:00007ffcf95c1178 EFLAGS: 00000217 ORIG_RAX: 00000000000000bf
+RAX: ffffffffffffffda RBX: 0030656c69662f2e RCX: 000000000043fd09
+RDX: 0000000020227f74 RSI: 0000000020b29f57 RDI: 000000002072d000
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 000000000000008c R11: 0000000000000217 R12: 0000000000401670
+R13: 0000000000401700 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3504:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc mm/slab.c:3708 [inline]
+ __kmalloc_track_caller+0x15e/0x760 mm/slab.c:3723
+ __do_krealloc mm/slab_common.c:1407 [inline]
+ krealloc+0x65/0xc0 mm/slab_common.c:1454
+ vfs_getxattr_alloc+0x177/0x270 fs/xattr.c:290
+ cap_inode_getsecurity+0xfa/0x7d0 security/commoncap.c:399
+ security_inode_getsecurity+0xcd/0x110 security/security.c:809
+ xattr_getsecurity+0xd3/0x1f0 fs/xattr.c:244
+ vfs_getxattr+0xc8/0x110 fs/xattr.c:333
+ getxattr+0x116/0x2a0 fs/xattr.c:540
+ path_getxattr+0xed/0x170 fs/xattr.c:568
+ SYSC_getxattr fs/xattr.c:580 [inline]
+ SyS_getxattr+0x33/0x40 fs/xattr.c:577
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+Freed by task 1970:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ single_release+0x88/0xb0 fs/seq_file.c:603
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x296/0x310 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x98/0x9a
+
+The buggy address belongs to the object at ffff8801bea30b00
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8801bea30b00, ffff8801bea30b20)
+The buggy address belongs to the page:
+page:00000000bdc64004 count:1 mapcount:0 mapping:00000000f92bbf6b index:0xffff8801bea30fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801bea30000 ffff8801bea30fc1 000000010000003f
+raw: ffffea0006fa4ea0 ffffea0006fa54e0 ffff8801dac001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bea30a00: fb fb fb fb fc fc fc fc 00 00 00 fc fc fc fc fc
+ ffff8801bea30a80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801bea30b00: 01 fc fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+                   ^
+ ffff8801bea30b80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801bea30c00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

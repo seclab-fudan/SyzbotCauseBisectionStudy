@@ -1,0 +1,153 @@
+==================================================================
+BUG: KASAN: use-after-free in nexthop_flush_dev net/ipv4/nexthop.c:2382 [inline]
+BUG: KASAN: use-after-free in nh_netdev_event+0x13c/0x940 net/ipv4/nexthop.c:3575
+Read of size 8 at addr ffff888024421058 by task syz-executor.3/6561
+
+CPU: 1 PID: 6561 Comm: syz-executor.3 Not tainted 6.1.0-rc5-syzkaller-00015-g81e7cfa3a9eb #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ print_address_description+0x74/0x340 mm/kasan/report.c:284
+ print_report+0x107/0x220 mm/kasan/report.c:395
+ kasan_report+0x139/0x170 mm/kasan/report.c:495
+ nexthop_flush_dev net/ipv4/nexthop.c:2382 [inline]
+ nh_netdev_event+0x13c/0x940 net/ipv4/nexthop.c:3575
+ notifier_call_chain kernel/notifier.c:87 [inline]
+ raw_notifier_call_chain+0xe7/0x170 kernel/notifier.c:455
+ call_netdevice_notifiers_info net/core/dev.c:1945 [inline]
+ call_netdevice_notifiers_extack net/core/dev.c:1983 [inline]
+ call_netdevice_notifiers net/core/dev.c:1997 [inline]
+ netdev_wait_allrefs_any net/core/dev.c:10237 [inline]
+ netdev_run_todo+0x8fb/0x1090 net/core/dev.c:10351
+ tun_detach drivers/net/tun.c:704 [inline]
+ tun_chr_close+0x11f/0x130 drivers/net/tun.c:3467
+ __fput+0x3ba/0x880 fs/file_table.c:320
+ task_work_run+0x243/0x300 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x664/0x2070 kernel/exit.c:820
+ do_group_exit+0x1fd/0x2b0 kernel/exit.c:950
+ get_signal+0x1743/0x1810 kernel/signal.c:2858
+ arch_do_signal_or_restart+0x8d/0x750 arch/x86/kernel/signal.c:869
+ exit_to_user_mode_loop+0x74/0x160 kernel/entry/common.c:168
+ exit_to_user_mode_prepare+0xad/0x110 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x2e/0x60 kernel/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f0abeeb0361
+Code: Unable to access opcode bytes at 0x7f0abeeb0337.
+RSP: 002b:00007f0abfb700b0 EFLAGS: 00000293 ORIG_RAX: 00000000000000e6
+RAX: fffffffffffffdfc RBX: 00007f0abefabf80 RCX: 00007f0abeeb0361
+RDX: 00007f0abfb700f0 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 00007f0abeee6ae9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000293 R12: 0000000000000000
+R13: 00007ffd9327dfef R14: 00007f0abfb70300 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 3667:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4c/0x70 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:371 [inline]
+ __kasan_kmalloc+0x97/0xb0 mm/kasan/common.c:380
+ kmalloc include/linux/slab.h:553 [inline]
+ kzalloc include/linux/slab.h:689 [inline]
+ nexthop_net_init+0x71/0x100 net/ipv4/nexthop.c:3754
+ ops_init+0x353/0x5d0 net/core/net_namespace.c:135
+ setup_net+0x4bb/0xc10 net/core/net_namespace.c:332
+ copy_net_ns+0x359/0x5b0 net/core/net_namespace.c:478
+ create_new_namespaces+0x4db/0x8e0 kernel/nsproxy.c:110
+ unshare_nsproxy_namespaces+0x11e/0x180 kernel/nsproxy.c:226
+ ksys_unshare+0x57f/0xb30 kernel/fork.c:3188
+ __do_sys_unshare kernel/fork.c:3259 [inline]
+ __se_sys_unshare kernel/fork.c:3257 [inline]
+ __x64_sys_unshare+0x34/0x40 kernel/fork.c:3257
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 3782:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4c/0x70 mm/kasan/common.c:52
+ kasan_save_free_info+0x27/0x40 mm/kasan/generic.c:511
+ ____kasan_slab_free+0xd6/0x120 mm/kasan/common.c:236
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ slab_free_hook mm/slub.c:1724 [inline]
+ slab_free_freelist_hook+0x12e/0x1a0 mm/slub.c:1750
+ slab_free mm/slub.c:3661 [inline]
+ __kmem_cache_free+0x71/0x110 mm/slub.c:3674
+ nexthop_net_exit_batch+0x24b/0x2a0 net/ipv4/nexthop.c:3744
+ ops_exit_list net/core/net_namespace.c:174 [inline]
+ cleanup_net+0x80c/0xc50 net/core/net_namespace.c:601
+ process_one_work+0x81c/0xd10 kernel/workqueue.c:2289
+ worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+The buggy address belongs to the object at ffff888024421000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 88 bytes inside of
+ 2048-byte region [ffff888024421000, ffff888024421800)
+
+The buggy address belongs to the physical page:
+page:ffffea0000910800 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff888024427000 pfn:0x24420
+head:ffffea0000910800 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffffea00008b7208 ffffea000086f808 ffff888012842000
+raw: ffff888024427000 0000000000080005 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 3667, tgid 3667 (syz-executor.3), ts 161799247237, free_ts 161795328162
+ prep_new_page mm/page_alloc.c:2539 [inline]
+ get_page_from_freelist+0x72b/0x7a0 mm/page_alloc.c:4288
+ __alloc_pages+0x259/0x560 mm/page_alloc.c:5555
+ alloc_slab_page+0x70/0xf0 mm/slub.c:1794
+ allocate_slab+0x5e/0x4b0 mm/slub.c:1939
+ new_slab mm/slub.c:1992 [inline]
+ ___slab_alloc+0x7f4/0xeb0 mm/slub.c:3180
+ __slab_alloc mm/slub.c:3279 [inline]
+ slab_alloc_node mm/slub.c:3364 [inline]
+ __kmem_cache_alloc_node+0x252/0x310 mm/slub.c:3437
+ kmalloc_trace+0x26/0x60 mm/slab_common.c:1045
+ kmalloc include/linux/slab.h:553 [inline]
+ kmalloc_array include/linux/slab.h:604 [inline]
+ netdev_create_hash net/core/dev.c:11153 [inline]
+ netdev_init+0x108/0x1f0 net/core/dev.c:11173
+ ops_init+0x353/0x5d0 net/core/net_namespace.c:135
+ setup_net+0x4bb/0xc10 net/core/net_namespace.c:332
+ copy_net_ns+0x359/0x5b0 net/core/net_namespace.c:478
+ create_new_namespaces+0x4db/0x8e0 kernel/nsproxy.c:110
+ unshare_nsproxy_namespaces+0x11e/0x180 kernel/nsproxy.c:226
+ ksys_unshare+0x57f/0xb30 kernel/fork.c:3188
+ __do_sys_unshare kernel/fork.c:3259 [inline]
+ __se_sys_unshare kernel/fork.c:3257 [inline]
+ __x64_sys_unshare+0x34/0x40 kernel/fork.c:3257
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1459 [inline]
+ free_pcp_prepare+0x80c/0x8f0 mm/page_alloc.c:1509
+ free_unref_page_prepare mm/page_alloc.c:3387 [inline]
+ free_unref_page+0x7d/0x630 mm/page_alloc.c:3483
+ free_large_kmalloc+0x10b/0x1a0 mm/slab_common.c:932
+ skb_free_head net/core/skbuff.c:760 [inline]
+ skb_release_data+0x536/0x6d0 net/core/skbuff.c:789
+ skb_release_all net/core/skbuff.c:854 [inline]
+ __kfree_skb+0x56/0x1d0 net/core/skbuff.c:868
+ netlink_recvmsg+0x5c1/0x10f0 net/netlink/af_netlink.c:1998
+ ____sys_recvmsg+0x285/0x530
+ ___sys_recvmsg net/socket.c:2743 [inline]
+ __sys_recvmsg+0x294/0x390 net/socket.c:2773
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Memory state around the buggy address:
+ ffff888024420f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888024420f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888024421000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff888024421080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888024421100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

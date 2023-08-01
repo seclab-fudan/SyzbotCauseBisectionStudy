@@ -1,0 +1,72 @@
+general protection fault, probably for non-canonical address 0xfffd1bfffa614ce1: 0000 [#1] PREEMPT SMP KASAN
+KASAN: maybe wild-memory-access in range [0xffe8ffffd30a6708-0xffe8ffffd30a670f]
+CPU: 0 PID: 6658 Comm: kworker/u4:10 Not tainted 5.16.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+RIP: 0010:__skb_unlink include/linux/skbuff.h:2167 [inline]
+RIP: 0010:__skb_dequeue include/linux/skbuff.h:2183 [inline]
+RIP: 0010:__skb_queue_purge include/linux/skbuff.h:2901 [inline]
+RIP: 0010:gro_cells_destroy net/core/gro_cells.c:103 [inline]
+RIP: 0010:gro_cells_destroy+0x19a/0x360 net/core/gro_cells.c:92
+Code: e8 03 80 3c 28 00 0f 85 4c 01 00 00 48 8d 7a 08 49 8b 47 08 49 c7 07 00 00 00 00 48 89 f9 49 c7 47 08 00 00 00 00 48 c1 e9 03 <80> 3c 29 00 0f 85 06 01 00 00 48 89 c1 48 89 42 08 48 c1 e9 03 80
+RSP: 0018:ffffc900044df9e8 EFLAGS: 00010a06
+RAX: ffe8ffffd30a68ff RBX: ffffe8ffffd30a68 RCX: 1ffd1ffffa614ce1
+RDX: ffe8ffffd30a6700 RSI: ffffffff8744e036 RDI: ffe8ffffd30a6708
+RBP: dffffc0000000000 R08: 0000000000000008 R09: 0000000000000001
+R10: ffffffff872bb5b8 R11: 0000000000000000 R12: fffff91ffffa614f
+R13: 0000000000000001 R14: ffff88801d25edd0 R15: ffffe8ffffd30a67
+FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c00858af00 CR3: 0000000018d25000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+ <TASK>
+ ip_tunnel_dev_free+0x15/0x60 net/ipv4/ip_tunnel.c:1010
+ netdev_run_todo+0x6c3/0xaa0 net/core/dev.c:9956
+ ip_tunnel_delete_nets+0x3a4/0x5b0 net/ipv4/ip_tunnel.c:1124
+ ops_exit_list+0x10d/0x160 net/core/net_namespace.c:171
+ cleanup_net+0x4ea/0xb00 net/core/net_namespace.c:595
+ process_one_work+0x9b2/0x1660 kernel/workqueue.c:2298
+ worker_thread+0x65d/0x1130 kernel/workqueue.c:2445
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+Modules linked in:
+---[ end trace ba3a5094f3f88535 ]---
+RIP: 0010:__skb_unlink include/linux/skbuff.h:2167 [inline]
+RIP: 0010:__skb_dequeue include/linux/skbuff.h:2183 [inline]
+RIP: 0010:__skb_queue_purge include/linux/skbuff.h:2901 [inline]
+RIP: 0010:gro_cells_destroy net/core/gro_cells.c:103 [inline]
+RIP: 0010:gro_cells_destroy+0x19a/0x360 net/core/gro_cells.c:92
+Code: e8 03 80 3c 28 00 0f 85 4c 01 00 00 48 8d 7a 08 49 8b 47 08 49 c7 07 00 00 00 00 48 89 f9 49 c7 47 08 00 00 00 00 48 c1 e9 03 <80> 3c 29 00 0f 85 06 01 00 00 48 89 c1 48 89 42 08 48 c1 e9 03 80
+RSP: 0018:ffffc900044df9e8 EFLAGS: 00010a06
+RAX: ffe8ffffd30a68ff RBX: ffffe8ffffd30a68 RCX: 1ffd1ffffa614ce1
+RDX: ffe8ffffd30a6700 RSI: ffffffff8744e036 RDI: ffe8ffffd30a6708
+RBP: dffffc0000000000 R08: 0000000000000008 R09: 0000000000000001
+R10: ffffffff872bb5b8 R11: 0000000000000000 R12: fffff91ffffa614f
+R13: 0000000000000001 R14: ffff88801d25edd0 R15: ffffe8ffffd30a67
+FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c00290d980 CR3: 0000000023b9d000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+----------------
+Code disassembly (best guess):
+   0:	e8 03 80 3c 28       	callq  0x283c8008
+   5:	00 0f                	add    %cl,(%rdi)
+   7:	85 4c 01 00          	test   %ecx,0x0(%rcx,%rax,1)
+   b:	00 48 8d             	add    %cl,-0x73(%rax)
+   e:	7a 08                	jp     0x18
+  10:	49 8b 47 08          	mov    0x8(%r15),%rax
+  14:	49 c7 07 00 00 00 00 	movq   $0x0,(%r15)
+  1b:	48 89 f9             	mov    %rdi,%rcx
+  1e:	49 c7 47 08 00 00 00 	movq   $0x0,0x8(%r15)
+  25:	00
+  26:	48 c1 e9 03          	shr    $0x3,%rcx
+* 2a:	80 3c 29 00          	cmpb   $0x0,(%rcx,%rbp,1) <-- trapping instruction
+  2e:	0f 85 06 01 00 00    	jne    0x13a
+  34:	48 89 c1             	mov    %rax,%rcx
+  37:	48 89 42 08          	mov    %rax,0x8(%rdx)
+  3b:	48 c1 e9 03          	shr    $0x3,%rcx
+  3f:	80                   	.byte 0x80

@@ -1,0 +1,39 @@
+=====================================================
+BUG: KMSAN: kernel-infoleak in kmsan_copy_to_user+0x81/0x90 mm/kmsan/kmsan_hooks.c:253
+CPU: 1 PID: 11476 Comm: syz-executor814 Not tainted 5.6.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:118
+ kmsan_internal_check_memory+0x238/0x3d0 mm/kmsan/kmsan.c:423
+ kmsan_copy_to_user+0x81/0x90 mm/kmsan/kmsan_hooks.c:253
+ _copy_to_user+0x15a/0x1f0 lib/usercopy.c:33
+ copy_to_user include/linux/uaccess.h:174 [inline]
+ compat_tty_tiocgserial drivers/tty/tty_io.c:2748 [inline]
+ tty_compat_ioctl+0x1482/0x1850 drivers/tty/tty_io.c:2846
+ __do_compat_sys_ioctl fs/ioctl.c:857 [inline]
+ __se_compat_sys_ioctl+0x57c/0xed0 fs/ioctl.c:808
+ __ia32_compat_sys_ioctl+0xd9/0x110 fs/ioctl.c:808
+ do_syscall_32_irqs_on arch/x86/entry/common.c:339 [inline]
+ do_fast_syscall_32+0x3c7/0x6e0 arch/x86/entry/common.c:410
+ entry_SYSENTER_compat+0x68/0x77 arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7ff7d99
+Code: 90 e8 0b 00 00 00 f3 90 0f ae e8 eb f9 8d 74 26 00 89 3c 24 c3 90 90 90 90 90 90 90 90 90 90 90 90 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000ff97b20c EFLAGS: 00000213 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 000000000000541e
+RDX: 0000000020000300 RSI: 00000000080ea078 RDI: 00000000ff97b260
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Local variable ----v32.i105@tty_compat_ioctl created at:
+ compat_tty_tiocgserial drivers/tty/tty_io.c:2735 [inline]
+ tty_compat_ioctl+0xf12/0x1850 drivers/tty/tty_io.c:2846
+ compat_tty_tiocgserial drivers/tty/tty_io.c:2735 [inline]
+ tty_compat_ioctl+0xf12/0x1850 drivers/tty/tty_io.c:2846
+
+Bytes 50-51 of 60 are uninitialized
+Memory access of size 60 starts at ffffb50b0158fce0
+Data copied to user address 0000000020000300
+=====================================================

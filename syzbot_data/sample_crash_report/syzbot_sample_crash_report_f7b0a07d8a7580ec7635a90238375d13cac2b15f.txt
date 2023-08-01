@@ -1,0 +1,81 @@
+==================================================================
+BUG: KCSAN: data-race in wg_packet_send_staged_packets / wg_packet_send_staged_packets
+
+write to 0xffff88813fb00b08 of 4 bytes by interrupt on cpu 1:
+ wg_cpumask_next_online drivers/net/wireguard/queueing.h:133 [inline]
+ wg_queue_enqueue_per_device_and_peer drivers/net/wireguard/queueing.h:176 [inline]
+ wg_packet_create_data drivers/net/wireguard/send.c:320 [inline]
+ wg_packet_send_staged_packets+0x777/0xb50 drivers/net/wireguard/send.c:387
+ wg_packet_send_keepalive+0xe8/0x100 drivers/net/wireguard/send.c:239
+ wg_expired_send_persistent_keepalive+0x3c/0x50 drivers/net/wireguard/timers.c:141
+ call_timer_fn+0x35/0x290 kernel/time/timer.c:1700
+ expire_timers kernel/time/timer.c:1751 [inline]
+ __run_timers+0x46c/0x650 kernel/time/timer.c:2022
+ run_timer_softirq+0x1d/0x40 kernel/time/timer.c:2035
+ __do_softirq+0xc1/0x265 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x57/0xa0 kernel/softirq.c:650
+ sysvec_apic_timer_interrupt+0x6d/0x80 arch/x86/kernel/apic/apic.c:1107
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
+ native_safe_halt arch/x86/include/asm/irqflags.h:48 [inline]
+ arch_safe_halt arch/x86/include/asm/irqflags.h:86 [inline]
+ acpi_safe_halt+0x20/0x30 drivers/acpi/processor_idle.c:112
+ acpi_idle_do_entry+0x19/0x30 drivers/acpi/processor_idle.c:573
+ acpi_idle_enter+0x96/0xb0 drivers/acpi/processor_idle.c:711
+ cpuidle_enter_state+0xc6/0x260 drivers/cpuidle/cpuidle.c:267
+ cpuidle_enter+0x40/0x60 drivers/cpuidle/cpuidle.c:388
+ call_cpuidle kernel/sched/idle.c:134 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:215 [inline]
+ do_idle+0x194/0x240 kernel/sched/idle.c:282
+ cpu_startup_entry+0x18/0x20 kernel/sched/idle.c:379
+ start_secondary+0x7c/0x80 arch/x86/kernel/smpboot.c:264
+ secondary_startup_64_no_verify+0xcf/0xdb
+
+read to 0xffff88813fb00b08 of 4 bytes by interrupt on cpu 0:
+ wg_cpumask_next_online drivers/net/wireguard/queueing.h:129 [inline]
+ wg_queue_enqueue_per_device_and_peer drivers/net/wireguard/queueing.h:176 [inline]
+ wg_packet_create_data drivers/net/wireguard/send.c:320 [inline]
+ wg_packet_send_staged_packets+0x635/0xb50 drivers/net/wireguard/send.c:387
+ wg_packet_send_keepalive+0xe8/0x100 drivers/net/wireguard/send.c:239
+ wg_expired_send_persistent_keepalive+0x3c/0x50 drivers/net/wireguard/timers.c:141
+ call_timer_fn+0x35/0x290 kernel/time/timer.c:1700
+ expire_timers kernel/time/timer.c:1751 [inline]
+ __run_timers+0x46c/0x650 kernel/time/timer.c:2022
+ run_timer_softirq+0x1d/0x40 kernel/time/timer.c:2035
+ __do_softirq+0xc1/0x265 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x57/0xa0 kernel/softirq.c:650
+ sysvec_apic_timer_interrupt+0x6d/0x80 arch/x86/kernel/apic/apic.c:1107
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
+ kcsan_setup_watchpoint+0x3fe/0x410 kernel/kcsan/core.c:696
+ genl_cmd_full_to_split net/netlink/genetlink.c:280 [inline]
+ genl_op_iter_next+0x493/0x7c0 net/netlink/genetlink.c:360
+ ctrl_fill_info+0x57b/0x930 net/netlink/genetlink.c:1110
+ ctrl_build_family_msg net/netlink/genetlink.c:1247 [inline]
+ ctrl_getfamily+0x2e3/0x3b0 net/netlink/genetlink.c:1323
+ genl_family_rcv_msg_doit net/netlink/genetlink.c:968 [inline]
+ genl_family_rcv_msg net/netlink/genetlink.c:1048 [inline]
+ genl_rcv_msg+0x65b/0x700 net/netlink/genetlink.c:1065
+ netlink_rcv_skb+0x126/0x220 net/netlink/af_netlink.c:2577
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:1076
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x56f/0x640 net/netlink/af_netlink.c:1365
+ netlink_sendmsg+0x665/0x770 net/netlink/af_netlink.c:1942
+ sock_sendmsg_nosec net/socket.c:724 [inline]
+ sock_sendmsg net/socket.c:747 [inline]
+ ____sys_sendmsg+0x375/0x4c0 net/socket.c:2501
+ ___sys_sendmsg net/socket.c:2555 [inline]
+ __sys_sendmsg+0x1e3/0x270 net/socket.c:2584
+ __do_sys_sendmsg net/socket.c:2593 [inline]
+ __se_sys_sendmsg net/socket.c:2591 [inline]
+ __x64_sys_sendmsg+0x46/0x50 net/socket.c:2591
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+value changed: 0x00000000 -> 0x00000001
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 2783 Comm: dhcpcd Not tainted 6.3.0-rc7-syzkaller-00152-g2af3e53a4dc0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+==================================================================

@@ -1,0 +1,56 @@
+INFO: task syz-executor810:4676 blocked for more than 140 seconds.
+      Not tainted 4.18.0-rc4-next-20180711+ #4
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor810 D23936  4676   4481 0x00000004
+Call Trace:
+ context_switch kernel/sched/core.c:2853 [inline]
+ __schedule+0x87c/0x1ed0 kernel/sched/core.c:3501
+ schedule+0xfb/0x450 kernel/sched/core.c:3545
+ schedule_timeout+0x1cc/0x260 kernel/time/timer.c:1777
+ do_wait_for_common kernel/sched/completion.c:83 [inline]
+ __wait_for_common kernel/sched/completion.c:104 [inline]
+ wait_for_common kernel/sched/completion.c:115 [inline]
+ wait_for_completion+0x430/0x8d0 kernel/sched/completion.c:136
+ flush_work+0x531/0x900 kernel/workqueue.c:2918
+ __cancel_work_timer+0x4bd/0x830 kernel/workqueue.c:2989
+ cancel_work_sync+0x17/0x20 kernel/workqueue.c:3025
+ p9_conn_destroy net/9p/trans_fd.c:860 [inline]
+ p9_fd_close+0x36a/0x5b0 net/9p/trans_fd.c:886
+ p9_client_create+0xa9a/0x1770 net/9p/client.c:1077
+ v9fs_session_init+0x21a/0x1a80 fs/9p/v9fs.c:400
+ v9fs_mount+0x7c/0x900 fs/9p/vfs_super.c:135
+ legacy_get_tree+0x118/0x440 fs/fs_context.c:659
+ vfs_get_tree+0x1cb/0x5c0 fs/super.c:1743
+ do_new_mount fs/namespace.c:2567 [inline]
+ do_mount+0x6c1/0x1fb0 fs/namespace.c:2889
+ ksys_mount+0x12d/0x140 fs/namespace.c:3105
+ __do_sys_mount fs/namespace.c:3119 [inline]
+ __se_sys_mount fs/namespace.c:3116 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3116
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x445e89
+Code: Bad RIP value.
+RSP: 002b:00007fd68625eda8 EFLAGS: 00000202 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00000000006dbc3c RCX: 0000000000445e89
+RDX: 0000000020000340 RSI: 00000000200000c0 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 00000000200001c0 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000202 R12: 00000000006dbc38
+R13: 0030656c69662f2e R14: 64663d736e617274 R15: 0000000000000005
+INFO: lockdep is turned off.
+NMI backtrace for cpu 1
+CPU: 1 PID: 901 Comm: khungtaskd Not tainted 4.18.0-rc4-next-20180711+ #4
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.3+0x48/0x88 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x151/0x192 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:144 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:231 [inline]
+ watchdog+0xb81/0x10f0 kernel/hung_task.c:292
+ kthread+0x345/0x410 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:415
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0 skipped: idling at native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:54

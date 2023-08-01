@@ -1,0 +1,926 @@
+ #4: ffffffff8c184468 (rcu_state.exp_mutex){+.+.}-{3:3}, at: exp_funnel_lock kernel/rcu/tree_exp.h:322 [inline]
+ #4: ffffffff8c184468 (rcu_state.exp_mutex){+.+.}-{3:3}, at: synchronize_rcu_expedited+0x2d5/0x620 kernel/rcu/tree_exp.h:837
+2 locks held by syz-executor.5/10977:
+ #0: ffff888147dc6460 (sb_writers#5){.+.+}-{0:0}, at: filename_create+0x104/0x490 fs/namei.c:3587
+ #1: ffff8880397a8488 (&type->i_mutex_dir_key#4/1){+.+.}-{3:3}, at: inode_lock_nested include/linux/fs.h:809 [inline]
+ #1: ffff8880397a8488 (&type->i_mutex_dir_key#4/1){+.+.}-{3:3}, at: filename_create+0x15a/0x490 fs/namei.c:3592
+=============================================
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	1-....: (1 GPs behind) idle=6fe/1/0x4000000000000000 softirq=14140/14142 fqs=2 
+	(t=11366 jiffies g=14725 q=906)
+rcu: rcu_preempt kthread timer wakeup didn't happen for 3733 jiffies! g14725 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402
+rcu: 	Possible timer handling issue on cpu=0 timer-softirq=13580
+rcu: rcu_preempt kthread starved for 3734 jiffies! g14725 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402 ->cpu=0
+rcu: 	Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+rcu: RCU grace-period kthread stack dump:
+task:rcu_preempt     state:I stack:28864 pid:   14 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ schedule_timeout+0x14a/0x250 kernel/time/timer.c:1878
+ rcu_gp_fqs_loop kernel/rcu/tree.c:1996 [inline]
+ rcu_gp_kthread+0xd21/0x1960 kernel/rcu/tree.c:2169
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+rcu: Stack dump where RCU GP kthread last ran:
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 8522 Comm: kworker/u4:0 Not tainted 5.13.0-rc2-next-20210518-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: phy6 ieee80211_iface_work
+RIP: 0010:orc_find arch/x86/kernel/unwind_orc.c:163 [inline]
+RIP: 0010:unwind_next_frame+0x23b/0x1ce0 arch/x86/kernel/unwind_orc.c:443
+Code: 8d 43 ff 39 c6 0f 83 bc 13 00 00 48 b8 00 00 00 00 00 fc ff df 89 f2 48 8d 3c 95 14 bd fd 8e 48 89 f9 48 c1 e9 03 0f b6 0c 01 <48> 89 f8 83 e0 07 83 c0 03 38 c8 7c 27 84 c9 74 23 48 89 54 24 30
+RSP: 0018:ffffc90001ceebd8 EFLAGS: 00000a07
+RAX: dffffc0000000000 RBX: 1ffff9200039dd83 RCX: 0000000000000000
+RDX: 000000000000bb16 RSI: 000000000000bb16 RDI: ffffffff8f00a96c
+RBP: 0000000000000001 R08: ffffffff8bff2660 R09: 0000000000000001
+R10: fffff5200039dda1 R11: 0000000000086087 R12: ffffc90001ceecf8
+R13: ffffc90001ceece5 R14: ffffc90001ceecb0 R15: ffffffff81bb16ba
+FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f05a14f8000 CR3: 0000000017687000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ arch_stack_walk+0x7d/0xe0 arch/x86/kernel/stacktrace.c:25
+ stack_trace_save+0x8c/0xc0 kernel/stacktrace.c:121
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:431 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:510 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:469 [inline]
+ __kasan_kmalloc+0x9b/0xd0 mm/kasan/common.c:519
+ kmalloc include/linux/slab.h:595 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ cfg80211_inform_single_bss_frame_data+0x302/0xee0 net/wireless/scan.c:2376
+ cfg80211_inform_bss_frame_data+0xa7/0xb10 net/wireless/scan.c:2437
+ ieee80211_bss_info_update+0x374/0xb30 net/mac80211/scan.c:190
+ ieee80211_rx_bss_info net/mac80211/ibss.c:1126 [inline]
+ ieee80211_rx_mgmt_probe_beacon+0xc95/0x16c0 net/mac80211/ibss.c:1615
+ ieee80211_ibss_rx_queued_mgmt+0xd30/0x1610 net/mac80211/ibss.c:1642
+ ieee80211_iface_work+0x761/0x9e0 net/mac80211/iface.c:1437
+ process_one_work+0x98d/0x1600 kernel/workqueue.c:2275
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+NMI backtrace for cpu 1
+CPU: 1 PID: 8468 Comm: syz-executor.4 Not tainted 5.13.0-rc2-next-20210518-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x13e/0x1d6 lib/dump_stack.c:129
+ nmi_cpu_backtrace.cold+0x44/0xd7 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1b3/0x230 lib/nmi_backtrace.c:62
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x25e/0x3f0 kernel/rcu/tree_stall.h:342
+ print_cpu_stall kernel/rcu/tree_stall.h:625 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:700 [inline]
+ rcu_pending kernel/rcu/tree.c:3922 [inline]
+ rcu_sched_clock_irq.cold+0x3f1/0x74b kernel/rcu/tree.c:2641
+ update_process_times+0x16d/0x200 kernel/time/timer.c:1782
+ tick_sched_handle+0x9b/0x180 kernel/time/tick-sched.c:226
+ tick_sched_timer+0x1b0/0x2d0 kernel/time/tick-sched.c:1420
+ __run_hrtimer kernel/time/hrtimer.c:1537 [inline]
+ __hrtimer_run_queues+0x1c0/0xe50 kernel/time/hrtimer.c:1601
+ hrtimer_interrupt+0x330/0xa00 kernel/time/hrtimer.c:1663
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1089 [inline]
+ __sysvec_apic_timer_interrupt+0x146/0x530 arch/x86/kernel/apic/apic.c:1106
+ sysvec_apic_timer_interrupt+0x40/0xc0 arch/x86/kernel/apic/apic.c:1100
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:647
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:161 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x38/0x70 kernel/locking/spinlock.c:191
+Code: 74 24 10 e8 aa 03 3b f8 48 89 ef e8 42 7c 3b f8 81 e3 00 02 00 00 75 25 9c 58 f6 c4 02 75 2d 48 85 db 74 01 fb bf 01 00 00 00 <e8> 13 99 2e f8 65 8b 05 ec 98 e1 76 85 c0 74 0a 5b 5d c3 e8 e0 90
+RSP: 0018:ffffc90000dc0c80 EFLAGS: 00000206
+RAX: 0000000000000002 RBX: 0000000000000200 RCX: 1ffffffff2093eea
+RDX: 0000000000000000 RSI: 0000000000000102 RDI: 0000000000000001
+RBP: ffff88802fd20218 R08: 0000000000000001 R09: ffffffff90440a5f
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000246
+R13: ffff88802fd20218 R14: 0000000000000021 R15: ffff88802fd20108
+ spin_unlock_irqrestore include/linux/spinlock.h:414 [inline]
+ input_repeat_key+0x118/0x380 drivers/input/input.c:201
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1417
+ expire_timers kernel/time/timer.c:1462 [inline]
+ __run_timers.part.0+0x67c/0xa50 kernel/time/timer.c:1731
+ __run_timers kernel/time/timer.c:1712 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1744
+ __do_softirq+0x29b/0x9fb kernel/softirq.c:559
+ invoke_softirq kernel/softirq.c:433 [inline]
+ __irq_exit_rcu+0x136/0x200 kernel/softirq.c:637
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:649
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1100
+ </IRQ>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:647
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:161 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x38/0x70 kernel/locking/spinlock.c:191
+Code: 74 24 10 e8 aa 03 3b f8 48 89 ef e8 42 7c 3b f8 81 e3 00 02 00 00 75 25 9c 58 f6 c4 02 75 2d 48 85 db 74 01 fb bf 01 00 00 00 <e8> 13 99 2e f8 65 8b 05 ec 98 e1 76 85 c0 74 0a 5b 5d c3 e8 e0 90
+RSP: 0018:ffffc9000186f788 EFLAGS: 00000206
+RAX: 0000000000000002 RBX: 0000000000000200 RCX: 1ffffffff1bd3131
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000001
+RBP: ffffffff8c27b780 R08: 0000000000000001 R09: 0000000000000001
+R10: ffffffff817be7f8 R11: 0000000000000000 R12: ffff888017f40a71
+R13: ffff888017f40a90 R14: 0000000000000000 R15: 0000000000000004
+ spin_unlock_irqrestore include/linux/spinlock.h:414 [inline]
+ free_percpu mm/percpu.c:2299 [inline]
+ free_percpu+0x839/0x1160 mm/percpu.c:2252
+ xt_percpu_counter_free+0x96/0xc0 net/netfilter/x_tables.c:1889
+ cleanup_entry+0x284/0x340 net/ipv6/netfilter/ip6_tables.c:672
+ __do_replace+0x637/0x890 net/ipv6/netfilter/ip6_tables.c:1101
+ do_replace net/ipv6/netfilter/ip6_tables.c:1156 [inline]
+ do_ip6t_set_ctl+0x90d/0xb90 net/ipv6/netfilter/ip6_tables.c:1638
+ nf_setsockopt+0x83/0xe0 net/netfilter/nf_sockopt.c:101
+ ipv6_setsockopt+0x122/0x180 net/ipv6/ipv6_sockglue.c:1008
+ tcp_setsockopt+0x136/0x24a0 net/ipv4/tcp.c:3656
+ __sys_setsockopt+0x2db/0x610 net/socket.c:2117
+ __do_sys_setsockopt net/socket.c:2128 [inline]
+ __se_sys_setsockopt net/socket.c:2125 [inline]
+ __x64_sys_setsockopt+0xba/0x150 net/socket.c:2125
+ do_syscall_64+0x31/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x467c1a
+Code: 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 36 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffc74d53518 EFLAGS: 00000206 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000029 RCX: 0000000000467c1a
+RDX: 0000000000000040 RSI: 0000000000000029 RDI: 0000000000000003
+RBP: 00007ffc74d53540 R08: 00000000000003b8 R09: 0079746972756365
+R10: 00000000005446a0 R11: 0000000000000206 R12: 00007ffc74d535a0
+R13: 0000000000000003 R14: 00007ffc74d5353c R15: 0000000000544640
+task:systemd         state:D stack:22720 pid:    1 ppid:     0 flags:0x00000000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6083
+ __mutex_lock_common kernel/locking/mutex.c:1026 [inline]
+ __mutex_lock+0x81f/0x1120 kernel/locking/mutex.c:1096
+ kernfs_iop_permission+0x5f/0xb0 fs/kernfs/inode.c:287
+ do_inode_permission fs/namei.c:446 [inline]
+ inode_permission.part.0+0x236/0x440 fs/namei.c:513
+ inode_permission fs/namei.c:494 [inline]
+ may_lookup fs/namei.c:1659 [inline]
+ link_path_walk.part.0+0x800/0xc90 fs/namei.c:2211
+ link_path_walk fs/namei.c:2194 [inline]
+ path_openat+0x255/0x27d0 fs/namei.c:3490
+ do_filp_open+0x190/0x3d0 fs/namei.c:3521
+ do_sys_openat2+0x16d/0x420 fs/open.c:1196
+ do_sys_open fs/open.c:1212 [inline]
+ __do_sys_open fs/open.c:1220 [inline]
+ __se_sys_open fs/open.c:1216 [inline]
+ __x64_sys_open+0x119/0x1c0 fs/open.c:1216
+ do_syscall_64+0x31/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f312162370d
+RSP: 002b:00007ffeb79c5750 EFLAGS: 00000293 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 0000563e8c5f1e30 RCX: 00007f312162370d
+RDX: 00000000000001b6 RSI: 0000000000080000 RDI: 0000563e8c669040
+RBP: 0000000000000008 R08: 0000000000000008 R09: 0000000000000001
+R10: 0000000000080000 R11: 0000000000000293 R12: 00007f3122d5d7b4
+R13: 0000000000000001 R14: 0000563e8c544c00 R15: 0000000000000000
+task:kthreadd        state:S stack:28072 pid:    2 ppid:     0 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ kthreadd+0x5cc/0x790 kernel/kthread.c:667
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:rcu_gp          state:I stack:30192 pid:    3 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:rcu_par_gp      state:I stack:30632 pid:    4 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/0:0     state:I stack:26176 pid:    5 ppid:     2 flags:0x00004000
+Workqueue:  0x0 (wg-crypt-wg2)
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ worker_thread+0x14c/0x1120 kernel/workqueue.c:2442
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/0:0H    state:I stack:29360 pid:    6 ppid:     2 flags:0x00004000
+Workqueue:  0x0 (events_highpri)
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ worker_thread+0x14c/0x1120 kernel/workqueue.c:2442
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/0:2     state:D stack:21584 pid:    8 ppid:     2 flags:0x00004000
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6083
+ __mutex_lock_common kernel/locking/mutex.c:1026 [inline]
+ __mutex_lock+0x81f/0x1120 kernel/locking/mutex.c:1096
+ kernfs_add_one+0x51/0x4c0 fs/kernfs/dir.c:766
+ kernfs_create_dir_ns+0x18b/0x220 fs/kernfs/dir.c:1035
+ sysfs_create_dir_ns+0x127/0x290 fs/sysfs/dir.c:59
+ create_dir lib/kobject.c:89 [inline]
+ kobject_add_internal+0x2d2/0xa60 lib/kobject.c:255
+ kobject_add_varg lib/kobject.c:390 [inline]
+ kobject_add+0x150/0x1c0 lib/kobject.c:442
+ device_add+0x36a/0x2100 drivers/base/core.c:3253
+ device_create_groups_vargs+0x203/0x280 drivers/base/core.c:3979
+ device_create_with_groups+0xe3/0x120 drivers/base/core.c:4065
+ led_classdev_register_ext+0x2ba/0x7c0 drivers/leds/led-class.c:371
+ led_classdev_register include/linux/leds.h:190 [inline]
+ input_leds_connect+0x4bd/0x860 drivers/input/input-leds.c:139
+ input_attach_handler+0x180/0x1f0 drivers/input/input.c:1035
+ input_register_device.cold+0xf0/0x304 drivers/input/input.c:2335
+ hidinput_connect+0x493d/0x97a0 drivers/hid/hid-input.c:1983
+ hid_connect+0x958/0xbc0 drivers/hid/hid-core.c:1952
+ hid_hw_start drivers/hid/hid-core.c:2059 [inline]
+ hid_hw_start+0xa2/0x130 drivers/hid/hid-core.c:2050
+ hid_device_probe+0x396/0x3f0 drivers/hid/hid-core.c:2291
+ really_probe+0x291/0xf60 drivers/base/dd.c:576
+ driver_probe_device+0x298/0x410 drivers/base/dd.c:763
+ __device_attach_driver+0x203/0x2c0 drivers/base/dd.c:870
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:938
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0xbe0/0x2100 drivers/base/core.c:3320
+ hid_add_device+0x344/0x9d0 drivers/hid/hid-core.c:2439
+ usbhid_probe+0xb88/0x1080 drivers/hid/usbhid/hid-core.c:1409
+ usb_probe_interface+0x315/0x7f0 drivers/usb/core/driver.c:396
+ really_probe+0x291/0xf60 drivers/base/dd.c:576
+ driver_probe_device+0x298/0x410 drivers/base/dd.c:763
+ __device_attach_driver+0x203/0x2c0 drivers/base/dd.c:870
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:938
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0xbe0/0x2100 drivers/base/core.c:3320
+ usb_set_configuration+0x113f/0x1910 drivers/usb/core/message.c:2164
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd9/0x2c0 drivers/usb/core/driver.c:293
+ really_probe+0x291/0xf60 drivers/base/dd.c:576
+ driver_probe_device+0x298/0x410 drivers/base/dd.c:763
+ __device_attach_driver+0x203/0x2c0 drivers/base/dd.c:870
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:938
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0xbe0/0x2100 drivers/base/core.c:3320
+ usb_new_device.cold+0x721/0x1058 drivers/usb/core/hub.c:2556
+ hub_port_connect drivers/usb/core/hub.c:5276 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5416 [inline]
+ port_event drivers/usb/core/hub.c:5562 [inline]
+ hub_event+0x2357/0x4330 drivers/usb/core/hub.c:5644
+ process_one_work+0x98d/0x1600 kernel/workqueue.c:2275
+ process_scheduled_works kernel/workqueue.c:2337 [inline]
+ worker_thread+0x82b/0x1120 kernel/workqueue.c:2423
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:mm_percpu_wq    state:I stack:30632 pid:   10 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:rcu_tasks_kthre state:S stack:29016 pid:   11 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rcu_tasks_kthread+0x4bd/0x6a0 kernel/rcu/tasks.h:211
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:rcu_tasks_trace state:S stack:29624 pid:   12 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rcu_tasks_kthread+0x4bd/0x6a0 kernel/rcu/tasks.h:211
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:ksoftirqd/0     state:R  running task     stack:25064 pid:   13 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ smpboot_thread_fn+0x328/0x9e0 kernel/smpboot.c:160
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:rcu_preempt     state:I stack:28864 pid:   14 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ schedule_timeout+0x14a/0x250 kernel/time/timer.c:1878
+ rcu_gp_fqs_loop kernel/rcu/tree.c:1996 [inline]
+ rcu_gp_kthread+0xd21/0x1960 kernel/rcu/tree.c:2169
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:migration/0     state:S stack:30568 pid:   15 ppid:     2 flags:0x00004000
+Stopper: 0x0 <- 0x0
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ smpboot_thread_fn+0x328/0x9e0 kernel/smpboot.c:160
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:cpuhp/0         state:S stack:27192 pid:   16 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ smpboot_thread_fn+0x328/0x9e0 kernel/smpboot.c:160
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:cpuhp/1         state:S stack:27936 pid:   17 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ smpboot_thread_fn+0x328/0x9e0 kernel/smpboot.c:160
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:migration/1     state:R  running task     stack:30504 pid:   18 ppid:     2 flags:0x00004000
+Stopper: 0x0 <- 0x0
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ smpboot_thread_fn+0x328/0x9e0 kernel/smpboot.c:160
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:ksoftirqd/1     state:R  running task     stack:25632 pid:   19 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ preempt_schedule_common+0x45/0xc0 kernel/sched/core.c:6105
+ preempt_schedule_thunk+0x16/0x18 arch/x86/entry/thunk_64.S:35
+ smpboot_thread_fn+0x873/0x9e0 kernel/smpboot.c:163
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/1:0H    state:I stack:28936 pid:   21 ppid:     2 flags:0x00004000
+Workqueue:  0x0 (kblockd)
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ worker_thread+0x14c/0x1120 kernel/workqueue.c:2442
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kdevtmpfs       state:S stack:26848 pid:   22 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ devtmpfs_work_loop drivers/base/devtmpfs.c:404 [inline]
+ devtmpfsd+0x278/0x2a3 drivers/base/devtmpfs.c:437
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:netns           state:I stack:29864 pid:   23 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:inet_frag_wq    state:I stack:29920 pid:   24 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/u4:1    state:I stack:23680 pid:   25 ppid:     2 flags:0x00004000
+Workqueue:  0x0 (wg-kex-wg1)
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ worker_thread+0x14c/0x1120 kernel/workqueue.c:2442
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kauditd         state:S stack:30144 pid:   37 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ kauditd_thread+0x5fc/0xba0 kernel/audit.c:881
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/u4:3    state:D stack:24520 pid:   95 ppid:     2 flags:0x00004000
+Workqueue: phy5 ieee80211_iface_work
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ exp_funnel_lock kernel/rcu/tree_exp.h:313 [inline]
+ synchronize_rcu_expedited+0x5ac/0x620 kernel/rcu/tree_exp.h:837
+ synchronize_rcu+0x132/0x190 kernel/rcu/tree.c:3788
+ synchronize_net+0x4c/0x60 net/core/dev.c:10939
+ __sta_info_destroy+0x2e/0x50 net/mac80211/sta_info.c:1119
+ ieee80211_ibss_sta_expire net/mac80211/ibss.c:1284 [inline]
+ ieee80211_sta_merge_ibss net/mac80211/ibss.c:1305 [inline]
+ ieee80211_ibss_work+0x625/0xe80 net/mac80211/ibss.c:1711
+ ieee80211_iface_work+0x893/0x9e0 net/mac80211/iface.c:1459
+ process_one_work+0x98d/0x1600 kernel/workqueue.c:2275
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:khungtaskd      state:S stack:30056 pid: 1640 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ schedule_timeout+0x14a/0x250 kernel/time/timer.c:1878
+ watchdog+0xf9/0xf50 kernel/hung_task.c:343
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:oom_reaper      state:S stack:29592 pid: 1648 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ oom_reaper+0xa63/0xd90 mm/oom_kill.c:646
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:writeback       state:I stack:29568 pid: 1649 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kcompactd0      state:S stack:29328 pid: 1651 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ schedule_timeout+0x14a/0x250 kernel/time/timer.c:1878
+ freezable_schedule_timeout include/linux/freezer.h:192 [inline]
+ kcompactd+0x5ad/0xd10 mm/compaction.c:2906
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kcompactd1      state:S stack:29472 pid: 1652 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ schedule_timeout+0x14a/0x250 kernel/time/timer.c:1878
+ freezable_schedule_timeout include/linux/freezer.h:192 [inline]
+ kcompactd+0x5ad/0xd10 mm/compaction.c:2906
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:ksmd            state:S stack:30080 pid: 1653 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ ksm_scan_thread+0x1ccb/0x4a90 mm/ksm.c:2426
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:khugepaged      state:S stack:28064 pid: 1654 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ schedule_timeout+0x14a/0x250 kernel/time/timer.c:1878
+ freezable_schedule_timeout include/linux/freezer.h:192 [inline]
+ khugepaged_wait_work mm/khugepaged.c:2257 [inline]
+ khugepaged+0x1907/0x5360 mm/khugepaged.c:2276
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:pencrypt_serial state:I stack:30312 pid: 1690 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:pdecrypt_serial state:I stack:30528 pid: 1692 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:cryptd          state:I stack:30528 pid: 1694 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kintegrityd     state:I stack:29712 pid: 1764 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kblockd         state:I stack:29712 pid: 1765 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:blkcg_punt_bio  state:I stack:30264 pid: 1767 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:tpm_dev_wq      state:I stack:30312 pid: 1854 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:ata_sff         state:I stack:29880 pid: 1871 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:md              state:I stack:30056 pid: 1905 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:edac-poller     state:I stack:29712 pid: 1908 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:ib-comp-wq      state:I stack:30536 pid: 2026 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/u5:0    state:I stack:27168 pid: 2028 ppid:     2 flags:0x00004000
+Workqueue:  0x0 (hci5)
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ worker_thread+0x14c/0x1120 kernel/workqueue.c:2442
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:ib-comp-unb-wq  state:I stack:29568 pid: 2029 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:ib_mcast        state:I stack:29568 pid: 2032 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:ib_nl_sa_wq     state:I stack:30576 pid: 2033 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/0:1H    state:I stack:28720 pid: 2036 ppid:     2 flags:0x00004000
+Workqueue:  0x0 (events_highpri)
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ worker_thread+0x14c/0x1120 kernel/workqueue.c:2442
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:rpciod          state:I stack:29568 pid: 2037 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:xprtiod         state:I stack:30576 pid: 2038 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:cfg80211        state:I stack:29568 pid: 2041 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kswapd0         state:S stack:30328 pid: 2145 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ kswapd_try_to_sleep mm/vmscan.c:4033 [inline]
+ kswapd+0xbbb/0xdb0 mm/vmscan.c:4094
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kswapd1         state:S stack:29672 pid: 2146 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ kswapd_try_to_sleep mm/vmscan.c:4033 [inline]
+ kswapd+0xbbb/0xdb0 mm/vmscan.c:4094
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:ecryptfs-kthrea state:S stack:30424 pid: 2150 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ ecryptfs_threadfn+0x3e6/0x630 fs/ecryptfs/kthread.c:48
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:nfsiod          state:I stack:30528 pid: 2153 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:cifsiod         state:I stack:29920 pid: 2154 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:smb3decryptd    state:I stack:30576 pid: 2155 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:cifsfileinfoput state:I stack:30576 pid: 2156 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:cifsoplockd     state:I stack:30528 pid: 2157 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:deferredclose   state:I stack:30528 pid: 2158 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:cifs-dfscache   state:I stack:30528 pid: 2159 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:jfsIO           state:S stack:30232 pid: 2165 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ jfsIOWait+0x18e/0x3b0 fs/jfs/jfs_logmgr.c:2340
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:jfsCommit       state:S stack:29880 pid: 2166 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ jfs_lazycommit+0x335/0xba0 fs/jfs/jfs_txnmgr.c:2789
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:jfsCommit       state:S stack:29560 pid: 2167 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ jfs_lazycommit+0x335/0xba0 fs/jfs/jfs_txnmgr.c:2789
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:jfsSync         state:S stack:30632 pid: 2168 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ jfs_sync+0x4f9/0x810 fs/jfs/jfs_txnmgr.c:2975
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:xfsalloc        state:I stack:30232 pid: 2169 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:xfs_mru_cache   state:I stack:30264 pid: 2172 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:user_dlm        state:I stack:30264 pid: 2175 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:glock_workqueue state:I stack:30576 pid: 2177 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:delete_workqueu state:I stack:30576 pid: 2178 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:gfs_recovery    state:I stack:30264 pid: 2179 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kthrotld        state:I stack:30232 pid: 2184 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:acpi_thermal_pm state:I stack:29568 pid: 2230 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:nfit            state:I stack:30264 pid: 2232 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:hwrng           state:S stack:30128 pid: 2807 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ add_hwgenerator_randomness+0x1b0/0x220 drivers/char/random.c:2286
+ hwrng_fillfn+0x1e7/0x2d0 drivers/char/hw_random/core.c:452
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:card1-crtc0     state:S stack:30056 pid: 2815 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ kthread_worker_fn+0x627/0xcf0 kernel/kthread.c:763
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/1:1H    state:R  running task     stack:27376 pid: 2940 ppid:     2 flags:0x00004000
+Workqueue:  0x0 (kblockd)
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ worker_thread+0x14c/0x1120 kernel/workqueue.c:2442
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:kworker/1:2     state:D stack:22912 pid: 2954 ppid:     2 flags:0x00004000
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6083
+ __mutex_lock_common kernel/locking/mutex.c:1026 [inline]
+ __mutex_lock+0x81f/0x1120 kernel/locking/mutex.c:1096
+ kernfs_find_and_get_ns+0x21/0x60 fs/kernfs/dir.c:904
+ kernfs_find_and_get include/linux/kernfs.h:548 [inline]
+ sysfs_unmerge_group+0x5d/0x160 fs/sysfs/group.c:366
+ dpm_sysfs_remove+0x62/0xb0 drivers/base/power/sysfs.c:833
+ device_del+0x20c/0xd40 drivers/base/core.c:3485
+ device_unregister+0x1f/0xc0 drivers/base/core.c:3541
+ usb_remove_ep_devs+0x3e/0x80 drivers/usb/core/endpoint.c:188
+ remove_intf_ep_devs drivers/usb/core/message.c:1261 [inline]
+ usb_disable_device+0x306/0x7b0 drivers/usb/core/message.c:1412
+ usb_disconnect.cold+0x27a/0x78e drivers/usb/core/hub.c:2219
+ hub_port_connect drivers/usb/core/hub.c:5127 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5416 [inline]
+ port_event drivers/usb/core/hub.c:5562 [inline]
+ hub_event+0x1c9c/0x4330 drivers/usb/core/hub.c:5644
+ process_one_work+0x98d/0x1600 kernel/workqueue.c:2275
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:iscsi_eh        state:I stack:30536 pid: 2980 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:iscsi_destroy   state:I stack:30528 pid: 2982 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ rescuer_thread+0x7a7/0xd30 kernel/workqueue.c:2584
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+task:scsi_eh_0       state:S stack:29920 pid: 2993 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4688 [inline]
+ __schedule+0xb38/0x58c0 kernel/sched/core.c:5945
+ schedule+0xcf/0x270 kernel/sched/core.c:6024
+ scsi_error_handler+0x5f8/0x1380 drivers/scsi/scsi_error.c:2234
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313

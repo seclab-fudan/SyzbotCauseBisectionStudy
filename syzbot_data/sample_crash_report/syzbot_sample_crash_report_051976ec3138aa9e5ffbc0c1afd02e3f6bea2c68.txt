@@ -1,0 +1,56 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 12664 Comm: syz-executor689 Not tainted 5.3.0-rc7+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__write_once_size include/linux/compiler.h:226 [inline]
+RIP: 0010:__hlist_del include/linux/list.h:762 [inline]
+RIP: 0010:hlist_del_rcu include/linux/rculist.h:455 [inline]
+RIP: 0010:__dev_map_hash_update_elem kernel/bpf/devmap.c:668 [inline]
+RIP: 0010:dev_map_hash_update_elem+0x3c8/0x6e0 kernel/bpf/devmap.c:691
+Code: 48 89 f1 48 89 75 c8 48 c1 e9 03 80 3c 11 00 0f 85 d3 02 00 00 48 b9 00 00 00 00 00 fc ff df 48 8b 53 10 48 89 d6 48 c1 ee 03 <80> 3c 0e 00 0f 85 97 02 00 00 48 85 c0 48 89 02 74 38 48 89 55 b8
+RSP: 0018:ffff8880845c7c30 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8880a02acd80 RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff8880a02acd88
+RBP: ffff8880845c7c78 R08: 1ffff1101229ed15 R09: ffffed101229ed16
+R10: ffffed101229ed15 R11: ffff8880914f68ab R12: ffff8880914f6780
+R13: ffff888090a52000 R14: 0000000000000000 R15: ffff8880914f68a8
+FS:  00007fc29cf45700(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffd1d820cb0 CR3: 000000008e1e0000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ map_update_elem+0xc82/0x10b0 kernel/bpf/syscall.c:966
+ __do_sys_bpf+0x8b5/0x3350 kernel/bpf/syscall.c:2854
+ __se_sys_bpf kernel/bpf/syscall.c:2825 [inline]
+ __x64_sys_bpf+0x73/0xb0 kernel/bpf/syscall.c:2825
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x446a29
+Code: e8 0c e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 5b 07 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fc29cf44db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000006dbc28 RCX: 0000000000446a29
+RDX: 0000000000000020 RSI: 0000000020000180 RDI: 0000000000000002
+RBP: 00000000006dbc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc2c
+R13: 00007ffd1d820c2f R14: 00007fc29cf459c0 R15: 0000000000000000
+Modules linked in:
+---[ end trace ec12a653c0093bf8 ]---
+RIP: 0010:__write_once_size include/linux/compiler.h:226 [inline]
+RIP: 0010:__hlist_del include/linux/list.h:762 [inline]
+RIP: 0010:hlist_del_rcu include/linux/rculist.h:455 [inline]
+RIP: 0010:__dev_map_hash_update_elem kernel/bpf/devmap.c:668 [inline]
+RIP: 0010:dev_map_hash_update_elem+0x3c8/0x6e0 kernel/bpf/devmap.c:691
+Code: 48 89 f1 48 89 75 c8 48 c1 e9 03 80 3c 11 00 0f 85 d3 02 00 00 48 b9 00 00 00 00 00 fc ff df 48 8b 53 10 48 89 d6 48 c1 ee 03 <80> 3c 0e 00 0f 85 97 02 00 00 48 85 c0 48 89 02 74 38 48 89 55 b8
+RSP: 0018:ffff8880845c7c30 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8880a02acd80 RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff8880a02acd88
+RBP: ffff8880845c7c78 R08: 1ffff1101229ed15 R09: ffffed101229ed16
+R10: ffffed101229ed15 R11: ffff8880914f68ab R12: ffff8880914f6780
+R13: ffff888090a52000 R14: 0000000000000000 R15: ffff8880914f68a8
+FS:  00007fc29cf45700(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffd1d820cb0 CR3: 000000008e1e0000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

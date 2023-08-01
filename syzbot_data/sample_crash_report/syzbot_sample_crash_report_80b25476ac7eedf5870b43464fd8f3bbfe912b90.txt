@@ -1,0 +1,280 @@
+hfs: can't find a HFS filesystem on dev loop1
+F2FS-fs (loop4): Magic Mismatch, valid(0xf2f52010) - read(0x0)
+F2FS-fs (loop4): Can't find valid F2FS filesystem in 1th superblock
+
+=============================
+WARNING: suspicious RCU usage
+4.17.0-rc2+ #18 Not tainted
+-----------------------------
+include/linux/rcupdate.h:304 Illegal context switch in RCU read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+5 locks held by syz-executor7/8259:
+ #0:         (ptrval) (&f->f_pos_lock){+.+.}, at: __fdget_pos+0x1a9/0x1e0 fs/file.c:766
+ #1:         (ptrval) (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2718 [inline]
+ #1:         (ptrval) (sb_writers#4){.+.+}, at: vfs_write+0x452/0x560 fs/read_write.c:548
+ #2:         (ptrval) (&sb->s_type->i_mutex_key#10){+.+.}, at: inode_trylock include/linux/fs.h:733 [inline]
+ #2:         (ptrval) (&sb->s_type->i_mutex_key#10){+.+.}, at: ext4_file_write_iter+0x299/0x1420 fs/ext4/file.c:232
+ #3:         (ptrval) (jbd2_handle){++++}, at: start_this_handle+0x581/0x1250 fs/jbd2/transaction.c:385
+ #4:         (ptrval) (rcu_read_lock){....}, at: rcu_read_lock+0x0/0x70 include/linux/compiler.h:188
+
+stack backtrace:
+CPU: 0 PID: 8259 Comm: syz-executor7 Not tainted 4.17.0-rc2+ #18
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ lockdep_rcu_suspicious+0x14a/0x153 kernel/locking/lockdep.c:4592
+ rcu_preempt_sleep_check include/linux/rcupdate.h:303 [inline]
+ ___might_sleep+0x26d/0x320 kernel/sched/core.c:6153
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6141
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc mm/slab.c:3378 [inline]
+ __do_kmalloc mm/slab.c:3716 [inline]
+ __kmalloc+0x2b9/0x760 mm/slab.c:3727
+ kmalloc_array include/linux/slab.h:631 [inline]
+ kcalloc include/linux/slab.h:642 [inline]
+ numa_crng_init drivers/char/random.c:798 [inline]
+ crng_reseed+0x427/0x920 drivers/char/random.c:923
+ credit_entropy_bits+0x98d/0xa30 drivers/char/random.c:708
+ add_interrupt_randomness+0x494/0x860 drivers/char/random.c:1254
+ handle_irq_event_percpu+0xf9/0x1c0 kernel/irq/handle.c:191
+ handle_irq_event+0xa7/0x135 kernel/irq/handle.c:206
+ handle_edge_irq+0x20f/0x870 kernel/irq/chip.c:791
+ generic_handle_irq_desc include/linux/irqdesc.h:159 [inline]
+ handle_irq+0x18c/0x2e7 arch/x86/kernel/irq_64.c:77
+ do_IRQ+0x78/0x190 arch/x86/kernel/irq.c:245
+ common_interrupt+0xf/0xf arch/x86/entry/entry_64.S:642
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+RSP: 0018:ffff88018e317100 EFLAGS: 00000286 ORIG_RAX: ffffffffffffffda
+RAX: dffffc0000000000 RBX: 0000000000000286 RCX: 1ffff1003599cde2
+RDX: 1ffffffff11a315d RSI: ffff8801acce6f18 RDI: 0000000000000286
+RBP: ffff88018e317110 R08: ffff8801acce6e78 R09: 0000000000000006
+R10: ffff8801acce6640 R11: 0000000000000000 R12: ffff8801d1ebe980
+R13: 0000000000000000 R14: ffff8801d1ebe980 R15: ffffea0006631000
+ spin_unlock_irqrestore include/linux/spinlock.h:365 [inline]
+ __set_page_dirty+0x2d8/0x5b0 fs/buffer.c:585
+ mark_buffer_dirty+0x51a/0x6b0 fs/buffer.c:1103
+ __block_commit_write.isra.35+0x19a/0x390 fs/buffer.c:2031
+ block_write_end+0xa5/0x260 fs/buffer.c:2109
+ generic_write_end+0x107/0x4c0 fs/buffer.c:2123
+ ext4_da_write_end+0x4af/0xc30 fs/ext4/inode.c:3175
+ generic_perform_write+0x4c9/0x6a0 mm/filemap.c:3150
+ __generic_file_write_iter+0x26e/0x630 mm/filemap.c:3264
+ ext4_file_write_iter+0x388/0x1420 fs/ext4/file.c:266
+ call_write_iter include/linux/fs.h:1784 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x64d/0x960 fs/read_write.c:487
+ vfs_write+0x1f8/0x560 fs/read_write.c:549
+ ksys_write+0xf9/0x250 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455389
+RSP: 002b:00007f808642ac68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007f808642b6d4 RCX: 0000000000455389
+RDX: 00000000ffffffe7 RSI: 0000000020000000 RDI: 0000000000000014
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000000006c8 R14: 00000000006fd360 R15: 0000000000000000
+BUG: sleeping function called from invalid context at mm/slab.h:421
+in_atomic(): 1, irqs_disabled(): 1, pid: 8259, name: syz-executor7
+5 locks held by syz-executor7/8259:
+ #0:         (ptrval) (&f->f_pos_lock){+.+.}, at: __fdget_pos+0x1a9/0x1e0 fs/file.c:766
+ #1:         (ptrval) (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2718 [inline]
+ #1:         (ptrval) (sb_writers#4){.+.+}, at: vfs_write+0x452/0x560 fs/read_write.c:548
+ #2:         (ptrval) (&sb->s_type->i_mutex_key#10){+.+.}, at: inode_trylock include/linux/fs.h:733 [inline]
+ #2:         (ptrval) (&sb->s_type->i_mutex_key#10){+.+.}, at: ext4_file_write_iter+0x299/0x1420 fs/ext4/file.c:232
+ #3:         (ptrval) (jbd2_handle){++++}, at: start_this_handle+0x581/0x1250 fs/jbd2/transaction.c:385
+ #4:         (ptrval) (rcu_read_lock){....}, at: rcu_read_lock+0x0/0x70 include/linux/compiler.h:188
+irq event stamp: 28766
+hardirqs last  enabled at (28765): [<ffffffff876ed404>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+hardirqs last  enabled at (28765): [<ffffffff876ed404>] _raw_spin_unlock_irqrestore+0x74/0xc0 kernel/locking/spinlock.c:184
+hardirqs last disabled at (28766): [<ffffffff87800905>] interrupt_entry+0xb5/0xf0 arch/x86/entry/entry_64.S:625
+softirqs last  enabled at (28568): [<ffffffff87a00778>] __do_softirq+0x778/0xaf5 kernel/softirq.c:311
+softirqs last disabled at (28561): [<ffffffff81475041>] invoke_softirq kernel/softirq.c:365 [inline]
+softirqs last disabled at (28561): [<ffffffff81475041>] irq_exit+0x1d1/0x200 kernel/softirq.c:405
+CPU: 0 PID: 8259 Comm: syz-executor7 Not tainted 4.17.0-rc2+ #18
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ ___might_sleep.cold.87+0x11f/0x13a kernel/sched/core.c:6188
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6141
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc mm/slab.c:3378 [inline]
+ __do_kmalloc mm/slab.c:3716 [inline]
+ __kmalloc+0x2b9/0x760 mm/slab.c:3727
+ kmalloc_array include/linux/slab.h:631 [inline]
+ kcalloc include/linux/slab.h:642 [inline]
+ numa_crng_init drivers/char/random.c:798 [inline]
+ crng_reseed+0x427/0x920 drivers/char/random.c:923
+ credit_entropy_bits+0x98d/0xa30 drivers/char/random.c:708
+ add_interrupt_randomness+0x494/0x860 drivers/char/random.c:1254
+ handle_irq_event_percpu+0xf9/0x1c0 kernel/irq/handle.c:191
+ handle_irq_event+0xa7/0x135 kernel/irq/handle.c:206
+ handle_edge_irq+0x20f/0x870 kernel/irq/chip.c:791
+ generic_handle_irq_desc include/linux/irqdesc.h:159 [inline]
+ handle_irq+0x18c/0x2e7 arch/x86/kernel/irq_64.c:77
+ do_IRQ+0x78/0x190 arch/x86/kernel/irq.c:245
+ common_interrupt+0xf/0xf arch/x86/entry/entry_64.S:642
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+RSP: 0018:ffff88018e317100 EFLAGS: 00000286 ORIG_RAX: ffffffffffffffda
+RAX: dffffc0000000000 RBX: 0000000000000286 RCX: 1ffff1003599cde2
+RDX: 1ffffffff11a315d RSI: ffff8801acce6f18 RDI: 0000000000000286
+RBP: ffff88018e317110 R08: ffff8801acce6e78 R09: 0000000000000006
+R10: ffff8801acce6640 R11: 0000000000000000 R12: ffff8801d1ebe980
+R13: 0000000000000000 R14: ffff8801d1ebe980 R15: ffffea0006631000
+ spin_unlock_irqrestore include/linux/spinlock.h:365 [inline]
+ __set_page_dirty+0x2d8/0x5b0 fs/buffer.c:585
+ mark_buffer_dirty+0x51a/0x6b0 fs/buffer.c:1103
+ __block_commit_write.isra.35+0x19a/0x390 fs/buffer.c:2031
+ block_write_end+0xa5/0x260 fs/buffer.c:2109
+ generic_write_end+0x107/0x4c0 fs/buffer.c:2123
+ ext4_da_write_end+0x4af/0xc30 fs/ext4/inode.c:3175
+ generic_perform_write+0x4c9/0x6a0 mm/filemap.c:3150
+ __generic_file_write_iter+0x26e/0x630 mm/filemap.c:3264
+ ext4_file_write_iter+0x388/0x1420 fs/ext4/file.c:266
+ call_write_iter include/linux/fs.h:1784 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x64d/0x960 fs/read_write.c:487
+ vfs_write+0x1f8/0x560 fs/read_write.c:549
+ ksys_write+0xf9/0x250 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455389
+RSP: 002b:00007f808642ac68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007f808642b6d4 RCX: 0000000000455389
+RDX: 00000000ffffffe7 RSI: 0000000020000000 RDI: 0000000000000014
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000000006c8 R14: 00000000006fd360 R15: 0000000000000000
+random: crng init done
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor4'.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor4'.
+EXT4-fs (loop1): VFS: Can't find ext4 filesystem
+EXT4-fs (loop1): VFS: Can't find ext4 filesystem
+binder_alloc: 8408: binder_alloc_buf, no vma
+binder: 8408:8409 transaction failed 29189/-3, size 0-0 line 2963
+binder: BINDER_SET_CONTEXT_MGR already set
+binder: 8408:8417 ioctl 40046207 0 returned -16
+binder: undelivered TRANSACTION_ERROR: 29189
+device dummy0 entered promiscuous mode
+kernel msg: ebtables bug: please report to author: Entries_size never zero
+MINIX-fs: bad superblock
+MINIX-fs: bad superblock
+FAT-fs (loop4): bogus number of reserved sectors
+FAT-fs (loop4): Can't find a valid FAT filesystem
+ loop2: [CUMANA/ADFS] p1 [ADFS] p1
+loop2: p1 size 117440512 extends beyond EOD, truncated
+FAT-fs (loop4): Unrecognized mount option "keyring" or missing value
+netlink: 4 bytes leftover after parsing attributes in process `syz-executor3'.
+netlink: 4 bytes leftover after parsing attributes in process `syz-executor3'.
+ISOFS: Unable to identify CD-ROM format.
+ISOFS: Unable to identify CD-ROM format.
+kernel msg: ebtables bug: please report to author: Wrong nr. of counters requested
+netlink: 8 bytes leftover after parsing attributes in process `syz-executor0'.
+netlink: 8 bytes leftover after parsing attributes in process `syz-executor0'.
+x86/PAT: syz-executor0:8841 map pfn RAM range req write-combining for [mem 0x18a1a0000-0x18a1a3fff], got write-back
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 1
+CPU: 1 PID: 8844 Comm: syz-executor6 Tainted: G        W         4.17.0-rc2+ #18
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail.cold.4+0xa/0x1a lib/fault-inject.c:149
+ __should_failslab+0x124/0x180 mm/failslab.c:32
+ should_failslab+0x9/0x14 mm/slab_common.c:1522
+ slab_pre_alloc_hook mm/slab.h:423 [inline]
+ slab_alloc mm/slab.c:3378 [inline]
+ __do_kmalloc mm/slab.c:3716 [inline]
+ __kmalloc_track_caller+0x2c4/0x760 mm/slab.c:3733
+ memdup_user+0x2c/0xa0 mm/util.c:160
+ map_update_elem+0x2e9/0x1100 kernel/bpf/syscall.c:673
+ __do_sys_bpf kernel/bpf/syscall.c:2055 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:2026 [inline]
+ __x64_sys_bpf+0x34a/0x4c0 kernel/bpf/syscall.c:2026
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455389
+RSP: 002b:00007f22ec5a3c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00007f22ec5a46d4 RCX: 0000000000455389
+RDX: 0000000000000020 RSI: 0000000020001300 RDI: 0000000000000002
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000015
+R13: 0000000000000040 R14: 00000000006f36a0 R15: 0000000000000000
+x86/PAT: syz-executor0:8859 map pfn RAM range req write-combining for [mem 0x18a1a0000-0x18a1a3fff], got write-back
+binder: 8860:8861 got transaction with invalid offsets size, 18
+binder: 8860:8861 transaction failed 29201/-22, size 0-18 line 2999
+binder: BINDER_SET_CONTEXT_MGR already set
+binder: 8860:8861 ioctl 40046207 0 returned -16
+binder_alloc: 8860: binder_alloc_buf, no vma
+binder: 8860:8861 transaction failed 29189/-3, size 0-18 line 2963
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 0 PID: 8865 Comm: syz-executor6 Tainted: G        W         4.17.0-rc2+ #18
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail.cold.4+0xa/0x1a lib/fault-inject.c:149
+ __should_failslab+0x124/0x180 mm/failslab.c:32
+ should_failslab+0x9/0x14 mm/slab_common.c:1522
+ slab_pre_alloc_hook mm/slab.h:423 [inline]
+ slab_alloc mm/slab.c:3378 [inline]
+ __do_kmalloc mm/slab.c:3716 [inline]
+ __kmalloc+0x2c8/0x760 mm/slab.c:3727
+ kmalloc include/linux/slab.h:517 [inline]
+ map_update_elem+0x3c7/0x1100 kernel/bpf/syscall.c:687
+ __do_sys_bpf kernel/bpf/syscall.c:2055 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:2026 [inline]
+ __x64_sys_bpf+0x34a/0x4c0 kernel/bpf/syscall.c:2026
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455389
+RSP: 002b:00007f22ec5a3c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00007f22ec5a46d4 RCX: 0000000000455389
+RDX: 0000000000000020 RSI: 0000000020001300 RDI: 0000000000000002
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000015
+R13: 0000000000000040 R14: 00000000006f36a0 R15: 0000000000000001
+binder: undelivered TRANSACTION_ERROR: 29189
+binder: undelivered TRANSACTION_ERROR: 29201
+binder: 8964:8965 ioctl c0306201 20a20000 returned -14
+binder: 8964:8970 unknown command 0
+binder: 8964:8970 ioctl c0306201 20a20000 returned -22
+FAT-fs (loop7): Directory bread(block 112) failed
+FAT-fs (loop7): Directory bread(block 113) failed
+FAT-fs (loop7): Directory bread(block 114) failed
+FAT-fs (loop7): Directory bread(block 112) failed
+FAT-fs (loop7): Directory bread(block 113) failed
+FAT-fs (loop7): Directory bread(block 114) failed
+FAT-fs (loop7): Directory bread(block 112) failed
+FAT-fs (loop7): Directory bread(block 113) failed
+FAT-fs (loop7): Directory bread(block 114) failed
+attempt to access beyond end of device
+loop7: rw=1, want=120, limit=112
+FAT-fs (loop7): Directory bread(block 112) failed
+FAT-fs (loop7): Directory bread(block 113) failed
+FAT-fs (loop7): Directory bread(block 114) failed
+EXT4-fs (sda1): re-mounted. Opts: noquota,
+EXT4-fs (sda1): re-mounted. Opts: noquota,

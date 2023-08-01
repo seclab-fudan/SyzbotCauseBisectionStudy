@@ -1,0 +1,126 @@
+==================================================================
+BUG: KASAN: double-free or invalid-free in sctp_stream_free+0xfa/0x190 net/sctp/stream.c:187
+
+CPU: 0 PID: 7775 Comm: syz-executor682 Not tainted 5.0.0-rc4-next-20190201 #25
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report_invalid_free+0x65/0xa0 mm/kasan/report.c:278
+ __kasan_slab_free+0x13a/0x150 mm/kasan/common.c:439
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:468
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3807
+ sctp_stream_free+0xfa/0x190 net/sctp/stream.c:187
+ sctp_association_free+0x235/0x79a net/sctp/associola.c:373
+ sctp_cmd_delete_tcb net/sctp/sm_sideeffect.c:939 [inline]
+ sctp_cmd_interpreter net/sctp/sm_sideeffect.c:1353 [inline]
+ sctp_side_effects net/sctp/sm_sideeffect.c:1220 [inline]
+ sctp_do_sm+0x3c4e/0x5380 net/sctp/sm_sideeffect.c:1191
+ sctp_assoc_bh_rcv+0x343/0x660 net/sctp/associola.c:1074
+ sctp_inq_push+0x1ea/0x290 net/sctp/inqueue.c:95
+ sctp_backlog_rcv+0x196/0xbe0 net/sctp/input.c:354
+ sk_backlog_rcv include/net/sock.h:936 [inline]
+ __release_sock+0x12e/0x3a0 net/core/sock.c:2309
+ release_sock+0x59/0x1c0 net/core/sock.c:2825
+ sctp_close+0x4a4/0x860 net/sctp/socket.c:1550
+ inet_release+0x105/0x1f0 net/ipv4/af_inet.c:428
+ __sock_release+0xd3/0x250 net/socket.c:579
+ sock_close+0x1b/0x30 net/socket.c:1139
+ __fput+0x2df/0x8d0 fs/file_table.c:278
+ ____fput+0x16/0x20 fs/file_table.c:309
+ task_work_run+0x14a/0x1c0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x90a/0x2fa0 kernel/exit.c:876
+ do_group_exit+0x135/0x370 kernel/exit.c:980
+ __do_sys_exit_group kernel/exit.c:991 [inline]
+ __se_sys_exit_group kernel/exit.c:989 [inline]
+ __x64_sys_exit_group+0x44/0x50 kernel/exit.c:989
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43edd8
+Code: Bad RIP value.
+RSP: 002b:00007fff92021088 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043edd8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004be688 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000010 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d0180 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 7775:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:498 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:471
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:506
+ kmem_cache_alloc_trace+0x151/0x760 mm/slab.c:3610
+ kmalloc include/linux/slab.h:548 [inline]
+ kzalloc include/linux/slab.h:743 [inline]
+ sctp_stream_init_ext+0x51/0x110 net/sctp/stream.c:172
+ sctp_sendmsg_to_asoc+0x1273/0x17b0 net/sctp/socket.c:1896
+ sctp_sendmsg+0x81f/0x17f0 net/sctp/socket.c:2113
+ inet_sendmsg+0x147/0x5d0 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x806/0x930 net/socket.c:2114
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2152
+ __do_sys_sendmsg net/socket.c:2161 [inline]
+ __se_sys_sendmsg net/socket.c:2159 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2159
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7775:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:460
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:468
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3807
+ sctp_stream_outq_migrate+0x3e6/0x540 net/sctp/stream.c:88
+ sctp_stream_init+0xbc/0x410 net/sctp/stream.c:139
+ sctp_process_init+0x21c3/0x2b20 net/sctp/sm_make_chunk.c:2466
+ sctp_cmd_process_init net/sctp/sm_sideeffect.c:682 [inline]
+ sctp_cmd_interpreter net/sctp/sm_sideeffect.c:1410 [inline]
+ sctp_side_effects net/sctp/sm_sideeffect.c:1220 [inline]
+ sctp_do_sm+0x3145/0x5380 net/sctp/sm_sideeffect.c:1191
+ sctp_assoc_bh_rcv+0x343/0x660 net/sctp/associola.c:1074
+ sctp_inq_push+0x1ea/0x290 net/sctp/inqueue.c:95
+ sctp_backlog_rcv+0x196/0xbe0 net/sctp/input.c:354
+ sk_backlog_rcv include/net/sock.h:936 [inline]
+ __release_sock+0x12e/0x3a0 net/core/sock.c:2309
+ release_sock+0x59/0x1c0 net/core/sock.c:2825
+ sctp_wait_for_connect+0x316/0x540 net/sctp/socket.c:8998
+ sctp_sendmsg_to_asoc+0x13e3/0x17b0 net/sctp/socket.c:1967
+ sctp_sendmsg+0x81f/0x17f0 net/sctp/socket.c:2113
+ inet_sendmsg+0x147/0x5d0 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x806/0x930 net/socket.c:2114
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2152
+ __do_sys_sendmsg net/socket.c:2161 [inline]
+ __se_sys_sendmsg net/socket.c:2159 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2159
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8880a7e2c480
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 0 bytes inside of
+ 96-byte region [ffff8880a7e2c480, ffff8880a7e2c4e0)
+The buggy address belongs to the page:
+page:ffffea00029f8b00 count:1 mapcount:0 mapping:ffff88812c3f04c0 index:0xffff8880a7e2c300
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea00029f9908 ffff88812c3f1438 ffff88812c3f04c0
+raw: ffff8880a7e2c300 ffff8880a7e2c000 0000000100000012 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a7e2c380: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+ ffff8880a7e2c400: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+>ffff8880a7e2c480: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+                   ^
+ ffff8880a7e2c500: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff8880a7e2c580: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+==================================================================

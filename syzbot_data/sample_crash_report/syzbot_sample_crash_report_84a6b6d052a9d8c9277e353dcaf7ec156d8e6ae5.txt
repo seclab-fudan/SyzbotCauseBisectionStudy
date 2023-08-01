@@ -1,0 +1,100 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: slab-out-of-bounds in put_unaligned_le64 include/linux/unaligned/access_ok.h:50 [inline]
+BUG: KASAN: slab-out-of-bounds in crypto_sha3_final+0x416/0x450 crypto/sha3_generic.c:235
+Write of size 8 at addr ffff8801d4821c5c by task syz-executor306/4525
+
+CPU: 1 PID: 4525 Comm: syz-executor306 Not tainted 4.17.0+ #92
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_store8_noabort+0x17/0x20 mm/kasan/report.c:438
+ put_unaligned_le64 include/linux/unaligned/access_ok.h:50 [inline]
+ crypto_sha3_final+0x416/0x450 crypto/sha3_generic.c:235
+ crypto_shash_final+0x104/0x260 crypto/shash.c:152
+ kdf_ctr security/keys/dh.c:186 [inline]
+ keyctl_dh_compute_kdf security/keys/dh.c:217 [inline]
+ __keyctl_dh_compute+0x1184/0x1bc0 security/keys/dh.c:389
+ keyctl_dh_compute+0xb9/0x100 security/keys/dh.c:425
+ __do_sys_keyctl security/keys/keyctl.c:1741 [inline]
+ __se_sys_keyctl security/keys/keyctl.c:1637 [inline]
+ __x64_sys_keyctl+0x12a/0x3b0 security/keys/keyctl.c:1637
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440019
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 6b 45 00 00 c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007ffe45fbd128 EFLAGS: 00000217 ORIG_RAX: 00000000000000fa
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440019
+RDX: 0000000020000080 RSI: 00000000200001c0 RDI: 0000000000000017
+RBP: 00000000006ca018 R08: 0000000020000200 R09: 00000000004002c8
+R10: 0000000000000059 R11: 0000000000000217 R12: 0000000000401940
+R13: 00000000004019d0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4525:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc mm/slab.c:3718 [inline]
+ __kmalloc+0x14e/0x760 mm/slab.c:3727
+ kmalloc include/linux/slab.h:518 [inline]
+ keyctl_dh_compute_kdf security/keys/dh.c:211 [inline]
+ __keyctl_dh_compute+0xfe9/0x1bc0 security/keys/dh.c:389
+ keyctl_dh_compute+0xb9/0x100 security/keys/dh.c:425
+ __do_sys_keyctl security/keys/keyctl.c:1741 [inline]
+ __se_sys_keyctl security/keys/keyctl.c:1637 [inline]
+ __x64_sys_keyctl+0x12a/0x3b0 security/keys/keyctl.c:1637
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 1:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ acpi_os_free include/acpi/platform/aclinuxex.h:62 [inline]
+ acpi_ut_evaluate_object+0x40e/0x425 drivers/acpi/acpica/uteval.c:151
+ acpi_rs_get_method_data+0x92/0x12c drivers/acpi/acpica/rsutils.c:650
+ acpi_walk_resources+0x118/0x1fc drivers/acpi/acpica/rsxface.c:616
+ pnpacpi_parse_allocated_resource+0xc8/0x160 drivers/pnp/pnpacpi/rsparser.c:289
+ pnpacpi_add_device drivers/pnp/pnpacpi/core.c:271 [inline]
+ pnpacpi_add_device_handler+0x668/0x86b drivers/pnp/pnpacpi/core.c:308
+ acpi_ns_get_device_callback+0x487/0x4c5 drivers/acpi/acpica/nsxfeval.c:740
+ acpi_ns_walk_namespace+0x224/0x400 drivers/acpi/acpica/nswalk.c:237
+ acpi_get_devices+0x144/0x184 drivers/acpi/acpica/nsxfeval.c:805
+ pnpacpi_init+0x95/0xeb drivers/pnp/pnpacpi/core.c:321
+ do_one_initcall+0x127/0x913 init/main.c:884
+ do_initcall_level init/main.c:952 [inline]
+ do_initcalls init/main.c:960 [inline]
+ do_basic_setup init/main.c:978 [inline]
+ kernel_init_freeable+0x49b/0x58e init/main.c:1135
+ kernel_init+0x11/0x1b3 init/main.c:1061
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+The buggy address belongs to the object at ffff8801d4821c00
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 92 bytes inside of
+ 96-byte region [ffff8801d4821c00, ffff8801d4821c60)
+The buggy address belongs to the page:
+page:ffffea0007520840 count:1 mapcount:0 mapping:ffff8801da8004c0 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea00075b7c48 ffffea0007522e48 ffff8801da8004c0
+raw: 0000000000000000 ffff8801d4821000 0000000100000020 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d4821b00: 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc
+ ffff8801d4821b80: 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc
+>ffff8801d4821c00: 00 00 00 00 00 00 00 00 00 00 00 04 fc fc fc fc
+                                                    ^
+ ffff8801d4821c80: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+ ffff8801d4821d00: 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc
+==================================================================

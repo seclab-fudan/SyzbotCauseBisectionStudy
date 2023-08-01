@@ -1,0 +1,87 @@
+BUG: unable to handle page fault for address: ffffc90003182330
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 11800067 
+P4D 11800067 
+PUD 119fb067 
+PMD 1c609067 
+PTE 0
+
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 3665 Comm: kvm Not tainted 5.19.0-syzkaller-13930-g7ebfc85e2cd7 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+RIP: 0010:arch_atomic_read arch/x86/include/asm/atomic.h:29 [inline]
+RIP: 0010:atomic_read include/linux/atomic/atomic-instrumented.h:28 [inline]
+RIP: 0010:kvm_arch_hardware_enable+0x2ab/0x840 arch/x86/kvm/x86.c:11847
+Code: 48 89 e8 48 b9 00 00 00 00 00 fc ff df 48 c1 e8 03 0f b6 14 08 48 89 e8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 ed 04 00 00 <41> 8b 95 30 13 00 00 4d 8d b5 40 12 00 00 b9 08 00 00 00 4c 89 fe
+RSP: 0018:ffffc900003f8ea0 EFLAGS: 00010082
+
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff81121000
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffffc90003182330
+RBP: ffffc90003182330 R08: 0000000000000000 R09: 0000000000000003
+R10: fffff52000630466 R11: 0000000000000001 R12: 0000000000000000
+R13: ffffc90003181000 R14: 0023001000000000 R15: ffffc900003f8ef8
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffc90003182330 CR3: 0000000022660000 CR4: 00000000003526e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ hardware_enable_nolock+0xa7/0x140 arch/x86/kvm/../../../virt/kvm/kvm_main.c:5007
+ __flush_smp_call_function_queue+0x205/0x9a0 kernel/smp.c:631
+ __sysvec_call_function_single+0x95/0x3d0 arch/x86/kernel/smp.c:248
+ sysvec_call_function_single+0x8e/0xc0 arch/x86/kernel/smp.c:243
+ </IRQ>
+ <TASK>
+ asm_sysvec_call_function_single+0x16/0x20 arch/x86/include/asm/idtentry.h:657
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x38/0x70 kernel/locking/spinlock.c:194
+Code: 74 24 10 e8 3a cf dc f7 48 89 ef e8 c2 50 dd f7 81 e3 00 02 00 00 75 25 9c 58 f6 c4 02 75 2d 48 85 db 74 01 fb bf 01 00 00 00 <e8> 53 11 d0 f7 65 8b 05 ec a0 80 76 85 c0 74 0a 5b 5d c3 e8 c0 de
+RSP: 0018:ffffc900030efeb8 EFLAGS: 00000206
+
+RAX: 0000000000000002 RBX: 0000000000000200 RCX: 1ffffffff1bbb6a9
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000001
+RBP: ffff8880725f4ad8 R08: 0000000000000001 R09: 0000000000000001
+R10: ffffed100e4be95b R11: 0000000000000000 R12: ffff8880725f4140
+R13: ffffed100e4beb09 R14: 0000000000000003 R15: 0000000000000293
+ __kthread_parkme+0xce/0x220 kernel/kthread.c:269
+ kthread+0x2df/0x3a0 kernel/kthread.c:375
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+CR2: ffffc90003182330
+---[ end trace 0000000000000000 ]---
+RIP: 0010:arch_atomic_read arch/x86/include/asm/atomic.h:29 [inline]
+RIP: 0010:atomic_read include/linux/atomic/atomic-instrumented.h:28 [inline]
+RIP: 0010:kvm_arch_hardware_enable+0x2ab/0x840 arch/x86/kvm/x86.c:11847
+Code: 48 89 e8 48 b9 00 00 00 00 00 fc ff df 48 c1 e8 03 0f b6 14 08 48 89 e8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 ed 04 00 00 <41> 8b 95 30 13 00 00 4d 8d b5 40 12 00 00 b9 08 00 00 00 4c 89 fe
+RSP: 0018:ffffc900003f8ea0 EFLAGS: 00010082
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff81121000
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffffc90003182330
+RBP: ffffc90003182330 R08: 0000000000000000 R09: 0000000000000003
+R10: fffff52000630466 R11: 0000000000000001 R12: 0000000000000000
+R13: ffffc90003181000 R14: 0023001000000000 R15: ffffc900003f8ef8
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffc90003182330 CR3: 0000000022660000 CR4: 00000000003526e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	48 89 e8             	mov    %rbp,%rax
+   3:	48 b9 00 00 00 00 00 	movabs $0xdffffc0000000000,%rcx
+   a:	fc ff df
+   d:	48 c1 e8 03          	shr    $0x3,%rax
+  11:	0f b6 14 08          	movzbl (%rax,%rcx,1),%edx
+  15:	48 89 e8             	mov    %rbp,%rax
+  18:	83 e0 07             	and    $0x7,%eax
+  1b:	83 c0 03             	add    $0x3,%eax
+  1e:	38 d0                	cmp    %dl,%al
+  20:	7c 08                	jl     0x2a
+  22:	84 d2                	test   %dl,%dl
+  24:	0f 85 ed 04 00 00    	jne    0x517
+* 2a:	41 8b 95 30 13 00 00 	mov    0x1330(%r13),%edx <-- trapping instruction
+  31:	4d 8d b5 40 12 00 00 	lea    0x1240(%r13),%r14
+  38:	b9 08 00 00 00       	mov    $0x8,%ecx
+  3d:	4c 89 fe             	mov    %r15,%rsi

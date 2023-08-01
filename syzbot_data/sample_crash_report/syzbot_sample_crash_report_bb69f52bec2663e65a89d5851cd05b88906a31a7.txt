@@ -1,0 +1,58 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in memcpy include/linux/string.h:341 [inline]
+BUG: KASAN: stack-out-of-bounds in sha3_update+0xdf/0x2e0 crypto/sha3_generic.c:161
+Write of size 4096 at addr ffff8801cca2fc40 by task syzkaller319830/3053
+
+CPU: 0 PID: 3053 Comm: syzkaller319830 Not tainted 4.14.0+ #192
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x37/0x50 mm/kasan/kasan.c:303
+ memcpy include/linux/string.h:341 [inline]
+ sha3_update+0xdf/0x2e0 crypto/sha3_generic.c:161
+ crypto_shash_update+0xcb/0x220 crypto/shash.c:109
+ shash_finup_unaligned+0x2a/0x60 crypto/shash.c:151
+ crypto_shash_finup+0xc4/0x120 crypto/shash.c:165
+ hmac_finup+0x182/0x330 crypto/hmac.c:152
+ crypto_shash_finup+0xc4/0x120 crypto/shash.c:165
+ shash_digest_unaligned+0x9e/0xd0 crypto/shash.c:172
+ crypto_shash_digest+0xc4/0x120 crypto/shash.c:186
+ hmac_setkey+0x36a/0x690 crypto/hmac.c:66
+ crypto_shash_setkey+0xad/0x190 crypto/shash.c:64
+ shash_async_setkey+0x47/0x60 crypto/shash.c:207
+ crypto_ahash_setkey+0xaf/0x180 crypto/ahash.c:200
+ hash_setkey+0x40/0x90 crypto/algif_hash.c:446
+ alg_setkey crypto/af_alg.c:221 [inline]
+ alg_setsockopt+0x2a1/0x350 crypto/af_alg.c:254
+ SYSC_setsockopt net/socket.c:1851 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1830
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x43fdb9
+RSP: 002b:00007ffcc9c271c8 EFLAGS: 00000217 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fdb9
+RDX: 0000000000000001 RSI: 0000000000000117 RDI: 0000000000000003
+RBP: 0000000000000086 R08: 0000000000001000 R09: 0000000000000000
+R10: 0000000020ea5000 R11: 0000000000000217 R12: 0000000000401720
+R13: 00000000004017b0 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0007328bc0 count:0 mapcount:0 mapping:          (null) index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: 0000000000000000 0000000100000001 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cca2fd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801cca2fe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801cca2fe80: f1 f1 f1 f1 04 f2 f2 f2 f2 f2 f2 f2 04 f2 f2 f2
+                   ^
+ ffff8801cca2ff00: f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801cca2ff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

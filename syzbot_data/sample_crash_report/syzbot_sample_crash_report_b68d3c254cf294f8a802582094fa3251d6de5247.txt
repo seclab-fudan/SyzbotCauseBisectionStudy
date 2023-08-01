@@ -1,0 +1,120 @@
+cpia2: Control message failed, err val = -19
+cpia2: Message: request = 0x1, start = 0xA9
+cpia2: Message: count = 1, register[0] = 0x0
+cpia2: Unexpected error: -19
+==================================================================
+BUG: KASAN: use-after-free in cpia2_usb_disconnect+0x1a4/0x1c0 drivers/media/usb/cpia2/cpia2_usb.c:898
+Read of size 8 at addr ffff8881d0202c50 by task kworker/0:1/12
+
+CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.2.0-rc6+ #13
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description+0x67/0x231 mm/kasan/report.c:188
+ __kasan_report.cold+0x1a/0x32 mm/kasan/report.c:317
+ kasan_report+0xe/0x20 mm/kasan/common.c:614
+ cpia2_usb_disconnect+0x1a4/0x1c0 drivers/media/usb/cpia2/cpia2_usb.c:898
+ usb_unbind_interface+0x1bd/0x8a0 drivers/usb/core/driver.c:423
+ __device_release_driver drivers/base/dd.c:1081 [inline]
+ device_release_driver_internal+0x404/0x4c0 drivers/base/dd.c:1112
+ bus_remove_device+0x2dc/0x4a0 drivers/base/bus.c:556
+ device_del+0x460/0xb80 drivers/base/core.c:2274
+ usb_disable_device+0x211/0x690 drivers/usb/core/message.c:1237
+ usb_disconnect+0x284/0x830 drivers/usb/core/hub.c:2197
+ hub_port_connect drivers/usb/core/hub.c:4940 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0x1409/0x3590 drivers/usb/core/hub.c:5432
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0x7ab/0xe20 kernel/workqueue.c:2417
+ kthread+0x30b/0x410 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 12:
+ save_stack+0x1b/0x80 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_kmalloc mm/kasan/common.c:489 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:462
+ kmalloc include/linux/slab.h:547 [inline]
+ kzalloc include/linux/slab.h:742 [inline]
+ cpia2_init_camera_struct+0x40/0x110 drivers/media/usb/cpia2/cpia2_core.c:2176
+ cpia2_usb_probe.cold+0x37/0x45a drivers/media/usb/cpia2/cpia2_usb.c:833
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x660 drivers/base/dd.c:509
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:670
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:777
+ bus_for_each_drv+0x15c/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:843
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2111
+ usb_set_configuration+0xdf6/0x1670 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x660 drivers/base/dd.c:509
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:670
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:777
+ bus_for_each_drv+0x15c/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:843
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2111
+ usb_new_device.cold+0x8c1/0x1016 drivers/usb/core/hub.c:2534
+ hub_port_connect drivers/usb/core/hub.c:5089 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0x1ada/0x3590 drivers/usb/core/hub.c:5432
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x30b/0x410 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 12:
+ save_stack+0x1b/0x80 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_slab_free+0x130/0x180 mm/kasan/common.c:451
+ slab_free_hook mm/slub.c:1421 [inline]
+ slab_free_freelist_hook mm/slub.c:1448 [inline]
+ slab_free mm/slub.c:2994 [inline]
+ kfree+0xd7/0x280 mm/slub.c:3949
+ v4l2_device_release drivers/media/v4l2-core/v4l2-device.c:55 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ v4l2_device_put+0x76/0x90 drivers/media/v4l2-core/v4l2-device.c:60
+ cpia2_usb_disconnect+0x79/0x1c0 drivers/media/usb/cpia2/cpia2_usb.c:896
+ usb_unbind_interface+0x1bd/0x8a0 drivers/usb/core/driver.c:423
+ __device_release_driver drivers/base/dd.c:1081 [inline]
+ device_release_driver_internal+0x404/0x4c0 drivers/base/dd.c:1112
+ bus_remove_device+0x2dc/0x4a0 drivers/base/bus.c:556
+ device_del+0x460/0xb80 drivers/base/core.c:2274
+ usb_disable_device+0x211/0x690 drivers/usb/core/message.c:1237
+ usb_disconnect+0x284/0x830 drivers/usb/core/hub.c:2197
+ hub_port_connect drivers/usb/core/hub.c:4940 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0x1409/0x3590 drivers/usb/core/hub.c:5432
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0x7ab/0xe20 kernel/workqueue.c:2417
+ kthread+0x30b/0x410 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8881d0202200
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 2640 bytes inside of
+ 4096-byte region [ffff8881d0202200, ffff8881d0203200)
+The buggy address belongs to the page:
+page:ffffea0007408000 refcount:1 mapcount:0 mapping:ffff8881dac02600 index:0x0 compound_mapcount: 0
+flags: 0x200000000010200(slab|head)
+raw: 0200000000010200 ffffea0007405c00 0000000200000002 ffff8881dac02600
+raw: 0000000000000000 0000000000070007 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881d0202b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881d0202b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881d0202c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                 ^
+ ffff8881d0202c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881d0202d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

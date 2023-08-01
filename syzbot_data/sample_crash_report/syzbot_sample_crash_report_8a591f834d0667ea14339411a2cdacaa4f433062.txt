@@ -1,0 +1,199 @@
+BUG: sleeping function called from invalid context at kernel/locking/mutex.c:938
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 13589, name: syz-executor680
+2 locks held by syz-executor680/13589:
+ #0: ffff88808d52b198 (&mm->mmap_sem#2){++++}, at: do_user_addr_fault arch/x86/mm/fault.c:1382 [inline]
+ #0: ffff88808d52b198 (&mm->mmap_sem#2){++++}, at: __do_page_fault+0x33c/0xd80 arch/x86/mm/fault.c:1506
+ #1: ffffc90000da8d50 ((&sp->resync_t)){+.-.}, at: lockdep_copy_map include/linux/lockdep.h:172 [inline]
+ #1: ffffc90000da8d50 ((&sp->resync_t)){+.-.}, at: call_timer_fn+0xe0/0x780 kernel/time/timer.c:1394
+Preemption disabled at:
+[<ffffffff880000f3>] __do_softirq+0xf3/0x98c kernel/softirq.c:269
+CPU: 1 PID: 13589 Comm: syz-executor680 Not tainted 5.4.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ ___might_sleep.cold+0x1fb/0x23e kernel/sched/core.c:6800
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6753
+ __mutex_lock_common kernel/locking/mutex.c:938 [inline]
+ __mutex_lock+0xc5/0x13c0 kernel/locking/mutex.c:1106
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1121
+ tpk_write+0x5d/0x340 drivers/char/ttyprintk.c:122
+ resync_tnc+0x1b6/0x320 drivers/net/hamradio/6pack.c:522
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:update_stack_state+0x48c/0x5f0 arch/x86/kernel/unwind_frame.c:239
+Code: 01 00 0f 85 12 01 00 00 4d 8b 24 24 e9 b0 fe ff ff 49 8d 7d 38 48 b8 00 00 00 00 00 fc ff df 48 89 f9 48 c1 e9 03 80 3c 01 00 <0f> 85 e0 00 00 00 48 8b 85 68 ff ff ff 49 c7 45 58 00 00 00 00 49
+RSP: 0000:ffffc9001038f5d0 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: ffffc9001038fad0 RCX: 1ffff92002071ef7
+RDX: 0000000000000010 RSI: 1ffff92002071e00 RDI: ffffc9001038f7b8
+RBP: ffffc9001038f698 R08: ffff88808481c380 R09: ffffc9001038f7d8
+R10: ffffc9001038f7a8 R11: ffffc9001038f7b8 R12: ffffc9001038f770
+R13: ffffc9001038f780 R14: 1ffff92002071ec2 R15: ffffc9001038f7c0
+ unwind_next_frame.part.0+0x1a9/0xa20 arch/x86/kernel/unwind_frame.c:311
+ unwind_next_frame+0x3b/0x50 arch/x86/kernel/unwind_frame.c:265
+ arch_stack_walk+0x81/0xf0 arch/x86/kernel/stacktrace.c:25
+ stack_trace_save+0xac/0xe0 kernel/stacktrace.c:123
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:513 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:521
+ slab_post_alloc_hook mm/slab.h:584 [inline]
+ slab_alloc mm/slab.c:3320 [inline]
+ kmem_cache_alloc+0x121/0x710 mm/slab.c:3484
+ anon_vma_chain_alloc mm/rmap.c:130 [inline]
+ __anon_vma_prepare+0x62/0x3c0 mm/rmap.c:184
+ anon_vma_prepare include/linux/rmap.h:153 [inline]
+ do_huge_pmd_anonymous_page+0x132f/0x1a50 mm/huge_memory.c:714
+ create_huge_pmd mm/memory.c:3836 [inline]
+ __handle_mm_fault+0x3073/0x3da0 mm/memory.c:4046
+ handle_mm_fault+0x3b2/0xa50 mm/memory.c:4112
+ do_user_addr_fault arch/x86/mm/fault.c:1441 [inline]
+ __do_page_fault+0x536/0xd80 arch/x86/mm/fault.c:1506
+ do_page_fault+0x38/0x590 arch/x86/mm/fault.c:1530
+ page_fault+0x39/0x40 arch/x86/entry/entry_64.S:1203
+RIP: 0033:0x400daf
+Code: 00 20 ba 23 54 00 00 bf 10 00 00 00 31 c0 e8 f8 59 04 00 eb bb 66 0f 1f 44 00 00 48 b8 2f 64 65 76 2f 74 74 79 45 31 c0 31 c9 <48> 89 04 25 40 15 00 20 b8 74 6b 00 00 c7 04 25 48 15 00 20 70 72
+RSP: 002b:00007f9081c00dc0 EFLAGS: 00010246
+RAX: 7974742f7665642f RBX: 00000000006dbc28 RCX: 0000000000000000
+RDX: 00000000004467a9 RSI: 0000000000000081 RDI: 00000000006dbc2c
+RBP: 00000000006dbc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc2c
+R13: 00007ffd73ac136f R14: 00007f9081c019c0 R15: 0000000000000000
+
+================================
+WARNING: inconsistent lock state
+5.4.0-syzkaller #0 Tainted: G        W        
+--------------------------------
+inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
+syz-executor680/13589 [HC0[0]:SC1[1]:HE1:SE0] takes:
+ffffffff8c112af0 (&tpk_port.port_write_mutex){+.?.}, at: tpk_write+0x5d/0x340 drivers/char/ttyprintk.c:122
+{SOFTIRQ-ON-W} state was registered at:
+  lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4485
+  __mutex_lock_common kernel/locking/mutex.c:959 [inline]
+  __mutex_lock+0x156/0x13c0 kernel/locking/mutex.c:1106
+  mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1121
+  tpk_write+0x5d/0x340 drivers/char/ttyprintk.c:122
+  tnc_init drivers/net/hamradio/6pack.c:536 [inline]
+  sixpack_open+0x8d6/0xaaf drivers/net/hamradio/6pack.c:632
+  tty_ldisc_open.isra.0+0xa3/0x110 drivers/tty/tty_ldisc.c:464
+  tty_set_ldisc+0x30e/0x6b0 drivers/tty/tty_ldisc.c:591
+  tiocsetd drivers/tty/tty_io.c:2337 [inline]
+  tty_ioctl+0xe8d/0x14f0 drivers/tty/tty_io.c:2597
+  vfs_ioctl fs/ioctl.c:47 [inline]
+  file_ioctl fs/ioctl.c:545 [inline]
+  do_vfs_ioctl+0x977/0x14e0 fs/ioctl.c:732
+  ksys_ioctl+0xab/0xd0 fs/ioctl.c:749
+  __do_sys_ioctl fs/ioctl.c:756 [inline]
+  __se_sys_ioctl fs/ioctl.c:754 [inline]
+  __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:754
+  do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+irq event stamp: 386
+hardirqs last  enabled at (386): [<ffffffff81006743>] trace_hardirqs_on_thunk+0x1a/0x1c arch/x86/entry/thunk_64.S:41
+hardirqs last disabled at (385): [<ffffffff8100675f>] trace_hardirqs_off_thunk+0x1a/0x1c arch/x86/entry/thunk_64.S:42
+softirqs last  enabled at (72): [<ffffffff812aa7ce>] memcpy include/linux/string.h:380 [inline]
+softirqs last  enabled at (72): [<ffffffff812aa7ce>] fpu__copy+0x17e/0x8c0 arch/x86/kernel/fpu/core.c:195
+softirqs last disabled at (291): [<ffffffff81478ceb>] invoke_softirq kernel/softirq.c:373 [inline]
+softirqs last disabled at (291): [<ffffffff81478ceb>] irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&tpk_port.port_write_mutex);
+  <Interrupt>
+    lock(&tpk_port.port_write_mutex);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor680/13589:
+ #0: ffff88808d52b198 (&mm->mmap_sem#2){++++}, at: do_user_addr_fault arch/x86/mm/fault.c:1382 [inline]
+ #0: ffff88808d52b198 (&mm->mmap_sem#2){++++}, at: __do_page_fault+0x33c/0xd80 arch/x86/mm/fault.c:1506
+ #1: ffffc90000da8d50 ((&sp->resync_t)){+.-.}, at: lockdep_copy_map include/linux/lockdep.h:172 [inline]
+ #1: ffffc90000da8d50 ((&sp->resync_t)){+.-.}, at: call_timer_fn+0xe0/0x780 kernel/time/timer.c:1394
+
+stack backtrace:
+CPU: 1 PID: 13589 Comm: syz-executor680 Tainted: G        W         5.4.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_usage_bug.cold+0x327/0x378 kernel/locking/lockdep.c:3101
+ valid_state kernel/locking/lockdep.c:3112 [inline]
+ mark_lock_irq kernel/locking/lockdep.c:3309 [inline]
+ mark_lock+0xbb4/0x1220 kernel/locking/lockdep.c:3666
+ mark_usage kernel/locking/lockdep.c:3566 [inline]
+ __lock_acquire+0x1e8e/0x4a00 kernel/locking/lockdep.c:3909
+ lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4485
+ __mutex_lock_common kernel/locking/mutex.c:959 [inline]
+ __mutex_lock+0x156/0x13c0 kernel/locking/mutex.c:1106
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1121
+ tpk_write+0x5d/0x340 drivers/char/ttyprintk.c:122
+ resync_tnc+0x1b6/0x320 drivers/net/hamradio/6pack.c:522
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:update_stack_state+0x48c/0x5f0 arch/x86/kernel/unwind_frame.c:239
+Code: 01 00 0f 85 12 01 00 00 4d 8b 24 24 e9 b0 fe ff ff 49 8d 7d 38 48 b8 00 00 00 00 00 fc ff df 48 89 f9 48 c1 e9 03 80 3c 01 00 <0f> 85 e0 00 00 00 48 8b 85 68 ff ff ff 49 c7 45 58 00 00 00 00 49
+RSP: 0000:ffffc9001038f5d0 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: ffffc9001038fad0 RCX: 1ffff92002071ef7
+RDX: 0000000000000010 RSI: 1ffff92002071e00 RDI: ffffc9001038f7b8
+RBP: ffffc9001038f698 R08: ffff88808481c380 R09: ffffc9001038f7d8
+R10: ffffc9001038f7a8 R11: ffffc9001038f7b8 R12: ffffc9001038f770
+R13: ffffc9001038f780 R14: 1ffff92002071ec2 R15: ffffc9001038f7c0
+ unwind_next_frame.part.0+0x1a9/0xa20 arch/x86/kernel/unwind_frame.c:311
+ unwind_next_frame+0x3b/0x50 arch/x86/kernel/unwind_frame.c:265
+ arch_stack_walk+0x81/0xf0 arch/x86/kernel/stacktrace.c:25
+ stack_trace_save+0xac/0xe0 kernel/stacktrace.c:123
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:513 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:521
+ slab_post_alloc_hook mm/slab.h:584 [inline]
+ slab_alloc mm/slab.c:3320 [inline]
+ kmem_cache_alloc+0x121/0x710 mm/slab.c:3484
+ anon_vma_chain_alloc mm/rmap.c:130 [inline]
+ __anon_vma_prepare+0x62/0x3c0 mm/rmap.c:184
+ anon_vma_prepare include/linux/rmap.h:153 [inline]
+ do_huge_pmd_anonymous_page+0x132f/0x1a50 mm/huge_memory.c:714
+ create_huge_pmd mm/memory.c:3836 [inline]
+ __handle_mm_fault+0x3073/0x3da0 mm/memory.c:4046
+ handle_mm_fault+0x3b2/0xa50 mm/memory.c:4112
+ do_user_addr_fault arch/x86/mm/fault.c:1441 [inline]
+ __do_page_fault+0x536/0xd80 arch/x86/mm/fault.c:1506
+ do_page_fault+0x38/0x590 arch/x86/mm/fault.c:1530
+ page_fault+0x39/0x40 arch/x86/entry/entry_64.S:1203
+RIP: 0033:0x400daf
+Code: 00 20 ba 23 54 00 00 bf 10 00 00 00 31 c0 e8 f8 59 04 00 eb bb 66 0f 1f 44 00 00 48 b8 2f 64 65 76 2f 74 74 79 45 31 c0 31 c9 <48> 89 04 25 40 15 00 20 b8 74 6b 00 00 c7 04 25 48 15 00 20 70 72
+RSP: 002b:00007f9081c00dc0 EFLAGS: 00010246
+RAX: 7974742f7665642f RBX: 00000000006dbc28 RCX: 0000000000000000
+RDX: 00000000004467a9 RSI: 0000000000000081 RDI: 00000000006dbc2c
+RBP: 00000000006dbc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc2c
+R13: 00007ffd73ac136f R14: 00007f9081c019c0 R15: 0000000000000000
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 13589 at kernel/locking/mutex.c:737 mutex_unlock+0x1d/0x30 kernel/locking/mutex.c:744

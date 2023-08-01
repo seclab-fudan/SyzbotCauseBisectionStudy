@@ -1,0 +1,77 @@
+=====================================================
+BUG: KMSAN: use-after-free in _copy_to_user+0x16b/0x1f0 lib/usercopy.c:32
+CPU: 0 PID: 9650 Comm: syz-executor.0 Not tainted 5.3.0-rc7+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x191/0x1f0 lib/dump_stack.c:113
+ kmsan_report+0x17d/0x2f0 mm/kmsan/kmsan_report.c:114
+ kmsan_internal_check_memory+0x187/0x4c0 mm/kmsan/kmsan.c:445
+ kmsan_copy_to_user+0xa9/0xb0 mm/kmsan/kmsan_hooks.c:268
+ _copy_to_user+0x16b/0x1f0 lib/usercopy.c:32
+ hidraw_ioctl+0x7f5/0x11a0 include/linux/uaccess.h:174
+ do_vfs_ioctl+0xea8/0x2c50 fs/ioctl.c:46
+ ksys_ioctl fs/ioctl.c:713 [inline]
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl+0x1da/0x270 fs/ioctl.c:718
+ __x64_sys_ioctl+0x4a/0x70 fs/ioctl.c:718
+ do_syscall_64+0xbc/0xf0 arch/x86/entry/common.c:297
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x459a59
+Code: fd b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f308f173c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000459a59
+RDX: 00000000200000c0 RSI: 0000000080084803 RDI: 0000000000000004
+RBP: 000000000075bf20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f308f1746d4
+R13: 00000000004c242f R14: 00000000004d5d78 R15: 00000000ffffffff
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:154 [inline]
+ kmsan_internal_chain_origin+0xde/0x190 mm/kmsan/kmsan.c:325
+ __msan_chain_origin+0x6b/0xe0 mm/kmsan/kmsan_instr.c:184
+ hidraw_ioctl+0x650/0x11a0 drivers/hid/hidraw.c:404
+ do_vfs_ioctl+0xea8/0x2c50 fs/ioctl.c:46
+ ksys_ioctl fs/ioctl.c:713 [inline]
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl+0x1da/0x270 fs/ioctl.c:718
+ __x64_sys_ioctl+0x4a/0x70 fs/ioctl.c:718
+ do_syscall_64+0xbc/0xf0 arch/x86/entry/common.c:297
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:154 [inline]
+ kmsan_internal_poison_shadow+0x60/0x120 mm/kmsan/kmsan.c:137
+ kmsan_slab_free+0x8d/0x100 mm/kmsan/kmsan_hooks.c:123
+ slab_free_freelist_hook mm/slub.c:1472 [inline]
+ slab_free mm/slub.c:3038 [inline]
+ kfree+0x4c1/0x2db0 mm/slub.c:3980
+ hid_device_release+0x78/0x90 drivers/hid/hid-core.c:662
+ device_release+0xe2/0x380 drivers/base/core.c:1060
+ kobject_cleanup lib/kobject.c:693 [inline]
+ kobject_release lib/kobject.c:722 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x38d/0x480 lib/kobject.c:739
+ put_device+0x51/0x70 drivers/base/core.c:2264
+ hid_destroy_device+0x18c/0x200 drivers/hid/hid-core.c:2433
+ usbhid_disconnect+0x11d/0x1d0 drivers/hid/usbhid/hid-core.c:1413
+ usb_unbind_interface+0x3a2/0xdd0 drivers/usb/core/driver.c:423
+ __device_release_driver drivers/base/dd.c:1120 [inline]
+ device_release_driver_internal+0x911/0xd20 drivers/base/dd.c:1151
+ device_release_driver+0x4b/0x60 drivers/base/dd.c:1174
+ bus_remove_device+0x4bf/0x670 drivers/base/bus.c:556
+ device_del+0xcd5/0x1d10 drivers/base/core.c:2339
+ usb_disable_device+0x567/0x1150 drivers/usb/core/message.c:1241
+ usb_disconnect+0x51e/0xd60 drivers/usb/core/hub.c:2199
+ hub_port_connect drivers/usb/core/hub.c:4949 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x3fd0/0x72f0 drivers/usb/core/hub.c:5441
+ process_one_work+0x1572/0x1ef0 kernel/workqueue.c:2269
+ worker_thread+0x111b/0x2460 kernel/workqueue.c:2415
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:355
+
+Bytes 0-1 of 8 are uninitialized
+Memory access of size 8 starts at ffff8881a7e9fd20
+=====================================================

@@ -1,0 +1,61 @@
+ntfs3: loop2: ino=2, "/" ntfs_iget5
+ntfs3: loop2: Mark volume as dirty due to NTFS errors
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000015407c000
+[0000000000000000] pgd=0800000157c07003, p4d=0800000157c07003, pud=0800000151b03003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 7888 Comm: syz-executor.2 Not tainted 6.2.0-rc7-syzkaller-17907-g2d3827b3f393 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : log_replay+0x50/0x3114 fs/ntfs3/fslog.c:3753
+lr : log_replay+0x3c/0x3114 fs/ntfs3/fslog.c:3715
+sp : ffff8000210c3940
+x29: ffff8000210c3a40 x28: 0000000000000030 x27: ffff000117cf1000
+x26: 0000000000000018 x25: 0000000000000024 x24: ffff8000210c3ab4
+x23: ffff00010e7c32a8 x22: ffff00011a84ff40 x21: ffff000117cf2000
+x20: 0000000000000000 x19: ffff000117cf1000 x18: ffff80000bfae9bc
+x17: 0000000000000000 x16: ffff0001165c57f8 x15: ffff80000dbd2118
+x14: ffff0001165c4e00 x13: 00000000ffffffff x12: 0000000000040000
+x11: 000000000000bc29 x10: ffff800017997000 x9 : ffff800008bb25c8
+x8 : 000000000000bc2a x7 : ffff8000085db57c x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000001 x1 : ffff8000210c3ab4 x0 : 0000000000000000
+Call trace:
+ log_replay+0x50/0x3114 fs/ntfs3/fslog.c:3720
+ ntfs_loadlog_and_replay+0x108/0x1ec fs/ntfs3/fsntfs.c:323
+ ntfs_fill_super+0xc5c/0x1558 fs/ntfs3/super.c:1053
+ get_tree_bdev+0x1e8/0x2a0 fs/super.c:1282
+ ntfs_fs_get_tree+0x28/0x38 fs/ntfs3/super.c:1408
+ vfs_get_tree+0x40/0x140 fs/super.c:1489
+ do_new_mount+0x1dc/0x4e4 fs/namespace.c:3145
+ path_mount+0x348/0x86c fs/namespace.c:3475
+ do_mount fs/namespace.c:3488 [inline]
+ __do_sys_mount fs/namespace.c:3697 [inline]
+ __se_sys_mount fs/namespace.c:3674 [inline]
+ __arm64_sys_mount+0x2c4/0x3c4 fs/namespace.c:3674
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x64/0x178 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0xbc/0x180 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x110 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x14c arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+Code: a93affbf aa1f03e0 b942a2dc a93dffbf (f9400288) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	a93affbf 	stp	xzr, xzr, [x29, #-88]
+   4:	aa1f03e0 	mov	x0, xzr
+   8:	b942a2dc 	ldr	w28, [x22, #672]
+   c:	a93dffbf 	stp	xzr, xzr, [x29, #-40]
+* 10:	f9400288 	ldr	x8, [x20] <-- trapping instruction

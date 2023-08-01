@@ -1,0 +1,118 @@
+======================================================
+WARNING: possible circular locking dependency detected
+5.4.0-rc3+ #0 Not tainted
+------------------------------------------------------
+syz-executor400/9226 is trying to acquire lock:
+ffff888099c22d00 (&rp->fetch_lock){+.+.}, at: mon_bin_vma_fault+0x73/0x2d0 drivers/usb/mon/mon_bin.c:1237
+
+but task is already holding lock:
+ffff8880a81fd5d8 (&mm->mmap_sem#2){++++}, at: __mm_populate+0x270/0x380 mm/gup.c:1251
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&mm->mmap_sem#2){++++}:
+       __might_fault mm/memory.c:4450 [inline]
+       __might_fault+0x15e/0x1e0 mm/memory.c:4435
+       _copy_to_user+0x30/0x160 lib/usercopy.c:26
+       copy_to_user include/linux/uaccess.h:152 [inline]
+       mon_bin_read+0x329/0x640 drivers/usb/mon/mon_bin.c:825
+       __vfs_read+0x8a/0x110 fs/read_write.c:425
+       vfs_read+0x1f0/0x440 fs/read_write.c:461
+       ksys_read+0x14f/0x290 fs/read_write.c:587
+       __do_sys_read fs/read_write.c:597 [inline]
+       __se_sys_read fs/read_write.c:595 [inline]
+       __x64_sys_read+0x73/0xb0 fs/read_write.c:595
+       do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&rp->fetch_lock){+.+.}:
+       check_prev_add kernel/locking/lockdep.c:2476 [inline]
+       check_prevs_add kernel/locking/lockdep.c:2581 [inline]
+       validate_chain kernel/locking/lockdep.c:2971 [inline]
+       __lock_acquire+0x2596/0x4a00 kernel/locking/lockdep.c:3955
+       lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4487
+       __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+       __mutex_lock+0x156/0x13c0 kernel/locking/mutex.c:1103
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1118
+       mon_bin_vma_fault+0x73/0x2d0 drivers/usb/mon/mon_bin.c:1237
+       __do_fault+0x111/0x540 mm/memory.c:3092
+       do_read_fault mm/memory.c:3489 [inline]
+       do_fault mm/memory.c:3618 [inline]
+       handle_pte_fault mm/memory.c:3849 [inline]
+       __handle_mm_fault+0x2dd0/0x4040 mm/memory.c:3973
+       handle_mm_fault+0x3b7/0xaa0 mm/memory.c:4010
+       faultin_page mm/gup.c:640 [inline]
+       __get_user_pages+0x7d4/0x1b30 mm/gup.c:845
+       populate_vma_page_range+0x20d/0x2a0 mm/gup.c:1223
+       __mm_populate+0x204/0x380 mm/gup.c:1271
+       mm_populate include/linux/mm.h:2362 [inline]
+       vm_mmap_pgoff+0x213/0x230 mm/util.c:501
+       ksys_mmap_pgoff+0x4aa/0x630 mm/mmap.c:1629
+       __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+       __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+       __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+       do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&mm->mmap_sem#2);
+                               lock(&rp->fetch_lock);
+                               lock(&mm->mmap_sem#2);
+  lock(&rp->fetch_lock);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor400/9226:
+ #0: ffff8880a81fd5d8 (&mm->mmap_sem#2){++++}, at: __mm_populate+0x270/0x380 mm/gup.c:1251
+
+stack backtrace:
+CPU: 1 PID: 9226 Comm: syz-executor400 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_circular_bug.isra.0.cold+0x163/0x172 kernel/locking/lockdep.c:1685
+ check_noncircular+0x32e/0x3e0 kernel/locking/lockdep.c:1809
+ check_prev_add kernel/locking/lockdep.c:2476 [inline]
+ check_prevs_add kernel/locking/lockdep.c:2581 [inline]
+ validate_chain kernel/locking/lockdep.c:2971 [inline]
+ __lock_acquire+0x2596/0x4a00 kernel/locking/lockdep.c:3955
+ lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4487
+ __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+ __mutex_lock+0x156/0x13c0 kernel/locking/mutex.c:1103
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1118
+ mon_bin_vma_fault+0x73/0x2d0 drivers/usb/mon/mon_bin.c:1237
+ __do_fault+0x111/0x540 mm/memory.c:3092
+ do_read_fault mm/memory.c:3489 [inline]
+ do_fault mm/memory.c:3618 [inline]
+ handle_pte_fault mm/memory.c:3849 [inline]
+ __handle_mm_fault+0x2dd0/0x4040 mm/memory.c:3973
+ handle_mm_fault+0x3b7/0xaa0 mm/memory.c:4010
+ faultin_page mm/gup.c:640 [inline]
+ __get_user_pages+0x7d4/0x1b30 mm/gup.c:845
+ populate_vma_page_range+0x20d/0x2a0 mm/gup.c:1223
+ __mm_populate+0x204/0x380 mm/gup.c:1271
+ mm_populate include/linux/mm.h:2362 [inline]
+ vm_mmap_pgoff+0x213/0x230 mm/util.c:501
+ ksys_mmap_pgoff+0x4aa/0x630 mm/mmap.c:1629
+ __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+ __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x44a689
+Code: e8 8c b5 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 2b cc fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fcce0445cd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 00000000006dbc38 RCX: 000000000044a689
+RDX: 0000000002000001 RSI: 0000000002000000 RDI: 0000000020ffd000
+RBP: 00000000006dbc30 R08: 0000000000000005 R09: 0000000000000000
+R10: 03eb6b06d1207692 R11: 0000000000000246 R12: 00000000006dbc3c
+R13: 00007ffe7f6a81af R14: 00007fcce04469c0 R15: 20c49ba5e353f7cf

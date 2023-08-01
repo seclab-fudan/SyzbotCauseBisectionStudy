@@ -1,0 +1,29 @@
+Debian GNU/Linux 9 syzkaller ttyS0
+Warning: Permanently added '10.128.0.146' (ECDSA) to the list of known hosts.
+executing program
+executing program
+executing program
+BUG: memory leak
+unreferenced object 0xffff88810876c200 (size 512):
+  comm "syz-executor350", pid 8483, jiffies 4294943292 (age 13.550s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 08 c2 76 08 81 88 ff ff  ..........v.....
+    08 c2 76 08 81 88 ff ff 18 c2 76 08 81 88 ff ff  ..v.......v.....
+  backtrace:
+    [<00000000fbb10817>] kmalloc include/linux/slab.h:557 [inline]
+    [<00000000fbb10817>] kzalloc include/linux/slab.h:682 [inline]
+    [<00000000fbb10817>] rds_message_alloc+0x40/0xc0 net/rds/message.c:291
+    [<000000001ac198e5>] rds_send_probe.constprop.0+0x42/0x3e0 net/rds/send.c:1434
+    [<000000001bd1f2fa>] rds_recv_incoming+0x252/0x690 net/rds/recv.c:343
+    [<00000000c65e3d21>] rds_loop_xmit+0xa3/0x120 net/rds/loop.c:96
+    [<00000000ce7b6654>] rds_send_xmit+0x763/0xe20 net/rds/send.c:367
+    [<00000000814997e7>] rds_sendmsg+0x16cd/0x1970 net/rds/send.c:1382
+    [<0000000002df8577>] sock_sendmsg_nosec net/socket.c:652 [inline]
+    [<0000000002df8577>] sock_sendmsg+0x56/0x80 net/socket.c:672
+    [<000000004b22eb26>] __sys_sendto+0x15c/0x200 net/socket.c:1975
+    [<000000005452504a>] __do_sys_sendto net/socket.c:1987 [inline]
+    [<000000005452504a>] __se_sys_sendto net/socket.c:1983 [inline]
+    [<000000005452504a>] __x64_sys_sendto+0x26/0x30 net/socket.c:1983
+    [<000000007167884c>] do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+    [<0000000073d9f733>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+

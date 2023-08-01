@@ -1,0 +1,42 @@
+=====================================================
+BUG: KMSAN: uninit-value in kmsan_check_memory+0xd/0x10 mm/kmsan/kmsan_hooks.c:428
+CPU: 0 PID: 8471 Comm: syz-executor794 Not tainted 5.8.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1df/0x240 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:121
+ kmsan_internal_check_memory+0x238/0x3d0 mm/kmsan/kmsan.c:423
+ kmsan_check_memory+0xd/0x10 mm/kmsan/kmsan_hooks.c:428
+ instrument_copy_to_user include/linux/instrumented.h:91 [inline]
+ _copy_to_user+0x100/0x1d0 lib/usercopy.c:30
+ copy_to_user include/linux/uaccess.h:161 [inline]
+ video_put_user drivers/media/v4l2-core/v4l2-ioctl.c:3226 [inline]
+ video_usercopy+0x248a/0x2c00 drivers/media/v4l2-core/v4l2-ioctl.c:3325
+ video_ioctl2+0x9f/0xb0 drivers/media/v4l2-core/v4l2-ioctl.c:3335
+ v4l2_ioctl+0x23f/0x270 drivers/media/v4l2-core/v4l2-dev.c:360
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ ksys_ioctl fs/ioctl.c:753 [inline]
+ __do_sys_ioctl fs/ioctl.c:762 [inline]
+ __se_sys_ioctl+0x2e9/0x410 fs/ioctl.c:760
+ __x64_sys_ioctl+0x4a/0x70 fs/ioctl.c:760
+ do_syscall_64+0xb0/0x150 arch/x86/entry/common.c:386
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x444009
+Code: Bad RIP value.
+RSP: 002b:00007ffd83706aa8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000444009
+RDX: 0000000020000100 RSI: 00000000c0505611 RDI: 0000000000000003
+RBP: 00000000006ce018 R08: 00000000004002e0 R09: 00000000004002e0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401c90
+R13: 0000000000401d20 R14: 0000000000000000 R15: 0000000000000000
+
+Local variable ----vb32.i@video_usercopy created at:
+ video_put_user drivers/media/v4l2-core/v4l2-ioctl.c:3210 [inline]
+ video_usercopy+0x20bd/0x2c00 drivers/media/v4l2-core/v4l2-ioctl.c:3325
+ video_put_user drivers/media/v4l2-core/v4l2-ioctl.c:3210 [inline]
+ video_usercopy+0x20bd/0x2c00 drivers/media/v4l2-core/v4l2-ioctl.c:3325
+
+Bytes 52-55 of 80 are uninitialized
+Memory access of size 80 starts at ffffa41d80dcfce0
+=====================================================

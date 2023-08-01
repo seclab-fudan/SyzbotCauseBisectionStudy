@@ -1,0 +1,66 @@
+IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): bond0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+------------[ cut here ]------------
+kernel BUG at net/ipv4/tcp_output.c:2837!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 5276 Comm: syz-executor0 Not tainted 4.17.0-rc3+ #51
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__tcp_retransmit_skb+0x2992/0x2eb0 net/ipv4/tcp_output.c:2837
+RSP: 0000:ffff8801dae06ff8 EFLAGS: 00010206
+RAX: ffff8801b9fe61c0 RBX: 00000000ffc18a16 RCX: ffffffff864e1a49
+RDX: 0000000000000100 RSI: ffffffff864e2e12 RDI: 0000000000000005
+RBP: ffff8801dae073a0 R08: ffff8801b9fe61c0 R09: ffffed0039c40dd2
+R10: ffffed0039c40dd2 R11: ffff8801ce206e93 R12: 00000000421eeaad
+R13: ffff8801ce206d4e R14: ffff8801ce206cc0 R15: ffff8801cd4f4a80
+FS:  0000000000000000(0000) GS:ffff8801dae00000(0063) knlGS:00000000096bc900
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 00000001c47b6000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ tcp_retransmit_skb+0x2e/0x250 net/ipv4/tcp_output.c:2923
+ tcp_retransmit_timer+0xc50/0x3060 net/ipv4/tcp_timer.c:488
+ tcp_write_timer_handler+0x339/0x960 net/ipv4/tcp_timer.c:573
+ tcp_write_timer+0x111/0x1d0 net/ipv4/tcp_timer.c:593
+ call_timer_fn+0x230/0x940 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0x79e/0xc50 kernel/time/timer.c:1666
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x2e0/0xaf5 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1d1/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:525 [inline]
+ smp_apic_timer_interrupt+0x17e/0x710 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+RIP: 0010:__sanitizer_cov_trace_pc+0x0/0x50 kernel/kcov.c:146
+RSP: 0000:ffff8801a8d17700 EFLAGS: 00000293 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff81a84c7c
+RDX: 0000000000000141 RSI: 0000000000000000 RDI: 0000000000000004
+RBP: ffff8801a8d17750 R08: ffff8801b9fe61c0 R09: 0000000000000000
+R10: ffff8801b9fe61c0 R11: 0000000000000000 R12: dffffc0000000000
+R13: 0000000000000141 R14: ffffea0006d40000 R15: 0000000000000000
+ __do_huge_pmd_anonymous_page mm/huge_memory.c:570 [inline]
+ do_huge_pmd_anonymous_page+0x877/0x1cc0 mm/huge_memory.c:728
+ create_huge_pmd mm/memory.c:3854 [inline]
+ __handle_mm_fault+0x2d02/0x4310 mm/memory.c:4058
+ handle_mm_fault+0x53a/0xc70 mm/memory.c:4124
+ __do_page_fault+0x60b/0xe40 arch/x86/mm/fault.c:1399
+ do_page_fault+0xee/0x8a7 arch/x86/mm/fault.c:1474
+ page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1160
+RIP: 0023:0x804c4e0
+RSP: 002b:00000000ff88fc70 EFLAGS: 00010246
+RAX: 0000000020000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Code: 67 fb e9 20 dc ff ff 48 89 df e8 5a 75 67 fb e9 a5 ee ff ff be 0c 00 00 00 4c 89 ef e8 88 75 67 fb e9 69 ef ff ff e8 2e 11 2b fb <0f> 0b 4c 89 e7 e8 14 75 67 fb e9 77 f2 ff ff 48 89 df e8 67 74 
+RIP: __tcp_retransmit_skb+0x2992/0x2eb0 net/ipv4/tcp_output.c:2837 RSP: ffff8801dae06ff8
+---[ end trace 54fa741e700e140d ]---

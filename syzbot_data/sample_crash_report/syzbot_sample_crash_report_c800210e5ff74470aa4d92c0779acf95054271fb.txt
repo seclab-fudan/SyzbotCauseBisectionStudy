@@ -1,0 +1,47 @@
+RBP: 0000000000402ed0 R08: 0000000000400488 R09: 0000000000400488
+R10: 0000000000400488 R11: 0000000000000246 R12: 0000000000402f60
+R13: 0000000000000000 R14: 00000000004ac018 R15: 0000000000400488
+==================================================================
+BUG: KASAN: global-out-of-bounds in atomic_switch_perf_msrs arch/x86/kvm/vmx/vmx.c:6589 [inline]
+BUG: KASAN: global-out-of-bounds in vmx_vcpu_run+0x497/0x1370 arch/x86/kvm/vmx/vmx.c:6756
+Read of size 8 at addr ffffffff89a000f1 by task syz-executor125/8363
+
+CPU: 1 PID: 8363 Comm: syz-executor125 Not tainted 5.11.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x125/0x19e lib/dump_stack.c:120
+ print_address_description+0x5f/0x3a0 mm/kasan/report.c:232
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report+0x15e/0x210 mm/kasan/report.c:416
+ atomic_switch_perf_msrs arch/x86/kvm/vmx/vmx.c:6589 [inline]
+ vmx_vcpu_run+0x497/0x1370 arch/x86/kvm/vmx/vmx.c:6756
+ vcpu_enter_guest+0x2ed9/0x8f80 arch/x86/kvm/x86.c:9085
+ vcpu_run+0x316/0xb70 arch/x86/kvm/x86.c:9236
+ kvm_arch_vcpu_ioctl_run+0x4e8/0xa40 arch/x86/kvm/x86.c:9464
+ kvm_vcpu_ioctl+0x62a/0xa30 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3316
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ __do_sys_ioctl fs/ioctl.c:753 [inline]
+ __se_sys_ioctl+0xfb/0x170 fs/ioctl.c:739
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x43eee9
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffc2d0737a8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 000000000043eee9
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000005
+RBP: 0000000000402ed0 R08: 0000000000400488 R09: 0000000000400488
+R10: 0000000000400488 R11: 0000000000000246 R12: 0000000000402f60
+R13: 0000000000000000 R14: 00000000004ac018 R15: 0000000000400488
+
+The buggy address belongs to the variable:
+ str__initcall__trace_system_name+0x11/0x40
+
+Memory state around the buggy address:
+ ffffffff899fff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffffff89a00000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffffffff89a00080: 00 00 00 00 00 00 00 00 00 00 00 00 00 01 f9 f9
+                                                             ^
+ ffffffff89a00100: f9 f9 f9 f9 07 f9 f9 f9 f9 f9 f9 f9 00 03 f9 f9
+ ffffffff89a00180: f9 f9 f9 f9 00 06 f9 f9 f9 f9 f9 f9 00 00 00 00
+==================================================================

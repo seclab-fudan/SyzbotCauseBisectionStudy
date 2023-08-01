@@ -1,0 +1,94 @@
+==================================================================
+BUG: KASAN: use-after-free in __hlist_del include/linux/list.h:651 [inline]
+BUG: KASAN: use-after-free in hlist_del include/linux/list.h:656 [inline]
+BUG: KASAN: use-after-free in xt_rateest_put+0x2e3/0x300 net/netfilter/xt_RATEEST.c:65
+Write of size 8 at addr ffff8801ae8f3a58 by task syzkaller187615/4170
+
+CPU: 0 PID: 4170 Comm: syzkaller187615 Not tainted 4.15.0+ #286
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_store8_noabort+0x17/0x20 mm/kasan/report.c:435
+ __hlist_del include/linux/list.h:651 [inline]
+ hlist_del include/linux/list.h:656 [inline]
+ xt_rateest_put+0x2e3/0x300 net/netfilter/xt_RATEEST.c:65
+ xt_rateest_tg_destroy+0x50/0x70 net/netfilter/xt_RATEEST.c:154
+ cleanup_entry+0x242/0x380 net/ipv6/netfilter/ip6_tables.c:678
+ __do_replace+0x7e6/0xab0 net/ipv6/netfilter/ip6_tables.c:1115
+ do_replace net/ipv6/netfilter/ip6_tables.c:1171 [inline]
+ do_ip6t_set_ctl+0x40f/0x5f0 net/ipv6/netfilter/ip6_tables.c:1693
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ipv6_setsockopt+0x115/0x150 net/ipv6/ipv6_sockglue.c:928
+ udpv6_setsockopt+0x45/0x80 net/ipv6/udp.c:1452
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+ SYSC_setsockopt net/socket.c:1831 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1810
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x4412d9
+RSP: 002b:00007ffff250e918 EFLAGS: 00000207 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 00000000004412d9
+RDX: 0000000000000040 RSI: 0000000000000029 RDI: 0000000000000136
+RBP: f6fcce9cd855ec40 R08: 00000000000003b8 R09: 0000000000000000
+R10: 0000000020019c48 R11: 0000000000000207 R12: fbfe5b6031634428
+R13: 5826b2d59f7fe9a1 R14: fd7217c033abf8b5 R15: 0000000000000000
+
+Allocated by task 4164:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3610
+ kmalloc include/linux/slab.h:499 [inline]
+ kzalloc include/linux/slab.h:688 [inline]
+ xt_rateest_tg_checkentry+0x25a/0xaa0 net/netfilter/xt_RATEEST.c:120
+ xt_check_target+0x22c/0x7d0 net/netfilter/x_tables.c:845
+ check_target net/ipv6/netfilter/ip6_tables.c:538 [inline]
+ find_check_entry.isra.7+0x935/0xcf0 net/ipv6/netfilter/ip6_tables.c:580
+ translate_table+0xf52/0x1690 net/ipv6/netfilter/ip6_tables.c:749
+ do_replace net/ipv6/netfilter/ip6_tables.c:1167 [inline]
+ do_ip6t_set_ctl+0x370/0x5f0 net/ipv6/netfilter/ip6_tables.c:1693
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ipv6_setsockopt+0x115/0x150 net/ipv6/ipv6_sockglue.c:928
+ udpv6_setsockopt+0x45/0x80 net/ipv6/udp.c:1452
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+ SYSC_setsockopt net/socket.c:1831 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1810
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 4169:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ __rcu_reclaim kernel/rcu/rcu.h:190 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2758 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:3012 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2979 [inline]
+ rcu_process_callbacks+0xe94/0x17f0 kernel/rcu/tree.c:2996
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801ae8f3a00
+ which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 88 bytes inside of
+ 192-byte region [ffff8801ae8f3a00, ffff8801ae8f3ac0)
+The buggy address belongs to the page:
+page:ffffea0006ba3cc0 count:1 mapcount:0 mapping:ffff8801ae8f3000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801ae8f3000 0000000000000000 0000000100000010
+raw: ffffea0006ba2fe0 ffffea0006bcf820 ffff8801db000040 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ae8f3900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ae8f3980: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8801ae8f3a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff8801ae8f3a80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801ae8f3b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

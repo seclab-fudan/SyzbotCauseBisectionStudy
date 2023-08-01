@@ -1,0 +1,81 @@
+input: CM109 USB driver as /devices/platform/dummy_hcd.4/usb5/5-1/5-1:0.0/input/input1176
+list_add double add: new=ffff888013fffd18, prev=ffff888013fffd18, next=ffff8880244c9070.
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:31!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 140 Comm: kworker/0:2 Not tainted 5.17.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+RIP: 0010:__list_add_valid+0x8a/0xc0 lib/list_debug.c:29
+Code: 74 11 4d 39 f7 74 0c b0 01 5b 41 5c 41 5d 41 5e 41 5f c3 48 c7 c7 80 5a d6 8a 4c 89 fe 4c 89 e2 4c 89 f1 31 c0 e8 3e 3c 53 fd <0f> 0b 48 c7 c7 40 59 d6 8a 4c 89 e6 4c 89 f1 31 c0 e8 28 3c 53 fd
+RSP: 0018:ffffc9000282e680 EFLAGS: 00010046
+RAX: 0000000000000058 RBX: ffff8880244c9078 RCX: 1c7d44314f50cc00
+RDX: 0000000000000000 RSI: 0000000080000002 RDI: 0000000000000000
+RBP: ffff8880244c9078 R08: ffffffff816affd2 R09: ffffed1017344f24
+R10: ffffed1017344f24 R11: 0000000000000000 R12: ffff888013fffd18
+R13: dffffc0000000000 R14: ffff8880244c9070 R15: ffff888013fffd18
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fff0109a9f8 CR3: 000000001fd14000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __list_add include/linux/list.h:69 [inline]
+ list_add_tail include/linux/list.h:102 [inline]
+ usb_hcd_link_urb_to_ep+0x1ae/0x300 drivers/usb/core/hcd.c:1181
+ dummy_urb_enqueue+0x2a9/0x750 drivers/usb/gadget/udc/dummy_hcd.c:1284
+ usb_hcd_submit_urb+0x2be/0x5f0 drivers/usb/core/hcd.c:1555
+ cm109_input_open+0x1eb/0x460 drivers/input/misc/cm109.c:572
+ input_open_device+0x184/0x2d0 drivers/input/input.c:629
+ kbd_connect+0xe5/0x120 drivers/tty/vt/keyboard.c:1593
+ input_attach_handler drivers/input/input.c:1035 [inline]
+ input_register_device+0xd95/0x1140 drivers/input/input.c:2335
+ cm109_usb_probe+0x11bf/0x16c0 drivers/input/misc/cm109.c:806
+ usb_probe_interface+0x633/0xb40 drivers/usb/core/driver.c:396
+ call_driver_probe+0x96/0x250
+ really_probe+0x222/0x9f0 drivers/base/dd.c:596
+ __driver_probe_device+0x1f8/0x3e0 drivers/base/dd.c:752
+ driver_probe_device+0x50/0x240 drivers/base/dd.c:782
+ __device_attach_driver+0x1e1/0x3b0 drivers/base/dd.c:899
+ bus_for_each_drv+0x18a/0x210 drivers/base/bus.c:427
+ __device_attach+0x310/0x560 drivers/base/dd.c:970
+ bus_probe_device+0xb8/0x1f0 drivers/base/bus.c:487
+ device_add+0x11c8/0x16d0 drivers/base/core.c:3405
+ usb_set_configuration+0x1a86/0x2100 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0x83/0x140 drivers/usb/core/generic.c:238
+ usb_probe_device+0x13a/0x260 drivers/usb/core/driver.c:293
+ call_driver_probe+0x96/0x250
+ really_probe+0x222/0x9f0 drivers/base/dd.c:596
+ __driver_probe_device+0x1f8/0x3e0 drivers/base/dd.c:752
+ driver_probe_device+0x50/0x240 drivers/base/dd.c:782
+ __device_attach_driver+0x1e1/0x3b0 drivers/base/dd.c:899
+ bus_for_each_drv+0x18a/0x210 drivers/base/bus.c:427
+ __device_attach+0x310/0x560 drivers/base/dd.c:970
+ bus_probe_device+0xb8/0x1f0 drivers/base/bus.c:487
+ device_add+0x11c8/0x16d0 drivers/base/core.c:3405
+ usb_new_device+0x108a/0x1940 drivers/usb/core/hub.c:2566
+ hub_port_connect+0x100b/0x2910 drivers/usb/core/hub.c:5358
+ hub_port_connect_change+0x5f9/0xc20 drivers/usb/core/hub.c:5502
+ port_event+0xca0/0x13e0 drivers/usb/core/hub.c:5660
+ hub_event+0x4ed/0xe40 drivers/usb/core/hub.c:5742
+ process_one_work+0x850/0x1130 kernel/workqueue.c:2307
+ worker_thread+0xab1/0x1300 kernel/workqueue.c:2454
+ kthread+0x2a3/0x2d0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__list_add_valid+0x8a/0xc0 lib/list_debug.c:29
+Code: 74 11 4d 39 f7 74 0c b0 01 5b 41 5c 41 5d 41 5e 41 5f c3 48 c7 c7 80 5a d6 8a 4c 89 fe 4c 89 e2 4c 89 f1 31 c0 e8 3e 3c 53 fd <0f> 0b 48 c7 c7 40 59 d6 8a 4c 89 e6 4c 89 f1 31 c0 e8 28 3c 53 fd
+RSP: 0018:ffffc9000282e680 EFLAGS: 00010046
+RAX: 0000000000000058 RBX: ffff8880244c9078 RCX: 1c7d44314f50cc00
+RDX: 0000000000000000 RSI: 0000000080000002 RDI: 0000000000000000
+RBP: ffff8880244c9078 R08: ffffffff816affd2 R09: ffffed1017344f24
+R10: ffffed1017344f24 R11: 0000000000000000 R12: ffff888013fffd18
+R13: dffffc0000000000 R14: ffff8880244c9070 R15: ffff888013fffd18
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fff0109a9f8 CR3: 000000001fd14000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

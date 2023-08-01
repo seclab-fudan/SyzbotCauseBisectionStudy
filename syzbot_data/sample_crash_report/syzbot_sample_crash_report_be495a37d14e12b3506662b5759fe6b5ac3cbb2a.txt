@@ -1,0 +1,51 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/l1tf.html for details.
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 3596 at arch/x86/kvm/vmx/nested.c:4549 nested_vmx_vmexit+0x34c9/0x3b60 arch/x86/kvm/vmx/nested.c:4549
+Modules linked in:
+CPU: 1 PID: 3596 Comm: syz-executor942 Not tainted 5.16.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:nested_vmx_vmexit+0x34c9/0x3b60 arch/x86/kvm/vmx/nested.c:4549
+Code: 00 00 00 fc ff df 48 c1 e8 03 80 3c 10 00 0f 84 21 ef ff ff 48 c7 c7 48 48 91 8d e8 51 3c 9a 00 e9 10 ef ff ff e8 47 73 53 00 <0f> 0b e9 88 f5 ff ff e8 3b 73 53 00 0f 0b e9 b6 eb ff ff e8 2f 73
+RSP: 0018:ffffc900027afa90 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888076c28000 RSI: ffffffff81242f79 RDI: 0000000000000003
+RBP: ffffc900027afbe0 R08: 0000000000000007 R09: 0000000000000001
+R10: ffffffff812424ff R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000001 R14: ffff88801cbfc000 R15: ffff88807de20000
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055a08d94d130 CR3: 000000000b88e000 CR4: 00000000003526e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ vmx_leave_nested arch/x86/kvm/vmx/nested.c:6222 [inline]
+ nested_vmx_free_vcpu+0xa2/0xc0 arch/x86/kvm/vmx/nested.c:330
+ vmx_free_vcpu+0x8d/0x1a0 arch/x86/kvm/vmx/vmx.c:6790
+ kvm_arch_vcpu_destroy+0x72/0x2f0 arch/x86/kvm/x86.c:10996
+ kvm_vcpu_destroy+0x1d/0xa0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:441
+ kvm_free_vcpus arch/x86/kvm/x86.c:11433 [inline]
+ kvm_arch_destroy_vm+0x33a/0x680 arch/x86/kvm/x86.c:11552
+ kvm_destroy_vm arch/x86/kvm/../../../virt/kvm/kvm_main.c:1189 [inline]
+ kvm_put_kvm+0x4fa/0xc00 arch/x86/kvm/../../../virt/kvm/kvm_main.c:1220
+ kvm_vm_release+0x3f/0x50 arch/x86/kvm/../../../virt/kvm/kvm_main.c:1243
+ __fput+0x286/0x9f0 fs/file_table.c:280
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ exit_task_work include/linux/task_work.h:32 [inline]
+ do_exit+0xc14/0x2b40 kernel/exit.c:832
+ do_group_exit+0x125/0x310 kernel/exit.c:929
+ __do_sys_exit_group kernel/exit.c:940 [inline]
+ __se_sys_exit_group kernel/exit.c:938 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:938
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f56ce207b19
+Code: Unable to access opcode bytes at RIP 0x7f56ce207aef.
+RSP: 002b:00007ffdde3aa448 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007f56ce27b270 RCX: 00007f56ce207b19
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffffffffffc0 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f56ce27b270
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>

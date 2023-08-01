@@ -1,0 +1,623 @@
+================================
+WARNING: inconsistent lock state
+6.0.0-rc7-syzkaller-00132-g987a926c1d8a #0 Not tainted
+--------------------------------
+inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
+sshd/3600 [HC0[0]:SC1[1]:HE1:SE0] takes:
+ffffffff8c0c44c0 (fs_reclaim){+.?.}-{0:0}, at: might_alloc include/linux/sched/mm.h:271 [inline]
+ffffffff8c0c44c0 (fs_reclaim){+.?.}-{0:0}, at: slab_pre_alloc_hook mm/slab.h:700 [inline]
+ffffffff8c0c44c0 (fs_reclaim){+.?.}-{0:0}, at: slab_alloc_node mm/slub.c:3162 [inline]
+ffffffff8c0c44c0 (fs_reclaim){+.?.}-{0:0}, at: slab_alloc mm/slub.c:3256 [inline]
+ffffffff8c0c44c0 (fs_reclaim){+.?.}-{0:0}, at: __kmem_cache_alloc_lru mm/slub.c:3263 [inline]
+ffffffff8c0c44c0 (fs_reclaim){+.?.}-{0:0}, at: kmem_cache_alloc+0x3e/0x3b0 mm/slub.c:3273
+{SOFTIRQ-ON-W} state was registered at:
+  lock_acquire kernel/locking/lockdep.c:5666 [inline]
+  lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
+  __fs_reclaim_acquire mm/page_alloc.c:4674 [inline]
+  fs_reclaim_acquire+0x115/0x160 mm/page_alloc.c:4688
+  might_alloc include/linux/sched/mm.h:271 [inline]
+  slab_pre_alloc_hook mm/slab.h:700 [inline]
+  slab_alloc_node mm/slub.c:3162 [inline]
+  slab_alloc mm/slub.c:3256 [inline]
+  kmem_cache_alloc_trace+0x40/0x3e0 mm/slub.c:3287
+  kmalloc include/linux/slab.h:600 [inline]
+  kzalloc include/linux/slab.h:733 [inline]
+  alloc_workqueue_attrs+0x39/0xc0 kernel/workqueue.c:3394
+  wq_numa_init kernel/workqueue.c:5964 [inline]
+  workqueue_init+0x12f/0x8ae kernel/workqueue.c:6091
+  kernel_init_freeable+0x3fb/0x73a init/main.c:1607
+  kernel_init+0x1a/0x1d0 init/main.c:1512
+  ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+irq event stamp: 50640
+hardirqs last  enabled at (50640): [<ffffffff81c87b45>] kasan_quarantine_put+0xf5/0x210 mm/kasan/quarantine.c:242
+hardirqs last disabled at (50639): [<ffffffff81c87af8>] kasan_quarantine_put+0xa8/0x210 mm/kasan/quarantine.c:215
+softirqs last  enabled at (50624): [<ffffffff874e8540>] spin_unlock_bh include/linux/spinlock.h:394 [inline]
+softirqs last  enabled at (50624): [<ffffffff874e8540>] __release_sock+0xd0/0x3a0 net/core/sock.c:2845
+softirqs last disabled at (50633): [<ffffffff81491743>] invoke_softirq kernel/softirq.c:445 [inline]
+softirqs last disabled at (50633): [<ffffffff81491743>] __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(fs_reclaim);
+  <Interrupt>
+    lock(fs_reclaim);
+
+ *** DEADLOCK ***
+
+2 locks held by sshd/3600:
+ #0: ffff888079118130 (sk_lock-AF_INET){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1712 [inline]
+ #0: ffff888079118130 (sk_lock-AF_INET){+.+.}-{0:0}, at: tcp_sendmsg+0x1d/0x40 net/ipv4/tcp.c:1482
+ #1: ffffffff9122ea88 (&fsnotify_mark_srcu){....}-{0:0}, at: fsnotify+0x2f4/0x1680 fs/notify/fsnotify.c:544
+
+stack backtrace:
+CPU: 1 PID: 3600 Comm: sshd Not tainted 6.0.0-rc7-syzkaller-00132-g987a926c1d8a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_usage_bug kernel/locking/lockdep.c:3961 [inline]
+ valid_state kernel/locking/lockdep.c:3973 [inline]
+ mark_lock_irq kernel/locking/lockdep.c:4176 [inline]
+ mark_lock.part.0.cold+0x18/0xd8 kernel/locking/lockdep.c:4632
+ mark_lock kernel/locking/lockdep.c:4596 [inline]
+ mark_usage kernel/locking/lockdep.c:4527 [inline]
+ __lock_acquire+0x11d9/0x56d0 kernel/locking/lockdep.c:5007
+ lock_acquire kernel/locking/lockdep.c:5666 [inline]
+ lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
+ __fs_reclaim_acquire mm/page_alloc.c:4674 [inline]
+ fs_reclaim_acquire+0x115/0x160 mm/page_alloc.c:4688
+ might_alloc include/linux/sched/mm.h:271 [inline]
+ slab_pre_alloc_hook mm/slab.h:700 [inline]
+ slab_alloc_node mm/slub.c:3162 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3263 [inline]
+ kmem_cache_alloc+0x3e/0x3b0 mm/slub.c:3273
+ fanotify_alloc_fid_event fs/notify/fanotify/fanotify.c:580 [inline]
+ fanotify_alloc_event fs/notify/fanotify/fanotify.c:813 [inline]
+ fanotify_handle_event+0x1130/0x3f40 fs/notify/fanotify/fanotify.c:948
+ send_to_group fs/notify/fsnotify.c:360 [inline]
+ fsnotify+0xafb/0x1680 fs/notify/fsnotify.c:570
+ __fsnotify_parent+0x62f/0xa60 fs/notify/fsnotify.c:230
+ fsnotify_parent include/linux/fsnotify.h:77 [inline]
+ fsnotify_file include/linux/fsnotify.h:99 [inline]
+ fsnotify_access include/linux/fsnotify.h:309 [inline]
+ __io_complete_rw_common+0x485/0x720 io_uring/rw.c:195
+ io_complete_rw+0x1a/0x1f0 io_uring/rw.c:228
+ iomap_dio_complete_work fs/iomap/direct-io.c:144 [inline]
+ iomap_dio_bio_end_io+0x438/0x5e0 fs/iomap/direct-io.c:178
+ bio_endio+0x5f9/0x780 block/bio.c:1564
+ req_bio_endio block/blk-mq.c:695 [inline]
+ blk_update_request+0x3fc/0x1300 block/blk-mq.c:825
+ scsi_end_request+0x7a/0x9a0 drivers/scsi/scsi_lib.c:541
+ scsi_io_completion+0x173/0x1f70 drivers/scsi/scsi_lib.c:971
+ scsi_complete+0x122/0x3b0 drivers/scsi/scsi_lib.c:1438
+ blk_complete_reqs+0xad/0xe0 block/blk-mq.c:1022
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ common_interrupt+0xa9/0xc0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x22/0x40 arch/x86/include/asm/idtentry.h:640
+RIP: 0010:unwind_next_frame+0xd1c/0x1cc0 arch/x86/kernel/unwind_orc.c:598
+Code: 00 00 00 00 00 fc ff df 48 c1 ea 03 0f b6 04 02 4c 89 e2 83 e2 07 38 d0 7f 08 84 c0 0f 85 50 0d 00 00 4c 89 fa 41 c6 45 35 00 <48> 89 ce 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 48 c1 ee 03 0f
+RSP: 0018:ffffc90003a1f290 EFLAGS: 00000246
+RAX: 0000000000000000 RBX: 0000000000000001 RCX: ffffffff8e61ba13
+RDX: ffffffff8e61ba12 RSI: 1ffff92000743e69 RDI: ffffc90003a1f358
+RBP: ffffc90003a1f348 R08: ffffffff8e61ba0e R09: ffffc90003a1f334
+R10: fffff52000743e6b R11: ffffc90003a1f420 R12: ffffc90003a1f335
+R13: ffffc90003a1f300 R14: ffffc90003a1f428 R15: ffffffff8e61ba12
+ arch_stack_walk+0x7d/0xe0 arch/x86/kernel/stacktrace.c:25
+ stack_trace_save+0x8c/0xc0 kernel/stacktrace.c:122
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:367 [inline]
+ ____kasan_slab_free+0x166/0x1c0 mm/kasan/common.c:329
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ slab_free_hook mm/slub.c:1759 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1785
+ slab_free mm/slub.c:3539 [inline]
+ kfree+0xe2/0x580 mm/slub.c:4567
+ skb_free_head+0xac/0x110 net/core/skbuff.c:662
+ skb_release_data+0x5f1/0x870 net/core/skbuff.c:691
+ skb_release_all net/core/skbuff.c:756 [inline]
+ __kfree_skb+0x46/0x60 net/core/skbuff.c:770
+ tcp_wmem_free_skb include/net/tcp.h:302 [inline]
+ tcp_rtx_queue_unlink_and_free include/net/tcp.h:1924 [inline]
+ tcp_clean_rtx_queue net/ipv4/tcp_input.c:3333 [inline]
+ tcp_ack+0x1e0a/0x5a10 net/ipv4/tcp_input.c:3882
+ tcp_rcv_established+0x5de/0x20e0 net/ipv4/tcp_input.c:5993
+ tcp_v4_do_rcv+0x66c/0x9b0 net/ipv4/tcp_ipv4.c:1661
+ sk_backlog_rcv include/net/sock.h:1100 [inline]
+ __release_sock+0x12f/0x3a0 net/core/sock.c:2852
+ release_sock+0x54/0x1b0 net/core/sock.c:3408
+ tcp_sendmsg+0x36/0x40 net/ipv4/tcp.c:1484
+ inet_sendmsg+0x99/0xe0 net/ipv4/af_inet.c:819
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:734
+ sock_write_iter+0x291/0x3d0 net/socket.c:1108
+ call_write_iter include/linux/fs.h:2187 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x9e9/0xdd0 fs/read_write.c:584
+ ksys_write+0x1e8/0x250 fs/read_write.c:637
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f94859259a3
+Code: 8b 15 d9 f4 0c 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 64 8b 04 25 18 00 00 00 85 c0 75 14 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 55 c3 0f 1f 40 00 48 83 ec 28 48 89 54 24 18
+RSP: 002b:00007fff5ce7da88 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000000000bc RCX: 00007f94859259a3
+RDX: 00000000000000bc RSI: 00005647c452e270 RDI: 0000000000000004
+RBP: 00005647c451ee10 R08: 0000000000000000 R09: 00007fff5cead080
+R10: 00007fff5cead0f0 R11: 0000000000000246 R12: 0000000000000004
+R13: 0000000000000001 R14: 00007fff5ce7daf8 R15: 00007fff5ce7db78
+ </TASK>
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:274
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 3600, name: sshd
+preempt_count: 101, expected: 0
+RCU nest depth: 0, expected: 0
+INFO: lockdep is turned off.
+Preemption disabled at:
+[<ffffffff8135ecaa>] unwind_next_frame+0xaa/0x1cc0 arch/x86/kernel/unwind_orc.c:433
+CPU: 1 PID: 3600 Comm: sshd Not tainted 6.0.0-rc7-syzkaller-00132-g987a926c1d8a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __might_resched.cold+0x222/0x26b kernel/sched/core.c:9892
+ might_alloc include/linux/sched/mm.h:274 [inline]
+ slab_pre_alloc_hook mm/slab.h:700 [inline]
+ slab_alloc_node mm/slub.c:3162 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3263 [inline]
+ kmem_cache_alloc+0x2fe/0x3b0 mm/slub.c:3273
+ fanotify_alloc_fid_event fs/notify/fanotify/fanotify.c:580 [inline]
+ fanotify_alloc_event fs/notify/fanotify/fanotify.c:813 [inline]
+ fanotify_handle_event+0x1130/0x3f40 fs/notify/fanotify/fanotify.c:948
+ send_to_group fs/notify/fsnotify.c:360 [inline]
+ fsnotify+0xafb/0x1680 fs/notify/fsnotify.c:570
+ __fsnotify_parent+0x62f/0xa60 fs/notify/fsnotify.c:230
+ fsnotify_parent include/linux/fsnotify.h:77 [inline]
+ fsnotify_file include/linux/fsnotify.h:99 [inline]
+ fsnotify_access include/linux/fsnotify.h:309 [inline]
+ __io_complete_rw_common+0x485/0x720 io_uring/rw.c:195
+ io_complete_rw+0x1a/0x1f0 io_uring/rw.c:228
+ iomap_dio_complete_work fs/iomap/direct-io.c:144 [inline]
+ iomap_dio_bio_end_io+0x438/0x5e0 fs/iomap/direct-io.c:178
+ bio_endio+0x5f9/0x780 block/bio.c:1564
+ req_bio_endio block/blk-mq.c:695 [inline]
+ blk_update_request+0x3fc/0x1300 block/blk-mq.c:825
+ scsi_end_request+0x7a/0x9a0 drivers/scsi/scsi_lib.c:541
+ scsi_io_completion+0x173/0x1f70 drivers/scsi/scsi_lib.c:971
+ scsi_complete+0x122/0x3b0 drivers/scsi/scsi_lib.c:1438
+ blk_complete_reqs+0xad/0xe0 block/blk-mq.c:1022
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ common_interrupt+0xa9/0xc0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x22/0x40 arch/x86/include/asm/idtentry.h:640
+RIP: 0010:unwind_next_frame+0xd1c/0x1cc0 arch/x86/kernel/unwind_orc.c:598
+Code: 00 00 00 00 00 fc ff df 48 c1 ea 03 0f b6 04 02 4c 89 e2 83 e2 07 38 d0 7f 08 84 c0 0f 85 50 0d 00 00 4c 89 fa 41 c6 45 35 00 <48> 89 ce 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 48 c1 ee 03 0f
+RSP: 0018:ffffc90003a1f290 EFLAGS: 00000246
+RAX: 0000000000000000 RBX: 0000000000000001 RCX: ffffffff8e61ba13
+RDX: ffffffff8e61ba12 RSI: 1ffff92000743e69 RDI: ffffc90003a1f358
+RBP: ffffc90003a1f348 R08: ffffffff8e61ba0e R09: ffffc90003a1f334
+R10: fffff52000743e6b R11: ffffc90003a1f420 R12: ffffc90003a1f335
+R13: ffffc90003a1f300 R14: ffffc90003a1f428 R15: ffffffff8e61ba12
+ arch_stack_walk+0x7d/0xe0 arch/x86/kernel/stacktrace.c:25
+ stack_trace_save+0x8c/0xc0 kernel/stacktrace.c:122
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:367 [inline]
+ ____kasan_slab_free+0x166/0x1c0 mm/kasan/common.c:329
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ slab_free_hook mm/slub.c:1759 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1785
+ slab_free mm/slub.c:3539 [inline]
+ kfree+0xe2/0x580 mm/slub.c:4567
+ skb_free_head+0xac/0x110 net/core/skbuff.c:662
+ skb_release_data+0x5f1/0x870 net/core/skbuff.c:691
+ skb_release_all net/core/skbuff.c:756 [inline]
+ __kfree_skb+0x46/0x60 net/core/skbuff.c:770
+ tcp_wmem_free_skb include/net/tcp.h:302 [inline]
+ tcp_rtx_queue_unlink_and_free include/net/tcp.h:1924 [inline]
+ tcp_clean_rtx_queue net/ipv4/tcp_input.c:3333 [inline]
+ tcp_ack+0x1e0a/0x5a10 net/ipv4/tcp_input.c:3882
+ tcp_rcv_established+0x5de/0x20e0 net/ipv4/tcp_input.c:5993
+ tcp_v4_do_rcv+0x66c/0x9b0 net/ipv4/tcp_ipv4.c:1661
+ sk_backlog_rcv include/net/sock.h:1100 [inline]
+ __release_sock+0x12f/0x3a0 net/core/sock.c:2852
+ release_sock+0x54/0x1b0 net/core/sock.c:3408
+ tcp_sendmsg+0x36/0x40 net/ipv4/tcp.c:1484
+ inet_sendmsg+0x99/0xe0 net/ipv4/af_inet.c:819
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:734
+ sock_write_iter+0x291/0x3d0 net/socket.c:1108
+ call_write_iter include/linux/fs.h:2187 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x9e9/0xdd0 fs/read_write.c:584
+ ksys_write+0x1e8/0x250 fs/read_write.c:637
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f94859259a3
+Code: 8b 15 d9 f4 0c 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 64 8b 04 25 18 00 00 00 85 c0 75 14 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 55 c3 0f 1f 40 00 48 83 ec 28 48 89 54 24 18
+RSP: 002b:00007fff5ce7da88 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000000000bc RCX: 00007f94859259a3
+RDX: 00000000000000bc RSI: 00005647c452e270 RDI: 0000000000000004
+RBP: 00005647c451ee10 R08: 0000000000000000 R09: 00007fff5cead080
+R10: 00007fff5cead0f0 R11: 0000000000000246 R12: 0000000000000004
+R13: 0000000000000001 R14: 00007fff5ce7daf8 R15: 00007fff5ce7db78
+ </TASK>
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:274
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 3600, name: sshd
+preempt_count: 100, expected: 0
+RCU nest depth: 2, expected: 0
+INFO: lockdep is turned off.
+Preemption disabled at:
+[<ffffffff89c000e1>] softirq_handle_begin kernel/softirq.c:409 [inline]
+[<ffffffff89c000e1>] __do_softirq+0xe1/0x9c6 kernel/softirq.c:547
+CPU: 1 PID: 3600 Comm: sshd Tainted: G        W          6.0.0-rc7-syzkaller-00132-g987a926c1d8a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __might_resched.cold+0x222/0x26b kernel/sched/core.c:9892
+ might_alloc include/linux/sched/mm.h:274 [inline]
+ slab_pre_alloc_hook mm/slab.h:700 [inline]
+ slab_alloc_node mm/slub.c:3162 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3263 [inline]
+ kmem_cache_alloc+0x2fe/0x3b0 mm/slub.c:3273
+ fanotify_alloc_fid_event fs/notify/fanotify/fanotify.c:580 [inline]
+ fanotify_alloc_event fs/notify/fanotify/fanotify.c:813 [inline]
+ fanotify_handle_event+0x1130/0x3f40 fs/notify/fanotify/fanotify.c:948
+ send_to_group fs/notify/fsnotify.c:360 [inline]
+ fsnotify+0xafb/0x1680 fs/notify/fsnotify.c:570
+ __fsnotify_parent+0x62f/0xa60 fs/notify/fsnotify.c:230
+ fsnotify_parent include/linux/fsnotify.h:77 [inline]
+ fsnotify_file include/linux/fsnotify.h:99 [inline]
+ fsnotify_access include/linux/fsnotify.h:309 [inline]
+ __io_complete_rw_common+0x485/0x720 io_uring/rw.c:195
+ io_complete_rw+0x1a/0x1f0 io_uring/rw.c:228
+ iomap_dio_complete_work fs/iomap/direct-io.c:144 [inline]
+ iomap_dio_bio_end_io+0x438/0x5e0 fs/iomap/direct-io.c:178
+ bio_endio+0x5f9/0x780 block/bio.c:1564
+ req_bio_endio block/blk-mq.c:695 [inline]
+ blk_update_request+0x3fc/0x1300 block/blk-mq.c:825
+ scsi_end_request+0x7a/0x9a0 drivers/scsi/scsi_lib.c:541
+ scsi_io_completion+0x173/0x1f70 drivers/scsi/scsi_lib.c:971
+ scsi_complete+0x122/0x3b0 drivers/scsi/scsi_lib.c:1438
+ blk_complete_reqs+0xad/0xe0 block/blk-mq.c:1022
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ common_interrupt+0xa9/0xc0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x22/0x40 arch/x86/include/asm/idtentry.h:640
+RIP: 0010:check_kcov_mode kernel/kcov.c:166 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x1c/0x60 kernel/kcov.c:200
+Code: be a8 01 00 00 e8 b4 ff ff ff 31 c0 c3 90 65 8b 05 19 67 86 7e 89 c1 48 8b 34 24 81 e1 00 01 00 00 65 48 8b 14 25 80 6f 02 00 <a9> 00 01 ff 00 74 0e 85 c9 74 35 8b 82 bc 15 00 00 85 c0 74 2b 8b
+RSP: 0018:ffffc90003a1f4b8 EFLAGS: 00000246
+RAX: 0000000080000000 RBX: ffff888025c80ff0 RCX: 0000000000000000
+RDX: ffff888026668000 RSI: ffffffff87fdab64 RDI: 0000000000000001
+RBP: ffffc90003a1f5a0 R08: 0000000000000001 R09: 000000000000001f
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff888079118000
+R13: ffff888025c80ff0 R14: 0000000000000001 R15: dffffc0000000000
+ sk_fullsock include/net/sock.h:2778 [inline]
+ ipv4_conntrack_defrag+0x94/0x5f0 net/ipv4/netfilter/nf_defrag_ipv4.c:67
+ nf_hook_entry_hookfn include/linux/netfilter.h:142 [inline]
+ nf_hook_slow+0xc5/0x1f0 net/netfilter/core.c:620
+ nf_hook+0x1cb/0x5b0 include/linux/netfilter.h:262
+ __ip_local_out+0x262/0x520 net/ipv4/ip_output.c:115
+ ip_local_out net/ipv4/ip_output.c:124 [inline]
+ __ip_queue_xmit+0x853/0x1be0 net/ipv4/ip_output.c:532
+ __tcp_transmit_skb+0x1967/0x3800 net/ipv4/tcp_output.c:1402
+ tcp_transmit_skb net/ipv4/tcp_output.c:1420 [inline]
+ tcp_write_xmit+0xd89/0x6050 net/ipv4/tcp_output.c:2691
+ __tcp_push_pending_frames+0xaa/0x380 net/ipv4/tcp_output.c:2875
+ tcp_push+0x499/0x720 net/ipv4/tcp.c:728
+ tcp_sendmsg_locked+0x241f/0x2f80 net/ipv4/tcp.c:1455
+ tcp_sendmsg+0x2b/0x40 net/ipv4/tcp.c:1483
+ inet_sendmsg+0x99/0xe0 net/ipv4/af_inet.c:819
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:734
+ sock_write_iter+0x291/0x3d0 net/socket.c:1108
+ call_write_iter include/linux/fs.h:2187 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x9e9/0xdd0 fs/read_write.c:584
+ ksys_write+0x1e8/0x250 fs/read_write.c:637
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f94859259a3
+Code: 8b 15 d9 f4 0c 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 64 8b 04 25 18 00 00 00 85 c0 75 14 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 55 c3 0f 1f 40 00 48 83 ec 28 48 89 54 24 18
+RSP: 002b:00007fff5ce7da88 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 000000000000003c RCX: 00007f94859259a3
+RDX: 000000000000003c RSI: 00005647c452f090 RDI: 0000000000000004
+RBP: 00005647c451ee10 R08: 0000000000000000 R09: 00007fff5cead080
+R10: 00007fff5cead0f0 R11: 0000000000000246 R12: 0000000000000004
+R13: 0000000000000001 R14: 00007fff5ce7daf8 R15: 00007fff5ce7db78
+ </TASK>
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:274
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 3744, name: syz-executor335
+preempt_count: 101, expected: 0
+RCU nest depth: 0, expected: 0
+INFO: lockdep is turned off.
+Preemption disabled at:
+[<ffffffff89820443>] schedule+0xd3/0x1b0 kernel/sched/core.c:6569
+CPU: 1 PID: 3744 Comm: syz-executor335 Tainted: G        W          6.0.0-rc7-syzkaller-00132-g987a926c1d8a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __might_resched.cold+0x222/0x26b kernel/sched/core.c:9892
+ might_alloc include/linux/sched/mm.h:274 [inline]
+ slab_pre_alloc_hook mm/slab.h:700 [inline]
+ slab_alloc_node mm/slub.c:3162 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3263 [inline]
+ kmem_cache_alloc+0x2fe/0x3b0 mm/slub.c:3273
+ fanotify_alloc_fid_event fs/notify/fanotify/fanotify.c:580 [inline]
+ fanotify_alloc_event fs/notify/fanotify/fanotify.c:813 [inline]
+ fanotify_handle_event+0x1130/0x3f40 fs/notify/fanotify/fanotify.c:948
+ send_to_group fs/notify/fsnotify.c:360 [inline]
+ fsnotify+0xafb/0x1680 fs/notify/fsnotify.c:570
+ __fsnotify_parent+0x62f/0xa60 fs/notify/fsnotify.c:230
+ fsnotify_parent include/linux/fsnotify.h:77 [inline]
+ fsnotify_file include/linux/fsnotify.h:99 [inline]
+ fsnotify_access include/linux/fsnotify.h:309 [inline]
+ __io_complete_rw_common+0x485/0x720 io_uring/rw.c:195
+ io_complete_rw+0x1a/0x1f0 io_uring/rw.c:228
+ iomap_dio_complete_work fs/iomap/direct-io.c:144 [inline]
+ iomap_dio_bio_end_io+0x438/0x5e0 fs/iomap/direct-io.c:178
+ bio_endio+0x5f9/0x780 block/bio.c:1564
+ req_bio_endio block/blk-mq.c:695 [inline]
+ blk_update_request+0x3fc/0x1300 block/blk-mq.c:825
+ scsi_end_request+0x7a/0x9a0 drivers/scsi/scsi_lib.c:541
+ scsi_io_completion+0x173/0x1f70 drivers/scsi/scsi_lib.c:971
+ scsi_complete+0x122/0x3b0 drivers/scsi/scsi_lib.c:1438
+ blk_complete_reqs+0xad/0xe0 block/blk-mq.c:1022
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ common_interrupt+0xa9/0xc0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x22/0x40 arch/x86/include/asm/idtentry.h:640
+RIP: 0010:finish_task_switch.isra.0+0x2bf/0xc70 kernel/sched/core.c:5062
+Code: 8b 3a 4c 89 e7 48 c7 02 00 00 00 00 ff d1 4d 85 ff 75 bf 4c 89 e7 e8 60 f8 ff ff e8 1b 44 2f 00 fb 65 48 8b 1c 25 80 6f 02 00 <48> 8d bb 98 15 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1
+RSP: 0018:ffffc90003c8fc08 EFLAGS: 00000246
+RAX: 0000000000000007 RBX: ffff888016ea8000 RCX: 1ffffffff1bbe2f9
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffffffff81533b35
+RBP: ffffc90003c8fc50 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffed10173673f0 R11: 0000000000000001 R12: ffff8880b9b39f80
+R13: ffff888026a78000 R14: 0000000000000000 R15: ffff8880b9b3a9b8
+ context_switch kernel/sched/core.c:5185 [inline]
+ __schedule+0xae7/0x52b0 kernel/sched/core.c:6494
+ schedule+0xda/0x1b0 kernel/sched/core.c:6570
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ ptrace_stop.part.0+0x4d7/0xa80 kernel/signal.c:2307
+ ptrace_stop kernel/signal.c:2232 [inline]
+ ptrace_do_notify+0x215/0x2b0 kernel/signal.c:2344
+ ptrace_notify+0xc4/0x140 kernel/signal.c:2356
+ ptrace_report_syscall include/linux/ptrace.h:420 [inline]
+ ptrace_report_syscall_exit include/linux/ptrace.h:482 [inline]
+ syscall_exit_work kernel/entry/common.c:249 [inline]
+ syscall_exit_to_user_mode_prepare+0x129/0x280 kernel/entry/common.c:276
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:281 [inline]
+ syscall_exit_to_user_mode+0x9/0x50 kernel/entry/common.c:294
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f1246144517
+Code: 00 00 00 b8 68 00 00 00 0f 05 c3 0f 1f 84 00 00 00 00 00 b8 6c 00 00 00 0f 05 c3 0f 1f 84 00 00 00 00 00 b8 6d 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fffc47fd468 EFLAGS: 00000246 ORIG_RAX: 000000000000006d
+RAX: 0000000000000000 RBX: 00000000000f4240 RCX: 00007f1246144517
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 00005555557ab300
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000000a76b
+R13: 00007fffc47fd47c R14: 00007fffc47fd490 R15: 00007fffc47fd480
+ </TASK>
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:274
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 3808, name: syz-executor335
+preempt_count: 101, expected: 0
+RCU nest depth: 1, expected: 0
+INFO: lockdep is turned off.
+Preemption disabled at:
+[<0000000000000000>] 0x0
+CPU: 1 PID: 3808 Comm: syz-executor335 Tainted: G        W          6.0.0-rc7-syzkaller-00132-g987a926c1d8a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __might_resched.cold+0x222/0x26b kernel/sched/core.c:9892
+ might_alloc include/linux/sched/mm.h:274 [inline]
+ slab_pre_alloc_hook mm/slab.h:700 [inline]
+ slab_alloc_node mm/slub.c:3162 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3263 [inline]
+ kmem_cache_alloc+0x2fe/0x3b0 mm/slub.c:3273
+ fanotify_alloc_fid_event fs/notify/fanotify/fanotify.c:580 [inline]
+ fanotify_alloc_event fs/notify/fanotify/fanotify.c:813 [inline]
+ fanotify_handle_event+0x1130/0x3f40 fs/notify/fanotify/fanotify.c:948
+ send_to_group fs/notify/fsnotify.c:360 [inline]
+ fsnotify+0xafb/0x1680 fs/notify/fsnotify.c:570
+ __fsnotify_parent+0x62f/0xa60 fs/notify/fsnotify.c:230
+ fsnotify_parent include/linux/fsnotify.h:77 [inline]
+ fsnotify_file include/linux/fsnotify.h:99 [inline]
+ fsnotify_access include/linux/fsnotify.h:309 [inline]
+ __io_complete_rw_common+0x485/0x720 io_uring/rw.c:195
+ io_complete_rw+0x1a/0x1f0 io_uring/rw.c:228
+ iomap_dio_complete_work fs/iomap/direct-io.c:144 [inline]
+ iomap_dio_bio_end_io+0x438/0x5e0 fs/iomap/direct-io.c:178
+ bio_endio+0x5f9/0x780 block/bio.c:1564
+ req_bio_endio block/blk-mq.c:695 [inline]
+ blk_update_request+0x3fc/0x1300 block/blk-mq.c:825
+ scsi_end_request+0x7a/0x9a0 drivers/scsi/scsi_lib.c:541
+ scsi_io_completion+0x173/0x1f70 drivers/scsi/scsi_lib.c:971
+ scsi_complete+0x122/0x3b0 drivers/scsi/scsi_lib.c:1438
+ blk_complete_reqs+0xad/0xe0 block/blk-mq.c:1022
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ common_interrupt+0xa9/0xc0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x22/0x40 arch/x86/include/asm/idtentry.h:640
+RIP: 0010:PageHeadHuge+0x2/0x200 mm/hugetlb.c:1872
+Code: de 48 c7 c7 40 c9 0d 8c e8 db d6 5d 02 e9 62 ff ff ff e8 81 fc 05 00 e9 46 ff ff ff 66 66 2e 0f 1f 84 00 00 00 00 00 90 41 54 <55> 48 89 fd 53 e8 e4 95 b9 ff 48 89 ea 48 b8 00 00 00 00 00 fc ff
+RSP: 0000:ffffc90003ddfbb8 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: dffffc0000000000 RCX: 0000000000000000
+RDX: ffff88807d4f3b00 RSI: ffffffff81a4653d RDI: ffffea0001c2c100
+RBP: ffffea0001c2c100 R08: 0000000000000006 R09: 0000000000000055
+R10: 00000000000000d5 R11: 0000000000000001 R12: 00007f124612c000
+R13: ffffea0001c2c100 R14: ffffea0001c2c100 R15: 0000000000000054
+ folio_test_hugetlb include/linux/page-flags.h:831 [inline]
+ folio_file_page include/linux/pagemap.h:683 [inline]
+ filemap_map_pages+0xb78/0x1e00 mm/filemap.c:3350
+ do_fault_around mm/memory.c:4493 [inline]
+ do_read_fault mm/memory.c:4519 [inline]
+ do_fault mm/memory.c:4653 [inline]
+ handle_pte_fault mm/memory.c:4917 [inline]
+ __handle_mm_fault+0x210e/0x39b0 mm/memory.c:5059
+ handle_mm_fault+0x1c8/0x780 mm/memory.c:5157
+ do_user_addr_fault+0x475/0x1210 arch/x86/mm/fault.c:1397
+ handle_page_fault arch/x86/mm/fault.c:1488 [inline]
+ exc_page_fault+0x94/0x170 arch/x86/mm/fault.c:1544
+ asm_exc_page_fault+0x22/0x30 arch/x86/include/asm/idtentry.h:570
+RIP: 0033:0x7f1246121470
+Code: 8b 03 48 89 05 c1 0c 07 00 48 83 c4 08 5b 5d c3 66 2e 0f 1f 84 00 00 00 00 00 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 <48> 83 ec 58 49 89 ca 48 89 74 24 28 48 89 54 24 30 48 89 4c 24 38
+RSP: 002b:00007fffc47fd468 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 00000000000f4240 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000009 RDI: 0000000000000001
+RBP: 0000000000000000 R08: 0000000000000000 R09: 00005555557ab300
+R10: 00005555557ab5d0 R11: 0000000000000246 R12: 000000000000ab65
+R13: 00007fffc47fd47c R14: 00007fffc47fd490 R15: 00007fffc47fd480
+ </TASK>
+------------[ cut here ]------------
+do not call blocking ops when !TASK_RUNNING; state=8 set at [<ffffffff814ba8b0>] ptrace_stop.part.0+0x0/0xa80 kernel/signal.c:2172
+WARNING: CPU: 1 PID: 3607 at kernel/sched/core.c:9815 __might_sleep+0x105/0x150 kernel/sched/core.c:9815
+Modules linked in:
+CPU: 1 PID: 3607 Comm: syz-executor335 Tainted: G        W          6.0.0-rc7-syzkaller-00132-g987a926c1d8a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+RIP: 0010:__might_sleep+0x105/0x150 kernel/sched/core.c:9815
+Code: 6f 02 00 48 8d bb 08 17 00 00 48 89 fa 48 c1 ea 03 80 3c 02 00 75 34 48 8b 93 08 17 00 00 48 c7 c7 20 34 ec 89 e8 bd 46 e8 07 <0f> 0b e9 75 ff ff ff e8 7f 98 75 00 e9 26 ff ff ff 89 34 24 e8 82
+RSP: 0018:ffffc900001f0818 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: ffff888025405880 RCX: 0000000000000000
+RDX: ffff888025405880 RSI: ffffffff8161f2a8 RDI: fffff5200003e0f5
+RBP: ffffffff8b8431fe R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000080000102 R11: 6320746f6e206f64 R12: 0000000000000112
+R13: ffffffff81ea08f0 R14: 0000000000404cc0 R15: 0000000000404cc0
+FS:  00005555557ab300(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f1246121470 CR3: 00000000705a3000 CR4: 0000000000350ee0
+Call Trace:
+ <IRQ>
+ might_alloc include/linux/sched/mm.h:274 [inline]
+ slab_pre_alloc_hook mm/slab.h:700 [inline]
+ slab_alloc_node mm/slub.c:3162 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3263 [inline]
+ kmem_cache_alloc+0x2fe/0x3b0 mm/slub.c:3273
+ fanotify_alloc_fid_event fs/notify/fanotify/fanotify.c:580 [inline]
+ fanotify_alloc_event fs/notify/fanotify/fanotify.c:813 [inline]
+ fanotify_handle_event+0x1130/0x3f40 fs/notify/fanotify/fanotify.c:948
+ send_to_group fs/notify/fsnotify.c:360 [inline]
+ fsnotify+0xafb/0x1680 fs/notify/fsnotify.c:570
+ __fsnotify_parent+0x62f/0xa60 fs/notify/fsnotify.c:230
+ fsnotify_parent include/linux/fsnotify.h:77 [inline]
+ fsnotify_file include/linux/fsnotify.h:99 [inline]
+ fsnotify_access include/linux/fsnotify.h:309 [inline]
+ __io_complete_rw_common+0x485/0x720 io_uring/rw.c:195
+ io_complete_rw+0x1a/0x1f0 io_uring/rw.c:228
+ iomap_dio_complete_work fs/iomap/direct-io.c:144 [inline]
+ iomap_dio_bio_end_io+0x438/0x5e0 fs/iomap/direct-io.c:178
+ bio_endio+0x5f9/0x780 block/bio.c:1564
+ req_bio_endio block/blk-mq.c:695 [inline]
+ blk_update_request+0x3fc/0x1300 block/blk-mq.c:825
+ scsi_end_request+0x7a/0x9a0 drivers/scsi/scsi_lib.c:541
+ scsi_io_completion+0x173/0x1f70 drivers/scsi/scsi_lib.c:971
+ scsi_complete+0x122/0x3b0 drivers/scsi/scsi_lib.c:1438
+ blk_complete_reqs+0xad/0xe0 block/blk-mq.c:1022
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ common_interrupt+0xa9/0xc0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x22/0x40 arch/x86/include/asm/idtentry.h:640
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x38/0x70 kernel/locking/spinlock.c:194
+Code: 74 24 10 e8 2a 10 dc f7 48 89 ef e8 b2 91 dc f7 81 e3 00 02 00 00 75 25 9c 58 f6 c4 02 75 2d 48 85 db 74 01 fb bf 01 00 00 00 <e8> 63 53 cf f7 65 8b 05 7c 0a 7f 76 85 c0 74 0a 5b 5d c3 e8 80 1a
+RSP: 0018:ffffc900039bfc88 EFLAGS: 00000206
+RAX: 0000000000000046 RBX: 0000000000000200 RCX: 1ffffffff1bbe2f9
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: 0000000000000001
+RBP: ffff8880254d5c80 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffed1004a9ab90 R11: 0000000000000000 R12: ffff888025401d80
+R13: ffff8880254d5c80 R14: ffffc900039bfd20 R15: 0000000000000246
+ spin_unlock_irqrestore include/linux/spinlock.h:404 [inline]
+ do_notify_parent_cldstop+0x569/0xa40 kernel/signal.c:2190
+ ptrace_stop.part.0+0x834/0xa80 kernel/signal.c:2293
+ ptrace_stop kernel/signal.c:2232 [inline]
+ ptrace_do_notify+0x215/0x2b0 kernel/signal.c:2344
+ ptrace_notify+0xc4/0x140 kernel/signal.c:2356
+ ptrace_report_syscall include/linux/ptrace.h:420 [inline]
+ ptrace_report_syscall_exit include/linux/ptrace.h:482 [inline]
+ syscall_exit_work kernel/entry/common.c:249 [inline]
+ syscall_exit_to_user_mode_prepare+0x129/0x280 kernel/entry/common.c:276
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:281 [inline]
+ syscall_exit_to_user_mode+0x9/0x50 kernel/entry/common.c:294
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f124614427a
+Code: 83 ff 03 74 3b 48 83 ec 28 b8 fa ff ff ff 83 ff 02 49 89 ca 0f 44 f8 64 8b 04 25 18 00 00 00 85 c0 75 2d b8 e6 00 00 00 0f 05 <89> c2 f7 da 3d 00 f0 ff ff b8 00 00 00 00 0f 47 c2 48 83 c4 28 c3
+RSP: 002b:00007fffc47fd400 EFLAGS: 00000246 ORIG_RAX: 00000000000000db
+RAX: 0000000000000000 RBX: 00000000000f4240 RCX: 00007f124614427a
+RDX: 00007fffc47fd440 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000efa R08: 000000000000002c R09: 00007fffc4834080
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000000aed2
+R13: 00007fffc47fd47c R14: 00007fffc47fd490 R15: 00007fffc47fd480
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	00 00                	add    %al,(%rax)
+   2:	00 00                	add    %al,(%rax)
+   4:	00 fc                	add    %bh,%ah
+   6:	ff                   	(bad)
+   7:	df 48 c1             	fisttps -0x3f(%rax)
+   a:	ea                   	(bad)
+   b:	03 0f                	add    (%rdi),%ecx
+   d:	b6 04                	mov    $0x4,%dh
+   f:	02 4c 89 e2          	add    -0x1e(%rcx,%rcx,4),%cl
+  13:	83 e2 07             	and    $0x7,%edx
+  16:	38 d0                	cmp    %dl,%al
+  18:	7f 08                	jg     0x22
+  1a:	84 c0                	test   %al,%al
+  1c:	0f 85 50 0d 00 00    	jne    0xd72
+  22:	4c 89 fa             	mov    %r15,%rdx
+  25:	41 c6 45 35 00       	movb   $0x0,0x35(%r13)
+* 2a:	48 89 ce             	mov    %rcx,%rsi <-- trapping instruction
+  2d:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  34:	fc ff df
+  37:	48 c1 ea 03          	shr    $0x3,%rdx
+  3b:	48 c1 ee 03          	shr    $0x3,%rsi
+  3f:	0f                   	.byte 0xf

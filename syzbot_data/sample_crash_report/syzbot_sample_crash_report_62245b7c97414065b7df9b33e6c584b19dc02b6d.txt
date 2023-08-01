@@ -1,0 +1,42 @@
+------------[ cut here ]------------
+page_counter underflow: -4294962487 nr_pages=4294967295
+WARNING: CPU: 1 PID: 39 at mm/page_counter.c:57 page_counter_cancel mm/page_counter.c:56 [inline]
+WARNING: CPU: 1 PID: 39 at mm/page_counter.c:57 page_counter_uncharge+0xf1/0x110 mm/page_counter.c:160
+Modules linked in:
+CPU: 1 PID: 39 Comm: kworker/1:1 Not tainted 5.16.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events mptcp_worker
+RIP: 0010:page_counter_cancel mm/page_counter.c:56 [inline]
+RIP: 0010:page_counter_uncharge+0xf1/0x110 mm/page_counter.c:160
+Code: e8 44 4a b1 ff e9 5f ff ff ff e8 3a 4a b1 ff c6 05 7a 2f 18 0c 01 48 c7 c7 60 32 7e 8a 48 89 de 4c 89 f2 31 c0 e8 ff 30 7b ff <0f> 0b e9 76 ff ff ff e8 13 4a b1 ff eb 05 e8 0c 4a b1 ff 5b 41 5c
+RSP: 0018:ffffc900010ff590 EFLAGS: 00010046
+RAX: b4308792f93ecf00 RBX: ffffffff000012c9 RCX: ffff888013dc1d00
+RDX: 0000000000000000 RSI: 0000000080000201 RDI: 0000000000000000
+RBP: ffffc900010ff6b0 R08: ffffffff816a1042 R09: ffffed1017364f2c
+R10: ffffed1017364f2c R11: 0000000000000000 R12: dffffc0000000000
+R13: ffffffff00000001 R14: 00000000ffffffff R15: ffff88802312c120
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fff59ef7a88 CR3: 00000000707fc000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ drain_stock mm/memcontrol.c:2166 [inline]
+ refill_stock+0x337/0x620 mm/memcontrol.c:2218
+ mem_cgroup_uncharge_skmem+0x14c/0x1c0 mm/memcontrol.c:7020
+ __sk_mem_reduce_allocated+0x336/0x4c0 net/core/sock.c:2945
+ __mptcp_rmem_reclaim net/mptcp/protocol.c:167 [inline]
+ __mptcp_mem_reclaim_partial+0x11d/0x410 net/mptcp/protocol.c:975
+ mptcp_mem_reclaim_partial net/mptcp/protocol.c:982 [inline]
+ mptcp_alloc_tx_skb+0x2b4/0x4c0 net/mptcp/protocol.c:1212
+ mptcp_sendmsg_frag+0x526/0x1ed0 net/mptcp/protocol.c:1279
+ __mptcp_push_pending+0x352/0xa90 net/mptcp/protocol.c:1545
+ mptcp_release_cb+0xdf/0x480 net/mptcp/protocol.c:2978
+ release_sock+0xaf/0x1c0 net/core/sock.c:3306
+ mptcp_worker+0xf38/0x1470 net/mptcp/protocol.c:2444
+ process_one_work+0x853/0x1140 kernel/workqueue.c:2298
+ worker_thread+0xac1/0x1320 kernel/workqueue.c:2445
+ kthread+0x468/0x490 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+ </TASK>

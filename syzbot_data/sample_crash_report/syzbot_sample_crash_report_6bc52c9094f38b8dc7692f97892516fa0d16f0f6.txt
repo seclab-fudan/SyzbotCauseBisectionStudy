@@ -1,0 +1,59 @@
+IP: snd_seq_oss_readq_puts+0x146/0x210 sound/core/seq/oss/seq_oss_readq.c:112
+PGD 1dac75067 P4D 1dac75067 PUD 1dac76067 PMD 1d8281067 PTE 0
+Oops: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 2989 Comm: syzkaller422795 Not tainted 4.14.0-rc1+ #89
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801cf030580 task.stack: ffff8801ce4e0000
+RIP: 0010:snd_seq_oss_readq_puts+0x146/0x210 sound/core/seq/oss/seq_oss_readq.c:112
+RSP: 0018:ffff8801ce4e7208 EFLAGS: 00010246
+RAX: ffffed0039c9ce4a RBX: ffffc90001700000 RCX: ffff8801ce4e7251
+RDX: 0000000000000000 RSI: 1ffff10039e061c7 RDI: 0000000000000282
+RBP: ffff8801ce4e72b8 R08: ffff8801d86e7950 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 000000003fffffa4
+R13: ffff8801ce4e7290 R14: ffffc90001700001 R15: dffffc0000000000
+FS:  00007fb5d9018700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffc90001700000 CR3: 00000001cf4dc000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ send_midi_event sound/core/seq/oss/seq_oss_midi.c:616 [inline]
+ snd_seq_oss_midi_input+0xd39/0x1040 sound/core/seq/oss/seq_oss_midi.c:535
+ snd_seq_oss_event_input+0x15d/0x220 sound/core/seq/oss/seq_oss_event.c:439
+ snd_seq_deliver_single_event.constprop.11+0x2fb/0x940 sound/core/seq/seq_clientmgr.c:621
+ deliver_to_subscribers sound/core/seq/seq_clientmgr.c:676 [inline]
+ snd_seq_deliver_event+0x318/0x790 sound/core/seq/seq_clientmgr.c:807
+ snd_seq_kernel_client_dispatch+0x11e/0x150 sound/core/seq/seq_clientmgr.c:2309
+ dummy_input+0x2c4/0x400 sound/core/seq/seq_dummy.c:104
+ snd_seq_deliver_single_event.constprop.11+0x2fb/0x940 sound/core/seq/seq_clientmgr.c:621
+ snd_seq_deliver_event+0x12c/0x790 sound/core/seq/seq_clientmgr.c:818
+ snd_seq_dispatch_event+0x105/0x5b0 sound/core/seq/seq_clientmgr.c:892
+ snd_seq_check_queue.part.3+0x38e/0x510 sound/core/seq/seq_queue.c:285
+ snd_seq_check_queue sound/core/seq/seq_queue.c:357 [inline]
+ snd_seq_enqueue_event+0x32d/0x3d0 sound/core/seq/seq_queue.c:363
+ snd_seq_client_enqueue_event+0x21b/0x420 sound/core/seq/seq_clientmgr.c:951
+ kernel_client_enqueue.part.10+0xb5/0xd0 sound/core/seq/seq_clientmgr.c:2248
+ kernel_client_enqueue sound/core/seq/seq_clientmgr.c:2238 [inline]
+ snd_seq_kernel_client_enqueue_blocking+0xcf/0x110 sound/core/seq/seq_clientmgr.c:2275
+ insert_queue sound/core/seq/oss/seq_oss_rw.c:189 [inline]
+ snd_seq_oss_write+0x5fe/0xa80 sound/core/seq/oss/seq_oss_rw.c:148
+ odev_write+0x64/0x90 sound/core/seq/oss/seq_oss.c:177
+ __vfs_write+0xef/0x970 fs/read_write.c:479
+ vfs_write+0x18f/0x510 fs/read_write.c:543
+ SYSC_write fs/read_write.c:588 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:580
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x445dd9
+RSP: 002b:00007fb5d9017dc8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000445dd9
+RDX: 0000000000000150 RSI: 0000000020e7f000 RDI: 0000000000000003
+RBP: 0000000000000082 R08: 00007fb5d9018700 R09: 00007fb5d9018700
+R10: 00007fb5d9018700 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffdb90e225f R14: 00007fb5d90189c0 R15: 0000000000000000
+Code: d9 4c 8d 73 01 48 c1 e8 03 83 e1 07 42 0f b6 04 38 38 c8 7f 08 84 c0 0f 85 bf 00 00 00 48 8b 85 58 ff ff ff 48 8b 8d 68 ff ff ff <41> 0f b6 5e ff 0f b6 00 83 e1 07 38 c8 7f 08 84 c0 0f 85 89 00 
+RIP: snd_seq_oss_readq_puts+0x146/0x210 sound/core/seq/oss/seq_oss_readq.c:112 RSP: ffff8801ce4e7208
+CR2: ffffc90001700000
+---[ end trace 75676146ffa4af48 ]---

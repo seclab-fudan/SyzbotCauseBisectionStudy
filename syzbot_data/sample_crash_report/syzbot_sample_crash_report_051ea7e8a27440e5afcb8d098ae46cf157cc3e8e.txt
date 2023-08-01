@@ -1,0 +1,353 @@
+=====================================================
+WARNING: HARDIRQ-safe -> HARDIRQ-unsafe lock order detected
+5.11.0-rc2-syzkaller #0 Not tainted
+-----------------------------------------------------
+syz-executor.5/29658 [HC0[0]:SC0[0]:HE0:SE1] is trying to acquire:
+ffff88801211d948 (&new->fa_lock){.?.?}-{2:2}, at: kill_fasync_rcu fs/fcntl.c:1004 [inline]
+ffff88801211d948 (&new->fa_lock){.?.?}-{2:2}, at: kill_fasync fs/fcntl.c:1025 [inline]
+ffff88801211d948 (&new->fa_lock){.?.?}-{2:2}, at: kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+
+and this task is already holding:
+ffff88805e538498 (&ctx->completion_lock#2){-...}-{2:2}, at: spin_lock_irq include/linux/spinlock.h:379 [inline]
+ffff88805e538498 (&ctx->completion_lock#2){-...}-{2:2}, at: io_submit_flush_completions+0x4d/0x3a0 fs/io_uring.c:1833
+which would create a new lock dependency:
+ (&ctx->completion_lock#2){-...}-{2:2} -> (&new->fa_lock){.?.?}-{2:2}
+
+but this new dependency connects a HARDIRQ-irq-safe lock:
+ (&ctx->completion_lock#2){-...}-{2:2}
+
+... which became HARDIRQ-irq-safe at:
+  lock_acquire kernel/locking/lockdep.c:5437 [inline]
+  lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+  __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+  _raw_spin_lock_irqsave+0x39/0x50 kernel/locking/spinlock.c:159
+  io_timeout_fn+0x6f/0x3d0 fs/io_uring.c:5623
+  __run_hrtimer kernel/time/hrtimer.c:1519 [inline]
+  __hrtimer_run_queues+0x693/0xea0 kernel/time/hrtimer.c:1583
+  hrtimer_interrupt+0x334/0x940 kernel/time/hrtimer.c:1645
+  local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1085 [inline]
+  __sysvec_apic_timer_interrupt+0x146/0x540 arch/x86/kernel/apic/apic.c:1102
+  asm_call_irq_on_stack+0xf/0x20
+  __run_sysvec_on_irqstack arch/x86/include/asm/irq_stack.h:37 [inline]
+  run_sysvec_on_irqstack_cond arch/x86/include/asm/irq_stack.h:89 [inline]
+  sysvec_apic_timer_interrupt+0xbd/0x100 arch/x86/kernel/apic/apic.c:1096
+  asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:628
+  __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:169 [inline]
+  _raw_spin_unlock_irq+0x25/0x40 kernel/locking/spinlock.c:199
+  spin_unlock_irq include/linux/spinlock.h:404 [inline]
+  io_timeout fs/io_uring.c:5827 [inline]
+  io_issue_sqe+0x1cf3/0x4490 fs/io_uring.c:6221
+  __io_queue_sqe+0x228/0x10c0 fs/io_uring.c:6488
+  io_queue_sqe+0x631/0x10d0 fs/io_uring.c:6554
+  io_queue_link_head fs/io_uring.c:6565 [inline]
+  io_submit_sqes+0xac1/0x2720 fs/io_uring.c:6890
+  __do_sys_io_uring_enter+0x6d1/0x1e70 fs/io_uring.c:9214
+  do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+to a HARDIRQ-irq-unsafe lock:
+ (&new->fa_lock){.?.?}-{2:2}
+
+... which became HARDIRQ-irq-unsafe at:
+...
+  lock_acquire kernel/locking/lockdep.c:5437 [inline]
+  lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+  __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+  _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+  kill_fasync_rcu fs/fcntl.c:1004 [inline]
+  kill_fasync fs/fcntl.c:1025 [inline]
+  kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+  sock_wake_async+0xd2/0x160 net/socket.c:1310
+  sk_wake_async include/net/sock.h:2279 [inline]
+  sk_wake_async+0x16c/0x280 include/net/sock.h:2275
+  unix_shutdown+0x3d6/0x540 net/unix/af_unix.c:2537
+  __sys_shutdown_sock net/socket.c:2184 [inline]
+  __sys_shutdown_sock net/socket.c:2178 [inline]
+  __sys_shutdown+0xf1/0x1b0 net/socket.c:2196
+  __do_sys_shutdown net/socket.c:2204 [inline]
+  __se_sys_shutdown net/socket.c:2202 [inline]
+  __x64_sys_shutdown+0x50/0x70 net/socket.c:2202
+  do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+other info that might help us debug this:
+
+ Possible interrupt unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&new->fa_lock);
+                               local_irq_disable();
+                               lock(&ctx->completion_lock#2);
+                               lock(&new->fa_lock);
+  <Interrupt>
+    lock(&ctx->completion_lock#2);
+
+ *** DEADLOCK ***
+
+3 locks held by syz-executor.5/29658:
+ #0: ffff88805e5383e8 (&ctx->uring_lock){+.+.}-{3:3}, at: __do_sys_io_uring_enter+0x6c6/0x1e70 fs/io_uring.c:9213
+ #1: ffff88805e538498 (&ctx->completion_lock#2){-...}-{2:2}, at: spin_lock_irq include/linux/spinlock.h:379 [inline]
+ #1: ffff88805e538498 (&ctx->completion_lock#2){-...}-{2:2}, at: io_submit_flush_completions+0x4d/0x3a0 fs/io_uring.c:1833
+ #2: ffffffff8b363860 (rcu_read_lock){....}-{1:2}, at: kill_fasync+0x3d/0x460 fs/fcntl.c:1023
+
+the dependencies between HARDIRQ-irq-safe lock and the holding lock:
+-> (&ctx->completion_lock#2){-...}-{2:2} {
+   IN-HARDIRQ-W at:
+                    lock_acquire kernel/locking/lockdep.c:5437 [inline]
+                    lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+                    __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+                    _raw_spin_lock_irqsave+0x39/0x50 kernel/locking/spinlock.c:159
+                    io_timeout_fn+0x6f/0x3d0 fs/io_uring.c:5623
+                    __run_hrtimer kernel/time/hrtimer.c:1519 [inline]
+                    __hrtimer_run_queues+0x693/0xea0 kernel/time/hrtimer.c:1583
+                    hrtimer_interrupt+0x334/0x940 kernel/time/hrtimer.c:1645
+                    local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1085 [inline]
+                    __sysvec_apic_timer_interrupt+0x146/0x540 arch/x86/kernel/apic/apic.c:1102
+                    asm_call_irq_on_stack+0xf/0x20
+                    __run_sysvec_on_irqstack arch/x86/include/asm/irq_stack.h:37 [inline]
+                    run_sysvec_on_irqstack_cond arch/x86/include/asm/irq_stack.h:89 [inline]
+                    sysvec_apic_timer_interrupt+0xbd/0x100 arch/x86/kernel/apic/apic.c:1096
+                    asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:628
+                    __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:169 [inline]
+                    _raw_spin_unlock_irq+0x25/0x40 kernel/locking/spinlock.c:199
+                    spin_unlock_irq include/linux/spinlock.h:404 [inline]
+                    io_timeout fs/io_uring.c:5827 [inline]
+                    io_issue_sqe+0x1cf3/0x4490 fs/io_uring.c:6221
+                    __io_queue_sqe+0x228/0x10c0 fs/io_uring.c:6488
+                    io_queue_sqe+0x631/0x10d0 fs/io_uring.c:6554
+                    io_queue_link_head fs/io_uring.c:6565 [inline]
+                    io_submit_sqes+0xac1/0x2720 fs/io_uring.c:6890
+                    __do_sys_io_uring_enter+0x6d1/0x1e70 fs/io_uring.c:9214
+                    do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+                    entry_SYSCALL_64_after_hwframe+0x44/0xa9
+   INITIAL USE at:
+                   lock_acquire kernel/locking/lockdep.c:5437 [inline]
+                   lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+                   __raw_spin_lock_irq include/linux/spinlock_api_smp.h:128 [inline]
+                   _raw_spin_lock_irq+0x32/0x50 kernel/locking/spinlock.c:167
+                   spin_lock_irq include/linux/spinlock.h:379 [inline]
+                   io_cancel_defer_files fs/io_uring.c:8757 [inline]
+                   io_uring_cancel_task_requests fs/io_uring.c:8858 [inline]
+                   __io_uring_files_cancel+0x2f0/0x14f0 fs/io_uring.c:8963
+                   io_uring_files_cancel include/linux/io_uring.h:51 [inline]
+                   do_exit+0x2fe/0x2ae0 kernel/exit.c:780
+                   do_group_exit+0x125/0x310 kernel/exit.c:922
+                   get_signal+0x3ec/0x2010 kernel/signal.c:2770
+                   arch_do_signal_or_restart+0x2a8/0x1eb0 arch/x86/kernel/signal.c:811
+                   handle_signal_work kernel/entry/common.c:147 [inline]
+                   exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+                   exit_to_user_mode_prepare+0x148/0x250 kernel/entry/common.c:201
+                   __syscall_exit_to_user_mode_work kernel/entry/common.c:291 [inline]
+                   syscall_exit_to_user_mode+0x19/0x50 kernel/entry/common.c:302
+                   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+ }
+ ... key      at: [<ffffffff8ef92a60>] __key.10+0x0/0x40
+ ... acquired at:
+   lock_acquire kernel/locking/lockdep.c:5437 [inline]
+   lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+   __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+   _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+   kill_fasync_rcu fs/fcntl.c:1004 [inline]
+   kill_fasync fs/fcntl.c:1025 [inline]
+   kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+   __io_commit_cqring fs/io_uring.c:1348 [inline]
+   io_commit_cqring+0x34e/0xa90 fs/io_uring.c:1658
+   io_submit_flush_completions+0x269/0x3a0 fs/io_uring.c:1855
+   __io_req_complete+0x209/0x310 fs/io_uring.c:1874
+   io_nop fs/io_uring.c:3897 [inline]
+   io_issue_sqe+0x1234/0x4490 fs/io_uring.c:6184
+   __io_queue_sqe+0x228/0x10c0 fs/io_uring.c:6488
+   io_queue_sqe+0x631/0x10d0 fs/io_uring.c:6554
+   io_submit_sqe fs/io_uring.c:6627 [inline]
+   io_submit_sqes+0x1495/0x2720 fs/io_uring.c:6875
+   __do_sys_io_uring_enter+0x6d1/0x1e70 fs/io_uring.c:9214
+   do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+
+the dependencies between the lock to be acquired
+ and HARDIRQ-irq-unsafe lock:
+-> (&new->fa_lock){.?.?}-{2:2} {
+   IN-HARDIRQ-R at:
+                    lock_acquire kernel/locking/lockdep.c:5437 [inline]
+                    lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+                    __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                    _raw_read_lock+0x36/0x70 kernel/locking/spinlock.c:223
+                    kill_fasync_rcu fs/fcntl.c:1004 [inline]
+                    kill_fasync fs/fcntl.c:1025 [inline]
+                    kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+                    perf_event_wakeup kernel/events/core.c:6277 [inline]
+                    perf_pending_event+0x221/0x310 kernel/events/core.c:6333
+                    irq_work_single+0x120/0x1f0 kernel/irq_work.c:153
+                    irq_work_run_list+0x91/0xc0 kernel/irq_work.c:175
+                    irq_work_run+0x54/0xd0 kernel/irq_work.c:184
+                    __sysvec_irq_work+0x95/0x3d0 arch/x86/kernel/irq_work.c:22
+                    run_sysvec_on_irqstack_cond arch/x86/include/asm/irq_stack.h:91 [inline]
+                    sysvec_irq_work+0x48/0x100 arch/x86/kernel/irq_work.c:17
+                    asm_sysvec_irq_work+0x12/0x20 arch/x86/include/asm/idtentry.h:654
+   HARDIRQ-ON-R at:
+                    lock_acquire kernel/locking/lockdep.c:5437 [inline]
+                    lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+                    __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                    _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+                    kill_fasync_rcu fs/fcntl.c:1004 [inline]
+                    kill_fasync fs/fcntl.c:1025 [inline]
+                    kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+                    sock_wake_async+0xd2/0x160 net/socket.c:1310
+                    sk_wake_async include/net/sock.h:2279 [inline]
+                    sk_wake_async+0x16c/0x280 include/net/sock.h:2275
+                    unix_shutdown+0x3d6/0x540 net/unix/af_unix.c:2537
+                    __sys_shutdown_sock net/socket.c:2184 [inline]
+                    __sys_shutdown_sock net/socket.c:2178 [inline]
+                    __sys_shutdown+0xf1/0x1b0 net/socket.c:2196
+                    __do_sys_shutdown net/socket.c:2204 [inline]
+                    __se_sys_shutdown net/socket.c:2202 [inline]
+                    __x64_sys_shutdown+0x50/0x70 net/socket.c:2202
+                    do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+                    entry_SYSCALL_64_after_hwframe+0x44/0xa9
+   IN-SOFTIRQ-R at:
+                    lock_acquire kernel/locking/lockdep.c:5437 [inline]
+                    lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+                    __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                    _raw_read_lock+0x36/0x70 kernel/locking/spinlock.c:223
+                    kill_fasync_rcu fs/fcntl.c:1004 [inline]
+                    kill_fasync fs/fcntl.c:1025 [inline]
+                    kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+                    perf_event_wakeup kernel/events/core.c:6277 [inline]
+                    perf_pending_event+0x221/0x310 kernel/events/core.c:6333
+                    irq_work_single+0x120/0x1f0 kernel/irq_work.c:153
+                    irq_work_run_list+0x91/0xc0 kernel/irq_work.c:175
+                    irq_work_run+0x54/0xd0 kernel/irq_work.c:184
+                    __sysvec_irq_work+0x95/0x3d0 arch/x86/kernel/irq_work.c:22
+                    run_sysvec_on_irqstack_cond arch/x86/include/asm/irq_stack.h:91 [inline]
+                    sysvec_irq_work+0x48/0x100 arch/x86/kernel/irq_work.c:17
+                    asm_sysvec_irq_work+0x12/0x20 arch/x86/include/asm/idtentry.h:654
+                    __do_softirq+0x199/0x9f7 kernel/softirq.c:329
+                    asm_call_irq_on_stack+0xf/0x20
+                    __run_on_irqstack arch/x86/include/asm/irq_stack.h:26 [inline]
+                    run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:77 [inline]
+                    do_softirq_own_stack+0xaa/0xd0 arch/x86/kernel/irq_64.c:77
+                    invoke_softirq kernel/softirq.c:226 [inline]
+                    __irq_exit_rcu kernel/softirq.c:420 [inline]
+                    irq_exit_rcu+0x134/0x200 kernel/softirq.c:432
+                    sysvec_apic_timer_interrupt+0x4d/0x100 arch/x86/kernel/apic/apic.c:1096
+                    asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:628
+   SOFTIRQ-ON-R at:
+                    lock_acquire kernel/locking/lockdep.c:5437 [inline]
+                    lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+                    __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                    _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+                    kill_fasync_rcu fs/fcntl.c:1004 [inline]
+                    kill_fasync fs/fcntl.c:1025 [inline]
+                    kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+                    sock_wake_async+0xd2/0x160 net/socket.c:1310
+                    sk_wake_async include/net/sock.h:2279 [inline]
+                    sk_wake_async+0x16c/0x280 include/net/sock.h:2275
+                    unix_shutdown+0x3d6/0x540 net/unix/af_unix.c:2537
+                    __sys_shutdown_sock net/socket.c:2184 [inline]
+                    __sys_shutdown_sock net/socket.c:2178 [inline]
+                    __sys_shutdown+0xf1/0x1b0 net/socket.c:2196
+                    __do_sys_shutdown net/socket.c:2204 [inline]
+                    __se_sys_shutdown net/socket.c:2202 [inline]
+                    __x64_sys_shutdown+0x50/0x70 net/socket.c:2202
+                    do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+                    entry_SYSCALL_64_after_hwframe+0x44/0xa9
+   INITIAL USE at:
+                   lock_acquire kernel/locking/lockdep.c:5437 [inline]
+                   lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+                   __raw_write_lock_irq include/linux/rwlock_api_smp.h:196 [inline]
+                   _raw_write_lock_irq+0x32/0x50 kernel/locking/spinlock.c:311
+                   fasync_remove_entry+0xb6/0x1f0 fs/fcntl.c:882
+                   fasync_helper+0x9e/0xb0 fs/fcntl.c:985
+                   perf_fasync+0x7e/0xb0 kernel/events/core.c:6237
+                   __fput+0x70d/0x920 fs/file_table.c:277
+                   task_work_run+0xdd/0x190 kernel/task_work.c:140
+                   tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+                   exit_to_user_mode_loop kernel/entry/common.c:174 [inline]
+                   exit_to_user_mode_prepare+0x249/0x250 kernel/entry/common.c:201
+                   __syscall_exit_to_user_mode_work kernel/entry/common.c:291 [inline]
+                   syscall_exit_to_user_mode+0x19/0x50 kernel/entry/common.c:302
+                   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+   INITIAL READ USE at:
+                        lock_acquire kernel/locking/lockdep.c:5437 [inline]
+                        lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+                        __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                        _raw_read_lock+0x36/0x70 kernel/locking/spinlock.c:223
+                        kill_fasync_rcu fs/fcntl.c:1004 [inline]
+                        kill_fasync fs/fcntl.c:1025 [inline]
+                        kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+                        perf_event_wakeup kernel/events/core.c:6277 [inline]
+                        perf_pending_event+0x221/0x310 kernel/events/core.c:6333
+                        irq_work_single+0x120/0x1f0 kernel/irq_work.c:153
+                        irq_work_run_list+0x91/0xc0 kernel/irq_work.c:175
+                        irq_work_run+0x54/0xd0 kernel/irq_work.c:184
+                        __sysvec_irq_work+0x95/0x3d0 arch/x86/kernel/irq_work.c:22
+                        run_sysvec_on_irqstack_cond arch/x86/include/asm/irq_stack.h:91 [inline]
+                        sysvec_irq_work+0x48/0x100 arch/x86/kernel/irq_work.c:17
+                        asm_sysvec_irq_work+0x12/0x20 arch/x86/include/asm/idtentry.h:654
+ }
+ ... key      at: [<ffffffff8ef8e980>] __key.0+0x0/0x40
+ ... acquired at:
+   lock_acquire kernel/locking/lockdep.c:5437 [inline]
+   lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+   __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+   _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+   kill_fasync_rcu fs/fcntl.c:1004 [inline]
+   kill_fasync fs/fcntl.c:1025 [inline]
+   kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+   __io_commit_cqring fs/io_uring.c:1348 [inline]
+   io_commit_cqring+0x34e/0xa90 fs/io_uring.c:1658
+   io_submit_flush_completions+0x269/0x3a0 fs/io_uring.c:1855
+   __io_req_complete+0x209/0x310 fs/io_uring.c:1874
+   io_nop fs/io_uring.c:3897 [inline]
+   io_issue_sqe+0x1234/0x4490 fs/io_uring.c:6184
+   __io_queue_sqe+0x228/0x10c0 fs/io_uring.c:6488
+   io_queue_sqe+0x631/0x10d0 fs/io_uring.c:6554
+   io_submit_sqe fs/io_uring.c:6627 [inline]
+   io_submit_sqes+0x1495/0x2720 fs/io_uring.c:6875
+   __do_sys_io_uring_enter+0x6d1/0x1e70 fs/io_uring.c:9214
+   do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+
+stack backtrace:
+CPU: 0 PID: 29658 Comm: syz-executor.5 Not tainted 5.11.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ print_bad_irq_dependency kernel/locking/lockdep.c:2452 [inline]
+ check_irq_usage.cold+0x4f5/0x6c8 kernel/locking/lockdep.c:2681
+ check_prev_add kernel/locking/lockdep.c:2872 [inline]
+ check_prevs_add kernel/locking/lockdep.c:2993 [inline]
+ validate_chain kernel/locking/lockdep.c:3608 [inline]
+ __lock_acquire+0x2af6/0x5500 kernel/locking/lockdep.c:4832
+ lock_acquire kernel/locking/lockdep.c:5437 [inline]
+ lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+ __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+ _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+ kill_fasync_rcu fs/fcntl.c:1004 [inline]
+ kill_fasync fs/fcntl.c:1025 [inline]
+ kill_fasync+0x14b/0x460 fs/fcntl.c:1018
+ __io_commit_cqring fs/io_uring.c:1348 [inline]
+ io_commit_cqring+0x34e/0xa90 fs/io_uring.c:1658
+ io_submit_flush_completions+0x269/0x3a0 fs/io_uring.c:1855
+ __io_req_complete+0x209/0x310 fs/io_uring.c:1874
+ io_nop fs/io_uring.c:3897 [inline]
+ io_issue_sqe+0x1234/0x4490 fs/io_uring.c:6184
+ __io_queue_sqe+0x228/0x10c0 fs/io_uring.c:6488
+ io_queue_sqe+0x631/0x10d0 fs/io_uring.c:6554
+ io_submit_sqe fs/io_uring.c:6627 [inline]
+ io_submit_sqes+0x1495/0x2720 fs/io_uring.c:6875
+ __do_sys_io_uring_enter+0x6d1/0x1e70 fs/io_uring.c:9214
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x45e219
+Code: 0d b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007efea91a0c68 EFLAGS: 00000246 ORIG_RAX: 00000000000001aa
+RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 000000000045e219
+RDX: 0000000000000000 RSI: 000000000000450c RDI: 0000000000000003
+RBP: 000000000119c080 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000119c034
+R13: 00000000016afb5f R14: 00007efea91a19c0 R15: 000000000119c034

@@ -1,0 +1,87 @@
+8021q: adding VLAN 0 to HW filter on device team0
+8021q: adding VLAN 0 to HW filter on device team0
+8021q: adding VLAN 0 to HW filter on device team0
+bpfilter: read fail -512
+==================================================================
+BUG: KASAN: use-after-free in __kernel_write+0x301/0x380 fs/read_write.c:498
+Read of size 4 at addr ffff8801cda96a7c by task syz-executor4/4562
+
+CPU: 0 PID: 4562 Comm: syz-executor4 Not tainted 4.17.0+ #89
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ __kernel_write+0x301/0x380 fs/read_write.c:498
+ __bpfilter_process_sockopt+0x1d8/0x35b net/bpfilter/bpfilter_kern.c:66
+ bpfilter_mbox_request+0x4d/0xb0 net/ipv4/bpfilter/sockopt.c:25
+ bpfilter_ip_get_sockopt+0x6b/0x90 net/ipv4/bpfilter/sockopt.c:42
+ ip_getsockopt+0x238/0x2a0 net/ipv4/ip_sockglue.c:1563
+ tcp_getsockopt+0x93/0xe0 net/ipv4/tcp.c:3532
+ sock_common_getsockopt+0x9a/0xe0 net/core/sock.c:3012
+ __sys_getsockopt+0x1a5/0x370 net/socket.c:1972
+ __do_sys_getsockopt net/socket.c:1983 [inline]
+ __se_sys_getsockopt net/socket.c:1980 [inline]
+ __x64_sys_getsockopt+0xbe/0x150 net/socket.c:1980
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4584ea
+Code: b8 34 01 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 1d 8f fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 37 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 fa 8e fb ff c3 66 0f 1f 84 00 00 00 00 00 
+RSP: 002b:00007ffc19531c48 EFLAGS: 00000246 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 00007ffc19531c70 RCX: 00000000004584ea
+RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 0000000000705f20 R08: 00007ffc19531c6c R09: 0000000000004000
+R10: 00007ffc19531c70 R11: 0000000000000246 R12: 0000000000000003
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000704420
+
+Allocated by task 2223:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ kmem_cache_zalloc include/linux/slab.h:696 [inline]
+ get_empty_filp+0x125/0x520 fs/file_table.c:122
+ alloc_file+0x24/0x3e0 fs/file_table.c:163
+ create_pipe_files+0x4db/0x940 fs/pipe.c:763
+ umh_pipe_setup+0xac/0x430 kernel/umh.c:431
+ call_usermodehelper_exec_async+0x3c0/0x9e0 kernel/umh.c:93
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Freed by task 4572:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+ file_free_rcu+0x6f/0x90 fs/file_table.c:49
+ __rcu_reclaim kernel/rcu/rcu.h:178 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2558 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2818 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2785 [inline]
+ rcu_process_callbacks+0xe9d/0x1760 kernel/rcu/tree.c:2802
+ __do_softirq+0x2e0/0xaf5 kernel/softirq.c:284
+
+The buggy address belongs to the object at ffff8801cda96a00
+ which belongs to the cache filp of size 456
+The buggy address is located 124 bytes inside of
+ 456-byte region [ffff8801cda96a00, ffff8801cda96bc8)
+The buggy address belongs to the page:
+page:ffffea000736a580 count:1 mapcount:0 mapping:ffff8801cda96000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801cda96000 0000000000000000 0000000100000006
+raw: ffffea000738ce20 ffffea00072a20e0 ffff8801da986940 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cda96900: fb fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc
+ ffff8801cda96980: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801cda96a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                                ^
+ ffff8801cda96a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801cda96b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

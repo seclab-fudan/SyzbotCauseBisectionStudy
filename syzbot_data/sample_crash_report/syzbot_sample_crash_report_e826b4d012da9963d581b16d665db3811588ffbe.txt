@@ -1,0 +1,82 @@
+audit: type=1400 audit(1519040816.897:7): avc:  denied  { map } for  pid=4186 comm="syzkaller908289" path="/root/syzkaller908289817" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+
+=============================
+WARNING: suspicious RCU usage
+4.16.0-rc2+ #320 Not tainted
+-----------------------------
+./include/linux/rcupdate.h:302 Illegal context switch in RCU read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by syzkaller908289/4186:
+ #0:  (rcu_read_lock){....}, at: [<00000000a16f96b6>] __rds_conn_create+0xe46/0x1b50 net/rds/connection.c:218
+
+stack backtrace:
+CPU: 1 PID: 4186 Comm: syzkaller908289 Not tainted 4.16.0-rc2+ #320
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4592
+ rcu_preempt_sleep_check include/linux/rcupdate.h:301 [inline]
+ ___might_sleep+0x385/0x470 kernel/sched/core.c:6098
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6086
+ slab_pre_alloc_hook mm/slab.h:420 [inline]
+ slab_alloc mm/slab.c:3365 [inline]
+ kmem_cache_alloc_trace+0x299/0x740 mm/slab.c:3605
+ kmalloc include/linux/slab.h:512 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ rds_loop_conn_alloc+0xc8/0x380 net/rds/loop.c:126
+ __rds_conn_create+0x112f/0x1b50 net/rds/connection.c:227
+ rds_conn_create_outgoing+0x3f/0x50 net/rds/connection.c:309
+ rds_sendmsg+0xda3/0x2390 net/rds/send.c:1126
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43fe79
+RSP: 002b:00007ffeef355d98 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fe79
+RDX: 0000000000000000 RSI: 000000002000dfc8 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 00000000004017a0
+R13: 0000000000401830 R14: 0000000000000000 R15: 0000000000000000
+BUG: sleeping function called from invalid context at mm/slab.h:420
+in_atomic(): 1, irqs_disabled(): 0, pid: 4186, name: syzkaller908289
+1 lock held by syzkaller908289/4186:
+ #0:  (rcu_read_lock){....}, at: [<00000000a16f96b6>] __rds_conn_create+0xe46/0x1b50 net/rds/connection.c:218
+CPU: 1 PID: 4186 Comm: syzkaller908289 Not tainted 4.16.0-rc2+ #320
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ ___might_sleep+0x2b2/0x470 kernel/sched/core.c:6133
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6086
+ slab_pre_alloc_hook mm/slab.h:420 [inline]
+ slab_alloc mm/slab.c:3365 [inline]
+ kmem_cache_alloc_trace+0x299/0x740 mm/slab.c:3605
+ kmalloc include/linux/slab.h:512 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ rds_loop_conn_alloc+0xc8/0x380 net/rds/loop.c:126
+ __rds_conn_create+0x112f/0x1b50 net/rds/connection.c:227
+ rds_conn_create_outgoing+0x3f/0x50 net/rds/connection.c:309
+ rds_sendmsg+0xda3/0x2390 net/rds/send.c:1126
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43fe79
+RSP: 002b:00007ffeef355d98 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fe79
+RDX: 0000000000000000 RSI: 000000002000dfc8 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0

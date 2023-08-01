@@ -1,0 +1,201 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	0-...!: (10499 ticks this GP) idle=356/1/0x4000000000000002 softirq=8613/8613 fqs=0 
+	(t=10501 jiffies g=6449 q=161)
+rcu: rcu_preempt kthread starved for 10502 jiffies! g6449 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402 ->cpu=1
+rcu: RCU grace-period kthread stack dump:
+rcu_preempt     I28896    10      2 0x80004000
+Call Trace:
+ context_switch kernel/sched/core.c:3254 [inline]
+ __schedule+0x877/0xc50 kernel/sched/core.c:3880
+ schedule+0x131/0x1e0 kernel/sched/core.c:3947
+ schedule_timeout+0x14f/0x240 kernel/time/timer.c:1807
+ rcu_gp_fqs_loop kernel/rcu/tree.c:1611 [inline]
+ rcu_gp_kthread+0xef8/0x1790 kernel/rcu/tree.c:1768
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+NMI backtrace for cpu 0
+CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.3.0-rc8+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: ipv6_addrconf addrconf_dad_work
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d8/0x2f8 lib/dump_stack.c:113
+ nmi_cpu_backtrace+0xaf/0x1a0 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x174/0x290 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x10/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x15a/0x220 kernel/rcu/tree_stall.h:254
+ print_cpu_stall kernel/rcu/tree_stall.h:455 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:529 [inline]
+ rcu_pending kernel/rcu/tree.c:2736 [inline]
+ rcu_sched_clock_irq+0xb95/0x16d0 kernel/rcu/tree.c:2183
+ update_process_times+0x134/0x190 kernel/time/timer.c:1639
+ tick_sched_handle kernel/time/tick-sched.c:167 [inline]
+ tick_sched_timer+0x263/0x420 kernel/time/tick-sched.c:1296
+ __run_hrtimer kernel/time/hrtimer.c:1389 [inline]
+ __hrtimer_run_queues+0x403/0x850 kernel/time/hrtimer.c:1451
+ hrtimer_interrupt+0x38c/0xda0 kernel/time/hrtimer.c:1509
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1110 [inline]
+ smp_apic_timer_interrupt+0x109/0x280 arch/x86/kernel/apic/apic.c:1135
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+RIP: 0010:atomic_read include/asm-generic/atomic-instrumented.h:26 [inline]
+RIP: 0010:virt_spin_lock arch/x86/include/asm/qspinlock.h:83 [inline]
+RIP: 0010:native_queued_spin_lock_slowpath+0x92/0x9e0 kernel/locking/qspinlock.c:325
+Code: 84 c0 74 54 44 89 f9 80 e1 07 80 c1 03 38 c1 7c 47 4c 89 ff e8 4f f4 51 00 eb 3d 0f 1f 00 66 2e 0f 1f 84 00 00 00 00 00 f3 90 <4c> 89 ff be 04 00 00 00 e8 61 c5 51 00 42 0f b6 04 2b 84 c0 74 18
+RSP: 0018:ffff8880aea09088 EFLAGS: 00000202 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000000 RBX: 1ffff1101421c425 RCX: ffffffff815a940f
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffff8880a10e2128
+RBP: ffff8880aea09100 R08: dffffc0000000000 R09: ffffed101421c426
+R10: ffffed101421c426 R11: 0000000000000000 R12: ffff8880a10e2130
+R13: dffffc0000000000 R14: 0000000000000001 R15: ffff8880a10e2128
+ pv_queued_spin_lock_slowpath arch/x86/include/asm/paravirt.h:654 [inline]
+ queued_spin_lock_slowpath arch/x86/include/asm/qspinlock.h:50 [inline]
+ queued_spin_lock include/asm-generic/qspinlock.h:81 [inline]
+ do_raw_spin_lock+0x1d6/0x2d0 kernel/locking/spinlock_debug.c:113
+ __raw_spin_lock include/linux/spinlock_api_smp.h:143 [inline]
+ _raw_spin_lock+0x39/0x40 kernel/locking/spinlock.c:151
+ spin_lock include/linux/spinlock.h:338 [inline]
+ __dev_xmit_skb net/core/dev.c:3502 [inline]
+ __dev_queue_xmit+0xde0/0x3020 net/core/dev.c:3838
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3902
+ br_dev_queue_push_xmit+0x551/0x650 net/bridge/br_forward.c:52
+ br_nf_dev_queue_xmit+0x312/0x1590 include/linux/skbuff.h:4084
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ br_nf_post_routing+0xa5f/0xea0 net/bridge/br_netfilter_hooks.c:844
+ nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
+ nf_hook_slow+0xc8/0x210 net/netfilter/core.c:512
+ nf_hook+0x23a/0x310 include/linux/netfilter.h:260
+ NF_HOOK include/linux/netfilter.h:303 [inline]
+ br_forward_finish+0x7a/0xc0 net/bridge/br_forward.c:65
+ br_nf_hook_thresh net/bridge/br_netfilter_hooks.c:1014 [inline]
+ br_nf_forward_finish+0x8f4/0xc80 net/bridge/br_netfilter_hooks.c:560
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ br_nf_forward_ip+0xed4/0x13f0 net/bridge/br_netfilter_hooks.c:630
+ nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
+ nf_hook_slow+0xc8/0x210 net/netfilter/core.c:512
+ nf_hook+0x23a/0x310 include/linux/netfilter.h:260
+ NF_HOOK include/linux/netfilter.h:303 [inline]
+ __br_forward+0x39e/0x720 net/bridge/br_forward.c:109
+ br_flood+0x7af/0x840 net/bridge/br_forward.c:234
+ br_handle_frame_finish+0xf37/0x1370 net/bridge/br_input.c:162
+ br_nf_hook_thresh+0x306/0x390 net/bridge/br_netfilter_hooks.c:1014
+ br_nf_pre_routing_finish_ipv6+0x8ac/0xb30 net/bridge/br_netfilter_ipv6.c:187
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ br_nf_pre_routing_ipv6+0x2ab/0x350 net/bridge/br_netfilter_ipv6.c:236
+ br_nf_pre_routing+0x6ca/0x1380 net/bridge/br_netfilter_hooks.c:501
+ nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
+ nf_hook_bridge_pre net/bridge/br_input.c:223 [inline]
+ br_handle_frame+0x7d9/0xeb0 net/bridge/br_input.c:348
+ __netif_receive_skb_core+0x1a7d/0x3470 net/core/dev.c:4905
+ __netif_receive_skb_one_core net/core/dev.c:5002 [inline]
+ __netif_receive_skb+0xc5/0x370 net/core/dev.c:5118
+ process_backlog+0x4d8/0x910 net/core/dev.c:5929
+ napi_poll net/core/dev.c:6352 [inline]
+ net_rx_action+0x5ef/0xfd0 net/core/dev.c:6418
+ __do_softirq+0x333/0x7c4 arch/x86/include/asm/paravirt.h:778
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1082
+ </IRQ>
+ do_softirq+0xfd/0x190 kernel/softirq.c:337
+ __local_bh_enable_ip+0x194/0x240 kernel/softirq.c:189
+ local_bh_enable+0x1f/0x30 include/linux/bottom_half.h:32
+ rcu_read_unlock_bh include/linux/rcupdate.h:681 [inline]
+ ip6_finish_output2+0x109f/0x13d0 net/ipv6/ip6_output.c:117
+ __ip6_finish_output+0x693/0x910 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x52/0x1e0 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0x26f/0x390 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ndisc_send_skb+0xa35/0xe40 net/ipv6/ndisc.c:504
+ ndisc_send_ns+0x5ce/0x7b0 net/ipv6/ndisc.c:646
+ addrconf_dad_work+0xe40/0x1c20 net/ipv6/addrconf.c:4120
+ process_one_work+0x7ef/0x10e0 kernel/workqueue.c:2269
+ worker_thread+0xc01/0x1630 kernel/workqueue.c:2415
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 9115 Comm: syz-executor160 Not tainted 5.3.0-rc8+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__list_del_entry_valid+0x28/0x100 lib/list_debug.c:42
+Code: 1f 00 55 48 89 e5 41 57 41 56 41 54 53 49 89 fe 49 bc 00 00 00 00 00 fc ff df 48 83 c7 08 48 89 f8 48 c1 e8 03 42 80 3c 20 00 <74> 05 e8 41 c3 58 fe 4d 8b 7e 08 4c 89 f0 48 c1 e8 03 42 80 3c 20
+RSP: 0018:ffff8880aeb09678 EFLAGS: 00000246
+RAX: 1ffff1101421c468 RBX: ffff8880a10e2338 RCX: ffff8880a2a10100
+RDX: 0000000000000502 RSI: 0000000000000000 RDI: ffff8880a10e2340
+RBP: ffff8880aeb09698 R08: ffffffff860c5d6a R09: 0000000000000000
+R10: fffffbfff117be8d R11: 0000000000000000 R12: dffffc0000000000
+R13: ffff8880a10e2040 R14: ffff8880a10e2338 R15: 0000000000000000
+FS:  0000555557118880(0000) GS:ffff8880aeb00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000004c7408 CR3: 000000000886d000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __list_del_entry include/linux/list.h:131 [inline]
+ list_move_tail include/linux/list.h:213 [inline]
+ hhf_dequeue+0x487/0xaa0 net/sched/sch_hhf.c:439
+ dequeue_skb net/sched/sch_generic.c:258 [inline]
+ qdisc_restart net/sched/sch_generic.c:361 [inline]
+ __qdisc_run+0x217/0x1b30 net/sched/sch_generic.c:379
+ __dev_xmit_skb net/core/dev.c:3533 [inline]
+ __dev_queue_xmit+0x1161/0x3020 net/core/dev.c:3838
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3902
+ neigh_resolve_output+0x60c/0x6b0 net/core/neighbour.c:1490
+ neigh_output include/net/neighbour.h:511 [inline]
+ ip6_finish_output2+0x102c/0x13d0 net/ipv6/ip6_output.c:116
+ __ip6_finish_output+0x693/0x910 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x52/0x1e0 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0x26f/0x390 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ mld_sendpack+0x770/0xb90 net/ipv6/mcast.c:1682
+ mld_send_cr net/ipv6/mcast.c:1978 [inline]
+ mld_ifc_timer_expire+0x820/0xb70 net/ipv6/mcast.c:2477
+ call_timer_fn+0x95/0x170 kernel/time/timer.c:1322
+ expire_timers kernel/time/timer.c:1366 [inline]
+ __run_timers+0x79e/0x970 kernel/time/timer.c:1685
+ run_timer_softirq+0x4a/0x90 kernel/time/timer.c:1698
+ __do_softirq+0x333/0x7c4 arch/x86/include/asm/paravirt.h:778
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x227/0x230 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:537 [inline]
+ smp_apic_timer_interrupt+0x113/0x280 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:768 [inline]
+RIP: 0010:lock_release+0x4c7/0x780 kernel/locking/lockdep.c:4434
+Code: 48 c1 e8 03 80 3c 10 00 74 0c 48 c7 c7 80 87 8a 88 e8 5d 52 53 00 48 83 3d 75 51 31 07 00 0f 84 8c 02 00 00 48 8b 7d 88 57 9d <0f> 1f 44 00 00 65 48 8b 04 25 28 00 00 00 48 3b 45 d0 0f 85 70 02
+RSP: 0018:ffff888099b9fb50 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff11150f0 RBX: dffffc0000000000 RCX: ffffffff815939e7
+RDX: dffffc0000000000 RSI: 0000000000000008 RDI: 0000000000000286
+RBP: ffff888099b9fbd0 R08: dffffc0000000000 R09: fffffbfff117be8d
+R10: fffffbfff117be8d R11: 0000000000000000 R12: ffff8880a2a10100
+R13: ffffffff81bdf659 R14: ffff8880a2a1098c R15: ffffffff888d63c0
+ rcu_lock_release+0x26/0x30 include/linux/rcupdate.h:213
+ rcu_read_unlock include/linux/rcupdate.h:646 [inline]
+ mntput_no_expire+0x464/0xca0 fs/namespace.c:1160
+ mntput fs/namespace.c:1195 [inline]
+ namespace_unlock+0x379/0x410 fs/namespace.c:1379
+ drop_collected_mounts fs/namespace.c:1855 [inline]
+ put_mnt_ns+0xe4/0x200 fs/namespace.c:3751
+ free_nsproxy+0x4a/0x1b0 kernel/nsproxy.c:172
+ switch_task_namespaces kernel/nsproxy.c:225 [inline]
+ exit_task_namespaces+0xc6/0xe0 kernel/nsproxy.c:230
+ do_exit+0x5e3/0x21a0 kernel/exit.c:878
+ do_group_exit+0x15c/0x2b0 kernel/exit.c:983
+ __do_sys_exit_group+0x17/0x20 kernel/exit.c:994
+ __se_sys_exit_group+0x14/0x20 kernel/exit.c:992
+ __x64_sys_exit_group+0x3b/0x40 kernel/exit.c:992
+ do_syscall_64+0xfe/0x140 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440838
+Code: Bad RIP value.
+RSP: 002b:00007ffc197804b8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 0000000000440838
+RDX: 0000000000000001 RSI: 000000000000003c RDI: 0000000000000001
+RBP: 00000000004c73d0 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000001bbbbbb R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006da5e0 R14: 0000000000000000 R15: 0000000000000000

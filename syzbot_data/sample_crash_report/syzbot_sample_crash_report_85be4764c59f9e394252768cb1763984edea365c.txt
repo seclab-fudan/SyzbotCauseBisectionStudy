@@ -1,0 +1,59 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_write include/linux/instrumented.h:71 [inline]
+BUG: KASAN: null-ptr-deref in atomic_fetch_sub_release include/asm-generic/atomic-instrumented.h:220 [inline]
+BUG: KASAN: null-ptr-deref in refcount_sub_and_test include/linux/refcount.h:266 [inline]
+BUG: KASAN: null-ptr-deref in refcount_dec_and_test include/linux/refcount.h:294 [inline]
+BUG: KASAN: null-ptr-deref in kref_put include/linux/kref.h:64 [inline]
+BUG: KASAN: null-ptr-deref in l2cap_chan_put+0x28/0x230 net/bluetooth/l2cap_core.c:502
+Write of size 4 at addr 0000000000000018 by task kworker/0:2/7081
+
+CPU: 0 PID: 7081 Comm: kworker/0:2 Not tainted 5.9.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events l2cap_chan_timeout
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ __kasan_report mm/kasan/report.c:517 [inline]
+ kasan_report.cold+0x5/0x37 mm/kasan/report.c:530
+ check_memory_region_inline mm/kasan/generic.c:186 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:192
+ instrument_atomic_write include/linux/instrumented.h:71 [inline]
+ atomic_fetch_sub_release include/asm-generic/atomic-instrumented.h:220 [inline]
+ refcount_sub_and_test include/linux/refcount.h:266 [inline]
+ refcount_dec_and_test include/linux/refcount.h:294 [inline]
+ kref_put include/linux/kref.h:64 [inline]
+ l2cap_chan_put+0x28/0x230 net/bluetooth/l2cap_core.c:502
+ l2cap_sock_kill+0xbd/0x180 net/bluetooth/l2cap_sock.c:1217
+ l2cap_chan_timeout+0x1c1/0x450 net/bluetooth/l2cap_core.c:438
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 7081 Comm: kworker/0:2 Tainted: G    B             5.9.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events l2cap_chan_timeout
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ panic+0x347/0x7c0 kernel/panic.c:231
+ end_report+0x4d/0x53 mm/kasan/report.c:104
+ __kasan_report mm/kasan/report.c:520 [inline]
+ kasan_report.cold+0xd/0x37 mm/kasan/report.c:530
+ check_memory_region_inline mm/kasan/generic.c:186 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:192
+ instrument_atomic_write include/linux/instrumented.h:71 [inline]
+ atomic_fetch_sub_release include/asm-generic/atomic-instrumented.h:220 [inline]
+ refcount_sub_and_test include/linux/refcount.h:266 [inline]
+ refcount_dec_and_test include/linux/refcount.h:294 [inline]
+ kref_put include/linux/kref.h:64 [inline]
+ l2cap_chan_put+0x28/0x230 net/bluetooth/l2cap_core.c:502
+ l2cap_sock_kill+0xbd/0x180 net/bluetooth/l2cap_sock.c:1217
+ l2cap_chan_timeout+0x1c1/0x450 net/bluetooth/l2cap_core.c:438
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

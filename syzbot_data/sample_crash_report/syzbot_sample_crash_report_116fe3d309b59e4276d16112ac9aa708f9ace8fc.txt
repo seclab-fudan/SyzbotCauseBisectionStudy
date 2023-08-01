@@ -1,0 +1,109 @@
+sshd (6044) used greatest stack depth: 15744 bytes left
+==================================================================
+BUG: KASAN: use-after-free in vb2_mmap+0x662/0x6f0 drivers/media/common/videobuf2/videobuf2-core.c:2147
+Read of size 8 at addr ffff8881ccc42d80 by task syz-executor444/6068
+
+CPU: 0 PID: 6068 Comm: syz-executor444 Not tainted 4.20.0-rc4+ #353
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ vb2_mmap+0x662/0x6f0 drivers/media/common/videobuf2/videobuf2-core.c:2147
+ vb2_fop_mmap+0x4b/0x70 drivers/media/common/videobuf2/videobuf2-v4l2.c:999
+ v4l2_mmap+0x153/0x200 drivers/media/v4l2-core/v4l2-dev.c:401
+ call_mmap include/linux/fs.h:1862 [inline]
+ mmap_region+0xe85/0x1cd0 mm/mmap.c:1786
+ do_mmap+0xa22/0x1230 mm/mmap.c:1559
+ do_mmap_pgoff include/linux/mm.h:2328 [inline]
+ vm_mmap_pgoff+0x213/0x2c0 mm/util.c:350
+ ksys_mmap_pgoff+0x4da/0x660 mm/mmap.c:1609
+ __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+ __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x444c89
+Code: e8 ac e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 2b ce fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffc42fec548 EFLAGS: 00000212 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000444c89
+RDX: fffffffffffffffd RSI: 0000000000002000 RDI: 0000000020ffe000
+RBP: 0000000000000000 R08: 0000000000000003 R09: 0000000000000000
+R10: 0000000000000011 R11: 0000000000000212 R12: 0000000000401f40
+R13: 0000000000401fd0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 6063:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc mm/slab.c:3722 [inline]
+ __kmalloc+0x15b/0x760 mm/slab.c:3731
+ kmalloc include/linux/slab.h:551 [inline]
+ kzalloc include/linux/slab.h:741 [inline]
+ __vb2_queue_alloc+0xf7/0xf90 drivers/media/common/videobuf2/videobuf2-core.c:343
+ vb2_core_create_bufs+0x401/0x8c0 drivers/media/common/videobuf2/videobuf2-core.c:834
+ vb2_create_bufs+0x3c6/0x7f0 drivers/media/common/videobuf2/videobuf2-v4l2.c:716
+ vb2_ioctl_create_bufs+0x25e/0x3d0 drivers/media/common/videobuf2/videobuf2-v4l2.c:916
+ v4l_create_bufs+0x152/0x230 drivers/media/v4l2-core/v4l2-ioctl.c:1927
+ __video_do_ioctl+0x8b1/0x1050 drivers/media/v4l2-core/v4l2-ioctl.c:2853
+ video_usercopy+0x5c1/0x1760 drivers/media/v4l2-core/v4l2-ioctl.c:3035
+ video_ioctl2+0x2c/0x33 drivers/media/v4l2-core/v4l2-ioctl.c:3079
+ v4l2_ioctl+0x154/0x1b0 drivers/media/v4l2-core/v4l2-dev.c:364
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0x1de/0x1790 fs/ioctl.c:696
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 6063:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ __vb2_queue_free+0x5e2/0xa30 drivers/media/common/videobuf2/videobuf2-core.c:526
+ vb2_core_queue_release+0x62/0x80 drivers/media/common/videobuf2/videobuf2-core.c:2231
+ vb2_queue_release drivers/media/common/videobuf2/videobuf2-v4l2.c:837 [inline]
+ _vb2_fop_release+0x1d2/0x2b0 drivers/media/common/videobuf2/videobuf2-v4l2.c:1010
+ vb2_fop_release+0x77/0xc0 drivers/media/common/videobuf2/videobuf2-v4l2.c:1024
+ vivid_fop_release+0x18e/0x440 drivers/media/platform/vivid/vivid-core.c:474
+ v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1ad6/0x26d0 kernel/exit.c:867
+ do_group_exit+0x177/0x440 kernel/exit.c:970
+ __do_sys_exit_group kernel/exit.c:981 [inline]
+ __se_sys_exit_group kernel/exit.c:979 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:979
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8881ccc42d80
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 0 bytes inside of
+ 1024-byte region [ffff8881ccc42d80, ffff8881ccc43180)
+The buggy address belongs to the page:
+page:ffffea0007331080 count:1 mapcount:0 mapping:ffff8881da800ac0 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000010200(slab|head)
+raw: 02fffc0000010200 ffffea0007347288 ffffea0007332988 ffff8881da800ac0
+raw: 0000000000000000 ffff8881ccc42000 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881ccc42c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881ccc42d00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8881ccc42d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8881ccc42e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881ccc42e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

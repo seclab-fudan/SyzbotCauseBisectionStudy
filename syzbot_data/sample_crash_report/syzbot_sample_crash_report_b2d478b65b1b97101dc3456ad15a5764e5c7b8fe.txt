@@ -1,0 +1,96 @@
+R10: 0000000000000000 R11: 0000000000000246 R12: ffffffffffffffff
+R13: 0000000000000003 R14: 0000000000001380 R15: 00007fff3b87f548
+------------[ cut here ]------------
+refcount_t: increment on 0; use-after-free.
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 4439 at lib/refcount.c:153 refcount_inc+0x47/0x50 lib/refcount.c:153
+refcount_t: underflow; use-after-free.
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 0 PID: 4439 Comm: syzkaller848704 Not tainted 4.16.0-rc6+ #43
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+WARNING: CPU: 1 PID: 4441 at lib/refcount.c:187 refcount_sub_and_test+0x167/0x1b0 lib/refcount.c:187
+Modules linked in:
+ panic+0x1e4/0x41c kernel/panic.c:183
+CPU: 1 PID: 4441 Comm: syzkaller848704 Not tainted 4.16.0-rc6+ #43
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:refcount_sub_and_test+0x167/0x1b0 lib/refcount.c:187
+RSP: 0018:ffff8801b52d7728 EFLAGS: 00010286
+RAX: dffffc0000000008 RBX: 0000000000000000 RCX: ffffffff815b423e
+RDX: 0000000000000000 RSI: 1ffff10036a5ae95 RDI: 1ffff10036a5ae6a
+RBP: ffff8801b52d77b8 R08: 0000000000000000 R09: 0000000000000001
+R10: ffff8801b52d7850 R11: 0000000000000000 R12: 1ffff10036a5aee6
+ __warn+0x1dc/0x200 kernel/panic.c:547
+R13: 00000000ffffffff R14: 0000000000000001 R15: ffff8801ada18144
+FS:  0000000001a59880(0000) GS:ffff8801db100000(0000) knlGS:0000000000000000
+ report_bug+0x1f4/0x2b0 lib/bug.c:186
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ fixup_bug.part.10+0x37/0x80 arch/x86/kernel/traps.c:178
+CR2: 00007fff3b880000 CR3: 00000001adaaf004 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ fixup_bug arch/x86/kernel/traps.c:247 [inline]
+ do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:296
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ refcount_dec_and_test+0x1a/0x20 lib/refcount.c:212
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+ put_net include/net/net_namespace.h:222 [inline]
+ __sk_destruct+0x560/0x920 net/core/sock.c:1592
+ invalid_op+0x1b/0x40 arch/x86/entry/entry_64.S:986
+RIP: 0010:refcount_inc+0x47/0x50 lib/refcount.c:153
+RSP: 0018:ffff8801add3f860 EFLAGS: 00010286
+RAX: dffffc0000000008 RBX: ffff8801add320c4 RCX: ffffffff815b423e
+RDX: 0000000000000000 RSI: 1ffff10035ba7ebc RDI: 1ffff10035ba7e91
+RBP: ffff8801add3f868 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801add3faf8
+R13: ffff8801d911aa93 R14: ffff8801add320c0 R15: ffff8801d911ab01
+ get_net include/net/net_namespace.h:204 [inline]
+ sk_alloc+0x3f9/0x1440 net/core/sock.c:1540
+ sk_destruct+0x47/0x80 net/core/sock.c:1601
+ __sk_free+0xf1/0x2b0 net/core/sock.c:1612
+ sk_free+0x2a/0x40 net/core/sock.c:1623
+ sock_put include/net/sock.h:1664 [inline]
+ tcp_close+0x967/0x1190 net/ipv4/tcp.c:2329
+ inet_release+0xed/0x1c0 net/ipv4/af_inet.c:427
+ sock_release+0x8d/0x1e0 net/socket.c:594
+ sock_close+0x16/0x20 net/socket.c:1149
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ inet_create+0x47c/0xf50 net/ipv4/af_inet.c:320
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ __sock_create+0x4d4/0x850 net/socket.c:1285
+ sock_create net/socket.c:1325 [inline]
+ SYSC_socket net/socket.c:1355 [inline]
+ SyS_socket+0xeb/0x1d0 net/socket.c:1335
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x275/0x2f0 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+ do_syscall_64+0x6ec/0x940 arch/x86/entry/common.c:292
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x402480
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RSP: 002b:00007fff3b87f408 EFLAGS: 00000246
+RIP: 0033:0x4451d7
+ ORIG_RAX: 0000000000000003
+RSP: 002b:00007fff3b87f408 EFLAGS: 00000206 ORIG_RAX: 0000000000000029
+RAX: 0000000000000000 RBX: 0000000000000001 RCX: 0000000000402480
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00000000004451d7
+RDX: 00000000000000e0 RSI: 00007fff3b87fce0 RDI: 0000000000000003
+RDX: 0000000000000006 RSI: 0000000000000001 RDI: 0000000000000002
+RBP: 00007fff3b87f520 R08: 0000000000000000 R09: 0000000000000001
+RBP: 00007fff3b87f520 R08: 00007fff3b87f42c R09: 0000000000000001
+R10: 00007fff3b87f520 R11: 0000000000000246 R12: 00000000006cf4c0
+R10: 000000000000000a R11: 0000000000000206 R12: 0000000000000003
+R13: 0000000000000003 R14: 0000000000006724 R15: 00007fff3b87f548
+R13: 00000000006cee40 R14: 0000000000001380 R15: 00007fff3b87f548
+Code: 5e 41 5f 5d c3 e8 9a 26 5e fe 80 3d fb 42 d6 05 00 75 1a e8 8c 26 5e fe 48 c7 c7 a0 a7 75 87 c6 05 e6 42 d6 05 01 e8 d9 33 2e fe <0f> 0b 31 db eb a3 e8 6e 26 5e fe 83 fb ff 0f 85 63 ff ff ff 31 
+---[ end trace c7b69e3df19fd10a ]---
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

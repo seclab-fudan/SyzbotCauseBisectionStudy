@@ -1,0 +1,282 @@
+IPVS: ftp: loaded support on port[0] = 21
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 4412 Comm: syzkaller402313 Not tainted 4.16.0-rc7+ #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:timerqueue_add+0xb8/0x280 lib/timerqueue.c:52
+RSP: 0018:ffff8801db307a28 EFLAGS: 00010002
+RAX: ffffed003b664cc7 RBX: ffff8801db326620 RCX: ffffffff866a78ec
+RDX: 0000502020005023 RSI: ffff8801db326620 RDI: 0002810100028119
+RBP: ffff8801db307a68 R08: 0000000000000000 R09: 1ffff1003b660f0f
+R10: ffff8801db307a78 R11: 0000000000000002 R12: dffffc0000000000
+R13: 0002810100028101 R14: 00000006ad949680 R15: ffff8801b7b97cc8
+FS:  000000000147e880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000421d60 CR3: 00000001b47c2005 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ enqueue_hrtimer+0x177/0x4b0 kernel/time/hrtimer.c:944
+ __run_hrtimer kernel/time/hrtimer.c:1364 [inline]
+ __hrtimer_run_queues+0xb15/0xec0 kernel/time/hrtimer.c:1411
+ hrtimer_interrupt+0x2a5/0x6f0 kernel/time/hrtimer.c:1469
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x14a/0x700 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:857
+ </IRQ>
+RIP: 0010:__memmove+0x24/0x1a0 arch/x86/lib/memmove_64.S:43
+RSP: 0018:ffff8801b467ee28 EFLAGS: 00010287 ORIG_RAX: ffffffffffffff12
+RAX: ffff8801b52ec984 RBX: fffffffffffffffe RCX: fffffffffd610431
+RDX: fffffffffffffffe RSI: ffff8801b7cdc54d RDI: ffff8801b7cdc551
+RBP: ffff8801b467ee48 R08: ffff8801b52ec97e R09: ffffed0036a5d931
+R10: 0000000000000001 R11: ffffed0036a5d930 R12: ffff8801b52ec984
+R13: ffff8801b52ec980 R14: ffff8801b4108106 R15: ffff8801b4108040
+ memmove include/linux/string.h:360 [inline]
+ skb_reorder_vlan_header net/core/skbuff.c:5031 [inline]
+ skb_vlan_untag+0x470/0xc40 net/core/skbuff.c:5061
+ __netif_receive_skb_core+0x119c/0x3460 net/core/dev.c:4460
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4627
+ netif_receive_skb_internal+0x10b/0x670 net/core/dev.c:4701
+ netif_receive_skb+0xae/0x390 net/core/dev.c:4725
+ tun_rx_batched.isra.50+0x5ee/0x870 drivers/net/tun.c:1555
+ tun_get_user+0x299e/0x3c20 drivers/net/tun.c:1962
+ tun_chr_write_iter+0xb9/0x160 drivers/net/tun.c:1990
+ call_write_iter include/linux/fs.h:1782 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x4447d9
+RSP: 002b:00007ffe5ab19af8 EFLAGS: 00000297 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004447d9
+RDX: 0000000000000157 RSI: 0000000020000180 RDI: 0000000000000004
+RBP: 0000000030626669 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000400 R11: 0000000000000297 R12: 00000000004020e0
+R13: 0000000000402170 R14: 0000000000000000 R15: 0000000000000000
+Code: 00 00 4d 8b 2f 4d 85 ed 74 3d e8 34 50 07 fb 48 8b 45 d0 80 38 00 0f 85 be 01 00 00 49 8d 7d 18 4c 8b 73 18 48 89 fa 48 c1 ea 03 <42> 80 3c 22 00 0f 85 9a 01 00 00 4d 3b 75 18 7c a3 e8 02 50 07 
+RIP: timerqueue_add+0xb8/0x280 lib/timerqueue.c:52 RSP: ffff8801db307a28
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.16.0-rc7+ #3 Not tainted
+------------------------------------------------------
+syzkaller402313/4412 is trying to acquire lock:
+ ((console_sem).lock){-.-.}, at: [<00000000af0b4a23>] down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+
+but task is already holding lock:
+ (hrtimer_bases.lock){-.-.}, at: [<00000000bf18422f>] __run_hrtimer kernel/time/hrtimer.c:1351 [inline]
+ (hrtimer_bases.lock){-.-.}, at: [<00000000bf18422f>] __hrtimer_run_queues+0x3dc/0xec0 kernel/time/hrtimer.c:1411
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #4 (hrtimer_bases.lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       lock_hrtimer_base.isra.16+0x75/0x130 kernel/time/hrtimer.c:174
+       hrtimer_start_range_ns+0x106/0xb80 kernel/time/hrtimer.c:1097
+       hrtimer_start_expires include/linux/hrtimer.h:412 [inline]
+       start_rt_bandwidth kernel/sched/rt.c:72 [inline]
+       inc_rt_group kernel/sched/rt.c:1140 [inline]
+       inc_rt_tasks kernel/sched/rt.c:1184 [inline]
+       __enqueue_rt_entity kernel/sched/rt.c:1254 [inline]
+       enqueue_rt_entity kernel/sched/rt.c:1298 [inline]
+       enqueue_task_rt+0x94f/0xfb0 kernel/sched/rt.c:1328
+       enqueue_task kernel/sched/core.c:772 [inline]
+       __sched_setscheduler+0xfef/0x2300 kernel/sched/core.c:4302
+       _sched_setscheduler+0x20d/0x350 kernel/sched/core.c:4339
+       sched_setscheduler+0xe/0x10 kernel/sched/core.c:4354
+       watchdog_set_prio kernel/watchdog.c:455 [inline]
+       watchdog_enable+0x122/0x170 kernel/watchdog.c:477
+       smpboot_thread_fn+0x359/0x7c0 kernel/smpboot.c:145
+       kthread+0x33c/0x400 kernel/kthread.c:238
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
+
+-> #3 (&rt_b->rt_runtime_lock){-...}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:144
+       start_rt_bandwidth kernel/sched/rt.c:60 [inline]
+       inc_rt_group kernel/sched/rt.c:1140 [inline]
+       inc_rt_tasks kernel/sched/rt.c:1184 [inline]
+       __enqueue_rt_entity kernel/sched/rt.c:1254 [inline]
+       enqueue_rt_entity kernel/sched/rt.c:1298 [inline]
+       enqueue_task_rt+0x62a/0xfb0 kernel/sched/rt.c:1328
+       enqueue_task kernel/sched/core.c:772 [inline]
+       __sched_setscheduler+0xfef/0x2300 kernel/sched/core.c:4302
+       _sched_setscheduler+0x20d/0x350 kernel/sched/core.c:4339
+       sched_setscheduler+0xe/0x10 kernel/sched/core.c:4354
+       watchdog_set_prio kernel/watchdog.c:455 [inline]
+       watchdog_enable+0x122/0x170 kernel/watchdog.c:477
+       smpboot_thread_fn+0x359/0x7c0 kernel/smpboot.c:145
+       kthread+0x33c/0x400 kernel/kthread.c:238
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
+
+-> #2 (&rq->lock){-.-.}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:144
+       rq_lock kernel/sched/sched.h:1760 [inline]
+       task_fork_fair+0x7a/0x690 kernel/sched/fair.c:9471
+       sched_fork+0x450/0xc10 kernel/sched/core.c:2405
+       copy_process.part.38+0x17c9/0x4bd0 kernel/fork.c:1763
+       copy_process kernel/fork.c:1606 [inline]
+       _do_fork+0x1f7/0xf70 kernel/fork.c:2087
+       kernel_thread+0x34/0x40 kernel/fork.c:2146
+       rest_init+0x22/0xf0 init/main.c:403
+       start_kernel+0x7f1/0x819 init/main.c:717
+       x86_64_start_reservations+0x2a/0x2c arch/x86/kernel/head64.c:378
+       x86_64_start_kernel+0x77/0x7a arch/x86/kernel/head64.c:359
+       secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:239
+
+-> #1 (&p->pi_lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       try_to_wake_up+0xbc/0x15f0 kernel/sched/core.c:1989
+       wake_up_process+0x10/0x20 kernel/sched/core.c:2152
+       __up.isra.0+0x1cc/0x2c0 kernel/locking/semaphore.c:262
+       up+0x13b/0x1d0 kernel/locking/semaphore.c:187
+       __up_console_sem+0xb2/0x1a0 kernel/printk/printk.c:242
+       console_unlock+0x5af/0xfb0 kernel/printk/printk.c:2417
+       vprintk_emit+0x5c3/0xb90 kernel/printk/printk.c:1907
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1947
+       vprintk_func+0x57/0xc0 kernel/printk/printk_safe.c:379
+       printk+0xaa/0xca kernel/printk/printk.c:1980
+       regdb_fw_cb+0x1d7/0x220 net/wireless/reg.c:886
+       request_firmware_work_func+0x151/0x2c0 drivers/base/firmware_class.c:1442
+       process_one_work+0xc47/0x1bb0 kernel/workqueue.c:2113
+       worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+       kthread+0x33c/0x400 kernel/kthread.c:238
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
+
+-> #0 ((console_sem).lock){-.-.}:
+       lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+       __down_trylock_console_sem+0xa2/0x1e0 kernel/printk/printk.c:225
+       console_trylock+0x15/0x70 kernel/printk/printk.c:2229
+       console_trylock_spinning kernel/printk/printk.c:1643 [inline]
+       vprintk_emit+0x5b5/0xb90 kernel/printk/printk.c:1906
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1947
+       vprintk_func+0x57/0xc0 kernel/printk/printk_safe.c:379
+       printk+0xaa/0xca kernel/printk/printk.c:1980
+       kasan_die_handler+0x31/0x3f arch/x86/mm/kasan_init_64.c:247
+       notifier_call_chain+0x136/0x2c0 kernel/notifier.c:93
+       __atomic_notifier_call_chain kernel/notifier.c:183 [inline]
+       atomic_notifier_call_chain+0x77/0x140 kernel/notifier.c:193
+       notify_die+0x18c/0x280 kernel/notifier.c:549
+       do_general_protection+0x331/0x3e0 arch/x86/kernel/traps.c:558
+       general_protection+0x25/0x50 arch/x86/entry/entry_64.S:1150
+       timerqueue_add+0xb8/0x280 lib/timerqueue.c:52
+       enqueue_hrtimer+0x177/0x4b0 kernel/time/hrtimer.c:944
+       __run_hrtimer kernel/time/hrtimer.c:1364 [inline]
+       __hrtimer_run_queues+0xb15/0xec0 kernel/time/hrtimer.c:1411
+       hrtimer_interrupt+0x2a5/0x6f0 kernel/time/hrtimer.c:1469
+       local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+       smp_apic_timer_interrupt+0x14a/0x700 arch/x86/kernel/apic/apic.c:1050
+       apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:857
+       __memmove+0x24/0x1a0 arch/x86/lib/memmove_64.S:43
+       memmove include/linux/string.h:360 [inline]
+       skb_reorder_vlan_header net/core/skbuff.c:5031 [inline]
+       skb_vlan_untag+0x470/0xc40 net/core/skbuff.c:5061
+       __netif_receive_skb_core+0x119c/0x3460 net/core/dev.c:4460
+       __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4627
+       netif_receive_skb_internal+0x10b/0x670 net/core/dev.c:4701
+       netif_receive_skb+0xae/0x390 net/core/dev.c:4725
+       tun_rx_batched.isra.50+0x5ee/0x870 drivers/net/tun.c:1555
+       tun_get_user+0x299e/0x3c20 drivers/net/tun.c:1962
+       tun_chr_write_iter+0xb9/0x160 drivers/net/tun.c:1990
+       call_write_iter include/linux/fs.h:1782 [inline]
+       new_sync_write fs/read_write.c:469 [inline]
+       __vfs_write+0x684/0x970 fs/read_write.c:482
+       vfs_write+0x189/0x510 fs/read_write.c:544
+       SYSC_write fs/read_write.c:589 [inline]
+       SyS_write+0xef/0x220 fs/read_write.c:581
+       do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+other info that might help us debug this:
+
+Chain exists of:
+  (console_sem).lock --> &rt_b->rt_runtime_lock --> hrtimer_bases.lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(hrtimer_bases.lock);
+                               lock(&rt_b->rt_runtime_lock);
+                               lock(hrtimer_bases.lock);
+  lock((console_sem).lock);
+
+ *** DEADLOCK ***
+
+3 locks held by syzkaller402313/4412:
+ #0:  (rcu_read_lock){....}, at: [<00000000a5bed563>] arch_static_branch arch/x86/include/asm/jump_label.h:36 [inline]
+ #0:  (rcu_read_lock){....}, at: [<00000000a5bed563>] static_key_false include/linux/jump_label.h:142 [inline]
+ #0:  (rcu_read_lock){....}, at: [<00000000a5bed563>] netif_receive_skb_internal+0xa2/0x670 net/core/dev.c:4675
+ #1:  (hrtimer_bases.lock){-.-.}, at: [<00000000bf18422f>] __run_hrtimer kernel/time/hrtimer.c:1351 [inline]
+ #1:  (hrtimer_bases.lock){-.-.}, at: [<00000000bf18422f>] __hrtimer_run_queues+0x3dc/0xec0 kernel/time/hrtimer.c:1411
+ #2:  (rcu_read_lock){....}, at: [<00000000a372e3c7>] rcu_read_unlock include/linux/rcupdate.h:682 [inline]
+ #2:  (rcu_read_lock){....}, at: [<00000000a372e3c7>] atomic_notifier_call_chain+0x0/0x140 kernel/notifier.c:184
+
+stack backtrace:
+CPU: 1 PID: 4412 Comm: syzkaller402313 Not tainted 4.16.0-rc7+ #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_circular_bug.isra.38+0x2cd/0x2dc kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x30a8/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+ down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+ __down_trylock_console_sem+0xa2/0x1e0 kernel/printk/printk.c:225
+ console_trylock+0x15/0x70 kernel/printk/printk.c:2229
+ console_trylock_spinning kernel/printk/printk.c:1643 [inline]
+ vprintk_emit+0x5b5/0xb90 kernel/printk/printk.c:1906
+ vprintk_default+0x28/0x30 kernel/printk/printk.c:1947
+ vprintk_func+0x57/0xc0 kernel/printk/printk_safe.c:379
+ printk+0xaa/0xca kernel/printk/printk.c:1980
+ kasan_die_handler+0x31/0x3f arch/x86/mm/kasan_init_64.c:247
+ notifier_call_chain+0x136/0x2c0 kernel/notifier.c:93
+ __atomic_notifier_call_chain kernel/notifier.c:183 [inline]
+ atomic_notifier_call_chain+0x77/0x140 kernel/notifier.c:193
+ notify_die+0x18c/0x280 kernel/notifier.c:549
+ do_general_protection+0x331/0x3e0 arch/x86/kernel/traps.c:558
+ general_protection+0x25/0x50 arch/x86/entry/entry_64.S:1150
+RIP: 0010:timerqueue_add+0xb8/0x280 lib/timerqueue.c:52
+RSP: 0018:ffff8801db307a28 EFLAGS: 00010002
+RAX: ffffed003b664cc7 RBX: ffff8801db326620 RCX: ffffffff866a78ec
+RDX: 0000502020005023 RSI: ffff8801db326620 RDI: 0002810100028119
+RBP: ffff8801db307a68 R08: 0000000000000000 R09: 1ffff1003b660f0f
+R10: ffff8801db307a78 R11: 0000000000000002 R12: dffffc0000000000
+R13: 0002810100028101 R14: 00000006ad949680 R15: ffff8801b7b97cc8
+ enqueue_hrtimer+0x177/0x4b0 kernel/time/hrtimer.c:944
+ __run_hrtimer kernel/time/hrtimer.c:1364 [inline]
+ __hrtimer_run_queues+0xb15/0xec0 kernel/time/hrtimer.c:1411
+ hrtimer_interrupt+0x2a5/0x6f0 kernel/time/hrtimer.c:1469
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x14a/0x700 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:857
+ </IRQ>
+RIP: 0010:__memmove+0x24/0x1a0 arch/x86/lib/memmove_64.S:43
+RSP: 0018:ffff8801b467ee28 EFLAGS: 00010287 ORIG_RAX: ffffffffffffff12
+RAX: ffff8801b52ec984 RBX: fffffffffffffffe RCX: fffffffffd610431
+RDX: fffffffffffffffe RSI: ffff8801b7cdc54d RDI: ffff8801b7cdc551
+Lost 83 message(s)!
+---[ end trace cad7214be10b65c1 ]---

@@ -1,0 +1,64 @@
+vhci_hcd: release socket
+vhci_hcd: disconnect device
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: null-ptr-deref in atomic_fetch_add_relaxed include/asm-generic/atomic-instrumented.h:142 [inline]
+BUG: KASAN: null-ptr-deref in __refcount_add include/linux/refcount.h:193 [inline]
+BUG: KASAN: null-ptr-deref in __refcount_inc include/linux/refcount.h:250 [inline]
+BUG: KASAN: null-ptr-deref in refcount_inc include/linux/refcount.h:267 [inline]
+BUG: KASAN: null-ptr-deref in get_task_struct include/linux/sched/task.h:102 [inline]
+BUG: KASAN: null-ptr-deref in kthread_stop+0x2a/0x200 kernel/kthread.c:591
+Write of size 4 at addr 0000000000000024 by task kworker/u4:0/8
+
+CPU: 0 PID: 8 Comm: kworker/u4:0 Not tainted 5.10.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usbip_event event_handler
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x137/0x1be lib/dump_stack.c:120
+ __kasan_report mm/kasan/report.c:549 [inline]
+ kasan_report+0x155/0x1e0 mm/kasan/report.c:562
+ check_memory_region_inline mm/kasan/generic.c:183 [inline]
+ check_memory_region+0x2b5/0x2f0 mm/kasan/generic.c:192
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_fetch_add_relaxed include/asm-generic/atomic-instrumented.h:142 [inline]
+ __refcount_add include/linux/refcount.h:193 [inline]
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ get_task_struct include/linux/sched/task.h:102 [inline]
+ kthread_stop+0x2a/0x200 kernel/kthread.c:591
+ vhci_shutdown_connection+0x16c/0xad0 drivers/usb/usbip/vhci_hcd.c:1021
+ event_handler+0x268/0x4d0 drivers/usb/usbip/usbip_event.c:78
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2275
+ worker_thread+0xaa4/0x1460 kernel/workqueue.c:2421
+ kthread+0x39a/0x3c0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 8 Comm: kworker/u4:0 Tainted: G    B             5.10.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usbip_event event_handler
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x137/0x1be lib/dump_stack.c:120
+ panic+0x291/0x800 kernel/panic.c:231
+ end_report mm/kasan/report.c:106 [inline]
+ __kasan_report mm/kasan/report.c:552 [inline]
+ kasan_report+0x1da/0x1e0 mm/kasan/report.c:562
+ check_memory_region_inline mm/kasan/generic.c:183 [inline]
+ check_memory_region+0x2b5/0x2f0 mm/kasan/generic.c:192
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_fetch_add_relaxed include/asm-generic/atomic-instrumented.h:142 [inline]
+ __refcount_add include/linux/refcount.h:193 [inline]
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ get_task_struct include/linux/sched/task.h:102 [inline]
+ kthread_stop+0x2a/0x200 kernel/kthread.c:591
+ vhci_shutdown_connection+0x16c/0xad0 drivers/usb/usbip/vhci_hcd.c:1021
+ event_handler+0x268/0x4d0 drivers/usb/usbip/usbip_event.c:78
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2275
+ worker_thread+0xaa4/0x1460 kernel/workqueue.c:2421
+ kthread+0x39a/0x3c0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,94 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in memcpy include/linux/string.h:344 [inline]
+BUG: KASAN: slab-out-of-bounds in tcp_v6_syn_recv_sock+0x1612/0x23a0 net/ipv6/tcp_ipv6.c:1076
+Write of size 160 at addr ffff8801c0de3460 by task ksoftirqd/1/16
+
+CPU: 1 PID: 16 Comm: ksoftirqd/1 Not tainted 4.15.0-rc5+ #244
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x37/0x50 mm/kasan/kasan.c:303
+ memcpy include/linux/string.h:344 [inline]
+ tcp_v6_syn_recv_sock+0x1612/0x23a0 net/ipv6/tcp_ipv6.c:1076
+ tcp_get_cookie_sock+0x102/0x540 net/ipv4/syncookies.c:213
+ cookie_v4_check+0x1a87/0x2920 net/ipv4/syncookies.c:396
+ tcp_v4_cookie_check net/ipv4/tcp_ipv4.c:1439 [inline]
+ tcp_v4_do_rcv+0x6e9/0x7d0 net/ipv4/tcp_ipv4.c:1476
+ tcp_v4_rcv+0x275f/0x2eb0 net/ipv4/tcp_ipv4.c:1735
+ ip_local_deliver_finish+0x2f1/0xc50 net/ipv4/ip_input.c:216
+ NF_HOOK include/linux/netfilter.h:250 [inline]
+ ip_local_deliver+0x1ce/0x6e0 net/ipv4/ip_input.c:257
+ dst_input include/net/dst.h:466 [inline]
+ ip_rcv_finish+0x959/0x1e30 net/ipv4/ip_input.c:397
+ NF_HOOK include/linux/netfilter.h:250 [inline]
+ ip_rcv+0xc5a/0x1840 net/ipv4/ip_input.c:493
+ __netif_receive_skb_core+0x1a41/0x3460 net/core/dev.c:4461
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4526
+ process_backlog+0x203/0x740 net/core/dev.c:5205
+ napi_poll net/core/dev.c:5603 [inline]
+ net_rx_action+0x792/0x1910 net/core/dev.c:5669
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ run_ksoftirqd+0x50/0x100 kernel/softirq.c:666
+ smpboot_thread_fn+0x450/0x7c0 kernel/smpboot.c:164
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:524
+
+Allocated by task 16:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3544
+ sk_prot_alloc+0x65/0x2a0 net/core/sock.c:1463
+ sk_clone_lock+0x152/0x1570 net/core/sock.c:1649
+ inet_csk_clone_lock+0x92/0x4f0 net/ipv4/inet_connection_sock.c:781
+ tcp_create_openreq_child+0x9b/0x1b70 net/ipv4/tcp_minisocks.c:449
+ tcp_v4_syn_recv_sock+0x119/0x1270 net/ipv4/tcp_ipv4.c:1350
+ tcp_v6_syn_recv_sock+0x1574/0x23a0 net/ipv6/tcp_ipv6.c:1063
+ tcp_get_cookie_sock+0x102/0x540 net/ipv4/syncookies.c:213
+ cookie_v4_check+0x1a87/0x2920 net/ipv4/syncookies.c:396
+ tcp_v4_cookie_check net/ipv4/tcp_ipv4.c:1439 [inline]
+ tcp_v4_do_rcv+0x6e9/0x7d0 net/ipv4/tcp_ipv4.c:1476
+ tcp_v4_rcv+0x275f/0x2eb0 net/ipv4/tcp_ipv4.c:1735
+ ip_local_deliver_finish+0x2f1/0xc50 net/ipv4/ip_input.c:216
+ NF_HOOK include/linux/netfilter.h:250 [inline]
+ ip_local_deliver+0x1ce/0x6e0 net/ipv4/ip_input.c:257
+ dst_input include/net/dst.h:466 [inline]
+ ip_rcv_finish+0x959/0x1e30 net/ipv4/ip_input.c:397
+ NF_HOOK include/linux/netfilter.h:250 [inline]
+ ip_rcv+0xc5a/0x1840 net/ipv4/ip_input.c:493
+ __netif_receive_skb_core+0x1a41/0x3460 net/core/dev.c:4461
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4526
+ process_backlog+0x203/0x740 net/core/dev.c:5205
+ napi_poll net/core/dev.c:5603 [inline]
+ net_rx_action+0x792/0x1910 net/core/dev.c:5669
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801c0de2a80
+ which belongs to the cache TCP of size 2528
+The buggy address is located 0 bytes to the right of
+ 2528-byte region [ffff8801c0de2a80, ffff8801c0de3460)
+The buggy address belongs to the page:
+page:00000000970e19e7 count:1 mapcount:0 mapping:000000004ca425a4 index:0xffff8801c0de3ffd compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801c0de2000 ffff8801c0de3ffd 0000000100000003
+raw: ffffea00074cb720 ffff8801d8374148 ffff8801d7f4fc40 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c0de3300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801c0de3380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801c0de3400: 00 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc
+                                                       ^
+ ffff8801c0de3480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801c0de3500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

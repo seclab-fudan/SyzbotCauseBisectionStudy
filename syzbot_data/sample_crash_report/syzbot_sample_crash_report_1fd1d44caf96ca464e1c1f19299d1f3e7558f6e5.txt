@@ -1,0 +1,64 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 3137 Comm: syzkaller713350 Not tainted 4.15.0-rc4+ #229
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:scatterwalk_start include/crypto/scatterwalk.h:86 [inline]
+RIP: 0010:scatterwalk_pagedone include/crypto/scatterwalk.h:111 [inline]
+RIP: 0010:scatterwalk_copychunks+0x337/0x480 crypto/scatterwalk.c:55
+RSP: 0018:ffff8801c914f260 EFLAGS: 00010202
+RAX: 0000000000000000 RBX: 0000000000000fa6 RCX: ffffffff824fa2e9
+RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000008
+RBP: ffff8801c914f2c0 R08: ffffed003b3d65e2 R09: ffffed003b3d65e2
+R10: 0000000000000002 R11: ffffed003b3d65e1 R12: 0000000000000fa6
+R13: ffff8801c914f630 R14: dffffc0000000000 R15: 0000000000000000
+FS:  0000000001fd6880(0000) GS:ffff8801db400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020b10000 CR3: 00000001cb59f003 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ skcipher_next_slow crypto/skcipher.c:272 [inline]
+ skcipher_walk_next+0x8db/0x1bd0 crypto/skcipher.c:357
+ skcipher_walk_first+0x138/0x400 crypto/skcipher.c:442
+ skcipher_walk_skcipher+0x519/0x6e0 crypto/skcipher.c:471
+ skcipher_walk_virt+0x58/0xd0 crypto/skcipher.c:481
+ crypto_chacha20_crypt+0xc9/0xbd0 crypto/chacha20_generic.c:89
+ crypto_skcipher_decrypt include/crypto/skcipher.h:463 [inline]
+ chacha_decrypt crypto/chacha20poly1305.c:152 [inline]
+ poly_tail_continue+0x42a/0x6b0 crypto/chacha20poly1305.c:167
+ poly_tail+0x40f/0x520 crypto/chacha20poly1305.c:201
+ poly_cipherpad+0x33e/0x470 crypto/chacha20poly1305.c:231
+ poly_cipher+0x303/0x440 crypto/chacha20poly1305.c:262
+ poly_adpad+0x347/0x480 crypto/chacha20poly1305.c:292
+ poly_ad+0x25c/0x300 crypto/chacha20poly1305.c:316
+ poly_setkey+0x2fc/0x3e0 crypto/chacha20poly1305.c:343
+ poly_init+0x16c/0x1d0 crypto/chacha20poly1305.c:366
+ poly_genkey+0x422/0x590 crypto/chacha20poly1305.c:406
+ chacha_encrypt crypto/chacha20poly1305.c:446 [inline]
+ chachapoly_encrypt+0x418/0x620 crypto/chacha20poly1305.c:467
+ crypto_aead_encrypt include/crypto/aead.h:330 [inline]
+ _aead_recvmsg crypto/algif_aead.c:308 [inline]
+ aead_recvmsg+0x1289/0x1bb0 crypto/algif_aead.c:329
+ sock_recvmsg_nosec net/socket.c:809 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:816
+ ___sys_recvmsg+0x295/0x620 net/socket.c:2185
+ __sys_recvmsg+0xe2/0x210 net/socket.c:2230
+ SYSC_recvmsg net/socket.c:2242 [inline]
+ SyS_recvmsg+0x2d/0x50 net/socket.c:2237
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x43fef9
+RSP: 002b:00007fffcb8883b8 EFLAGS: 00000217 ORIG_RAX: 000000000000002f
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 000000000043fef9
+RDX: 0000000000000000 RSI: 0000000020c0c000 RDI: 0000000000000005
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000401860
+R13: 00000000004018f0 R14: 0000000000000000 R15: 0000000000000000
+Code: 89 ff e8 4d 68 2a 00 4c 89 ea 49 89 c7 48 c1 ea 03 42 80 3c 32 00 0f 85 c9 00 00 00 49 8d 7f 08 4d 89 7d 00 48 89 fa 48 c1 ea 03 <42> 0f b6 14 32 84 d2 74 09 80 fa 03 0f 8e 9e 00 00 00 48 8b 45 
+RIP: scatterwalk_start include/crypto/scatterwalk.h:86 [inline] RSP: ffff8801c914f260
+RIP: scatterwalk_pagedone include/crypto/scatterwalk.h:111 [inline] RSP: ffff8801c914f260
+RIP: scatterwalk_copychunks+0x337/0x480 crypto/scatterwalk.c:55 RSP: ffff8801c914f260
+---[ end trace f1a2043c345cc283 ]---

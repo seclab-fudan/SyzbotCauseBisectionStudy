@@ -1,0 +1,58 @@
+list_del corruption. prev->next should be ffff88808fd17b10, but was ffff88808fd17590
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:51!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 393 Comm: kworker/u4:5 Not tainted 5.5.0-rc1-next-20191211-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+RIP: 0010:__list_del_entry_valid.cold+0xf/0x4f lib/list_debug.c:51
+Code: e8 c9 00 cb fd 0f 0b 48 89 f1 48 c7 c7 c0 10 70 88 4c 89 e6 e8 b5 00 cb fd 0f 0b 4c 89 f6 48 c7 c7 60 12 70 88 e8 a4 00 cb fd <0f> 0b 4c 89 ea 4c 89 f6 48 c7 c7 a0 11 70 88 e8 90 00 cb fd 0f 0b
+RSP: 0018:ffffc90001617980 EFLAGS: 00010286
+RAX: 0000000000000054 RBX: ffff8880a1ce8840 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff815e8576 RDI: fffff520002c2f22
+RBP: ffffc90001617998 R08: 0000000000000054 R09: ffffed1015d26621
+R10: ffffed1015d26620 R11: ffff8880ae933107 R12: ffff8880a1ce8940
+R13: ffff88808fd17590 R14: ffff88808fd17b10 R15: ffff88808fd17b10
+FS:  0000000000000000(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffff600400 CR3: 000000008d040000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:131 [inline]
+ dentry_unlist fs/dcache.c:522 [inline]
+ __dentry_kill+0x1fd/0x600 fs/dcache.c:575
+ dentry_kill fs/dcache.c:698 [inline]
+ dput+0x62f/0xe10 fs/dcache.c:859
+ simple_recursive_removal+0x5bc/0x6d0 fs/libfs.c:302
+ debugfs_remove fs/debugfs/inode.c:713 [inline]
+ debugfs_remove+0x5e/0x80 fs/debugfs/inode.c:707
+ nsim_ipsec_teardown+0x7c/0x8f drivers/net/netdevsim/ipsec.c:298
+ nsim_destroy+0x42/0x70 drivers/net/netdevsim/netdev.c:331
+ __nsim_dev_port_del+0x150/0x1f0 drivers/net/netdevsim/dev.c:674
+ nsim_dev_port_del_all+0x8b/0xe0 drivers/net/netdevsim/dev.c:687
+ nsim_dev_reload_destroy+0x58/0xf0 drivers/net/netdevsim/dev.c:856
+ nsim_dev_reload_down+0x73/0xe0 drivers/net/netdevsim/dev.c:493
+ devlink_reload+0xc8/0x3c0 net/core/devlink.c:2797
+ devlink_pernet_pre_exit+0x104/0x1a0 net/core/devlink.c:8260
+ ops_pre_exit_list net/core/net_namespace.c:162 [inline]
+ cleanup_net+0x49b/0xaf0 net/core/net_namespace.c:585
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2264
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2410
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+---[ end trace 700329e407063cc0 ]---
+RIP: 0010:__list_del_entry_valid.cold+0xf/0x4f lib/list_debug.c:51
+Code: e8 c9 00 cb fd 0f 0b 48 89 f1 48 c7 c7 c0 10 70 88 4c 89 e6 e8 b5 00 cb fd 0f 0b 4c 89 f6 48 c7 c7 60 12 70 88 e8 a4 00 cb fd <0f> 0b 4c 89 ea 4c 89 f6 48 c7 c7 a0 11 70 88 e8 90 00 cb fd 0f 0b
+RSP: 0018:ffffc90001617980 EFLAGS: 00010286
+RAX: 0000000000000054 RBX: ffff8880a1ce8840 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff815e8576 RDI: fffff520002c2f22
+RBP: ffffc90001617998 R08: 0000000000000054 R09: ffffed1015d26621
+R10: ffffed1015d26620 R11: ffff8880ae933107 R12: ffff8880a1ce8940
+R13: ffff88808fd17590 R14: ffff88808fd17b10 R15: ffff88808fd17b10
+FS:  0000000000000000(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffff600400 CR3: 000000008d040000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

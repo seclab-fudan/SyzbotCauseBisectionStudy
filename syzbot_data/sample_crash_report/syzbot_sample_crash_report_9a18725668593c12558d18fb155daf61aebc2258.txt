@@ -1,0 +1,59 @@
+list_del corruption. prev->next should be ffff88806b056000, but was dead000000000100. (prev=ffff888078872000)
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:59!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 7289 Comm: syz-executor.1 Not tainted 6.3.0-rc4-syzkaller-00195-g5a57b48fdfcb #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+RIP: 0010:__list_del_entry_valid+0x11f/0x1b0 lib/list_debug.c:59
+Code: b0 a6 8a e8 03 f4 52 fd 0f 0b 48 89 ca 48 c7 c7 c0 b0 a6 8a e8 f2 f3 52 fd 0f 0b 4c 89 c2 48 c7 c7 20 b1 a6 8a e8 e1 f3 52 fd <0f> 0b 48 89 d1 48 c7 c7 a0 b1 a6 8a 4c 89 c2 e8 cd f3 52 fd 0f 0b
+RSP: 0018:ffffc9000568fd58 EFLAGS: 00010282
+RAX: 000000000000006d RBX: 0000000000000001 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff8167778c RDI: 0000000000000005
+RBP: ffff88806b056000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000080000000 R11: 0000000000000000 R12: ffff88806b056008
+R13: ffff88806b053098 R14: ffff888017b7f000 R15: ffff88806b0535f0
+FS:  0000555555ce8400(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005555572ea708 CR3: 000000002acc3000 CR4: 0000000000350ee0
+Call Trace:
+ <TASK>
+ __list_del_entry include/linux/list.h:134 [inline]
+ list_del include/linux/list.h:148 [inline]
+ local_release net/nfc/llcp_core.c:172 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ nfc_llcp_local_put net/nfc/llcp_core.c:182 [inline]
+ nfc_llcp_local_put net/nfc/llcp_core.c:177 [inline]
+ nfc_llcp_unregister_device+0xb8/0x260 net/nfc/llcp_core.c:1620
+ nfc_unregister_device+0x196/0x330 net/nfc/core.c:1179
+ virtual_ncidev_close+0x52/0xb0 drivers/nfc/virtual_ncidev.c:163
+ __fput+0x27c/0xa90 fs/file_table.c:321
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x210/0x240 kernel/entry/common.c:204
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:286 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:297
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f073043dfab
+Code: 0f 05 48 3d 00 f0 ff ff 77 45 c3 0f 1f 40 00 48 83 ec 18 89 7c 24 0c e8 63 fc ff ff 8b 7c 24 0c 41 89 c0 b8 03 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 35 44 89 c7 89 44 24 0c e8 a1 fc ff ff 8b 44
+RSP: 002b:00007fffeaa65020 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: 00007f073043dfab
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000003
+RBP: 00007f07305ad980 R08: 0000000000000000 R09: 00007f07300000b8
+R10: 0000000000000000 R11: 0000000000000293 R12: 00000000001aa2b6
+R13: 00007fffeaa65120 R14: 00007f07305ac050 R15: 0000000000000032
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__list_del_entry_valid+0x11f/0x1b0 lib/list_debug.c:59
+Code: b0 a6 8a e8 03 f4 52 fd 0f 0b 48 89 ca 48 c7 c7 c0 b0 a6 8a e8 f2 f3 52 fd 0f 0b 4c 89 c2 48 c7 c7 20 b1 a6 8a e8 e1 f3 52 fd <0f> 0b 48 89 d1 48 c7 c7 a0 b1 a6 8a 4c 89 c2 e8 cd f3 52 fd 0f 0b
+RSP: 0018:ffffc9000568fd58 EFLAGS: 00010282
+RAX: 000000000000006d RBX: 0000000000000001 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff8167778c RDI: 0000000000000005
+RBP: ffff88806b056000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000080000000 R11: 0000000000000000 R12: ffff88806b056008
+R13: ffff88806b053098 R14: ffff888017b7f000 R15: ffff88806b0535f0
+FS:  0000555555ce8400(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ff9aa585058 CR3: 000000002acc3000 CR4: 0000000000350ef0

@@ -1,0 +1,37 @@
+=====================================================
+BUG: KMSAN: uninit-value in snd_rawmidi_ioctl+0xf1e/0x1330 sound/core/rawmidi.c:887
+ snd_rawmidi_ioctl+0xf1e/0x1330 sound/core/rawmidi.c:887
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:874 [inline]
+ __se_sys_ioctl+0x2df/0x4a0 fs/ioctl.c:860
+ __x64_sys_ioctl+0xd8/0x110 fs/ioctl.c:860
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:524 [inline]
+ slab_alloc_node mm/slub.c:3251 [inline]
+ slab_alloc mm/slub.c:3259 [inline]
+ kmem_cache_alloc_trace+0xaca/0x1140 mm/slub.c:3276
+ kmalloc include/linux/slab.h:590 [inline]
+ snd_rawmidi_open+0x70d/0x1390 sound/core/rawmidi.c:445
+ snd_open+0x702/0x890 sound/core/sound.c:169
+ chrdev_open+0xbc9/0xd80 fs/char_dev.c:414
+ do_dentry_open+0x1128/0x1bf0 fs/open.c:822
+ vfs_open+0xaf/0xe0 fs/open.c:957
+ do_open fs/namei.c:3426 [inline]
+ path_openat+0x52f1/0x5dd0 fs/namei.c:3559
+ do_filp_open+0x306/0x760 fs/namei.c:3586
+ do_sys_openat2+0x263/0x8f0 fs/open.c:1212
+ do_sys_open fs/open.c:1228 [inline]
+ __do_sys_openat fs/open.c:1244 [inline]
+ __se_sys_openat fs/open.c:1239 [inline]
+ __x64_sys_openat+0x35f/0x3c0 fs/open.c:1239
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+CPU: 1 PID: 6368 Comm: syz-executor467 Not tainted 5.16.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=====================================================

@@ -1,0 +1,168 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.0.0-rc3-syzkaller-00215-g0b3acd1cc022 #0 Not tainted
+------------------------------------------------------
+syz-executor.1/3708 is trying to acquire lock:
+ffffffff8c141968 (fscrypt_init_mutex){+.+.}-{3:3}, at: fscrypt_initialize+0x3c/0xa0 fs/crypto/crypto.c:324
+
+but task is already holding lock:
+ffff888044666990 (jbd2_handle){++++}-{0:0}, at: start_this_handle+0xfb4/0x14a0 fs/jbd2/transaction.c:461
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (jbd2_handle){++++}-{0:0}:
+       start_this_handle+0xfe7/0x14a0 fs/jbd2/transaction.c:463
+       jbd2__journal_start+0x38c/0x910 fs/jbd2/transaction.c:520
+       __ext4_journal_start_sb+0x3a3/0x490 fs/ext4/ext4_jbd2.c:105
+       __ext4_journal_start fs/ext4/ext4_jbd2.h:326 [inline]
+       ext4_dirty_inode+0x9d/0x110 fs/ext4/inode.c:5963
+       __mark_inode_dirty+0x48b/0x1040 fs/fs-writeback.c:2381
+       mark_inode_dirty_sync include/linux/fs.h:2467 [inline]
+       iput.part.0+0x57/0x810 fs/inode.c:1771
+       iput+0x58/0x70 fs/inode.c:1764
+       dentry_unlink_inode+0x2b1/0x460 fs/dcache.c:401
+       __dentry_kill+0x3c0/0x640 fs/dcache.c:607
+       shrink_dentry_list+0x23c/0x800 fs/dcache.c:1201
+       prune_dcache_sb+0xe7/0x140 fs/dcache.c:1282
+       super_cache_scan+0x336/0x590 fs/super.c:104
+       do_shrink_slab+0x428/0xbd0 mm/vmscan.c:831
+       shrink_slab+0x17c/0x6f0 mm/vmscan.c:991
+       shrink_node_memcgs mm/vmscan.c:3182 [inline]
+       shrink_node+0x8c9/0x1e80 mm/vmscan.c:3304
+       kswapd_shrink_node mm/vmscan.c:4086 [inline]
+       balance_pgdat+0x8ef/0x1580 mm/vmscan.c:4277
+       kswapd+0x79b/0xf80 mm/vmscan.c:4537
+       kthread+0x2e4/0x3a0 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+-> #1 (fs_reclaim){+.+.}-{0:0}:
+       __fs_reclaim_acquire mm/page_alloc.c:4674 [inline]
+       fs_reclaim_acquire+0x115/0x160 mm/page_alloc.c:4688
+       might_alloc include/linux/sched/mm.h:271 [inline]
+       slab_pre_alloc_hook mm/slab.h:700 [inline]
+       slab_alloc_node mm/slab.c:3194 [inline]
+       kmem_cache_alloc_node_trace+0x47/0x570 mm/slab.c:3601
+       kmalloc_node include/linux/slab.h:618 [inline]
+       kzalloc_node include/linux/slab.h:744 [inline]
+       mempool_create_node mm/mempool.c:266 [inline]
+       mempool_create+0x4e/0xc0 mm/mempool.c:255
+       mempool_create_page_pool include/linux/mempool.h:107 [inline]
+       fscrypt_initialize+0x86/0xa0 fs/crypto/crypto.c:330
+       fscrypt_setup_encryption_info+0xef/0xe90 fs/crypto/keysetup.c:538
+       fscrypt_get_encryption_info+0x34a/0x3f0 fs/crypto/keysetup.c:647
+       fscrypt_setup_filename+0x238/0xec0 fs/crypto/fname.c:458
+       __fscrypt_prepare_lookup+0x28/0xf0 fs/crypto/hooks.c:102
+       fscrypt_prepare_lookup include/linux/fscrypt.h:952 [inline]
+       ext4_fname_prepare_lookup+0x1ba/0x200 fs/ext4/crypto.c:46
+       ext4_lookup_entry fs/ext4/namei.c:1740 [inline]
+       ext4_lookup fs/ext4/namei.c:1815 [inline]
+       ext4_lookup+0x12d/0x700 fs/ext4/namei.c:1806
+       __lookup_slow+0x24c/0x460 fs/namei.c:1685
+       lookup_slow fs/namei.c:1702 [inline]
+       walk_component+0x33f/0x5a0 fs/namei.c:1993
+       lookup_last fs/namei.c:2450 [inline]
+       path_lookupat+0x1ba/0x840 fs/namei.c:2474
+       filename_lookup+0x1ce/0x590 fs/namei.c:2503
+       user_path_at_empty+0x42/0x60 fs/namei.c:2876
+       user_path_at include/linux/namei.h:57 [inline]
+       __do_sys_fspick fs/fsopen.c:181 [inline]
+       __se_sys_fspick fs/fsopen.c:158 [inline]
+       __x64_sys_fspick+0x180/0x380 fs/fsopen.c:158
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (fscrypt_init_mutex){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3095 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3214 [inline]
+       validate_chain kernel/locking/lockdep.c:3829 [inline]
+       __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5053
+       lock_acquire kernel/locking/lockdep.c:5666 [inline]
+       lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
+       __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+       __mutex_lock+0x12f/0x1350 kernel/locking/mutex.c:747
+       fscrypt_initialize+0x3c/0xa0 fs/crypto/crypto.c:324
+       fscrypt_setup_encryption_info+0xef/0xe90 fs/crypto/keysetup.c:538
+       fscrypt_get_encryption_info+0x34a/0x3f0 fs/crypto/keysetup.c:647
+       fscrypt_setup_filename+0x238/0xec0 fs/crypto/fname.c:458
+       ext4_fname_setup_filename+0x88/0x110 fs/ext4/crypto.c:28
+       ext4_find_entry fs/ext4/namei.c:1720 [inline]
+       __ext4_unlink+0xa6/0x9d0 fs/ext4/namei.c:3202
+       ext4_unlink+0x5b0/0x9d0 fs/ext4/namei.c:3278
+       vfs_unlink+0x351/0x920 fs/namei.c:4229
+       do_unlinkat+0x3cc/0x650 fs/namei.c:4297
+       __do_sys_unlink fs/namei.c:4345 [inline]
+       __se_sys_unlink fs/namei.c:4343 [inline]
+       __x64_sys_unlink+0xc6/0x110 fs/namei.c:4343
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+other info that might help us debug this:
+
+Chain exists of:
+  fscrypt_init_mutex --> fs_reclaim --> jbd2_handle
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(jbd2_handle);
+                               lock(fs_reclaim);
+                               lock(jbd2_handle);
+  lock(fscrypt_init_mutex);
+
+ *** DEADLOCK ***
+
+4 locks held by syz-executor.1/3708:
+ #0: ffff888044722460 (sb_writers#5){.+.+}-{0:0}, at: do_unlinkat+0x17f/0x650 fs/namei.c:4276
+ #1: ffff888028af6800 (&type->i_mutex_dir_key#3/1){+.+.}-{3:3}, at: inode_lock_nested include/linux/fs.h:791 [inline]
+ #1: ffff888028af6800 (&type->i_mutex_dir_key#3/1){+.+.}-{3:3}, at: do_unlinkat+0x26c/0x650 fs/namei.c:4280
+ #2: ffff888028bea840 (&sb->s_type->i_mutex_key#7){++++}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #2: ffff888028bea840 (&sb->s_type->i_mutex_key#7){++++}-{3:3}, at: vfs_unlink+0xd5/0x920 fs/namei.c:4218
+ #3: ffff888044666990 (jbd2_handle){++++}-{0:0}, at: start_this_handle+0xfb4/0x14a0 fs/jbd2/transaction.c:461
+
+stack backtrace:
+CPU: 1 PID: 3708 Comm: syz-executor.1 Not tainted 6.0.0-rc3-syzkaller-00215-g0b3acd1cc022 #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2175
+ check_prev_add kernel/locking/lockdep.c:3095 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3214 [inline]
+ validate_chain kernel/locking/lockdep.c:3829 [inline]
+ __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5053
+ lock_acquire kernel/locking/lockdep.c:5666 [inline]
+ lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
+ __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+ __mutex_lock+0x12f/0x1350 kernel/locking/mutex.c:747
+ fscrypt_initialize+0x3c/0xa0 fs/crypto/crypto.c:324
+ fscrypt_setup_encryption_info+0xef/0xe90 fs/crypto/keysetup.c:538
+ fscrypt_get_encryption_info+0x34a/0x3f0 fs/crypto/keysetup.c:647
+ fscrypt_setup_filename+0x238/0xec0 fs/crypto/fname.c:458
+ ext4_fname_setup_filename+0x88/0x110 fs/ext4/crypto.c:28
+ ext4_find_entry fs/ext4/namei.c:1720 [inline]
+ __ext4_unlink+0xa6/0x9d0 fs/ext4/namei.c:3202
+ ext4_unlink+0x5b0/0x9d0 fs/ext4/namei.c:3278
+ vfs_unlink+0x351/0x920 fs/namei.c:4229
+ do_unlinkat+0x3cc/0x650 fs/namei.c:4297
+ __do_sys_unlink fs/namei.c:4345 [inline]
+ __se_sys_unlink fs/namei.c:4343 [inline]
+ __x64_sys_unlink+0xc6/0x110 fs/namei.c:4343
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f199f088bb7
+Code: 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 b8 57 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fff999a9378 EFLAGS: 00000206 ORIG_RAX: 0000000000000057
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f199f088bb7
+RDX: 00007fff999a93b0 RSI: 00007fff999a93b0 RDI: 00007fff999a9440
+RBP: 00007fff999a9440 R08: 0000000000000001 R09: 00007fff999a9210
+R10: 00005555571b0893 R11: 0000000000000206 R12: 00007f199f0e242e
+R13: 00007fff999aa540 R14: 00005555571b0850 R15: 00007fff999ab640
+ </TASK>

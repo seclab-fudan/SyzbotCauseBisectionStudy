@@ -1,0 +1,104 @@
+==================================================================
+BUG: KASAN: use-after-free in __hlist_del include/linux/list.h:704 [inline]
+BUG: KASAN: use-after-free in hlist_del_rcu include/linux/rculist.h:455 [inline]
+BUG: KASAN: use-after-free in __xfrm_policy_unlink+0x9ec/0xa00 net/xfrm/xfrm_policy.c:2212
+Write of size 8 at addr ffff88808ad1d690 by task syz-executor791/8433
+
+CPU: 1 PID: 8433 Comm: syz-executor791 Not tainted 5.0.0-rc2+ #27
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_store8_noabort+0x17/0x20 mm/kasan/generic_report.c:140
+ __hlist_del include/linux/list.h:704 [inline]
+ hlist_del_rcu include/linux/rculist.h:455 [inline]
+ __xfrm_policy_unlink+0x9ec/0xa00 net/xfrm/xfrm_policy.c:2212
+ xfrm_policy_insert+0x223/0x910 net/xfrm/xfrm_policy.c:1587
+ xfrm_add_policy+0x2a1/0x6c0 net/xfrm/xfrm_user.c:1657
+ xfrm_user_rcv_msg+0x458/0x8d0 net/xfrm/xfrm_user.c:2663
+ netlink_rcv_skb+0x17d/0x410 net/netlink/af_netlink.c:2477
+ xfrm_netlink_rcv+0x70/0x90 net/xfrm/xfrm_user.c:2671
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x574/0x770 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa05/0xf90 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x7ec/0x910 net/socket.c:2116
+ __sys_sendmsg+0x112/0x270 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x442549
+Code: e8 3c e7 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 9b 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fffd9092b58 EFLAGS: 00000207 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000442549
+RDX: 0000000000000000 RSI: 000000002014f000 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000207 R12: 0000000000000030
+R13: 000000000000dce1 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 8420:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_kmalloc mm/kasan/common.c:496 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:469
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:504
+ kmem_cache_alloc_trace+0x151/0x760 mm/slab.c:3609
+ kmalloc include/linux/slab.h:545 [inline]
+ kzalloc include/linux/slab.h:740 [inline]
+ xfrm_policy_alloc+0xfb/0x530 net/xfrm/xfrm_policy.c:383
+ xfrm_policy_construct+0x30/0x660 net/xfrm/xfrm_user.c:1599
+ xfrm_add_policy+0x20a/0x6c0 net/xfrm/xfrm_user.c:1648
+ xfrm_user_rcv_msg+0x458/0x8d0 net/xfrm/xfrm_user.c:2663
+ netlink_rcv_skb+0x17d/0x410 net/netlink/af_netlink.c:2477
+ xfrm_netlink_rcv+0x70/0x90 net/xfrm/xfrm_user.c:2671
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x574/0x770 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa05/0xf90 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x7ec/0x910 net/socket.c:2116
+ __sys_sendmsg+0x112/0x270 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 9:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:458
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:466
+ __cache_free mm/slab.c:3487 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3806
+ xfrm_policy_destroy_rcu+0x48/0x60 net/xfrm/xfrm_policy.c:407
+ __rcu_reclaim kernel/rcu/rcu.h:240 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2452 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2773 [inline]
+ rcu_process_callbacks+0xc4a/0x1680 kernel/rcu/tree.c:2754
+ __do_softirq+0x30b/0xb11 kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff88808ad1d680
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 16 bytes inside of
+ 1024-byte region [ffff88808ad1d680, ffff88808ad1da80)
+The buggy address belongs to the page:
+page:ffffea00022b4700 count:1 mapcount:0 mapping:ffff88812c3f0ac0 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea0002912308 ffffea00028f6a88 ffff88812c3f0ac0
+raw: 0000000000000000 ffff88808ad1c000 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808ad1d580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88808ad1d600: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88808ad1d680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                         ^
+ ffff88808ad1d700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88808ad1d780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

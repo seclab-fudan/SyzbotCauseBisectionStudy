@@ -1,0 +1,49 @@
+watchdog: BUG: soft lockup - CPU#0 stuck for 143s! [syz-executor189:3665]
+Modules linked in:
+irq event stamp: 202716
+hardirqs last  enabled at (202715): [<ffffffff8a00140a>] asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:649
+hardirqs last disabled at (202716): [<ffffffff89ecf9cf>] sysvec_apic_timer_interrupt+0xf/0xc0 arch/x86/kernel/apic/apic.c:1107
+softirqs last  enabled at (173766): [<ffffffff814b3f93>] invoke_softirq kernel/softirq.c:445 [inline]
+softirqs last  enabled at (173766): [<ffffffff814b3f93>] __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+softirqs last disabled at (173711): [<ffffffff814b3f93>] invoke_softirq kernel/softirq.c:445 [inline]
+softirqs last disabled at (173711): [<ffffffff814b3f93>] __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+CPU: 0 PID: 3665 Comm: syz-executor189 Not tainted 6.1.0-rc7-syzkaller-00200-gc2bf05db6c78 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:csd_lock_wait kernel/smp.c:413 [inline]
+RIP: 0010:smp_call_function_many_cond+0x43f/0x10a0 kernel/smp.c:987
+Code: e6 e8 95 f7 0a 00 45 85 e4 74 48 48 8b 04 24 49 89 c5 83 e0 07 49 c1 ed 03 49 89 c4 4d 01 fd 41 83 c4 03 e8 c3 fa 0a 00 f3 90 <41> 0f b6 45 00 41 38 c4 7c 08 84 c0 0f 85 4e 0a 00 00 8b 43 08 31
+RSP: 0018:ffffc900035177e0 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: ffff8880b9b3f120 RCX: 0000000000000000
+RDX: ffff88807d560000 RSI: ffffffff8174421d RDI: 0000000000000005
+RBP: 0000000000000001 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000092080 R12: 0000000000000003
+R13: ffffed1017367e25 R14: 0000000000000001 R15: dffffc0000000000
+FS:  0000555556ea9300(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f1626c6d370 CR3: 00000000793ae000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ on_each_cpu_cond_mask+0x5a/0xa0 kernel/smp.c:1155
+ __flush_tlb_multi arch/x86/include/asm/paravirt.h:87 [inline]
+ flush_tlb_multi arch/x86/mm/tlb.c:924 [inline]
+ flush_tlb_mm_range+0x333/0x4d0 arch/x86/mm/tlb.c:1010
+ dup_mmap+0xae1/0x10b0 kernel/fork.c:705
+ dup_mm+0x91/0x370 kernel/fork.c:1526
+ copy_mm kernel/fork.c:1575 [inline]
+ copy_process+0x3bc6/0x7190 kernel/fork.c:2253
+ kernel_clone+0xeb/0x980 kernel/fork.c:2671
+ __do_sys_clone+0xba/0x100 kernel/fork.c:2812
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f1626bee90b
+Code: ed 0f 85 60 01 00 00 64 4c 8b 0c 25 10 00 00 00 45 31 c0 4d 8d 91 d0 02 00 00 31 d2 31 f6 bf 11 00 20 01 b8 38 00 00 00 0f 05 <48> 3d 00 f0 ff ff 0f 87 89 00 00 00 41 89 c5 85 c0 0f 85 90 00 00
+RSP: 002b:00007ffe55f753b0 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 00007ffe55f753f0 RCX: 00007f1626bee90b
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000001200011
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000555556ea9300
+R10: 0000555556ea95d0 R11: 0000000000000246 R12: 0000000000000000
+R13: 00000000000f4240 R14: 0000000000081c66 R15: 00007ffe55f753d4
+ </TASK>

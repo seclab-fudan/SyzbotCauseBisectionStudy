@@ -1,0 +1,76 @@
+BUG: KASAN: use-after-free in __read_once_size include/linux/compiler.h:276 [inline]
+BUG: KASAN: use-after-free in atomic64_read arch/x86/include/asm/atomic64_64.h:21 [inline]
+BUG: KASAN: use-after-free in atomic_long_read include/asm-generic/atomic-long.h:44 [inline]
+BUG: KASAN: use-after-free in packet_getsockopt+0xc72/0xe00 net/packet/af_packet.c:3934
+Read of size 8 at addr ffff8801d8f91858 by task syz-executor0/3203
+
+CPU: 1 PID: 3203 Comm: syz-executor0 Not tainted 4.14.0-rc5+ #140
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ __read_once_size include/linux/compiler.h:276 [inline]
+ atomic64_read arch/x86/include/asm/atomic64_64.h:21 [inline]
+ atomic_long_read include/asm-generic/atomic-long.h:44 [inline]
+ packet_getsockopt+0xc72/0xe00 net/packet/af_packet.c:3934
+ SYSC_getsockopt net/socket.c:1883 [inline]
+ SyS_getsockopt+0x178/0x340 net/socket.c:1865
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x452719
+RSP: 002b:00007f5b98c02be8 EFLAGS: 00000212 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 00000000007580d8 RCX: 0000000000452719
+RDX: 0000000000000015 RSI: 0000000000000107 RDI: 0000000000000010
+RBP: 0000000000000082 R08: 00000000208a5000 R09: 0000000000000000
+R10: 0000000020ec8000 R11: 0000000000000212 R12: 0000000000000000
+R13: 00007ffcd6754f6f R14: 00007f5b98c039c0 R15: 0000000000000004
+
+Allocated by task 3202:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3627
+ kmalloc include/linux/slab.h:493 [inline]
+ kzalloc include/linux/slab.h:666 [inline]
+ fanout_add+0x27e/0x1480 net/packet/af_packet.c:1694
+ packet_setsockopt+0xfdc/0x1e80 net/packet/af_packet.c:3805
+ SYSC_setsockopt net/socket.c:1852 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1831
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 3202:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ fanout_add+0x432/0x1480 net/packet/af_packet.c:1772
+ packet_setsockopt+0xfdc/0x1e80 net/packet/af_packet.c:3805
+ SYSC_setsockopt net/socket.c:1852 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1831
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+The buggy address belongs to the object at ffff8801d8f91840
+ which belongs to the cache kmalloc-128 of size 128
+The buggy address is located 24 bytes inside of
+ 128-byte region [ffff8801d8f91840, ffff8801d8f918c0)
+The buggy address belongs to the page:
+page:ffffea000763e440 count:1 mapcount:0 mapping:ffff8801d8f91000 index:0x0
+flags: 0x200000000000100(slab)
+raw: 0200000000000100 ffff8801d8f91000 0000000000000000 0000000100000015
+raw: ffffea000763fbe0 ffffea000763e5a0 ffff8801dac00640 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d8f91700: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801d8f91780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801d8f91800: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff8801d8f91880: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801d8f91900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

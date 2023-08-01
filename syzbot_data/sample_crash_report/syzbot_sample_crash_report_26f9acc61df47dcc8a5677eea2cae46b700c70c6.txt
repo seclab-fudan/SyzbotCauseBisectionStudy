@@ -1,0 +1,66 @@
+RBP: 0000000000000004 R08: 0000000000000001 R09: 0000000000000035
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401f10
+R13: 0000000000401fa0 R14: 0000000000000000 R15: 0000000000000000
+
+============================================
+WARNING: possible recursive locking detected
+4.15.0-rc6-next-20180103+ #87 Not tainted
+--------------------------------------------
+syzkaller221540/3462 is trying to acquire lock:
+ (&pn->all_ppp_mutex){+.+.}, at: [<00000000709ea4fe>] ppp_dev_uninit+0x1be/0x390 drivers/net/ppp/ppp_generic.c:1369
+
+but task is already holding lock:
+ (&pn->all_ppp_mutex){+.+.}, at: [<00000000752caad5>] ppp_unit_register drivers/net/ppp/ppp_generic.c:981 [inline]
+ (&pn->all_ppp_mutex){+.+.}, at: [<00000000752caad5>] ppp_dev_configure+0x6a4/0xc40 drivers/net/ppp/ppp_generic.c:1066
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&pn->all_ppp_mutex);
+  lock(&pn->all_ppp_mutex);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+3 locks held by syzkaller221540/3462:
+ #0:  (ppp_mutex){+.+.}, at: [<000000000235c4ad>] ppp_ioctl+0x9e/0x2200 drivers/net/ppp/ppp_generic.c:598
+ #1:  (rtnl_mutex){+.+.}, at: [<000000002fbce150>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+ #2:  (&pn->all_ppp_mutex){+.+.}, at: [<00000000752caad5>] ppp_unit_register drivers/net/ppp/ppp_generic.c:981 [inline]
+ #2:  (&pn->all_ppp_mutex){+.+.}, at: [<00000000752caad5>] ppp_dev_configure+0x6a4/0xc40 drivers/net/ppp/ppp_generic.c:1066
+
+stack backtrace:
+CPU: 0 PID: 3462 Comm: syzkaller221540 Not tainted 4.15.0-rc6-next-20180103+ #87
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x137/0x198 lib/dump_stack.c:53
+ print_deadlock_bug kernel/locking/lockdep.c:1756 [inline]
+ check_deadlock kernel/locking/lockdep.c:1800 [inline]
+ validate_chain kernel/locking/lockdep.c:2396 [inline]
+ __lock_acquire+0xec3/0x3cf0 kernel/locking/lockdep.c:3426
+ lock_acquire+0x16b/0x420 kernel/locking/lockdep.c:3914
+ __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+ __mutex_lock+0xec/0x1550 kernel/locking/mutex.c:893
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+ ppp_dev_uninit+0x1be/0x390 drivers/net/ppp/ppp_generic.c:1369
+ register_netdevice+0x8bf/0xf30 net/core/dev.c:7835
+ ppp_unit_register drivers/net/ppp/ppp_generic.c:1009 [inline]
+ ppp_dev_configure+0x854/0xc40 drivers/net/ppp/ppp_generic.c:1066
+ ppp_create_interface drivers/net/ppp/ppp_generic.c:3027 [inline]
+ ppp_unattached_ioctl drivers/net/ppp/ppp_generic.c:866 [inline]
+ ppp_ioctl+0x1491/0x2200 drivers/net/ppp/ppp_generic.c:602
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x190/0xfe0 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x440649
+RSP: 002b:00007fff8dc7fdc8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 0000000000440649
+RDX: 0000000020001000 RSI: 00000000c004743e RDI: 0000000000000003
+RBP: 0000000000000004 R08: 0000000000000001 R09: 0000000000000035
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401f10
+R13: 0000000000401fa0 R14: 0000000000000000 R15: 0000000000000000

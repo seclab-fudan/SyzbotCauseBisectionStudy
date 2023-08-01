@@ -1,0 +1,57 @@
+=============================
+WARNING: suspicious RCU usage
+5.12.0-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+1 lock held by syz-executor.5/10338:
+ #0: 
+ffff88802a37ea58
+ (
+&mm->mmap_lock
+#2
+){++++}-{3:3}
+, at: mmap_read_lock include/linux/mmap_lock.h:117 [inline]
+, at: __mm_populate+0x264/0x3e0 mm/gup.c:1430
+
+stack backtrace:
+CPU: 0 PID: 10338 Comm: syz-executor.5 Not tainted 5.12.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ prepare_alloc_pages mm/page_alloc.c:4947 [inline]
+ __alloc_pages_nodemask+0x48a/0x730 mm/page_alloc.c:4991
+ alloc_pages_vma+0xdd/0x770 mm/mempolicy.c:2240
+ shmem_alloc_page+0x11f/0x1f0 mm/shmem.c:1563
+ shmem_alloc_and_acct_page+0x161/0x8a0 mm/shmem.c:1588
+ shmem_getpage_gfp+0x558/0x2480 mm/shmem.c:1895
+ shmem_fault+0x1fe/0x870 mm/shmem.c:2116
+ __do_fault+0x10d/0x4d0 mm/memory.c:3637
+ do_read_fault mm/memory.c:3939 [inline]
+ do_fault mm/memory.c:4067 [inline]
+ handle_pte_fault mm/memory.c:4318 [inline]
+ __handle_mm_fault+0x2c87/0x4f70 mm/memory.c:4453
+ handle_mm_fault+0x1bc/0x7e0 mm/memory.c:4551
+ faultin_page mm/gup.c:850 [inline]
+ __get_user_pages+0x7cf/0x1490 mm/gup.c:1069
+ populate_vma_page_range+0x24d/0x330 mm/gup.c:1402
+ __mm_populate+0x1ea/0x3e0 mm/gup.c:1450
+ mm_populate include/linux/mm.h:2592 [inline]
+ vm_mmap_pgoff+0x20e/0x290 mm/util.c:524
+ ksys_mmap_pgoff+0xe4/0x620 mm/mmap.c:1638
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4665f9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffad1997188 EFLAGS: 00000246 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 000000000056bf60 RCX: 00000000004665f9
+RDX: b635773f06ebbeee RSI: 0000000000b36000 RDI: 0000000020000000
+RBP: 00000000004bfce1 R08: ffffffffffffffff R09: 0000000000000000
+R10: 0000000000008031 R11: 0000000000000246 R12: 000000000056bf60
+R13: 0000000000a9fb1f R14: 00007ffad1997300 R15: 0000000000022000

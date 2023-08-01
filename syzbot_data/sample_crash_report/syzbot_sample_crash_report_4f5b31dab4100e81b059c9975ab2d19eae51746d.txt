@@ -1,0 +1,43 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in atomic_sub_return include/asm-generic/atomic-instrumented.h:159 [inline]
+BUG: KASAN: null-ptr-deref in atomic_dec_return include/linux/atomic-fallback.h:455 [inline]
+BUG: KASAN: null-ptr-deref in rxrpc_unuse_local+0x23/0x70 net/rxrpc/local_object.c:405
+Write of size 4 at addr 0000000000000010 by task syz-executor422/10219
+
+CPU: 0 PID: 10219 Comm: syz-executor422 Not tainted 5.3.0-rc3+ #158
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ __kasan_report.cold+0x5/0x36 mm/kasan/report.c:486
+ kasan_report+0x12/0x17 mm/kasan/common.c:612
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ __kasan_check_write+0x14/0x20 mm/kasan/common.c:98
+ atomic_sub_return include/asm-generic/atomic-instrumented.h:159 [inline]
+ atomic_dec_return include/linux/atomic-fallback.h:455 [inline]
+ rxrpc_unuse_local+0x23/0x70 net/rxrpc/local_object.c:405
+ rxrpc_release_sock net/rxrpc/af_rxrpc.c:904 [inline]
+ rxrpc_release+0x47d/0x840 net/rxrpc/af_rxrpc.c:930
+ __sock_release+0xce/0x280 net/socket.c:590
+ sock_close+0x1e/0x30 net/socket.c:1268
+ __fput+0x2ff/0x890 fs/file_table.c:280
+ ____fput+0x16/0x20 fs/file_table.c:313
+ task_work_run+0x145/0x1c0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x92f/0x2e50 kernel/exit.c:879
+ do_group_exit+0x135/0x360 kernel/exit.c:983
+ __do_sys_exit_group kernel/exit.c:994 [inline]
+ __se_sys_exit_group kernel/exit.c:992 [inline]
+ __x64_sys_exit_group+0x44/0x50 kernel/exit.c:992
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43ed68
+Code: Bad RIP value.
+RSP: 002b:00007ffc60935ce8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043ed68
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004be568 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 00000000ffffffff R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d0180 R14: 0000000000000000 R15: 0000000000000000
+==================================================================

@@ -1,0 +1,56 @@
+Unable to handle kernel paging request at virtual address 004065676e6168fb
+Mem abort info:
+  ESR = 0x0000000096000004
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000004
+  CM = 0, WnR = 0
+[004065676e6168fb] address between user and kernel address ranges
+Internal error: Oops: 96000004 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 2562 Comm: udevd Not tainted 6.0.0-rc4-syzkaller-17255-ga6b443748715 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kernfs_lockdep fs/kernfs/dir.c:43 [inline]
+pc : kernfs_put_active+0x24/0x11c fs/kernfs/dir.c:449
+lr : kernfs_put_active+0x20/0x11c fs/kernfs/dir.c:443
+sp : ffff800015fcbc50
+x29: ffff800015fcbc50 x28: ffff0000c4810000 x27: 0001000000000000
+x26: 0000000000000152 x25: ffff0000c538f348 x24: ffff8000086fe770
+x23: ffff0000c92e5620 x22: 0000000000000007 x21: ffff0000cbc31500
+x20: ffff8000086fba20 x19: 2f4065676e616863 x18: 0000000000000000
+x17: 0000000000000000 x16: ffff80000db78658 x15: ffff0000c4810000
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c4810000
+x11: ff808000086f6a0c x10: 0000000000000000 x9 : ffff8000086f6a0c
+x8 : ffff0000c4810000 x7 : ffff8000095d8f84 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : ffff0001fefd3740 x3 : 0000000000083500
+x2 : ffff0000c8aa3000 x1 : 0000000000000000 x0 : 2f4065676e616863
+Call trace:
+ kernfs_put_active+0x24/0x11c fs/kernfs/dir.c:446
+ kernfs_fop_write_iter+0x1fc/0x294 fs/kernfs/file.c:358
+ call_write_iter include/linux/fs.h:2187 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x2dc/0x46c fs/read_write.c:578
+ ksys_write+0xb4/0x160 fs/read_write.c:631
+ __do_sys_write fs/read_write.c:643 [inline]
+ __se_sys_write fs/read_write.c:640 [inline]
+ __arm64_sys_write+0x24/0x34 fs/read_write.c:640
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:624
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:642
+ el0t_64_sync+0x18c/0x190
+Code: aa1e03f4 aa0003f3 97eea9d1 b40004f3 (79413275) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	aa1e03f4 	mov	x20, x30
+   4:	aa0003f3 	mov	x19, x0
+   8:	97eea9d1 	bl	0xffffffffffbaa74c
+   c:	b40004f3 	cbz	x19, 0xa8
+* 10:	79413275 	ldrh	w21, [x19, #152] <-- trapping instruction

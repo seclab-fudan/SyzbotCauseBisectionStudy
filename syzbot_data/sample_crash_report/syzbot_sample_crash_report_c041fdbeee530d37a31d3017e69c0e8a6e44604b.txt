@@ -1,0 +1,103 @@
+==================================================================
+BUG: KASAN: use-after-free in snd_pcm_timer_resolution+0xa3/0xc0 sound/core/pcm_timer.c:72
+Read of size 4 at addr ffff8801c8fe8dd0 by task syzkaller061898/6686
+
+CPU: 1 PID: 6686 Comm: syzkaller061898 Not tainted 4.16.0-rc7+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ snd_pcm_timer_resolution+0xa3/0xc0 sound/core/pcm_timer.c:72
+ snd_timer_resolution sound/core/timer.c:439 [inline]
+ snd_timer_notify1+0x10f/0x400 sound/core/timer.c:462
+ snd_timer_start1+0x586/0x8f0 sound/core/timer.c:522
+ snd_timer_start+0x5d/0xa0 sound/core/timer.c:634
+ snd_timer_user_start.isra.12+0xde/0x130 sound/core/timer.c:1878
+ snd_timer_user_continue sound/core/timer.c:1902 [inline]
+ __snd_timer_user_ioctl+0x1771/0x2c10 sound/core/timer.c:1977
+ snd_timer_user_ioctl+0x5f/0x7d sound/core/timer.c:1992
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x445309
+RSP: 002b:00007ffd6c1c5768 EFLAGS: 00000217 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000445309
+RDX: 0000000000445309 RSI: 00000000000054a2 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 000000006c1c58e8 R09: 000000006c1c58e8
+R10: 000000006c1c58e8 R11: 0000000000000217 R12: 000000000001e8d9
+R13: 0000000000402bd0 R14: 00000000006d1440 R15: 0000000000000000
+
+Allocated by task 6678:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ kmem_cache_alloc_trace+0x136/0x740 mm/slab.c:3608
+ kmalloc include/linux/slab.h:512 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ snd_pcm_attach_substream+0x3c5/0xb60 sound/core/pcm.c:1006
+ snd_pcm_open_substream+0x95/0x3b0 sound/core/pcm_native.c:2372
+ snd_pcm_oss_open_file sound/core/oss/pcm_oss.c:2309 [inline]
+ snd_pcm_oss_open+0x7cf/0x1540 sound/core/oss/pcm_oss.c:2391
+ soundcore_open+0x321/0x630 sound/sound_core.c:597
+ chrdev_open+0x257/0x730 fs/char_dev.c:417
+ do_dentry_open+0x667/0xd40 fs/open.c:752
+ vfs_open+0x107/0x220 fs/open.c:866
+ do_last fs/namei.c:3379 [inline]
+ path_openat+0x1151/0x3530 fs/namei.c:3519
+ do_filp_open+0x25b/0x3b0 fs/namei.c:3554
+ do_sys_open+0x502/0x6d0 fs/open.c:1059
+ SYSC_openat fs/open.c:1086 [inline]
+ SyS_openat+0x30/0x40 fs/open.c:1080
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 6678:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3486 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3801
+ snd_pcm_detach_substream+0x134/0x290 sound/core/pcm.c:1057
+ snd_pcm_release_substream.part.44+0x23d/0x300 sound/core/pcm_native.c:2361
+ snd_pcm_release_substream+0x59/0x70 sound/core/pcm_native.c:2362
+ snd_pcm_oss_release_file.part.18+0x71/0xa0 sound/core/oss/pcm_oss.c:2268
+ snd_pcm_oss_release_file sound/core/oss/pcm_oss.c:2263 [inline]
+ snd_pcm_oss_release+0x104/0x280 sound/core/oss/pcm_oss.c:2448
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+The buggy address belongs to the object at ffff8801c8fe8ac0
+ which belongs to the cache kmalloc-2048 of size 2048
+The buggy address is located 784 bytes inside of
+ 2048-byte region [ffff8801c8fe8ac0, ffff8801c8fe92c0)
+The buggy address belongs to the page:
+page:ffffea000723fa00 count:1 mapcount:0 mapping:ffff8801c8fe8240 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801c8fe8240 0000000000000000 0000000100000003
+raw: ffffea00070961a0 ffffea00071cb3a0 ffff8801dac00c40 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c8fe8c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c8fe8d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801c8fe8d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                 ^
+ ffff8801c8fe8e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c8fe8e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

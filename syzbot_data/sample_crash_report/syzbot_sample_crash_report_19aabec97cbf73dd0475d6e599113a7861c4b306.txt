@@ -1,0 +1,104 @@
+8021q: adding VLAN 0 to HW filter on device team0
+8021q: adding VLAN 0 to HW filter on device team0
+8021q: adding VLAN 0 to HW filter on device team0
+==================================================================
+BUG: KASAN: use-after-free in constant_test_bit arch/x86/include/asm/bitops.h:328 [inline]
+BUG: KASAN: use-after-free in fuse_dev_do_read.isra.27+0x1659/0x1920 fs/fuse/dev.c:1318
+Read of size 8 at addr ffff8801d32e8a30 by task syz-executor2/8682
+
+CPU: 0 PID: 8682 Comm: syz-executor2 Not tainted 4.19.0-rc6+ #262
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+ print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ constant_test_bit arch/x86/include/asm/bitops.h:328 [inline]
+ fuse_dev_do_read.isra.27+0x1659/0x1920 fs/fuse/dev.c:1318
+ fuse_dev_read+0x1a9/0x250 fs/fuse/dev.c:1360
+ call_read_iter include/linux/fs.h:1802 [inline]
+ new_sync_read fs/read_write.c:406 [inline]
+ __vfs_read+0x6ac/0x9b0 fs/read_write.c:418
+ vfs_read+0x17f/0x3c0 fs/read_write.c:452
+ ksys_read+0x101/0x260 fs/read_write.c:578
+ __do_sys_read fs/read_write.c:588 [inline]
+ __se_sys_read fs/read_write.c:586 [inline]
+ __x64_sys_read+0x73/0xb0 fs/read_write.c:586
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457579
+Code: 1d b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f9e2ebf7c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457579
+RDX: 0000000000001000 RSI: 00000000200030c0 RDI: 0000000000000006
+RBP: 000000000072bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f9e2ebf86d4
+R13: 00000000004c31b7 R14: 00000000004d4c98 R15: 00000000ffffffff
+
+Allocated by task 8682:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x730 mm/slab.c:3554
+ __fuse_request_alloc+0x27/0xf0 fs/fuse/dev.c:58
+ fuse_request_alloc+0x18/0x20 fs/fuse/dev.c:89
+ fuse_fill_super+0x12bf/0x1ea0 fs/fuse/inode.c:1157
+ mount_nodev+0x6b/0x110 fs/super.c:1204
+ fuse_mount+0x2c/0x40 fs/fuse/inode.c:1213
+ mount_fs+0xae/0x31d fs/super.c:1261
+ vfs_kern_mount.part.35+0xdc/0x4f0 fs/namespace.c:961
+ vfs_kern_mount fs/namespace.c:951 [inline]
+ do_new_mount fs/namespace.c:2457 [inline]
+ do_mount+0x581/0x31f0 fs/namespace.c:2787
+ ksys_mount+0x12d/0x140 fs/namespace.c:3003
+ __do_sys_mount fs/namespace.c:3017 [inline]
+ __se_sys_mount fs/namespace.c:3014 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 8723:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x83/0x290 mm/slab.c:3756
+ fuse_request_free+0x8b/0xa0 fs/fuse/dev.c:104
+ fuse_put_request+0x2a6/0x350 fs/fuse/dev.c:304
+ request_end+0xba/0xaa0 fs/fuse/dev.c:414
+ fuse_dev_do_write+0x192e/0x36e0 fs/fuse/dev.c:1915
+ fuse_dev_write+0x19a/0x240 fs/fuse/dev.c:1939
+ call_write_iter include/linux/fs.h:1808 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x6b8/0x9f0 fs/read_write.c:487
+ vfs_write+0x1fc/0x560 fs/read_write.c:549
+ ksys_write+0x101/0x260 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801d32e8a00
+ which belongs to the cache fuse_request of size 448
+The buggy address is located 48 bytes inside of
+ 448-byte region [ffff8801d32e8a00, ffff8801d32e8bc0)
+The buggy address belongs to the page:
+page:ffffea00074cba00 count:1 mapcount:0 mapping:ffff8801d4a7d840 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0006e5c948 ffffea0006e5ca08 ffff8801d4a7d840
+raw: 0000000000000000 ffff8801d32e8000 0000000100000008 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d32e8900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801d32e8980: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+>ffff8801d32e8a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff8801d32e8a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d32e8b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

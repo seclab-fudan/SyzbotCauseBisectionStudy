@@ -1,0 +1,114 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+==================================================================
+BUG: KASAN: use-after-free in ax25_fillin_cb_from_dev net/ax25/af_ax25.c:450 [inline]
+BUG: KASAN: use-after-free in ax25_fillin_cb+0x6d5/0x810 net/ax25/af_ax25.c:477
+Read of size 4 at addr ffff8881ccecc438 by task syz-executor5/11370
+
+CPU: 1 PID: 11370 Comm: syz-executor5 Not tainted 4.20.0 #387
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d3/0x2c6 lib/dump_stack.c:113
+ print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ ax25_fillin_cb_from_dev net/ax25/af_ax25.c:450 [inline]
+ ax25_fillin_cb+0x6d5/0x810 net/ax25/af_ax25.c:477
+ ax25_setsockopt+0x92a/0xa20 net/ax25/af_ax25.c:663
+ __sys_setsockopt+0x1ba/0x3c0 net/socket.c:1902
+ __do_sys_setsockopt net/socket.c:1913 [inline]
+ __se_sys_setsockopt net/socket.c:1910 [inline]
+ __x64_sys_setsockopt+0xbe/0x150 net/socket.c:1910
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457759
+Code: fd b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f540c347c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000005 RCX: 0000000000457759
+RDX: 0000000000000019 RSI: 0000000000000101 RDI: 0000000000000005
+RBP: 000000000073bfa0 R08: 0000000000000010 R09: 0000000000000000
+R10: 0000000020000140 R11: 0000000000000246 R12: 00007f540c3486d4
+R13: 00000000004cb2d8 R14: 00000000004d8910 R15: 00000000ffffffff
+
+Allocated by task 11344:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x750 mm/slab.c:3620
+ kmalloc include/linux/slab.h:546 [inline]
+ kzalloc include/linux/slab.h:741 [inline]
+ ax25_dev_device_up+0x47/0x4d0 net/ax25/ax25_dev.c:57
+ ax25_device_event+0x208/0x2e0 net/ax25/af_ax25.c:126
+ notifier_call_chain+0x17e/0x380 kernel/notifier.c:93
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2d/0x40 kernel/notifier.c:401
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1733
+ call_netdevice_notifiers net/core/dev.c:1751 [inline]
+ __dev_notify_flags+0x17a/0x480 net/core/dev.c:7545
+ dev_change_flags+0xfd/0x150 net/core/dev.c:7581
+ dev_ifsioc+0x7d6/0xa80 net/core/dev_ioctl.c:237
+ dev_ioctl+0x1b5/0xcc0 net/core/dev_ioctl.c:488
+ sock_do_ioctl+0x1f6/0x420 net/socket.c:973
+ sock_ioctl+0x313/0x690 net/socket.c:1074
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0x1de/0x1790 fs/ioctl.c:696
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 11339:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ ax25_dev_device_down+0x164/0x2f0 net/ax25/ax25_dev.c:129
+ ax25_device_event+0x1f6/0x2e0 net/ax25/af_ax25.c:131
+ notifier_call_chain+0x17e/0x380 kernel/notifier.c:93
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2d/0x40 kernel/notifier.c:401
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1733
+ call_netdevice_notifiers net/core/dev.c:1751 [inline]
+ __dev_notify_flags+0x29b/0x480 net/core/dev.c:7547
+ dev_change_flags+0xfd/0x150 net/core/dev.c:7581
+ dev_ifsioc+0x7d6/0xa80 net/core/dev_ioctl.c:237
+ dev_ioctl+0x1b5/0xcc0 net/core/dev_ioctl.c:488
+ sock_do_ioctl+0x1f6/0x420 net/socket.c:973
+ sock_ioctl+0x313/0x690 net/socket.c:1074
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0x1de/0x1790 fs/ioctl.c:696
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8881ccecc400
+ which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 56 bytes inside of
+ 192-byte region [ffff8881ccecc400, ffff8881ccecc4c0)
+The buggy address belongs to the page:
+page:ffffea000733b300 count:1 mapcount:0 mapping:ffff8881da800040 index:0x0
+flags: 0x2fffc0000000200(slab)
+raw: 02fffc0000000200 ffffea000733b1c8 ffffea000734aac8 ffff8881da800040
+raw: 0000000000000000 ffff8881ccecc000 0000000100000010 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881ccecc300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881ccecc380: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8881ccecc400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                        ^
+ ffff8881ccecc480: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8881ccecc500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

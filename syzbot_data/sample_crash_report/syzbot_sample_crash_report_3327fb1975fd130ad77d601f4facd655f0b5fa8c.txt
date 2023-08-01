@@ -1,0 +1,33 @@
+BUG: memory leak
+unreferenced object 0xffff888115992800 (size 2048):
+  comm "syz-executor299", pid 6943, jiffies 4294991292 (age 244.720s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    20 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00   ...............
+  backtrace:
+    [<00000000069232c5>] kmemleak_alloc_recursive include/linux/kmemleak.h:43 [inline]
+    [<00000000069232c5>] slab_post_alloc_hook mm/slab.h:586 [inline]
+    [<00000000069232c5>] slab_alloc mm/slab.c:3319 [inline]
+    [<00000000069232c5>] __do_kmalloc mm/slab.c:3653 [inline]
+    [<00000000069232c5>] __kmalloc+0x169/0x300 mm/slab.c:3664
+    [<000000004449d9c5>] kmalloc include/linux/slab.h:561 [inline]
+    [<000000004449d9c5>] bio_alloc_bioset+0x1b8/0x2c0 block/bio.c:440
+    [<00000000f14737de>] bio_kmalloc include/linux/bio.h:405 [inline]
+    [<00000000f14737de>] bio_copy_user_iov+0x121/0x4d0 block/bio.c:1248
+    [<00000000ffc280e5>] __blk_rq_map_user_iov block/blk-map.c:73 [inline]
+    [<00000000ffc280e5>] blk_rq_map_user_iov+0xc6/0x2b0 block/blk-map.c:142
+    [<000000004c86ad46>] blk_rq_map_user+0x71/0xb0 block/blk-map.c:172
+    [<00000000e493491c>] sg_start_req drivers/scsi/sg.c:1813 [inline]
+    [<00000000e493491c>] sg_common_write.isra.0+0x619/0xa10 drivers/scsi/sg.c:809
+    [<00000000dd94a794>] sg_write.part.0+0x325/0x570 drivers/scsi/sg.c:709
+    [<00000000c41a2c62>] sg_write+0x44/0x64 drivers/scsi/sg.c:617
+    [<00000000170f783b>] __vfs_write+0x43/0xa0 fs/read_write.c:494
+    [<00000000d08ac09c>] vfs_write fs/read_write.c:558 [inline]
+    [<00000000d08ac09c>] vfs_write+0xee/0x210 fs/read_write.c:542
+    [<00000000ba9bdecf>] ksys_write+0x7c/0x130 fs/read_write.c:611
+    [<00000000580f199d>] __do_sys_write fs/read_write.c:623 [inline]
+    [<00000000580f199d>] __se_sys_write fs/read_write.c:620 [inline]
+    [<00000000580f199d>] __x64_sys_write+0x1e/0x30 fs/read_write.c:620
+    [<00000000b6a81d43>] do_syscall_64+0x73/0x1f0 arch/x86/entry/common.c:290
+    [<00000000fb75a745>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+

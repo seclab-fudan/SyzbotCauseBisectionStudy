@@ -1,0 +1,59 @@
+FS-Cache: N-cookie c=00000000c1b0c875 [p=00000000c36d4410 fl=2 nc=0 na=1]
+FS-Cache: N-cookie d=0000000030fbc5c9 n=00000000054ee708
+FS-Cache: N-key=[10] '34323935303439353030'
+list_del corruption, ffff880117fc6ea8->next is LIST_POISON1 (dead000000000100)
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:47!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 20845 Comm: kworker/0:1 Not tainted 4.19.0+ #300
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+kobject: '9p-9996' (00000000632021f9): kobject_add_internal: parent: 'bdi', set: 'devices'
+Workqueue: events p9_read_work
+RIP: 0010:__list_del_entry_valid.cold.1+0x26/0x4a lib/list_debug.c:45
+Code: d5 fd 0f 0b 4c 89 e2 48 89 de 48 c7 c7 c0 9c 40 88 e8 66 0d d5 fd 0f 0b 4c 89 ea 48 89 de 48 c7 c7 20 9c 40 88 e8 52 0d d5 fd <0f> 0b 48 89 de 48 c7 c7 80 9d 40 88 e8 41 0d d5 fd 0f 0b 48 89 de
+kobject: '9p-9997' (0000000026d0c9fc): kobject_add_internal: parent: 'bdi', set: 'devices'
+RSP: 0018:ffff880145a375b8 EFLAGS: 00010282
+RAX: 000000000000004e RBX: ffff880117fc6ea8 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff8165dcc5 RDI: 0000000000000005
+RBP: ffff880145a375d0 R08: ffff8801c4bc8680 R09: ffffed003b5c5008
+R10: ffffed003b5c5008 R11: ffff8801dae28047 R12: dead000000000200
+R13: dead000000000100 R14: ffff8801cd005890 R15: ffff8801cd005850
+FS:  0000000000000000(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f87f74ae518 CR3: 00000001d59e8000 CR4: 00000000001406f0
+kobject: '9p-9996' (00000000632021f9): kobject_uevent_env
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:117 [inline]
+ list_del include/linux/list.h:125 [inline]
+ p9_read_work+0xab6/0x10e0 net/9p/trans_fd.c:379
+kobject: '9p-9996' (00000000632021f9): fill_kobj_path: path = '/devices/virtual/bdi/9p-9996'
+ process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
+kobject: '9p-9997' (0000000026d0c9fc): kobject_uevent_env
+kobject: '9p-9997' (0000000026d0c9fc): fill_kobj_path: path = '/devices/virtual/bdi/9p-9997'
+kobject: '9p-9998' (00000000beafc11a): kobject_add_internal: parent: 'bdi', set: 'devices'
+kobject: '9p-9998' (00000000beafc11a): kobject_uevent_env
+ worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+kobject: '9p-9998' (00000000beafc11a): fill_kobj_path: path = '/devices/virtual/bdi/9p-9998'
+kobject: 'loop0' (000000002499e147): kobject_uevent_env
+kobject: 'loop0' (000000002499e147): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop3' (00000000fc2cf095): kobject_uevent_env
+kobject: 'loop3' (00000000fc2cf095): fill_kobj_path: path = '/devices/virtual/block/loop3'
+ kthread+0x35a/0x420 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:350
+Modules linked in:
+---[ end trace e95c99dd17ec4a63 ]---
+RIP: 0010:__list_del_entry_valid.cold.1+0x26/0x4a lib/list_debug.c:45
+Code: d5 fd 0f 0b 4c 89 e2 48 89 de 48 c7 c7 c0 9c 40 88 e8 66 0d d5 fd 0f 0b 4c 89 ea 48 89 de 48 c7 c7 20 9c 40 88 e8 52 0d d5 fd <0f> 0b 48 89 de 48 c7 c7 80 9d 40 88 e8 41 0d d5 fd 0f 0b 48 89 de
+RSP: 0018:ffff880145a375b8 EFLAGS: 00010282
+RAX: 000000000000004e RBX: ffff880117fc6ea8 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff8165dcc5 RDI: 0000000000000005
+RBP: ffff880145a375d0 R08: ffff8801c4bc8680 R09: ffffed003b5c5008
+R10: ffffed003b5c5008 R11: ffff8801dae28047 R12: dead000000000200
+R13: dead000000000100 R14: ffff8801cd005890 R15: ffff8801cd005850
+FS:  0000000000000000(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f87f74ae518 CR3: 00000001d59e8000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

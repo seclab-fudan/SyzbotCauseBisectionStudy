@@ -1,0 +1,128 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
+BUG: KASAN: slab-out-of-bounds in bitmap_port_gc_test net/netfilter/ipset/ip_set_bitmap_port.c:67 [inline]
+BUG: KASAN: slab-out-of-bounds in bitmap_port_gc+0x112/0x4f0 net/netfilter/ipset/ip_set_bitmap_gen.h:277
+Read of size 8 at addr ffff8880a1328e00 by task syz-executor241/10822
+
+CPU: 0 PID: 10822 Comm: syz-executor241 Not tainted 5.5.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:639
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ __kasan_check_read+0x11/0x20 mm/kasan/common.c:95
+ test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
+ bitmap_port_gc_test net/netfilter/ipset/ip_set_bitmap_port.c:67 [inline]
+ bitmap_port_gc+0x112/0x4f0 net/netfilter/ipset/ip_set_bitmap_gen.h:277
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:__sanitizer_cov_trace_cmp4+0x1/0x20 kernel/kcov.c:248
+Code: 5d c3 0f 1f 80 00 00 00 00 55 0f b7 d6 0f b7 f7 bf 02 00 00 00 48 89 e5 48 8b 4d 08 e8 58 ff ff ff 5d c3 66 0f 1f 44 00 00 55 <89> f2 89 fe bf 04 00 00 00 48 89 e5 48 8b 4d 08 e8 3a ff ff ff 5d
+RSP: 0000:ffffc90003737b80 EFLAGS: 00000202 ORIG_RAX: ffffffffffffff13
+RAX: ffff8880a330e300 RBX: 0000000020000000 RCX: ffffffff81a1b703
+RDX: 0000000000000000 RSI: 0000000000000173 RDI: 0000000000000000
+RBP: ffffc90003737bd8 R08: ffff8880a330e300 R09: ffffed1015d0703d
+R10: ffffed1015d0703c R11: ffff8880ae8381e3 R12: ffffea0001ef0000
+R13: 0000000000000173 R14: 0000000000000000 R15: 0000000000000000
+ __do_huge_pmd_anonymous_page mm/huge_memory.c:606 [inline]
+ do_huge_pmd_anonymous_page+0x6a6/0x1a50 mm/huge_memory.c:774
+ create_huge_pmd mm/memory.c:3888 [inline]
+ __handle_mm_fault+0x3145/0x3cc0 mm/memory.c:4098
+ handle_mm_fault+0x3b2/0xa50 mm/memory.c:4164
+ do_user_addr_fault arch/x86/mm/fault.c:1441 [inline]
+ __do_page_fault+0x536/0xd80 arch/x86/mm/fault.c:1506
+ do_page_fault+0x38/0x590 arch/x86/mm/fault.c:1530
+ page_fault+0x39/0x40 arch/x86/entry/entry_64.S:1203
+RIP: 0033:0x400713
+Code: 03 00 00 00 be 10 00 00 00 bf 29 00 00 00 e8 84 0c 04 00 48 83 f8 ff 74 07 48 89 05 87 a9 2c 00 48 b8 62 69 74 6d 61 70 3a 70 <48> c7 04 25 40 01 00 20 00 00 00 00 c7 04 25 48 01 00 20 00 00 00
+RSP: 002b:00007fff0e99e500 EFLAGS: 00010213
+RAX: 703a70616d746962 RBX: 0000000000000000 RCX: 0000000000441399
+RDX: 000000000000000c RSI: 0000000000000003 RDI: 0000000000000010
+RBP: 000000000001d2c6 R08: 0000000000000004 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004021c0
+R13: 0000000000402250 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 10447:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:513 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:527
+ __do_kmalloc mm/slab.c:3656 [inline]
+ __kmalloc+0x163/0x770 mm/slab.c:3665
+ kmalloc include/linux/slab.h:561 [inline]
+ kzalloc include/linux/slab.h:670 [inline]
+ ip_set_alloc+0x38/0x5e net/netfilter/ipset/ip_set_core.c:255
+ init_map_port net/netfilter/ipset/ip_set_bitmap_port.c:234 [inline]
+ bitmap_port_create+0x3dc/0x7c0 net/netfilter/ipset/ip_set_bitmap_port.c:276
+ ip_set_create+0x6f1/0x1500 net/netfilter/ipset/ip_set_core.c:1111
+ nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x58c/0x7d0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:639 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:659
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2330
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2384
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2417
+ __do_sys_sendmsg net/socket.c:2426 [inline]
+ __se_sys_sendmsg net/socket.c:2424 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2424
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 10220:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:335 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:474
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:483
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ tomoyo_path_perm+0x24e/0x430 security/tomoyo/file.c:842
+ tomoyo_inode_getattr+0x1d/0x30 security/tomoyo/tomoyo.c:129
+ security_inode_getattr+0xf2/0x150 security/security.c:1222
+ vfs_getattr+0x25/0x70 fs/stat.c:115
+ vfs_statx+0x157/0x200 fs/stat.c:191
+ vfs_stat include/linux/fs.h:3249 [inline]
+ __do_sys_newstat+0xa4/0x130 fs/stat.c:341
+ __se_sys_newstat fs/stat.c:337 [inline]
+ __x64_sys_newstat+0x54/0x80 fs/stat.c:337
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8880a1328e00
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8880a1328e00, ffff8880a1328e20)
+The buggy address belongs to the page:
+page:ffffea000284ca00 refcount:1 mapcount:0 mapping:ffff8880aa4001c0 index:0xffff8880a1328fc1
+raw: 00fffe0000000200 ffffea00025de688 ffffea000252c048 ffff8880aa4001c0
+raw: ffff8880a1328fc1 ffff8880a1328000 0000000100000025 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a1328d00: 00 01 fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8880a1328d80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8880a1328e00: 04 fc fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+                   ^
+ ffff8880a1328e80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8880a1328f00: 00 00 01 fc fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

@@ -1,0 +1,106 @@
+device veth0_vlan entered promiscuous mode
+device veth1_vlan entered promiscuous mode
+==================================================================
+BUG: KASAN: use-after-free in __get_unaligned_cpu32 include/linux/unaligned/packed_struct.h:19 [inline]
+BUG: KASAN: use-after-free in mc_hash drivers/net/macvlan.c:251 [inline]
+BUG: KASAN: use-after-free in macvlan_broadcast+0x547/0x620 drivers/net/macvlan.c:277
+Read of size 4 at addr ffff88808b39f001 by task syz-executor984/11093
+
+CPU: 1 PID: 11093 Comm: syz-executor984 Not tainted 5.5.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:639
+ __asan_report_load_n_noabort+0xf/0x20 mm/kasan/generic_report.c:145
+ __get_unaligned_cpu32 include/linux/unaligned/packed_struct.h:19 [inline]
+ mc_hash drivers/net/macvlan.c:251 [inline]
+ macvlan_broadcast+0x547/0x620 drivers/net/macvlan.c:277
+ macvlan_queue_xmit drivers/net/macvlan.c:520 [inline]
+ macvlan_start_xmit+0x402/0x77f drivers/net/macvlan.c:559
+ __netdev_start_xmit include/linux/netdevice.h:4447 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4461 [inline]
+ dev_direct_xmit+0x419/0x630 net/core/dev.c:4079
+ packet_direct_xmit+0x1a9/0x250 net/packet/af_packet.c:240
+ packet_snd net/packet/af_packet.c:2966 [inline]
+ packet_sendmsg+0x260d/0x6220 net/packet/af_packet.c:2991
+ sock_sendmsg_nosec net/socket.c:639 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:659
+ __sys_sendto+0x262/0x380 net/socket.c:1985
+ __do_sys_sendto net/socket.c:1997 [inline]
+ __se_sys_sendto net/socket.c:1993 [inline]
+ __x64_sys_sendto+0xe1/0x1a0 net/socket.c:1993
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x442469
+Code: 45 02 00 85 c0 b8 00 00 00 00 48 0f 44 c3 5b c3 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b 10 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffcf7c5c4d8 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000442469
+RDX: 000000000000000e RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 00007ffcf7c5c500 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00000000004039a0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 9251:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:513 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:521
+ slab_post_alloc_hook mm/slab.h:584 [inline]
+ slab_alloc mm/slab.c:3320 [inline]
+ kmem_cache_alloc+0x121/0x710 mm/slab.c:3484
+ vm_area_dup+0x21/0x170 kernel/fork.c:359
+ dup_mmap kernel/fork.c:544 [inline]
+ dup_mm+0x549/0x1430 kernel/fork.c:1360
+ copy_mm kernel/fork.c:1416 [inline]
+ copy_process+0x2ad6/0x7230 kernel/fork.c:2072
+ _do_fork+0x146/0x1090 kernel/fork.c:2421
+ __do_sys_clone kernel/fork.c:2576 [inline]
+ __se_sys_clone kernel/fork.c:2557 [inline]
+ __x64_sys_clone+0x19a/0x260 kernel/fork.c:2557
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 10170:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:335 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:474
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:483
+ __cache_free mm/slab.c:3426 [inline]
+ kmem_cache_free+0x86/0x320 mm/slab.c:3694
+ vm_area_free+0x1d/0x30 kernel/fork.c:370
+ remove_vma+0x13f/0x180 mm/mmap.c:181
+ exit_mmap+0x361/0x530 mm/mmap.c:3145
+ __mmput kernel/fork.c:1082 [inline]
+ mmput+0x179/0x4d0 kernel/fork.c:1103
+ exit_mm kernel/exit.c:485 [inline]
+ do_exit+0xac2/0x2f50 kernel/exit.c:788
+ do_group_exit+0x135/0x360 kernel/exit.c:899
+ __do_sys_exit_group kernel/exit.c:910 [inline]
+ __se_sys_exit_group kernel/exit.c:908 [inline]
+ __x64_sys_exit_group+0x44/0x50 kernel/exit.c:908
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88808b39f000
+ which belongs to the cache vm_area_struct of size 200
+The buggy address is located 1 bytes inside of
+ 200-byte region [ffff88808b39f000, ffff88808b39f0c8)
+The buggy address belongs to the page:
+page:ffffea00022ce7c0 refcount:1 mapcount:0 mapping:ffff88821bc46c40 index:0xffff88808b39f210
+raw: 00fffe0000000200 ffffea0002842cc8 ffffea00029a6088 ffff88821bc46c40
+raw: ffff88808b39f210 ffff88808b39f000 0000000100000005 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808b39ef00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88808b39ef80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88808b39f000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff88808b39f080: fb fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc
+ ffff88808b39f100: fc fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

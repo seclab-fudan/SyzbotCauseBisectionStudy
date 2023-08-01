@@ -1,0 +1,97 @@
+==================================================================
+BUG: KASAN: use-after-free in blkdev_bio_end_io+0x3e3/0x4b0 fs/block_dev.c:301
+Read of size 1 at addr ffff88808ed71ad4 by task ksoftirqd/0/9
+
+CPU: 0 PID: 9 Comm: ksoftirqd/0 Not tainted 5.3.0-rc2+ #112
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0xd4/0x306 mm/kasan/report.c:351
+ __kasan_report.cold+0x1b/0x36 mm/kasan/report.c:482
+ kasan_report+0x12/0x17 mm/kasan/common.c:612
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/generic_report.c:129
+ blkdev_bio_end_io+0x3e3/0x4b0 fs/block_dev.c:301
+ bio_endio+0x611/0xaf0 block/bio.c:1830
+ req_bio_endio block/blk-core.c:239 [inline]
+ blk_update_request+0x32e/0xc10 block/blk-core.c:1424
+ blk_mq_end_request+0x5b/0x560 block/blk-mq.c:557
+ end_cmd drivers/block/null_blk_main.c:622 [inline]
+ end_cmd+0x111/0x310 drivers/block/null_blk_main.c:616
+ null_complete_rq+0x19/0x20 drivers/block/null_blk_main.c:649
+ blk_done_softirq+0x2fe/0x4d0 block/blk-softirq.c:37
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ run_ksoftirqd kernel/softirq.c:603 [inline]
+ run_ksoftirqd+0x8e/0x110 kernel/softirq.c:595
+ smpboot_thread_fn+0x6a3/0xa40 kernel/smpboot.c:165
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 10487:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:487 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:460
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:495
+ slab_post_alloc_hook mm/slab.h:520 [inline]
+ slab_alloc mm/slab.c:3319 [inline]
+ kmem_cache_alloc+0x121/0x710 mm/slab.c:3483
+ mempool_alloc_slab+0x47/0x60 mm/mempool.c:513
+ mempool_alloc+0x169/0x380 mm/mempool.c:393
+ bio_alloc_bioset+0x3b9/0x680 block/bio.c:477
+ __blkdev_direct_IO fs/block_dev.c:363 [inline]
+ blkdev_direct_IO+0x39c/0x1590 fs/block_dev.c:518
+ generic_file_read_iter+0x283/0x1ce0 mm/filemap.c:2323
+ blkdev_read_iter+0x120/0x190 fs/block_dev.c:2013
+ call_read_iter include/linux/fs.h:1864 [inline]
+ aio_read+0x252/0x3b0 fs/aio.c:1543
+ __io_submit_one fs/aio.c:1813 [inline]
+ io_submit_one+0x1054/0x2ef0 fs/aio.c:1862
+ __do_sys_io_submit fs/aio.c:1921 [inline]
+ __se_sys_io_submit fs/aio.c:1891 [inline]
+ __x64_sys_io_submit+0x1bd/0x570 fs/aio.c:1891
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 9:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:449
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:457
+ __cache_free mm/slab.c:3425 [inline]
+ kmem_cache_free+0x86/0x320 mm/slab.c:3693
+ mempool_free_slab+0x1e/0x30 mm/mempool.c:520
+ mempool_free+0xeb/0x370 mm/mempool.c:502
+ bio_free+0x267/0x420 block/bio.c:255
+ bio_put+0xda/0x110 block/bio.c:549
+ bio_check_pages_dirty+0x3de/0x560 block/bio.c:1703
+ blkdev_bio_end_io+0x30d/0x4b0 fs/block_dev.c:330
+ bio_endio+0x611/0xaf0 block/bio.c:1830
+ req_bio_endio block/blk-core.c:239 [inline]
+ blk_update_request+0x32e/0xc10 block/blk-core.c:1424
+ blk_mq_end_request+0x5b/0x560 block/blk-mq.c:557
+ end_cmd drivers/block/null_blk_main.c:622 [inline]
+ end_cmd+0x111/0x310 drivers/block/null_blk_main.c:616
+ null_complete_rq+0x19/0x20 drivers/block/null_blk_main.c:649
+ blk_done_softirq+0x2fe/0x4d0 block/blk-softirq.c:37
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff88808ed71ac0
+ which belongs to the cache bio-1 of size 216
+The buggy address is located 20 bytes inside of
+ 216-byte region [ffff88808ed71ac0, ffff88808ed71b98)
+The buggy address belongs to the page:
+page:ffffea00023b5c40 refcount:1 mapcount:0 mapping:ffff888219eb6540 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea0002a38e48 ffff8880a5e06048 ffff888219eb6540
+raw: 0000000000000000 ffff88808ed710c0 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808ed71980: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88808ed71a00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88808ed71a80: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                 ^
+ ffff88808ed71b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88808ed71b80: fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

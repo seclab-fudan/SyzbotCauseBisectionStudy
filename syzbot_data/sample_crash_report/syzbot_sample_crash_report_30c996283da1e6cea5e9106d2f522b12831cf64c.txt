@@ -1,0 +1,53 @@
+==================================================================
+BUG: KCSAN: data-race in tcp_chrono_stop / tcp_recvmsg
+
+write to 0xffff888126b006a4 of 2 bytes by interrupt on cpu 0:
+ tcp_chrono_set net/ipv4/tcp_output.c:2309 [inline]
+ tcp_chrono_stop+0x14c/0x280 net/ipv4/tcp_output.c:2338
+ tcp_write_xmit+0xb1c/0x3120 net/ipv4/tcp_output.c:2459
+ tcp_tsq_write.part.0+0xec/0x160 net/ipv4/tcp_output.c:799
+ tcp_tsq_write net/ipv4/tcp_output.c:788 [inline]
+ tcp_tsq_handler+0x85/0xe0 net/ipv4/tcp_output.c:808
+ tcp_tasklet_func+0x27a/0x2e0 net/ipv4/tcp_output.c:840
+ tasklet_action_common.isra.0+0x86/0x150 kernel/softirq.c:523
+ tasklet_action+0x28/0x30 kernel/softirq.c:541
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0xbb/0xe0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ do_IRQ+0xa6/0x180 arch/x86/kernel/irq.c:263
+ ret_from_intr+0x0/0x19
+ arch_local_irq_restore arch/x86/include/asm/paravirt.h:756 [inline]
+ kcsan_setup_watchpoint+0x205/0x410 kernel/kcsan/core.c:369
+ check_access kernel/kcsan/core.c:409 [inline]
+ __tsan_read8+0x145/0x1f0 kernel/kcsan/core.c:530
+ batadv_nc_purge_orig_hash net/batman-adv/network-coding.c:408 [inline]
+ batadv_nc_worker+0xbc/0x390 net/batman-adv/network-coding.c:718
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2269
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2415
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+read to 0xffff888126b006a5 of 1 bytes by task 8125 on cpu 1:
+ tcp_recvmsg+0x793/0x1b40 net/ipv4/tcp.c:2189
+ inet_recvmsg+0xbb/0x250 net/ipv4/af_inet.c:838
+ sock_recvmsg_nosec net/socket.c:871 [inline]
+ sock_recvmsg net/socket.c:889 [inline]
+ sock_recvmsg+0x92/0xb0 net/socket.c:885
+ sock_read_iter+0x15f/0x1e0 net/socket.c:967
+ call_read_iter include/linux/fs.h:1889 [inline]
+ new_sync_read+0x389/0x4f0 fs/read_write.c:414
+ __vfs_read+0xb1/0xc0 fs/read_write.c:427
+ vfs_read fs/read_write.c:461 [inline]
+ vfs_read+0x143/0x2c0 fs/read_write.c:446
+ ksys_read+0xd5/0x1b0 fs/read_write.c:587
+ __do_sys_read fs/read_write.c:597 [inline]
+ __se_sys_read fs/read_write.c:595 [inline]
+ __x64_sys_read+0x4c/0x60 fs/read_write.c:595
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 8125 Comm: sshd Not tainted 5.4.0-rc6+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

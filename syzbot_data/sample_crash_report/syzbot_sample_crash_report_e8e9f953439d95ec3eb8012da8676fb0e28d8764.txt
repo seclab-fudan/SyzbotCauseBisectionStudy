@@ -1,0 +1,68 @@
+BUG: KASAN: use-after-free in __read_once_size include/linux/compiler.h:276 [inline]
+BUG: KASAN: use-after-free in atomic64_read arch/x86/include/asm/atomic64_64.h:21 [inline]
+BUG: KASAN: use-after-free in atomic64_add_unless arch/x86/include/asm/atomic64_64.h:201 [inline]
+BUG: KASAN: use-after-free in get_mm_exe_file+0x398/0x3d0 kernel/fork.c:989
+Read of size 8 at addr ffff8801cf0f3330 by task syzkaller134687/3038
+
+CPU: 0 PID: 3038 Comm: syzkaller134687 Not tainted 4.13.0-rc5-next-20170817+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+BUG: unable to handle kernel NULL pointer dereference at 00000000000001f0
+IP: atomic_dec arch/x86/include/asm/atomic.h:103 [inline]
+IP: dup_mmap kernel/fork.c:671 [inline]
+IP: dup_mm kernel/fork.c:1178 [inline]
+IP: copy_mm+0xb63/0x1247 kernel/fork.c:1232
+PGD 1cc32c067 
+P4D 1cc32c067 
+PUD 1cc32d067 
+PMD 0 
+
+Oops: 0002 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 3993 Comm: syzkaller134687 Not tainted 4.13.0-rc5-next-20170817+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801cc2744c0 task.stack: ffff8801ccc00000
+RIP: 0010:atomic_dec arch/x86/include/asm/atomic.h:103 [inline]
+RIP: 0010:dup_mmap kernel/fork.c:671 [inline]
+RIP: 0010:dup_mm kernel/fork.c:1178 [inline]
+RIP: 0010:copy_mm+0xb63/0x1247 kernel/fork.c:1232
+RSP: 0018:ffff8801ccc071b8 EFLAGS: 00010297
+RAX: 0000000000000000 RBX: ffff8801cf0f32c0 RCX: ffffffff813f6693
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: ffff8801cf0f3478
+RBP: ffff8801ccc07410 R08: 0000000000000001 R09: 1ffff10039980d9b
+R10: 0000000073499bc1 R11: 00000000436b6827 R12: dffffc0000000000
+R13: ffff8801cc743738 R14: ffff8801cc743788 R15: ffff8801cc45b880
+FS:  00007f5001766700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000000001f0 CR3: 00000001cc347000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ copy_process.part.36+0x1ea3/0x4af0 kernel/fork.c:1734
+ copy_process kernel/fork.c:1547 [inline]
+ _do_fork+0x1ef/0xfb0 kernel/fork.c:2026
+ SYSC_clone kernel/fork.c:2136 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2130
+ do_syscall_64+0x26c/0x8c0 arch/x86/entry/common.c:287
+ entry_SYSCALL64_slow_path+0x25/0x25
+RIP: 0033:0x449819
+RSP: 002b:00007f5001765dc8 EFLAGS: 00000202 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000449819
+RDX: 0000000020f89000 RSI: 0000000020785000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000020446000 R09: 00007f5001766700
+R10: 0000000020550ffc R11: 0000000000000202 R12: 0000000000000000
+R13: 00007ffc25c8ddbf R14: 00007f50017669c0 R15: 0000000000000000
+Code: 43 70 4c 89 f0 48 c1 e8 03 42 80 3c 20 00 74 08 4c 89 f7 e8 84 40 62 00 41 f6 45 51 08 74 13 e8 28 d6 2d 00 48 8b 85 b0 fd ff ff <f0> ff 88 f0 01 00 00 e8 15 d6 2d 00 48 8b 85 00 fe ff ff 48 8d 
+RIP: atomic_dec arch/x86/include/asm/atomic.h:103 [inline] RSP: ffff8801ccc071b8
+RIP: dup_mmap kernel/fork.c:671 [inline] RSP: ffff8801ccc071b8
+RIP: dup_mm kernel/fork.c:1178 [inline] RSP: ffff8801ccc071b8
+RIP: copy_mm+0xb63/0x1247 kernel/fork.c:1232 RSP: ffff8801ccc071b8
+CR2: 00000000000001f0
+---[ end trace e26e28ce7a8fa12f ]---

@@ -1,0 +1,76 @@
+BUG: kernel NULL pointer dereference, address: 0000000000000000
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 657a1067 P4D 657a1067 PUD 61b7a067 PMD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 3 PID: 12616 Comm: syz-executor.1 Not tainted 5.7.0-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org 04/01/2014
+RIP: 0010:__read_once_size include/linux/compiler.h:252 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x43/0x60 kernel/kcov.c:202
+Code: 24 74 0f 80 e6 01 74 35 8b 90 04 14 00 00 85 d2 74 2b 8b 90 e0 13 00 00 83 fa 02 75 20 48 8b 88 e8 13 00 00 8b 80 e4 13 00 00 <48> 8b 11 48 83 c2 01 48 39 d0 76 07 48 89 34 d1 48 89 11 c3 66 0f
+RSP: 0018:ffffc900011c75f8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffffe8ffae0098c0 RCX: 0000000000000000
+RDX: 0000000000000002 RSI: ffffffff8169318a RDI: 0000000000000005
+RBP: 0000000000000003 R08: ffff888061451200 R09: fffffbfff1516e6e
+R10: ffffffff8a8b736b R11: fffffbfff1516e6d R12: fffff91ff5c01319
+R13: 0000000000000002 R14: 0000000000000001 R15: dffffc0000000000
+FS:  00007ff8b1dad700(0000) GS:ffff88802d100000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000062f27000 CR4: 0000000000340ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ rep_nop arch/x86/include/asm/vdso/processor.h:13 [inline]
+ cpu_relax arch/x86/include/asm/vdso/processor.h:18 [inline]
+ csd_lock_wait kernel/smp.c:108 [inline]
+ smp_call_function_many_cond+0x7aa/0x980 kernel/smp.c:555
+ smp_call_function_many kernel/smp.c:577 [inline]
+ smp_call_function+0x40/0x80 kernel/smp.c:599
+ on_each_cpu+0x2a/0x1e0 kernel/smp.c:717
+ flush_tlb_kernel_range+0x197/0x250 arch/x86/mm/tlb.c:802
+ __purge_vmap_area_lazy+0xcbf/0x1f60 mm/vmalloc.c:1385
+ _vm_unmap_aliases mm/vmalloc.c:1800 [inline]
+ _vm_unmap_aliases+0x393/0x480 mm/vmalloc.c:1765
+ change_page_attr_set_clr+0x1fb/0x810 arch/x86/mm/pat/set_memory.c:1727
+ change_page_attr_clear arch/x86/mm/pat/set_memory.c:1784 [inline]
+ set_memory_ro+0x78/0xa0 arch/x86/mm/pat/set_memory.c:1930
+ bpf_jit_binary_lock_ro include/linux/filter.h:815 [inline]
+ bpf_int_jit_compile+0xdc2/0x1164 arch/x86/net/bpf_jit_comp.c:1929
+ bpf_prog_select_runtime+0x49a/0x830 kernel/bpf/core.c:1807
+ bpf_migrate_filter net/core/filter.c:1264 [inline]
+ bpf_prepare_filter net/core/filter.c:1312 [inline]
+ bpf_prepare_filter+0x8b1/0xc30 net/core/filter.c:1278
+ __get_filter+0x20a/0x2c0 net/core/filter.c:1481
+ sk_attach_filter+0x19/0xa0 net/core/filter.c:1496
+ sock_setsockopt+0x1cab/0x2190 net/core/sock.c:1080
+ __sys_setsockopt+0x418/0x480 net/socket.c:2123
+ __do_sys_setsockopt net/socket.c:2143 [inline]
+ __se_sys_setsockopt net/socket.c:2140 [inline]
+ __x64_sys_setsockopt+0xba/0x150 net/socket.c:2140
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x45c909
+Code: 1d b2 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb b1 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ff8b1dacc78 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 000000000074bf00 RCX: 000000000045c909
+RDX: 000000000000001a RSI: 0000000000000001 RDI: 0000000000000003
+RBP: 0000000000717b40 R08: 0000000000000010 R09: 0000000000000000
+R10: 0000000020000200 R11: 0000000000000246 R12: 00007ff8b1dad6d4
+R13: 0000000000000a94 R14: 00000000006ed640 R15: 00000000004b43da
+Modules linked in:
+CR2: 0000000000000000
+---[ end trace 928b9b2cad8ca331 ]---
+RIP: 0010:__read_once_size include/linux/compiler.h:252 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x43/0x60 kernel/kcov.c:202
+Code: 24 74 0f 80 e6 01 74 35 8b 90 04 14 00 00 85 d2 74 2b 8b 90 e0 13 00 00 83 fa 02 75 20 48 8b 88 e8 13 00 00 8b 80 e4 13 00 00 <48> 8b 11 48 83 c2 01 48 39 d0 76 07 48 89 34 d1 48 89 11 c3 66 0f
+RSP: 0018:ffffc900011c75f8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffffe8ffae0098c0 RCX: 0000000000000000
+RDX: 0000000000000002 RSI: ffffffff8169318a RDI: 0000000000000005
+RBP: 0000000000000003 R08: ffff888061451200 R09: fffffbfff1516e6e
+R10: ffffffff8a8b736b R11: fffffbfff1516e6d R12: fffff91ff5c01319
+R13: 0000000000000002 R14: 0000000000000001 R15: dffffc0000000000
+FS:  00007ff8b1dad700(0000) GS:ffff88802d100000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000062f27000 CR4: 0000000000340ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

@@ -1,0 +1,99 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000001: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+CPU: 1 PID: 2958 Comm: systemd-journal Not tainted 5.15.0-rc6-next-20211019-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:blk_mq_free_request+0x16d/0x5d0 block/blk-mq.c:589
+Code: 48 8b 9d d8 00 00 00 48 85 db 0f 84 7c 02 00 00 e8 48 3d b3 fd 48 8d 7b 08 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 34 04 00 00 48 8b 7b 08 e8 90 97 fe ff 4c 89 fa
+RSP: 0000:ffffc90000dc0ca0 EFLAGS: 00010003
+RAX: dffffc0000000000 RBX: 0000000000000007 RCX: 0000000000000100
+RDX: 0000000000000001 RSI: ffffffff83c437a8 RDI: 000000000000000f
+RBP: ffff88801cf49c00 R08: 0000000000000001 R09: ffff88801cea58bf
+R10: ffffffff83ce54c3 R11: 0000000000000000 R12: ffff888147341ba0
+R13: ffff88801cf49c1c R14: ffff88801b528000 R15: ffff88801cf49cd8
+FS:  00007f8e74def8c0(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007faba903991b CR3: 000000001b4f7000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __blk_mq_end_request+0x339/0x580 block/blk-mq.c:782
+ blk_flush_complete_seq+0x561/0x1040 block/blk-flush.c:204
+ flush_end_io+0x76e/0xbf0 block/blk-flush.c:259
+ __blk_mq_end_request+0x123/0x580 block/blk-mq.c:780
+ scsi_end_request+0x485/0x980 drivers/scsi/scsi_lib.c:577
+ scsi_io_completion+0x24f/0x1650 drivers/scsi/scsi_lib.c:939
+ scsi_complete+0x129/0x3b0 drivers/scsi/scsi_lib.c:1433
+ blk_complete_reqs+0xad/0xe0 block/blk-mq.c:852
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:637
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:649
+ common_interrupt+0xa9/0xc0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x1e/0x40 arch/x86/include/asm/idtentry.h:629
+RIP: 0010:rmqueue mm/page_alloc.c:3721 [inline]
+RIP: 0010:get_page_from_freelist+0x8c1/0x2f50 mm/page_alloc.c:4144
+Code: e8 e4 51 a8 ff 48 83 7c 24 60 00 0f 85 34 13 00 00 9c 58 f6 c4 02 0f 85 9c 18 00 00 48 83 7c 24 60 00 74 01 fb 48 8b 44 24 28 <49> 8d 9e b8 05 00 00 48 85 c0 0f 84 0c 10 00 00 48 c1 e8 03 42 80
+RSP: 0000:ffffc9000b8d7640 EFLAGS: 00000206
+RAX: ffffea0001ff3d00 RBX: 0000000000000001 RCX: 1ffffffff1fef6b6
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffff8880b9d35620 R08: 0000000000000001 R09: ffffffff8ff46a8f
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff8880b9d35648
+R13: dffffc0000000000 R14: ffff88813fffb700 R15: 0000000000000000
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5386
+ alloc_pages_vma+0xf3/0x7d0 mm/mempolicy.c:2152
+ shmem_alloc_page+0x11f/0x1f0 mm/shmem.c:1579
+ shmem_alloc_and_acct_page+0x161/0x8c0 mm/shmem.c:1604
+ shmem_getpage_gfp+0x643/0x22d0 mm/shmem.c:1902
+ shmem_getpage mm/shmem.c:150 [inline]
+ shmem_fallocate+0x8cf/0xf80 mm/shmem.c:2735
+ vfs_fallocate+0x48d/0xe10 fs/open.c:307
+ ksys_fallocate fs/open.c:330 [inline]
+ __do_sys_fallocate fs/open.c:338 [inline]
+ __se_sys_fallocate fs/open.c:336 [inline]
+ __x64_sys_fallocate+0xcf/0x140 fs/open.c:336
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f8e740aebc6
+Code: 24 00 75 bf eb a0 0f 1f 40 00 66 2e 0f 1f 84 00 00 00 00 00 53 49 89 f1 48 89 d3 49 89 d2 b8 1d 01 00 00 48 89 f2 31 f6 0f 05 <3d> 00 f0 ff ff 76 13 83 f8 a1 74 16 f7 d8 5b c3 66 2e 0f 1f 84 00
+RSP: 002b:00007ffc2eb34e10 EFLAGS: 00000246 ORIG_RAX: 000000000000011d
+RAX: ffffffffffffffda RBX: 00000000007fff10 RCX: 00007f8e740aebc6
+RDX: 00000000000000f0 RSI: 0000000000000000 RDI: 0000000000000010
+RBP: 0000000000000005 R08: 00000000000000f0 R09: 00000000000000f0
+R10: 00000000007fff10 R11: 0000000000000246 R12: 000055a70584ae80
+R13: 00007ffc2eb34f50 R14: 00007ffc2eb34f58 R15: 0000000000800000
+ </TASK>
+Modules linked in:
+---[ end trace 6f298e7a9846da75 ]---
+RIP: 0010:blk_mq_free_request+0x16d/0x5d0 block/blk-mq.c:589
+Code: 48 8b 9d d8 00 00 00 48 85 db 0f 84 7c 02 00 00 e8 48 3d b3 fd 48 8d 7b 08 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 34 04 00 00 48 8b 7b 08 e8 90 97 fe ff 4c 89 fa
+RSP: 0000:ffffc90000dc0ca0 EFLAGS: 00010003
+RAX: dffffc0000000000 RBX: 0000000000000007 RCX: 0000000000000100
+RDX: 0000000000000001 RSI: ffffffff83c437a8 RDI: 000000000000000f
+RBP: ffff88801cf49c00 R08: 0000000000000001 R09: ffff88801cea58bf
+R10: ffffffff83ce54c3 R11: 0000000000000000 R12: ffff888147341ba0
+R13: ffff88801cf49c1c R14: ffff88801b528000 R15: ffff88801cf49cd8
+FS:  00007f8e74def8c0(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007faba903991b CR3: 000000001b4f7000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	48 8b 9d d8 00 00 00 	mov    0xd8(%rbp),%rbx
+   7:	48 85 db             	test   %rbx,%rbx
+   a:	0f 84 7c 02 00 00    	je     0x28c
+  10:	e8 48 3d b3 fd       	callq  0xfdb33d5d
+  15:	48 8d 7b 08          	lea    0x8(%rbx),%rdi
+  19:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  20:	fc ff df
+  23:	48 89 fa             	mov    %rdi,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	0f 85 34 04 00 00    	jne    0x468
+  34:	48 8b 7b 08          	mov    0x8(%rbx),%rdi
+  38:	e8 90 97 fe ff       	callq  0xfffe97cd
+  3d:	4c 89 fa             	mov    %r15,%rdx

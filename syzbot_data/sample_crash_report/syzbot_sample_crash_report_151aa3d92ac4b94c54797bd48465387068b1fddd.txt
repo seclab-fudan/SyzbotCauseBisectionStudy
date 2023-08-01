@@ -1,0 +1,93 @@
+8021q: adding VLAN 0 to HW filter on device team0
+8021q: adding VLAN 0 to HW filter on device team0
+list_add corruption. prev->next should be next (ffff8801c5b17ab0), but was ffff8801c5b17ac0. (prev=ffff8801a92d1b58).
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:28!
+invalid opcode: 0000 [#1] SMP KASAN
+CPU: 0 PID: 13 Comm: kworker/0:1 Not tainted 4.19.0-rc1+ #212
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+FS-Cache: Duplicate cookie detected
+Workqueue: events p9_write_work
+FS-Cache: O-cookie c=000000008e4eb276 [p=000000002fd7b0b4 fl=222 nc=0 na=1]
+RIP: 0010:__list_add_valid.cold.0+0x23/0x25 lib/list_debug.c:26
+Code: e8 4f 2b 5a fe eb 97 48 89 d9 48 c7 c7 60 b2 3a 87 e8 62 05 02 fe 0f 0b 48 89 f1 48 c7 c7 20 b3 3a 87 48 89 de e8 4e 05 02 fe <0f> 0b 4c 89 e2 48 89 de 48 c7 c7 60 b4 3a 87 e8 3a 05 02 fe 0f 0b
+RSP: 0018:ffff8801d9f17590 EFLAGS: 00010282
+FS-Cache: O-cookie d=0000000068a887e4 n=00000000257e8f2f
+RAX: 0000000000000075 RBX: ffff8801c5b17ab0 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff8163ac01 RDI: 0000000000000001
+RBP: ffff8801d9f175a8 R08: ffff8801d9f06340 R09: ffffed003b605010
+FS-Cache: O-key=[10] '
+R10: ffffed003b605010 R11: ffff8801db028087 R12: ffff8801a92d1b58
+R13: ffff8801a92d1b58 R14: ffff8801c5b17b04 R15: ffff8801a92d1b58
+FS:  0000000000000000(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+34
+CR2: 00000000006dc138 CR3: 00000001c845c000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+32
+Call Trace:
+ __list_add include/linux/list.h:60 [inline]
+ list_add_tail include/linux/list.h:93 [inline]
+ list_move_tail include/linux/list.h:183 [inline]
+ p9_write_work+0x34e/0xd50 net/9p/trans_fd.c:470
+39
+34
+37
+ process_one_work+0xc73/0x1aa0 kernel/workqueue.c:2153
+38
+31
+36
+31
+39
+'
+FS-Cache: N-cookie c=00000000da38e585 [p=000000002fd7b0b4 fl=2 nc=0 na=1]
+FS-Cache: N-cookie d=0000000068a887e4 n=000000005afa2e39
+FS-Cache: N-key=[10] '
+34
+32
+39
+ worker_thread+0x189/0x13c0 kernel/workqueue.c:2296
+34
+37
+38
+31
+36
+31
+39
+'
+ kthread+0x35a/0x420 kernel/kthread.c:246
+FS-Cache: Duplicate cookie detected
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:413
+Modules linked in:
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+---[ end trace c3e56d8d2cc1f8a2 ]---
+FS-Cache: O-cookie c=000000008e4eb276 [p=000000002fd7b0b4 fl=222 nc=0 na=1]
+RIP: 0010:__list_add_valid.cold.0+0x23/0x25 lib/list_debug.c:26
+FS-Cache: O-cookie d=0000000068a887e4 n=00000000257e8f2f
+Code: e8 4f 2b 5a fe eb 97 48 89 d9 48 c7 c7 60 b2 3a 87 e8 62 05 02 fe 0f 0b 48 89 f1 48 c7 c7 20 b3 3a 87 48 89 de e8 4e 05 02 fe <0f> 0b 4c 89 e2 48 89 de 48 c7 c7 60 b4 3a 87 e8 3a 05 02 fe 0f 0b
+FS-Cache: O-key=[10] '
+RSP: 0018:ffff8801d9f17590 EFLAGS: 00010282
+34
+32
+RAX: 0000000000000075 RBX: ffff8801c5b17ab0 RCX: 0000000000000000
+39
+RDX: 0000000000000000 RSI: ffffffff8163ac01 RDI: 0000000000000001
+34
+RBP: ffff8801d9f175a8 R08: ffff8801d9f06340 R09: ffffed003b605010
+37
+R10: ffffed003b605010 R11: ffff8801db028087 R12: ffff8801a92d1b58
+38
+R13: ffff8801a92d1b58 R14: ffff8801c5b17b04 R15: ffff8801a92d1b58
+31
+FS:  0000000000000000(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
+36
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+3139'
+CR2: 00000000006dc138 CR3: 00000001c845c000 CR4: 00000000001406f0
+FS-Cache: N-cookie c=00000000c3d88b67 [p=000000002fd7b0b4 fl=2 nc=0 na=1]
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+FS-Cache: N-cookie d=0000000068a887e4 n=00000000c137bf7f
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+FS-Cache: N-key=[10] '

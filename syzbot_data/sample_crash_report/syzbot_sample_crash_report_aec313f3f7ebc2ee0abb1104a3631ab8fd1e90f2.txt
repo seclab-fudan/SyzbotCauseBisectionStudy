@@ -1,0 +1,48 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 4554 Comm: syz-executor145 Not tainted 4.17.0-rc6+ #62
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__read_once_size include/linux/compiler.h:188 [inline]
+RIP: 0010:__radix_tree_delete+0x74/0x230 lib/radix-tree.c:1987
+RSP: 0018:ffff8801ae2cf108 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: dffffc0000000000 RCX: 1ffff10035c59e3e
+RDX: 0000000000000000 RSI: ffffffff87696bdd RDI: ffff8801a0469e68
+RBP: ffff8801ae2cf1a8 R08: ffff8801ad108680 R09: ffffed003408d3b1
+R10: ffff8801ae2cf2b8 R11: ffff8801a0469d8f R12: 0000000000000000
+R13: ffff8801a0469e68 R14: 0000000000000000 R15: ffff8801ae2cf230
+FS:  0000000000d0e880(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000180 CR3: 00000001ad029000 CR4: 00000000001426f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ radix_tree_delete_item+0x148/0x2d0 lib/radix-tree.c:2048
+ idr_remove+0x46/0x60 lib/idr.c:157
+ kvm_hv_eventfd_deassign arch/x86/kvm/hyperv.c:1435 [inline]
+ kvm_vm_ioctl_hv_eventfd+0x1df/0x24b arch/x86/kvm/hyperv.c:1453
+ kvm_arch_vm_ioctl+0x155e/0x2690 arch/x86/kvm/x86.c:4566
+ kvm_vm_ioctl+0x246/0x1d90 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3100
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:500 [inline]
+ do_vfs_ioctl+0x1cf/0x16a0 fs/ioctl.c:684
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:701
+ __do_sys_ioctl fs/ioctl.c:708 [inline]
+ __se_sys_ioctl fs/ioctl.c:706 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:706
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43fda9
+RSP: 002b:00007ffc4ee33e78 EFLAGS: 00000217 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 6d766b2f7665642f RCX: 000000000043fda9
+RDX: 0000000020000140 RSI: 000000004018aebd RDI: 00000000000003fd
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000217 R12: 00000000004016d0
+R13: 0000000000401760 R14: 0000000000000000 R15: 0000000000000000
+Code: 48 9a 88 48 c7 45 88 70 6b 69 87 c7 00 f1 f1 f1 f1 c7 40 04 00 f2 f2 f2 c7 40 08 f3 f3 f3 f3 e8 43 c4 0f fa 4c 89 f0 48 c1 e8 03 <80> 3c 18 00 0f 85 97 01 00 00 48 8d 55 d8 4c 8d 7a c0 49 8b 1e 
+RIP: __read_once_size include/linux/compiler.h:188 [inline] RSP: ffff8801ae2cf108
+RIP: __radix_tree_delete+0x74/0x230 lib/radix-tree.c:1987 RSP: ffff8801ae2cf108
+---[ end trace 9fd9d1d02d80eee6 ]---

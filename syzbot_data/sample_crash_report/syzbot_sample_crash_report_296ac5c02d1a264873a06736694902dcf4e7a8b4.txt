@@ -1,0 +1,216 @@
+overlayfs: upper fs needs to support d_type.
+overlayfs: upper fs does not support tmpfile.
+overlayfs: upper fs does not support RENAME_WHITEOUT.
+==================================================================
+BUG: KASAN: use-after-free in drop_metapage fs/jfs/jfs_metapage.c:223 [inline]
+BUG: KASAN: use-after-free in release_metapage+0xe08/0xf00 fs/jfs/jfs_metapage.c:757
+Read of size 8 at addr ffff888000e07b10 by task syz-executor.2/11247
+
+CPU: 3 PID: 11247 Comm: syz-executor.2 Not tainted 6.2.0-rc2-syzkaller-00203-g1f5abbd77e2c #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x15e/0x461 mm/kasan/report.c:417
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:517
+ drop_metapage fs/jfs/jfs_metapage.c:223 [inline]
+ release_metapage+0xe08/0xf00 fs/jfs/jfs_metapage.c:757
+ write_metapage fs/jfs/jfs_metapage.h:75 [inline]
+ flush_metapage fs/jfs/jfs_metapage.h:81 [inline]
+ ea_write+0x5d6/0xc90 fs/jfs/xattr.c:280
+ ea_put fs/jfs/xattr.c:617 [inline]
+ __jfs_setxattr+0xe26/0xfc0 fs/jfs/xattr.c:783
+ __jfs_xattr_set+0xc9/0x150 fs/jfs/xattr.c:917
+ __vfs_setxattr+0x173/0x1e0 fs/xattr.c:202
+ __vfs_setxattr_noperm+0x129/0x5f0 fs/xattr.c:236
+ __vfs_setxattr_locked+0x1d3/0x260 fs/xattr.c:297
+ vfs_setxattr+0x143/0x340 fs/xattr.c:323
+ ovl_do_setxattr fs/overlayfs/overlayfs.h:254 [inline]
+ ovl_setxattr fs/overlayfs/overlayfs.h:266 [inline]
+ ovl_make_workdir fs/overlayfs/super.c:1340 [inline]
+ ovl_get_workdir fs/overlayfs/super.c:1444 [inline]
+ ovl_fill_super+0x1fac/0x6330 fs/overlayfs/super.c:2000
+ mount_nodev+0x64/0x120 fs/super.c:1405
+ legacy_get_tree+0x109/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x8d/0x2f0 fs/super.c:1489
+ do_new_mount fs/namespace.c:3145 [inline]
+ path_mount+0x132a/0x1e20 fs/namespace.c:3475
+ do_mount fs/namespace.c:3488 [inline]
+ __do_sys_mount fs/namespace.c:3697 [inline]
+ __se_sys_mount fs/namespace.c:3674 [inline]
+ __x64_sys_mount+0x283/0x300 fs/namespace.c:3674
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fcab5e8c0c9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fcab49fe168 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007fcab5fabf80 RCX: 00007fcab5e8c0c9
+RDX: 0000000020000080 RSI: 0000000020000200 RDI: 0000000020000000
+RBP: 00007fcab5ee7ae9 R08: 0000000020000180 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffe919516df R14: 00007fcab49fe300 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 11247:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ __kasan_slab_alloc+0x7f/0x90 mm/kasan/common.c:325
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook mm/slab.h:761 [inline]
+ slab_alloc_node mm/slab.c:3261 [inline]
+ slab_alloc mm/slab.c:3270 [inline]
+ __kmem_cache_alloc_lru mm/slab.c:3447 [inline]
+ kmem_cache_alloc+0x225/0x460 mm/slab.c:3456
+ mempool_alloc+0x158/0x360 mm/mempool.c:398
+ alloc_metapage fs/jfs/jfs_metapage.c:176 [inline]
+ __get_metapage+0x73d/0xf00 fs/jfs/jfs_metapage.c:651
+ ea_write+0x6d7/0xc90 fs/jfs/xattr.c:256
+ ea_put fs/jfs/xattr.c:617 [inline]
+ __jfs_setxattr+0xe26/0xfc0 fs/jfs/xattr.c:783
+ __jfs_xattr_set+0xc9/0x150 fs/jfs/xattr.c:917
+ __vfs_setxattr+0x173/0x1e0 fs/xattr.c:202
+ __vfs_setxattr_noperm+0x129/0x5f0 fs/xattr.c:236
+ __vfs_setxattr_locked+0x1d3/0x260 fs/xattr.c:297
+ vfs_setxattr+0x143/0x340 fs/xattr.c:323
+ ovl_do_setxattr fs/overlayfs/overlayfs.h:254 [inline]
+ ovl_setxattr fs/overlayfs/overlayfs.h:266 [inline]
+ ovl_make_workdir fs/overlayfs/super.c:1340 [inline]
+ ovl_get_workdir fs/overlayfs/super.c:1444 [inline]
+ ovl_fill_super+0x1fac/0x6330 fs/overlayfs/super.c:2000
+ mount_nodev+0x64/0x120 fs/super.c:1405
+ legacy_get_tree+0x109/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x8d/0x2f0 fs/super.c:1489
+ do_new_mount fs/namespace.c:3145 [inline]
+ path_mount+0x132a/0x1e20 fs/namespace.c:3475
+ do_mount fs/namespace.c:3488 [inline]
+ __do_sys_mount fs/namespace.c:3697 [inline]
+ __se_sys_mount fs/namespace.c:3674 [inline]
+ __x64_sys_mount+0x283/0x300 fs/namespace.c:3674
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 11241:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2b/0x40 mm/kasan/generic.c:518
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x13b/0x1a0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ __cache_free mm/slab.c:3394 [inline]
+ __do_kmem_cache_free mm/slab.c:3580 [inline]
+ kmem_cache_free mm/slab.c:3605 [inline]
+ kmem_cache_free+0x108/0x4c0 mm/slab.c:3598
+ mempool_free+0xe7/0x3b0 mm/mempool.c:507
+ free_metapage fs/jfs/jfs_metapage.c:191 [inline]
+ metapage_release_folio+0x2b5/0x3c0 fs/jfs/jfs_metapage.c:551
+ filemap_release_folio+0x13f/0x1b0 mm/filemap.c:3967
+ shrink_folio_list+0x1ea9/0x3a60 mm/vmscan.c:2000
+ shrink_inactive_list mm/vmscan.c:2526 [inline]
+ shrink_list mm/vmscan.c:2767 [inline]
+ shrink_lruvec+0xd0e/0x27a0 mm/vmscan.c:5951
+ shrink_node_memcgs mm/vmscan.c:6138 [inline]
+ shrink_node+0x8f2/0x1f40 mm/vmscan.c:6169
+ shrink_zones mm/vmscan.c:6407 [inline]
+ do_try_to_free_pages+0x3b4/0x17a0 mm/vmscan.c:6469
+ try_to_free_pages+0x2e5/0x960 mm/vmscan.c:6704
+ __perform_reclaim mm/page_alloc.c:4750 [inline]
+ __alloc_pages_direct_reclaim mm/page_alloc.c:4772 [inline]
+ __alloc_pages_slowpath.constprop.0+0x8b6/0x23d0 mm/page_alloc.c:5178
+ __alloc_pages+0x4aa/0x5b0 mm/page_alloc.c:5562
+ __folio_alloc+0x16/0x40 mm/page_alloc.c:5581
+ vma_alloc_folio+0x155/0x870 mm/mempolicy.c:2247
+ shmem_alloc_folio+0xfe/0x1d0 mm/shmem.c:1571
+ shmem_alloc_and_acct_folio+0x15e/0x5d0 mm/shmem.c:1595
+ shmem_get_folio_gfp+0xb2e/0x1a30 mm/shmem.c:1922
+ shmem_get_folio mm/shmem.c:2053 [inline]
+ shmem_write_begin+0x14a/0x380 mm/shmem.c:2545
+ generic_perform_write+0x256/0x570 mm/filemap.c:3772
+ __generic_file_write_iter+0x2ae/0x500 mm/filemap.c:3900
+ generic_file_write_iter+0xe3/0x350 mm/filemap.c:3932
+ call_write_iter include/linux/fs.h:2186 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x9ed/0xdd0 fs/read_write.c:584
+ ksys_write+0x12b/0x250 fs/read_write.c:637
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff888000e07ae8
+ which belongs to the cache jfs_mp of size 184
+The buggy address is located 40 bytes inside of
+ 184-byte region [ffff888000e07ae8, ffff888000e07ba0)
+
+The buggy address belongs to the physical page:
+page:ffffea00000381c0 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0xe07
+flags: 0x7ff00000000200(slab|node=0|zone=0|lastcpupid=0x7ff)
+raw: 007ff00000000200 ffff8880437c3700 ffffea0000005150 ffffea0000b0f090
+raw: 0000000000000000 ffff888000e07040 0000000100000010 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x2d2000(__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC|__GFP_THISNODE), pid 10852, tgid 10851 (syz-executor.3), ts 565847132541, free_ts 565313440874
+ prep_new_page mm/page_alloc.c:2531 [inline]
+ get_page_from_freelist+0x119c/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages_slowpath.constprop.0+0x36b/0x23d0 mm/page_alloc.c:5084
+ __alloc_pages+0x4aa/0x5b0 mm/page_alloc.c:5562
+ __alloc_pages_node include/linux/gfp.h:237 [inline]
+ kmem_getpages mm/slab.c:1363 [inline]
+ cache_grow_begin+0x94/0x390 mm/slab.c:2574
+ cache_alloc_refill+0x27f/0x380 mm/slab.c:2947
+ ____cache_alloc mm/slab.c:3023 [inline]
+ ____cache_alloc mm/slab.c:3006 [inline]
+ __do_cache_alloc mm/slab.c:3206 [inline]
+ slab_alloc_node mm/slab.c:3254 [inline]
+ slab_alloc mm/slab.c:3270 [inline]
+ __kmem_cache_alloc_lru mm/slab.c:3447 [inline]
+ kmem_cache_alloc+0x366/0x460 mm/slab.c:3456
+ mempool_alloc+0x158/0x360 mm/mempool.c:398
+ alloc_metapage fs/jfs/jfs_metapage.c:176 [inline]
+ __get_metapage+0x73d/0xf00 fs/jfs/jfs_metapage.c:651
+ diIAGRead.isra.0+0xcd/0x140 fs/jfs/jfs_imap.c:2662
+ diRead+0x1ff/0xa10 fs/jfs/jfs_imap.c:315
+ jfs_iget+0x86/0x4d0 fs/jfs/inode.c:35
+ jfs_fill_super+0x6a8/0xc80 fs/jfs/super.c:580
+ mount_bdev+0x351/0x410 fs/super.c:1359
+ legacy_get_tree+0x109/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x8d/0x2f0 fs/super.c:1489
+ do_new_mount fs/namespace.c:3145 [inline]
+ path_mount+0x132a/0x1e20 fs/namespace.c:3475
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1446 [inline]
+ free_pcp_prepare+0x65c/0xc00 mm/page_alloc.c:1496
+ free_unref_page_prepare mm/page_alloc.c:3369 [inline]
+ free_unref_page_list+0x176/0xcd0 mm/page_alloc.c:3510
+ release_pages+0xcb1/0x1330 mm/swap.c:1076
+ __pagevec_release+0x77/0xe0 mm/swap.c:1096
+ pagevec_release include/linux/pagevec.h:71 [inline]
+ folio_batch_release include/linux/pagevec.h:135 [inline]
+ truncate_inode_pages_range+0x2ec/0xec0 mm/truncate.c:372
+ kill_bdev block/bdev.c:76 [inline]
+ blkdev_flush_mapping+0x140/0x2f0 block/bdev.c:662
+ blkdev_put_whole+0xd1/0xf0 block/bdev.c:693
+ blkdev_put+0x224/0x770 block/bdev.c:953
+ deactivate_locked_super+0x98/0x160 fs/super.c:332
+ deactivate_super+0xb1/0xd0 fs/super.c:363
+ cleanup_mnt+0x2ae/0x3d0 fs/namespace.c:1291
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x23c/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Memory state around the buggy address:
+ ffff888000e07a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888000e07a80: fb fb fb fb fb fc fc fc fc fc fc fc fc fa fb fb
+>ffff888000e07b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                         ^
+ ffff888000e07b80: fb fb fb fb fc fc fc fc fc fc fc fc fa fb fb fb
+ ffff888000e07c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

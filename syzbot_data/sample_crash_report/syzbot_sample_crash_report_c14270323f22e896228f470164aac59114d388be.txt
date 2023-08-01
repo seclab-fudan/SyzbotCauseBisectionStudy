@@ -1,0 +1,96 @@
+==================================================================
+BUG: KASAN: use-after-free in constant_test_bit arch/x86/include/asm/bitops.h:328 [inline]
+BUG: KASAN: use-after-free in work_is_static_object+0x39/0x40 kernel/workqueue.c:442
+Read of size 8 at addr ffff8801bfb8ebe0 by task kworker/1:2/1876
+
+CPU: 1 PID: 1876 Comm: kworker/1:2 Not tainted 4.18.0-rc8+ #182
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events p9_poll_workfn
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ constant_test_bit arch/x86/include/asm/bitops.h:328 [inline]
+ work_is_static_object+0x39/0x40 kernel/workqueue.c:442
+ debug_object_activate+0x2fc/0x690 lib/debugobjects.c:508
+ debug_work_activate kernel/workqueue.c:491 [inline]
+ __queue_work+0x1ca/0x1410 kernel/workqueue.c:1380
+ queue_work_on+0x19a/0x1e0 kernel/workqueue.c:1486
+ queue_work include/linux/workqueue.h:512 [inline]
+ schedule_work include/linux/workqueue.h:570 [inline]
+ p9_poll_mux net/9p/trans_fd.c:628 [inline]
+ p9_poll_workfn+0x55e/0x6d0 net/9p/trans_fd.c:1107
+ process_one_work+0xc73/0x1ba0 kernel/workqueue.c:2153
+ worker_thread+0x189/0x13c0 kernel/workqueue.c:2296
+ kthread+0x345/0x410 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Allocated by task 5557:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x780 mm/slab.c:3620
+ kmalloc include/linux/slab.h:513 [inline]
+ kzalloc include/linux/slab.h:707 [inline]
+ p9_fd_open net/9p/trans_fd.c:796 [inline]
+ p9_fd_create+0x1a7/0x3f0 net/9p/trans_fd.c:1036
+ p9_client_create+0x8ed/0x1770 net/9p/client.c:1063
+ v9fs_session_init+0x21a/0x1a80 fs/9p/v9fs.c:400
+ v9fs_mount+0x7c/0x900 fs/9p/vfs_super.c:135
+ mount_fs+0xae/0x328 fs/super.c:1277
+ vfs_kern_mount.part.34+0xdc/0x4e0 fs/namespace.c:1037
+ vfs_kern_mount fs/namespace.c:1027 [inline]
+ do_new_mount fs/namespace.c:2518 [inline]
+ do_mount+0x581/0x30e0 fs/namespace.c:2848
+ ksys_mount+0x12d/0x140 fs/namespace.c:3064
+ __do_sys_mount fs/namespace.c:3078 [inline]
+ __se_sys_mount fs/namespace.c:3075 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3075
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 5557:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ p9_fd_close+0x416/0x5b0 net/9p/trans_fd.c:893
+ p9_client_create+0xa9a/0x1770 net/9p/client.c:1077
+ v9fs_session_init+0x21a/0x1a80 fs/9p/v9fs.c:400
+ v9fs_mount+0x7c/0x900 fs/9p/vfs_super.c:135
+ mount_fs+0xae/0x328 fs/super.c:1277
+ vfs_kern_mount.part.34+0xdc/0x4e0 fs/namespace.c:1037
+ vfs_kern_mount fs/namespace.c:1027 [inline]
+ do_new_mount fs/namespace.c:2518 [inline]
+ do_mount+0x581/0x30e0 fs/namespace.c:2848
+ ksys_mount+0x12d/0x140 fs/namespace.c:3064
+ __do_sys_mount fs/namespace.c:3078 [inline]
+ __se_sys_mount fs/namespace.c:3075 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3075
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801bfb8eac0
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 288 bytes inside of
+ 512-byte region [ffff8801bfb8eac0, ffff8801bfb8ecc0)
+The buggy address belongs to the page:
+page:ffffea0006fee380 count:1 mapcount:0 mapping:ffff8801dac00940 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0006fe2fc8 ffffea0006fee488 ffff8801dac00940
+raw: 0000000000000000 ffff8801bfb8e0c0 0000000100000006 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bfb8ea80: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8801bfb8eb00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801bfb8eb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                       ^
+ ffff8801bfb8ec00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bfb8ec80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================

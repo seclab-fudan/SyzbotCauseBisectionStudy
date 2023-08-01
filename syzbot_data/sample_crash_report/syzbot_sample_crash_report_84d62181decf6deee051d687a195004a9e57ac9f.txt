@@ -1,0 +1,104 @@
+INFO: task syz-executor153:5080 blocked for more than 143 seconds.
+      Not tainted 6.3.0-rc4-syzkaller-00174-g2bac7dc169af #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor153 state:D stack:27808 pid:5080  ppid:5078   flags:0x00004006
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5307 [inline]
+ __schedule+0xc91/0x5770 kernel/sched/core.c:6625
+ schedule+0xde/0x1a0 kernel/sched/core.c:6701
+ schedule_preempt_disabled+0x13/0x20 kernel/sched/core.c:6760
+ __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+ __mutex_lock+0xa3b/0x1350 kernel/locking/mutex.c:747
+ blkdev_put+0xc0/0x770 block/bdev.c:833
+ blkdev_close+0x68/0x80 block/fops.c:507
+ __fput+0x27c/0xa90 fs/file_table.c:321
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ ptrace_notify+0x118/0x140 kernel/signal.c:2354
+ ptrace_report_syscall include/linux/ptrace.h:411 [inline]
+ ptrace_report_syscall_exit include/linux/ptrace.h:473 [inline]
+ syscall_exit_work kernel/entry/common.c:252 [inline]
+ syscall_exit_to_user_mode_prepare+0x129/0x220 kernel/entry/common.c:279
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:284 [inline]
+ syscall_exit_to_user_mode+0xd/0x50 kernel/entry/common.c:297
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f05bccbcbbb
+RSP: 002b:00007ffd37c220f0 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000006 RCX: 00007f05bccbcbbb
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000005
+RBP: 0000000000000006 R08: 0000000000000000 R09: 0000000000000064
+R10: 0000000000000000 R11: 0000000000000293 R12: 000000000000c50c
+R13: 00007f05bcd854cc R14: 00007ffd37c22150 R15: 00007f05bcd854c0
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/11:
+ #0: ffffffff8c791ab0 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+1 lock held by rcu_tasks_trace/12:
+ #0: ffffffff8c7917b0 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+1 lock held by khungtaskd/27:
+ #0: ffffffff8c792600 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x55/0x340 kernel/locking/lockdep.c:6495
+2 locks held by getty/4755:
+ #0: ffff88802b759098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x26/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc900020182f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xef4/0x13e0 drivers/tty/n_tty.c:2177
+1 lock held by syz-executor153/5080:
+ #0: ffff88801f3de4c8 (&disk->open_mutex){+.+.}-{3:3}, at: blkdev_put+0xc0/0x770 block/bdev.c:833
+1 lock held by udevd/5083:
+ #0: ffff88801f3de4c8 (&disk->open_mutex){+.+.}-{3:3}, at: blkdev_get_by_dev.part.0+0x9b/0xb80 block/bdev.c:735
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 27 Comm: khungtaskd Not tainted 6.3.0-rc4-syzkaller-00174-g2bac7dc169af #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ nmi_cpu_backtrace+0x29c/0x350 lib/nmi_backtrace.c:113
+ nmi_trigger_cpumask_backtrace+0x2a4/0x300 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:222 [inline]
+ watchdog+0xe16/0x1090 kernel/hung_task.c:379
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 40 Comm: kworker/u4:2 Not tainted 6.3.0-rc4-syzkaller-00174-g2bac7dc169af #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Workqueue: events_unbound toggle_allocation_gate
+RIP: 0010:match_held_lock+0x70/0xc0 kernel/locking/lockdep.c:5145
+Code: 06 48 0f af c2 0f b7 53 20 81 e2 ff 1f 00 00 48 39 d0 0f 94 c0 48 83 c4 08 0f b6 c0 5b c3 31 f6 e8 65 fe ff ff 48 85 c0 75 b2 <31> c0 48 83 c4 08 5b c3 48 83 c4 08 b8 01 00 00 00 5b c3 e8 88 bb
+RSP: 0018:ffffc90000d1f978 EFLAGS: 00000046
+RAX: 0000000000000000 RBX: ffff8880176bac38 RCX: 0000000000000001
+RDX: 0000000000000000 RSI: ffffffff8c7925a0 RDI: ffff8880176bac38
+RBP: ffffffff8c7925a0 R08: ffffffff812df6fc R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8880176ba200
+R13: ffff8880176bac38 R14: 00000000ffffffff R15: ffff8880176bac38
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f2b7d0bd990 CR3: 000000000c571000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __lock_is_held kernel/locking/lockdep.c:5410 [inline]
+ lock_is_held_type+0xab/0x140 kernel/locking/lockdep.c:5712
+ lock_is_held include/linux/lockdep.h:283 [inline]
+ __might_resched+0x414/0x580 kernel/sched/core.c:10023
+ __mutex_lock_common kernel/locking/mutex.c:580 [inline]
+ __mutex_lock+0x9f/0x1350 kernel/locking/mutex.c:747
+ arch_jump_label_transform_queue+0x5c/0x100 arch/x86/kernel/jump_label.c:136
+ __jump_label_update+0x12e/0x410 kernel/jump_label.c:475
+ jump_label_update+0x32f/0x410 kernel/jump_label.c:829
+ static_key_disable_cpuslocked+0x156/0x1b0 kernel/jump_label.c:235
+ static_key_disable+0x1a/0x20 kernel/jump_label.c:243
+ toggle_allocation_gate mm/kfence/core.c:808 [inline]
+ toggle_allocation_gate+0x143/0x230 mm/kfence/core.c:795
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>

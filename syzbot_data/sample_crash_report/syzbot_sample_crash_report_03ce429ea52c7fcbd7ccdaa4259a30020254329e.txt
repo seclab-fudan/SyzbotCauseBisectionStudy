@@ -1,0 +1,111 @@
+INFO: task syz-executor.1:2128 blocked for more than 143 seconds.
+      Not tainted 5.2.0+ #24
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor.1  D25064  2128  11264 0x00004004
+Call Trace:
+ context_switch kernel/sched/core.c:3252 [inline]
+ __schedule+0x655/0x9e0 kernel/sched/core.c:3878
+ schedule+0x131/0x1d0 kernel/sched/core.c:3942
+ schedule_timeout+0x9a/0x2b0 kernel/time/timer.c:1783
+ do_wait_for_common+0x35e/0x5a0 kernel/sched/completion.c:83
+ __wait_for_common kernel/sched/completion.c:104 [inline]
+ wait_for_common kernel/sched/completion.c:115 [inline]
+ wait_for_completion+0x47/0x60 kernel/sched/completion.c:136
+ kthread_stop+0xb4/0x150 kernel/kthread.c:559
+ io_sq_thread_stop fs/io_uring.c:2249 [inline]
+ io_finish_async fs/io_uring.c:2256 [inline]
+ io_ring_ctx_free fs/io_uring.c:2767 [inline]
+ io_ring_ctx_wait_and_kill+0x268/0x880 fs/io_uring.c:2831
+ io_uring_release+0x5d/0x70 fs/io_uring.c:2839
+ __fput+0x2e4/0x740 fs/file_table.c:280
+ ____fput+0x15/0x20 fs/file_table.c:313
+ task_work_run+0x17e/0x1b0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:185 [inline]
+ exit_to_usermode_loop arch/x86/entry/common.c:163 [inline]
+ prepare_exit_to_usermode+0x43a/0x560 arch/x86/entry/common.c:194
+ syscall_return_slowpath+0x110/0x440 arch/x86/entry/common.c:274
+ do_syscall_64+0x126/0x140 arch/x86/entry/common.c:299
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x413501
+Code: 39 0f 87 d1 03 00 00 49 89 f2 45 31 db 45 31 e4 eb 27 4d 8d 6b 08 44 0f b6 36 49 89 cf 4c 89 d9 49 d3 e6 48 83 f9 40 4c 89 f9 <4d> 19 ff 4d 21 f7 4d 09 fc 48 ff c6 4d 89 eb 4d 39 cb 72 d4 4c 89
+RSP: 002b:00007fff26c4cde0 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000413501
+RDX: 0000001b33a20000 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 0000000000000001 R08: 000000007c69ae79 R09: 000000007c69ae7d
+R10: 00007fff26c4cec0 R11: 0000000000000293 R12: 000000000075bf20
+R13: 00000000000df4e1 R14: 0000000000760570 R15: ffffffffffffffff
+
+Showing all locks held in the system:
+3 locks held by kworker/u4:2/40:
+ #0: 00000000f570f4e7 (&rq->lock){-.-.}, at: idle_balance kernel/sched/fair.c:9815 [inline]
+ #0: 00000000f570f4e7 (&rq->lock){-.-.}, at: pick_next_task_fair+0xa98/0x1e70 kernel/sched/fair.c:6852
+ #1: 000000005cfb0075 (rcu_read_lock){....}, at: rcu_lock_acquire+0x4/0x30 include/linux/rcupdate.h:207
+ #2: 000000003c5a69ae (&base->lock){-.-.}, at: lock_timer_base kernel/time/timer.c:932 [inline]
+ #2: 000000003c5a69ae (&base->lock){-.-.}, at: __mod_timer+0x21e/0x1640 kernel/time/timer.c:1004
+1 lock held by khungtaskd/1047:
+ #0: 000000005cfb0075 (rcu_read_lock){....}, at: rcu_lock_acquire+0x4/0x30 include/linux/rcupdate.h:207
+7 locks held by rs:main Q:Reg/8112:
+1 lock held by rsyslogd/8114:
+ #0: 00000000b7b47c4d (&f->f_pos_lock){+.+.}, at: __fdget_pos+0x243/0x2e0 fs/file.c:801
+2 locks held by getty/8204:
+ #0: 0000000077c19bdd (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:272
+ #1: 000000004eb918a6 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ee/0x1c80 drivers/tty/n_tty.c:2156
+2 locks held by getty/8205:
+ #0: 000000009c416157 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:272
+ #1: 00000000518ef001 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ee/0x1c80 drivers/tty/n_tty.c:2156
+2 locks held by getty/8206:
+ #0: 000000007285d44d (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:272
+ #1: 00000000e8848a04 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ee/0x1c80 drivers/tty/n_tty.c:2156
+2 locks held by getty/8207:
+ #0: 000000008c5081e6 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:272
+ #1: 00000000e4095aab (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ee/0x1c80 drivers/tty/n_tty.c:2156
+2 locks held by getty/8208:
+ #0: 000000000c77238e (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:272
+ #1: 00000000c414ee5f (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ee/0x1c80 drivers/tty/n_tty.c:2156
+2 locks held by getty/8209:
+ #0: 00000000bbb13b98 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:272
+ #1: 00000000c6446ee5 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ee/0x1c80 drivers/tty/n_tty.c:2156
+2 locks held by getty/8210:
+ #0: 00000000177cddb2 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:272
+ #1: 0000000039c86c66 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ee/0x1c80 drivers/tty/n_tty.c:2156
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 1047 Comm: khungtaskd Not tainted 5.2.0+ #24
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d8/0x2f8 lib/dump_stack.c:113
+ nmi_cpu_backtrace+0x89/0x160 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x131/0x240 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x10/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace+0x17/0x20 include/linux/nmi.h:146
+ check_hung_uninterruptible_tasks kernel/hung_task.c:205 [inline]
+ watchdog+0xbb9/0xbd0 kernel/hung_task.c:289
+ kthread+0x325/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 5 Comm: kworker/0:0 Not tainted 5.2.0+ #24
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_power_efficient gc_worker
+RIP: 0010:rcu_read_lock include/linux/rcupdate.h:593 [inline]
+RIP: 0010:gc_worker+0x171/0xf50 net/netfilter/nf_conntrack_core.c:1246
+Code: 11 0f 1f 84 00 00 00 00 00 89 44 24 2c e8 97 dd 41 fb e8 22 19 2f fb 48 c7 c7 c0 60 cd 88 e8 a6 dd ff ff e8 91 0a 2e fb 89 c3 <31> ff 89 c6 e8 16 e1 41 fb 85 db 74 12 80 3d 92 73 c5 02 01 75 19
+RSP: 0018:ffff8880a9877b60 EFLAGS: 00000246
+RAX: 0000000000000001 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: dffffc0000000000 RSI: dffffc0000000000 RDI: 0000000000000286
+RBP: ffff8880a9877c70 R08: dffffc0000000000 R09: 000000000000000a
+R10: 1ffff1101530bd37 R11: 0000000000000000 R12: 0000000000000000
+R13: dffffc0000000000 R14: ffff88809c300080 R15: 000000000000369f
+FS:  0000000000000000(0000) GS:ffff8880aea00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c423199000 CR3: 000000008ba65000 CR4: 00000000001426f0
+DR0: 0000000020000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000600
+Call Trace:
+ process_one_work+0x82b/0x1140 kernel/workqueue.c:2269
+ worker_thread+0xc01/0x1640 kernel/workqueue.c:2415
+ kthread+0x325/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352

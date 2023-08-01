@@ -1,0 +1,166 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in dst_dev_put+0x219/0x290 net/core/dst.c:168
+Read of size 8 at addr ffff88803291eca8 by task syz-executor0/15230
+
+CPU: 1 PID: 15230 Comm: syz-executor0 Not tainted 4.20.0+ #11
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ dst_dev_put+0x219/0x290 net/core/dst.c:168
+ rt_fibinfo_free_cpus net/ipv4/fib_semantics.c:200 [inline]
+ free_fib_info_rcu+0x2f4/0x4a0 net/ipv4/fib_semantics.c:217
+ __rcu_reclaim kernel/rcu/rcu.h:240 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2452 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2773 [inline]
+ rcu_process_callbacks+0xc4a/0x1680 kernel/rcu/tree.c:2754
+ __do_softirq+0x30b/0xb11 kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x180/0x1d0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1b7/0x760 arch/x86/kernel/apic/apic.c:1062
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+RIP: 0010:PageSwapBacked include/linux/page-flags.h:307 [inline]
+RIP: 0010:PageSwapCache include/linux/page-flags.h:352 [inline]
+RIP: 0010:free_swap_cache mm/swap_state.c:266 [inline]
+RIP: 0010:free_pages_and_swap_cache+0x214/0x6a0 mm/swap_state.c:294
+Code: 42 43 c4 ff 48 8b b5 d0 fe ff ff 4c 89 e7 48 8b 85 c8 fe ff ff 48 85 f6 0f 85 28 03 00 00 48 89 bd d0 fe ff ff e8 7c 41 c4 ff <48> 8b bd d0 fe ff ff 48 89 f8 48 c1 e8 03 80 3c 18 00 0f 85 70 03
+tls_set_device_offload_rx: netdev lo with no TLS offload
+RSP: 0018:ffff88809fabeef0 EFLAGS: 00000293 ORIG_RAX: ffffffffffffff13
+RAX: ffff88808b6de5c0 RBX: dffffc0000000000 RCX: ffffffff81bdb6ee
+RDX: 0000000000000000 RSI: ffffffff81bdb714 RDI: ffffea00027ccc40
+RBP: ffff88809fabf040 R08: ffff88808b6de5c0 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffffea00027ccc40
+R13: ffffea00027ccc40 R14: ffffea00027ccc48 R15: ffff88809fabf018
+ tlb_flush_mmu_free+0x4e/0x120 mm/mmu_gather.c:74
+ zap_pte_range mm/memory.c:1157 [inline]
+ zap_pmd_range mm/memory.c:1192 [inline]
+ zap_pud_range mm/memory.c:1221 [inline]
+ zap_p4d_range mm/memory.c:1242 [inline]
+ unmap_page_range+0x1c49/0x25a0 mm/memory.c:1263
+ unmap_single_vma+0x19d/0x300 mm/memory.c:1308
+ unmap_vmas+0x17c/0x310 mm/memory.c:1339
+ exit_mmap+0x2d4/0x5d0 mm/mmap.c:3140
+ __mmput kernel/fork.c:1046 [inline]
+ mmput+0x240/0x640 kernel/fork.c:1067
+tls_set_device_offload_rx: netdev lo with no TLS offload
+ exit_mm kernel/exit.c:545 [inline]
+ do_exit+0x9d3/0x2650 kernel/exit.c:854
+ do_group_exit+0x177/0x430 kernel/exit.c:970
+ get_signal+0x8b4/0x19b0 kernel/signal.c:2517
+ do_signal+0x91/0x1ea0 arch/x86/kernel/signal.c:816
+tls_set_device_offload_rx: netdev lo with no TLS offload
+ exit_to_usermode_loop+0x2f7/0x3b0 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x696/0x800 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457ec9
+Code: Bad RIP value.
+RSP: 002b:00007fa0c9fcfc78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: fffffffffffffff2 RBX: 0000000000000003 RCX: 0000000000457ec9
+RDX: 00000000200001c0 RSI: 0020000000008912 RDI: 0000000000000005
+RBP: 000000000073bfa0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fa0c9fd06d4
+R13: 00000000004bf0f5 R14: 00000000004d06d0 R15: 00000000ffffffff
+tls_set_device_offload_rx: netdev lo with no TLS offload
+
+Allocated by task 15139:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ kasan_kmalloc mm/kasan/common.c:482 [inline]
+ kasan_kmalloc+0xcf/0xe0 mm/kasan/common.c:455
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:397
+ kmem_cache_alloc_node+0x144/0x710 mm/slab.c:3631
+ __alloc_skb+0xf4/0x730 net/core/skbuff.c:196
+ alloc_skb include/linux/skbuff.h:1011 [inline]
+ nlmsg_new include/net/netlink.h:654 [inline]
+ rtmsg_ifinfo_build_skb+0x74/0x1a0 net/core/rtnetlink.c:3407
+ rtmsg_ifinfo_event.part.0+0x43/0xe0 net/core/rtnetlink.c:3443
+ rtmsg_ifinfo_event net/core/rtnetlink.c:3454 [inline]
+ rtmsg_ifinfo+0x8d/0xa0 net/core/rtnetlink.c:3452
+ __dev_notify_flags+0x2e9/0x470 net/core/dev.c:7601
+ dev_change_flags+0x10d/0x170 net/core/dev.c:7643
+ do_setlink+0x17f5/0x3e10 net/core/rtnetlink.c:2492
+ __rtnl_newlink+0xd58/0x1a70 net/core/rtnetlink.c:3115
+ rtnl_newlink+0x69/0xa0 net/core/rtnetlink.c:3240
+ rtnetlink_rcv_msg+0x481/0xc30 net/core/rtnetlink.c:5130
+ netlink_rcv_skb+0x17d/0x410 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5148
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x574/0x770 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa05/0xf90 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ __sys_sendto+0x387/0x5f0 net/socket.c:1788
+ __do_sys_sendto net/socket.c:1800 [inline]
+ __se_sys_sendto net/socket.c:1796 [inline]
+ __x64_sys_sendto+0xe1/0x1a0 net/socket.c:1796
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 15139:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:444
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:452
+ __cache_free mm/slab.c:3485 [inline]
+ kmem_cache_free+0x86/0x260 mm/slab.c:3747
+ kfree_skbmem net/core/skbuff.c:585 [inline]
+ kfree_skbmem+0x14e/0x230 net/core/skbuff.c:579
+ __kfree_skb net/core/skbuff.c:642 [inline]
+ consume_skb net/core/skbuff.c:701 [inline]
+ consume_skb+0x194/0x550 net/core/skbuff.c:695
+ netlink_broadcast_filtered+0x6e7/0x16f0 net/netlink/af_netlink.c:1512
+ netlink_broadcast net/netlink/af_netlink.c:1534 [inline]
+ nlmsg_multicast include/net/netlink.h:734 [inline]
+ nlmsg_notify+0x93/0x1c0 net/netlink/af_netlink.c:2520
+ rtnl_notify net/core/rtnetlink.c:742 [inline]
+ rtmsg_ifinfo_send net/core/rtnetlink.c:3431 [inline]
+ rtmsg_ifinfo_event.part.0+0xb0/0xe0 net/core/rtnetlink.c:3446
+ rtmsg_ifinfo_event net/core/rtnetlink.c:3454 [inline]
+ rtmsg_ifinfo+0x8d/0xa0 net/core/rtnetlink.c:3452
+ __dev_notify_flags+0x2e9/0x470 net/core/dev.c:7601
+ dev_change_flags+0x10d/0x170 net/core/dev.c:7643
+ do_setlink+0x17f5/0x3e10 net/core/rtnetlink.c:2492
+ __rtnl_newlink+0xd58/0x1a70 net/core/rtnetlink.c:3115
+ rtnl_newlink+0x69/0xa0 net/core/rtnetlink.c:3240
+ rtnetlink_rcv_msg+0x481/0xc30 net/core/rtnetlink.c:5130
+ netlink_rcv_skb+0x17d/0x410 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5148
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x574/0x770 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa05/0xf90 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ __sys_sendto+0x387/0x5f0 net/socket.c:1788
+ __do_sys_sendto net/socket.c:1800 [inline]
+ __se_sys_sendto net/socket.c:1796 [inline]
+ __x64_sys_sendto+0xe1/0x1a0 net/socket.c:1796
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88803291eb80
+ which belongs to the cache skbuff_head_cache of size 224
+The buggy address is located 72 bytes to the right of
+ 224-byte region [ffff88803291eb80, ffff88803291ec60)
+The buggy address belongs to the page:
+page:ffffea0000ca4780 count:1 mapcount:0 mapping:ffff8880aa16a040 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea0001b18448 ffffea0001a2cbc8 ffff8880aa16a040
+raw: 0000000000000000 ffff88803291e040 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88803291eb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88803291ec00: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+>ffff88803291ec80: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                  ^
+ ffff88803291ed00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88803291ed80: fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

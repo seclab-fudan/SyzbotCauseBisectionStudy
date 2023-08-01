@@ -1,0 +1,150 @@
+wlan0: Created IBSS using preconfigured BSSID 50:50:50:50:50:50
+wlan0: Creating new IBSS network, BSSID 50:50:50:50:50:50
+==================================================================
+BUG: KASAN: use-after-free in ieee80211_ibss_build_presp+0xfdb/0x1850 net/mac80211/ibss.c:171
+Read of size 135 at addr ffff8880145e9c00 by task kworker/u4:0/8
+
+CPU: 0 PID: 8 Comm: kworker/u4:0 Not tainted 5.11.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: phy0 ieee80211_iface_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x137/0x1be lib/dump_stack.c:120
+ print_address_description+0x5f/0x3a0 mm/kasan/report.c:230
+ __kasan_report mm/kasan/report.c:396 [inline]
+ kasan_report+0x15e/0x200 mm/kasan/report.c:413
+ check_memory_region_inline mm/kasan/generic.c:134 [inline]
+ check_memory_region+0x2b5/0x2f0 mm/kasan/generic.c:185
+ memcpy+0x25/0x60 mm/kasan/shadow.c:64
+ ieee80211_ibss_build_presp+0xfdb/0x1850 net/mac80211/ibss.c:171
+ __ieee80211_sta_join_ibss+0x708/0x12f0 net/mac80211/ibss.c:317
+ ieee80211_sta_create_ibss+0x312/0x530 net/mac80211/ibss.c:1354
+ ieee80211_sta_find_ibss net/mac80211/ibss.c:1484 [inline]
+ ieee80211_ibss_work+0xdb1/0x1450 net/mac80211/ibss.c:1708
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2275
+ worker_thread+0xac1/0x1300 kernel/workqueue.c:2421
+ kthread+0x39a/0x3c0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+Allocated by task 8419:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:401 [inline]
+ ____kasan_kmalloc+0xbd/0xf0 mm/kasan/common.c:429
+ kasan_slab_alloc include/linux/kasan.h:209 [inline]
+ slab_post_alloc_hook mm/slab.h:512 [inline]
+ slab_alloc_node mm/slub.c:2892 [inline]
+ slab_alloc mm/slub.c:2900 [inline]
+ __kmalloc_track_caller+0x1f7/0x330 mm/slub.c:4465
+ kmemdup+0x21/0x50 mm/util.c:128
+ ieee80211_ibss_join+0x816/0xf30 net/mac80211/ibss.c:1824
+ rdev_join_ibss net/wireless/rdev-ops.h:535 [inline]
+ __cfg80211_join_ibss+0x5aa/0x880 net/wireless/ibss.c:144
+ nl80211_join_ibss+0xe09/0x12f0 net/wireless/nl80211.c:10229
+ genl_family_rcv_msg_doit net/netlink/genetlink.c:739 [inline]
+ genl_family_rcv_msg net/netlink/genetlink.c:783 [inline]
+ genl_rcv_msg+0xe4e/0x1280 net/netlink/genetlink.c:800
+ netlink_rcv_skb+0x190/0x3a0 net/netlink/af_netlink.c:2494
+ genl_rcv+0x24/0x40 net/netlink/genetlink.c:811
+ netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
+ netlink_unicast+0x786/0x940 net/netlink/af_netlink.c:1330
+ netlink_sendmsg+0x9ae/0xd50 net/netlink/af_netlink.c:1919
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x519/0x800 net/socket.c:2345
+ ___sys_sendmsg net/socket.c:2399 [inline]
+ __sys_sendmsg+0x2bf/0x370 net/socket.c:2432
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 8418:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track+0x3d/0x70 mm/kasan/common.c:46
+ kasan_set_free_info+0x1f/0x40 mm/kasan/generic.c:356
+ ____kasan_slab_free+0xe2/0x110 mm/kasan/common.c:362
+ kasan_slab_free include/linux/kasan.h:192 [inline]
+ slab_free_hook mm/slub.c:1547 [inline]
+ slab_free_freelist_hook+0xd6/0x1a0 mm/slub.c:1580
+ slab_free mm/slub.c:3143 [inline]
+ kfree+0xd1/0x2a0 mm/slub.c:4125
+ ieee80211_ibss_leave+0x80/0xf0 net/mac80211/ibss.c:1876
+ rdev_leave_ibss net/wireless/rdev-ops.h:545 [inline]
+ __cfg80211_leave_ibss+0x11c/0x200 net/wireless/ibss.c:212
+ cfg80211_leave net/wireless/core.c:1221 [inline]
+ cfg80211_netdev_notifier_call+0x3f2/0x1160 net/wireless/core.c:1335
+ notifier_call_chain kernel/notifier.c:83 [inline]
+ raw_notifier_call_chain+0xe7/0x170 kernel/notifier.c:410
+ call_netdevice_notifiers_info net/core/dev.c:2040 [inline]
+ call_netdevice_notifiers_extack net/core/dev.c:2052 [inline]
+ call_netdevice_notifiers net/core/dev.c:2066 [inline]
+ __dev_close_many+0x1a6/0x390 net/core/dev.c:1586
+ __dev_close net/core/dev.c:1624 [inline]
+ __dev_change_flags+0x2fe/0x6f0 net/core/dev.c:8476
+ dev_change_flags+0x85/0x190 net/core/dev.c:8549
+ dev_ifsioc+0xc7/0xac0 net/core/dev_ioctl.c:265
+ dev_ioctl+0x4d1/0xc70 net/core/dev_ioctl.c:511
+ sock_do_ioctl+0x169/0x260 net/socket.c:1060
+ sock_ioctl+0x416/0x5f0 net/socket.c:1177
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ __do_sys_ioctl fs/ioctl.c:753 [inline]
+ __se_sys_ioctl+0xfb/0x170 fs/ioctl.c:739
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Last potentially related work creation:
+ kasan_save_stack+0x27/0x50 mm/kasan/common.c:38
+ kasan_record_aux_stack+0xcc/0x100 mm/kasan/generic.c:344
+ insert_work+0x54/0x400 kernel/workqueue.c:1331
+ __queue_work+0x97f/0xcc0 kernel/workqueue.c:1497
+ queue_work_on+0xc1/0x120 kernel/workqueue.c:1524
+ queue_work include/linux/workqueue.h:507 [inline]
+ call_usermodehelper_exec+0x206/0x3d0 kernel/umh.c:433
+ kobject_uevent_env+0x1349/0x1730 lib/kobject_uevent.c:617
+ kobject_synth_uevent+0x368/0x8a0 lib/kobject_uevent.c:208
+ uevent_store+0x20/0x60 drivers/base/core.c:2160
+ kernfs_fop_write_iter+0x3b6/0x510 fs/kernfs/file.c:296
+ call_write_iter include/linux/fs.h:1901 [inline]
+ new_sync_write fs/read_write.c:518 [inline]
+ vfs_write+0x896/0xab0 fs/read_write.c:605
+ ksys_write+0x11b/0x220 fs/read_write.c:658
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x27/0x50 mm/kasan/common.c:38
+ kasan_record_aux_stack+0xcc/0x100 mm/kasan/generic.c:344
+ insert_work+0x54/0x400 kernel/workqueue.c:1331
+ __queue_work+0x97f/0xcc0 kernel/workqueue.c:1497
+ queue_work_on+0xc1/0x120 kernel/workqueue.c:1524
+ queue_work include/linux/workqueue.h:507 [inline]
+ call_usermodehelper_exec+0x206/0x3d0 kernel/umh.c:433
+ kobject_uevent_env+0x1349/0x1730 lib/kobject_uevent.c:617
+ kobject_synth_uevent+0x368/0x8a0 lib/kobject_uevent.c:208
+ uevent_store+0x47/0x70 drivers/base/bus.c:585
+ kernfs_fop_write_iter+0x3b6/0x510 fs/kernfs/file.c:296
+ call_write_iter include/linux/fs.h:1901 [inline]
+ new_sync_write fs/read_write.c:518 [inline]
+ vfs_write+0x896/0xab0 fs/read_write.c:605
+ ksys_write+0x11b/0x220 fs/read_write.c:658
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The buggy address belongs to the object at ffff8880145e9c00
+ which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 0 bytes inside of
+ 192-byte region [ffff8880145e9c00, ffff8880145e9cc0)
+The buggy address belongs to the page:
+page:00000000c13fc425 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x145e9
+flags: 0xfff00000000200(slab)
+raw: 00fff00000000200 ffffea00004a5a40 0000000400000004 ffff888011041500
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880145e9b00: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880145e9b80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8880145e9c00: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8880145e9c80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8880145e9d00: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

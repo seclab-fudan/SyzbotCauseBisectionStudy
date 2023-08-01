@@ -1,0 +1,107 @@
+==================================================================
+BUG: KASAN: double-free or invalid-free in snd_seq_port_disconnect+0x4c1/0x5c0 sound/core/seq/seq_ports.c:614
+
+CPU: 0 PID: 7168 Comm: syz-executor.0 Not tainted 5.8.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xae/0x436 mm/kasan/report.c:383
+ kasan_report_invalid_free+0x51/0x80 mm/kasan/report.c:477
+ __kasan_slab_free+0x127/0x140 mm/kasan/common.c:434
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x103/0x2c0 mm/slab.c:3757
+ snd_seq_port_disconnect+0x4c1/0x5c0 sound/core/seq/seq_ports.c:614
+ snd_seq_ioctl_unsubscribe_port+0x1fc/0x400 sound/core/seq/seq_clientmgr.c:1525
+ snd_seq_kernel_client_ctl+0xeb/0x130 sound/core/seq/seq_clientmgr.c:2353
+ snd_seq_oss_midi_close+0x36e/0x4d0 sound/core/seq/oss/seq_oss_midi.c:405
+ snd_seq_oss_synth_reset+0x418/0x860 sound/core/seq/oss/seq_oss_synth.c:406
+ snd_seq_oss_reset+0x6f/0x290 sound/core/seq/oss/seq_oss_init.c:435
+ snd_seq_oss_ioctl+0xb7b/0xd40 sound/core/seq/oss/seq_oss_ioctl.c:93
+ odev_ioctl+0x4f/0x90 sound/core/seq/oss/seq_oss.c:174
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ ksys_ioctl+0x11a/0x180 fs/ioctl.c:753
+ __do_sys_ioctl fs/ioctl.c:762 [inline]
+ __se_sys_ioctl fs/ioctl.c:760 [inline]
+ __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:760
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x45cc79
+Code: 2d b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb b5 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f8e9ed59c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000000154c0 RCX: 000000000045cc79
+RDX: 0000000000000000 RSI: 0000000000005100 RDI: 0000000000000003
+RBP: 000000000078bfd8 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000078bfac
+R13: 00007ffc4facbfaf R14: 00007f8e9ed5a9c0 R15: 000000000078bfac
+
+Allocated by task 7167:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc.constprop.0+0xc2/0xd0 mm/kasan/common.c:494
+ kmem_cache_alloc_trace+0x14f/0x2d0 mm/slab.c:3551
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ snd_seq_port_connect+0x5d/0x520 sound/core/seq/seq_ports.c:553
+ snd_seq_ioctl_subscribe_port+0x1fc/0x400 sound/core/seq/seq_clientmgr.c:1484
+ snd_seq_kernel_client_ctl+0xeb/0x130 sound/core/seq/seq_clientmgr.c:2353
+ snd_seq_oss_midi_open+0x466/0x6e0 sound/core/seq/oss/seq_oss_midi.c:364
+ snd_seq_oss_synth_setup_midi+0x123/0x520 sound/core/seq/oss/seq_oss_synth.c:269
+ snd_seq_oss_open+0x87e/0xa10 sound/core/seq/oss/seq_oss_init.c:261
+ odev_open+0x6c/0x90 sound/core/seq/oss/seq_oss.c:125
+ soundcore_open+0x445/0x600 sound/sound_core.c:593
+ chrdev_open+0x266/0x770 fs/char_dev.c:414
+ do_dentry_open+0x501/0x1290 fs/open.c:828
+ do_open fs/namei.c:3243 [inline]
+ path_openat+0x1bb9/0x2750 fs/namei.c:3360
+ do_filp_open+0x17e/0x3c0 fs/namei.c:3387
+ do_sys_openat2+0x16f/0x3b0 fs/open.c:1179
+ do_sys_open fs/open.c:1195 [inline]
+ __do_sys_openat fs/open.c:1209 [inline]
+ __se_sys_openat fs/open.c:1204 [inline]
+ __x64_sys_openat+0x13f/0x1f0 fs/open.c:1204
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 7167:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ kasan_set_free_info mm/kasan/common.c:316 [inline]
+ __kasan_slab_free+0xf5/0x140 mm/kasan/common.c:455
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x103/0x2c0 mm/slab.c:3757
+ snd_seq_port_disconnect+0x4c1/0x5c0 sound/core/seq/seq_ports.c:614
+ snd_seq_ioctl_unsubscribe_port+0x1fc/0x400 sound/core/seq/seq_clientmgr.c:1525
+ snd_seq_kernel_client_ctl+0xeb/0x130 sound/core/seq/seq_clientmgr.c:2353
+ snd_seq_oss_midi_close+0x36e/0x4d0 sound/core/seq/oss/seq_oss_midi.c:405
+ snd_seq_oss_synth_reset+0x418/0x860 sound/core/seq/oss/seq_oss_synth.c:406
+ snd_seq_oss_reset+0x6f/0x290 sound/core/seq/oss/seq_oss_init.c:435
+ snd_seq_oss_ioctl+0xb7b/0xd40 sound/core/seq/oss/seq_oss_ioctl.c:93
+ odev_ioctl+0x4f/0x90 sound/core/seq/oss/seq_oss.c:174
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ ksys_ioctl+0x11a/0x180 fs/ioctl.c:753
+ __do_sys_ioctl fs/ioctl.c:762 [inline]
+ __se_sys_ioctl fs/ioctl.c:760 [inline]
+ __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:760
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The buggy address belongs to the object at ffff8880a4b4c500
+ which belongs to the cache kmalloc-128 of size 128
+The buggy address is located 0 bytes inside of
+ 128-byte region [ffff8880a4b4c500, ffff8880a4b4c580)
+The buggy address belongs to the page:
+page:ffffea000292d300 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea00029b0388 ffffea00028a04c8 ffff8880aa000700
+raw: 0000000000000000 ffff8880a4b4c000 0000000100000010 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a4b4c400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880a4b4c480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8880a4b4c500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8880a4b4c580: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8880a4b4c600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

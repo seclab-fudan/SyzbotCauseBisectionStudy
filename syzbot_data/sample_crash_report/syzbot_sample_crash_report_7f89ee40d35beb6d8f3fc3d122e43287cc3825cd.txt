@@ -1,0 +1,126 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in fscache_set_key fs/fscache/cookie.c:120 [inline]
+BUG: KASAN: slab-out-of-bounds in fscache_alloc_cookie+0x7ad/0x880 fs/fscache/cookie.c:171
+Read of size 4 at addr ffff8801d7ad4914 by task syz-executor062/5391
+
+CPU: 1 PID: 5391 Comm: syz-executor062 Not tainted 4.19.0-rc8+ #285
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+ print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ fscache_set_key fs/fscache/cookie.c:120 [inline]
+ fscache_alloc_cookie+0x7ad/0x880 fs/fscache/cookie.c:171
+ __fscache_acquire_cookie+0x230/0xb60 fs/fscache/cookie.c:303
+ fscache_acquire_cookie include/linux/fscache.h:338 [inline]
+ nfs_fscache_get_client_cookie+0x463/0x600 fs/nfs/fscache.c:85
+ nfs_alloc_client+0x563/0x760 fs/nfs/client.c:188
+ nfs_get_client+0x8e8/0x14d0 fs/nfs/client.c:430
+ nfs_init_server+0x357/0x1010 fs/nfs/client.c:670
+ nfs_create_server+0x86/0x5f0 fs/nfs/client.c:954
+ nfs_try_mount+0x180/0xa80 fs/nfs/super.c:1884
+ nfs_fs_mount+0x17f8/0x2f1c fs/nfs/super.c:2695
+ mount_fs+0xae/0x31d fs/super.c:1261
+ vfs_kern_mount.part.35+0xdc/0x4f0 fs/namespace.c:961
+ vfs_kern_mount fs/namespace.c:951 [inline]
+ do_new_mount fs/namespace.c:2457 [inline]
+ do_mount+0x581/0x31f0 fs/namespace.c:2787
+ ksys_mount+0x12d/0x140 fs/namespace.c:3003
+ __do_sys_mount fs/namespace.c:3017 [inline]
+ __se_sys_mount fs/namespace.c:3014 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440129
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fff15a74048 EFLAGS: 00000286 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0030656c69662f2e RCX: 0000000000440129
+RDX: 000000002015bffc RSI: 0000000020343ff8 RDI: 00000000208deff8
+RBP: 00000000006ca018 R08: 000000002000a000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000286 R12: 00000000004019b0
+R13: 0000000000401a40 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 5391:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc mm/slab.c:3718 [inline]
+ __kmalloc+0x14e/0x760 mm/slab.c:3727
+ kmalloc include/linux/slab.h:518 [inline]
+ kzalloc include/linux/slab.h:707 [inline]
+ fscache_set_key fs/fscache/cookie.c:101 [inline]
+ fscache_alloc_cookie+0x6f7/0x880 fs/fscache/cookie.c:171
+ __fscache_acquire_cookie+0x230/0xb60 fs/fscache/cookie.c:303
+ fscache_acquire_cookie include/linux/fscache.h:338 [inline]
+ nfs_fscache_get_client_cookie+0x463/0x600 fs/nfs/fscache.c:85
+ nfs_alloc_client+0x563/0x760 fs/nfs/client.c:188
+ nfs_get_client+0x8e8/0x14d0 fs/nfs/client.c:430
+ nfs_init_server+0x357/0x1010 fs/nfs/client.c:670
+ nfs_create_server+0x86/0x5f0 fs/nfs/client.c:954
+ nfs_try_mount+0x180/0xa80 fs/nfs/super.c:1884
+ nfs_fs_mount+0x17f8/0x2f1c fs/nfs/super.c:2695
+ mount_fs+0xae/0x31d fs/super.c:1261
+ vfs_kern_mount.part.35+0xdc/0x4f0 fs/namespace.c:961
+ vfs_kern_mount fs/namespace.c:951 [inline]
+ do_new_mount fs/namespace.c:2457 [inline]
+ do_mount+0x581/0x31f0 fs/namespace.c:2787
+ ksys_mount+0x12d/0x140 fs/namespace.c:3003
+ __do_sys_mount fs/namespace.c:3017 [inline]
+ __se_sys_mount fs/namespace.c:3014 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 1:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3813
+ acpi_os_free include/acpi/platform/aclinuxex.h:62 [inline]
+ acpi_ns_get_node_unlocked+0x2b9/0x309 drivers/acpi/acpica/nsutils.c:698
+ acpi_ns_get_node+0x4d/0x6b drivers/acpi/acpica/nsutils.c:738
+ acpi_ns_evaluate+0xf3/0x9bc drivers/acpi/acpica/nseval.c:68
+ acpi_ut_evaluate_object+0x12b/0x425 drivers/acpi/acpica/uteval.c:60
+ acpi_ut_execute_power_methods+0xf1/0x22a drivers/acpi/acpica/uteval.c:288
+ acpi_get_object_info+0x6ac/0xd1b drivers/acpi/acpica/nsxfname.c:366
+ acpi_set_pnp_ids drivers/acpi/scan.c:1247 [inline]
+ acpi_init_device_object+0x12a0/0x1e20 drivers/acpi/scan.c:1589
+ acpi_add_single_object+0x1d2/0x1ed0 drivers/acpi/scan.c:1624
+ acpi_bus_check_add+0x5e0/0xb10 drivers/acpi/scan.c:1877
+ acpi_ns_walk_namespace+0x224/0x400 drivers/acpi/acpica/nswalk.c:237
+ acpi_walk_namespace+0xf2/0x12c drivers/acpi/acpica/nsxfeval.c:606
+ acpi_bus_scan+0x146/0x170 drivers/acpi/scan.c:2058
+ acpi_scan_init+0x403/0x8fe drivers/acpi/scan.c:2215
+ acpi_init+0x941/0xa19 drivers/acpi/bus.c:1261
+ do_one_initcall+0x145/0x957 init/main.c:885
+ do_initcall_level init/main.c:953 [inline]
+ do_initcalls init/main.c:961 [inline]
+ do_basic_setup init/main.c:979 [inline]
+ kernel_init_freeable+0x4bb/0x5ae init/main.c:1144
+ kernel_init+0x11/0x1b2 init/main.c:1063
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:413
+
+The buggy address belongs to the object at ffff8801d7ad4900
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 20 bytes inside of
+ 32-byte region [ffff8801d7ad4900, ffff8801d7ad4920)
+The buggy address belongs to the page:
+page:ffffea00075eb500 count:1 mapcount:0 mapping:ffff8801da8001c0 index:0xffff8801d7ad4fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea00075ea688 ffff8801da801238 ffff8801da8001c0
+raw: ffff8801d7ad4fc1 ffff8801d7ad4000 0000000100000038 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d7ad4800: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801d7ad4880: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801d7ad4900: 00 00 06 fc fc fc fc fc 01 fc fc fc fc fc fc fc
+                         ^
+ ffff8801d7ad4980: 01 fc fc fc fc fc fc fc 01 fc fc fc fc fc fc fc
+ ffff8801d7ad4a00: 01 fc fc fc fc fc fc fc 04 fc fc fc fc fc fc fc
+==================================================================

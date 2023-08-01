@@ -1,0 +1,120 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ip_icmp_error+0x52a/0x5a0 net/ipv4/ip_sockglue.c:404
+Read of size 1 at addr ffff88808930dfff by task swapper/0/0
+
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.7.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x188/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd3/0x413 mm/kasan/report.c:382
+ __kasan_report.cold+0x20/0x38 mm/kasan/report.c:511
+ kasan_report+0x33/0x50 mm/kasan/common.c:625
+ ip_icmp_error+0x52a/0x5a0 net/ipv4/ip_sockglue.c:404
+ tcp_v4_err+0x9b2/0x1d00 net/ipv4/tcp_ipv4.c:576
+ icmp_socket_deliver+0x1e4/0x360 net/ipv4/icmp.c:803
+ icmp_unreach+0x33b/0xab0 net/ipv4/icmp.c:920
+ icmp_rcv+0xee6/0x15f0 net/ipv4/icmp.c:1102
+ ip_protocol_deliver_rcu+0x57/0x880 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish+0x220/0x360 net/ipv4/ip_input.c:231
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ip_local_deliver+0x1c8/0x4e0 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:441 [inline]
+ ip_rcv_finish+0x1da/0x2f0 net/ipv4/ip_input.c:428
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ip_rcv+0xd0/0x3c0 net/ipv4/ip_input.c:539
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5268
+ __netif_receive_skb+0x27/0x1c0 net/core/dev.c:5382
+ process_backlog+0x21e/0x7a0 net/core/dev.c:6214
+ napi_poll net/core/dev.c:6659 [inline]
+ net_rx_action+0x4c2/0x1070 net/core/dev.c:6727
+ __do_softirq+0x26c/0x9f7 kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x192/0x1d0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:546 [inline]
+ smp_apic_timer_interrupt+0x19e/0x600 arch/x86/kernel/apic/apic.c:1140
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:61
+Code: cc cc cc cc cc cc cc cc cc cc cc cc e9 07 00 00 00 0f 00 2d d4 c3 52 00 f4 c3 66 90 e9 07 00 00 00 0f 00 2d c4 c3 52 00 fb f4 <c3> cc 41 56 41 55 41 54 55 53 e8 93 4c 8b f9 e8 ce 81 c4 fb 0f 1f
+RSP: 0018:ffffffff89807d98 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff132980f RBX: ffffffff89886540 RCX: 0000000000000000
+RDX: dffffc0000000000 RSI: 0000000000000006 RDI: ffffffff89886e04
+RBP: dffffc0000000000 R08: ffffffff89886540 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: fffffbfff1310ca8
+R13: 0000000000000000 R14: ffffffff8a8a4bc0 R15: 0000000000000000
+ arch_safe_halt arch/x86/include/asm/paravirt.h:144 [inline]
+ default_idle+0x49/0x350 arch/x86/kernel/process.c:697
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x393/0x690 kernel/sched/idle.c:269
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:361
+ start_kernel+0x97d/0x9ba init/main.c:1040
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:242
+
+Allocated by task 7043:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ __kasan_kmalloc mm/kasan/common.c:495 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:468
+ slab_post_alloc_hook mm/slab.h:586 [inline]
+ slab_alloc_node mm/slab.c:3263 [inline]
+ kmem_cache_alloc_node+0x13c/0x760 mm/slab.c:3575
+ __alloc_skb+0xba/0x5a0 net/core/skbuff.c:198
+ alloc_skb include/linux/skbuff.h:1083 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1175 [inline]
+ netlink_sendmsg+0x97b/0xe10 net/netlink/af_netlink.c:1893
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:672
+ __sys_sendto+0x219/0x330 net/socket.c:1995
+ __do_sys_sendto net/socket.c:2007 [inline]
+ __se_sys_sendto net/socket.c:2003 [inline]
+ __x64_sys_sendto+0xdd/0x1b0 net/socket.c:2003
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+Freed by task 7043:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ kasan_set_free_info mm/kasan/common.c:317 [inline]
+ __kasan_slab_free+0xf7/0x140 mm/kasan/common.c:456
+ __cache_free mm/slab.c:3426 [inline]
+ kmem_cache_free+0x7f/0x320 mm/slab.c:3694
+ kfree_skbmem net/core/skbuff.c:622 [inline]
+ kfree_skbmem+0xef/0x1b0 net/core/skbuff.c:616
+ __kfree_skb net/core/skbuff.c:679 [inline]
+ consume_skb net/core/skbuff.c:837 [inline]
+ consume_skb+0xfb/0x400 net/core/skbuff.c:831
+ netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
+ netlink_unicast+0x53f/0x740 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x882/0xe10 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:672
+ __sys_sendto+0x219/0x330 net/socket.c:1995
+ __do_sys_sendto net/socket.c:2007 [inline]
+ __se_sys_sendto net/socket.c:2003 [inline]
+ __x64_sys_sendto+0xdd/0x1b0 net/socket.c:2003
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+The buggy address belongs to the object at ffff88808930ddc0
+ which belongs to the cache skbuff_head_cache of size 224
+The buggy address is located 351 bytes to the right of
+ 224-byte region [ffff88808930ddc0, ffff88808930dea0)
+The buggy address belongs to the page:
+page:ffffea000224c340 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea00024e2f88 ffffea00029c6508 ffff88821b777700
+raw: 0000000000000000 ffff88808930d000 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808930de80: fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88808930df00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88808930df80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                                                ^
+ ffff88808930e000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88808930e080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

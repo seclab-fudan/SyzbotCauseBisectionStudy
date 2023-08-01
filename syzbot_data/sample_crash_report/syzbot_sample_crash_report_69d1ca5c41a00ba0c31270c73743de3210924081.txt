@@ -1,0 +1,109 @@
+==================================================================
+BUG: KASAN: use-after-free in skb_loop_sk net/core/dev.c:1882 [inline]
+BUG: KASAN: use-after-free in dev_queue_xmit_nit+0xa0c/0xae0 net/core/dev.c:1911
+Read of size 8 at addr ffff8801cb068c20 by task sshd/2983
+
+CPU: 1 PID: 2983 Comm: sshd Not tainted 4.13.0+ #43
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ skb_loop_sk net/core/dev.c:1882 [inline]
+ dev_queue_xmit_nit+0xa0c/0xae0 net/core/dev.c:1911
+ xmit_one net/core/dev.c:2971 [inline]
+ dev_hard_start_xmit+0x16b/0xac0 net/core/dev.c:2991
+ sch_direct_xmit+0x31d/0x6d0 net/sched/sch_generic.c:186
+ __dev_xmit_skb net/core/dev.c:3173 [inline]
+ __dev_queue_xmit+0x15fe/0x1e40 net/core/dev.c:3440
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3505
+ neigh_hh_output include/net/neighbour.h:471 [inline]
+ neigh_output include/net/neighbour.h:479 [inline]
+ ip_finish_output2+0xece/0x1460 net/ipv4/ip_output.c:229
+ ip_finish_output+0x85e/0xd10 net/ipv4/ip_output.c:317
+ NF_HOOK_COND include/linux/netfilter.h:238 [inline]
+ ip_output+0x1cc/0x860 net/ipv4/ip_output.c:405
+ dst_output include/net/dst.h:472 [inline]
+ ip_local_out+0x95/0x160 net/ipv4/ip_output.c:124
+ ip_queue_xmit+0x8c6/0x18e0 net/ipv4/ip_output.c:504
+ tcp_transmit_skb+0x1947/0x3300 net/ipv4/tcp_output.c:1123
+ tcp_write_xmit+0x5fc/0x4960 net/ipv4/tcp_output.c:2341
+ __tcp_push_pending_frames+0xa0/0x250 net/ipv4/tcp_output.c:2516
+ tcp_push+0x4e0/0x760 net/ipv4/tcp.c:715
+ tcp_sendmsg_locked+0x17ad/0x3bc0 net/ipv4/tcp.c:1408
+ tcp_sendmsg+0x2f/0x50 net/ipv4/tcp.c:1445
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:762
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ sock_write_iter+0x320/0x5e0 net/socket.c:912
+ call_write_iter include/linux/fs.h:1743 [inline]
+ new_sync_write fs/read_write.c:457 [inline]
+ __vfs_write+0x68a/0x970 fs/read_write.c:470
+ vfs_write+0x18f/0x510 fs/read_write.c:518
+ SYSC_write fs/read_write.c:565 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:557
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x7fe9a9ab4370
+RSP: 002b:00007ffede8a76b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000038 RCX: 00007fe9a9ab4370
+RDX: 0000000000000038 RSI: 000055f6a4564440 RDI: 0000000000000003
+RBP: 0000000000000082 R08: 0000000000000001 R09: 0101010101010101
+R10: 0000000000000008 R11: 0000000000000246 R12: 00007ffede8a771c
+R13: 000055f6a4458fb4 R14: 0000000000000028 R15: 000055f6a445aca0
+
+Allocated by task 11343:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3627
+ kmalloc include/linux/slab.h:493 [inline]
+ kzalloc include/linux/slab.h:666 [inline]
+ fanout_add+0xa50/0x1190 net/packet/af_packet.c:1733
+ packet_setsockopt+0xfdc/0x1e80 net/packet/af_packet.c:3795
+ SYSC_setsockopt net/socket.c:1852 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1831
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 11321:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ packet_release+0xa8f/0xd70 net/packet/af_packet.c:3033
+ sock_release+0x8d/0x1e0 net/socket.c:597
+ sock_close+0x16/0x20 net/socket.c:1126
+ __fput+0x333/0x7f0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:246
+ task_work_run+0x199/0x270 kernel/task_work.c:112
+ exit_task_work include/linux/task_work.h:21 [inline]
+ do_exit+0xa52/0x1b40 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+The buggy address belongs to the object at ffff8801cb068380
+ which belongs to the cache kmalloc-4096 of size 4096
+The buggy address is located 2208 bytes inside of
+ 4096-byte region [ffff8801cb068380, ffff8801cb069380)
+The buggy address belongs to the page:
+page:ffffea00072c1a00 count:1 mapcount:0 mapping:ffff8801cb068380 index:0x0 compound_mapcount: 0
+flags: 0x200000000008100(slab|head)
+raw: 0200000000008100 ffff8801cb068380 0000000000000000 0000000100000001
+raw: ffffea00072c09a0 ffffea00072e9420 ffff8801dac00dc0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cb068b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801cb068b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801cb068c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                               ^
+ ffff8801cb068c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801cb068d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,98 @@
+usb 1-1: config 0 interface 210 altsetting 0 endpoint 0x1 has an invalid bInterval 0, changing to 7
+usb 1-1: New USB device found, idVendor=0c72, idProduct=000c, bcdDevice=7c.aa
+usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+usb 1-1: config 0 descriptor??
+hub 1-1:0.210: ignoring external hub
+=====================================================
+BUG: KMSAN: kernel-usb-infoleak in kmsan_handle_urb+0x28/0x40 mm/kmsan/kmsan_hooks.c:381
+CPU: 0 PID: 2900 Comm: kworker/0:2 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x191/0x1f0 lib/dump_stack.c:113
+ kmsan_report+0x14a/0x2f0 mm/kmsan/kmsan_report.c:109
+ kmsan_internal_check_memory+0x3bb/0x4e0 mm/kmsan/kmsan.c:469
+ kmsan_handle_urb+0x28/0x40 mm/kmsan/kmsan_hooks.c:381
+ usb_submit_urb+0x7ef/0x1f50 drivers/usb/core/urb.c:405
+ usb_start_wait_urb+0x143/0x410 drivers/usb/core/message.c:58
+ usb_bulk_msg+0x811/0x920 drivers/usb/core/message.c:257
+ pcan_usb_send_cmd drivers/net/can/usb/peak_usb/pcan_usb.c:127 [inline]
+ pcan_usb_wait_rsp+0x25c/0x6e0 drivers/net/can/usb/peak_usb/pcan_usb.c:151
+ pcan_usb_get_serial drivers/net/can/usb/peak_usb/pcan_usb.c:310 [inline]
+ pcan_usb_init+0xcc/0x450 drivers/net/can/usb/peak_usb/pcan_usb.c:801
+ peak_usb_create_dev drivers/net/can/usb/peak_usb/pcan_usb_core.c:809 [inline]
+ peak_usb_probe+0x1416/0x1b20 drivers/net/can/usb/peak_usb/pcan_usb_core.c:907
+ usb_probe_interface+0xd19/0x1310 drivers/usb/core/driver.c:361
+ really_probe+0xd91/0x1f90 drivers/base/dd.c:552
+ driver_probe_device+0x1ba/0x510 drivers/base/dd.c:721
+ __device_attach_driver+0x5b8/0x790 drivers/base/dd.c:828
+ bus_for_each_drv+0x28e/0x3b0 drivers/base/bus.c:430
+ __device_attach+0x489/0x750 drivers/base/dd.c:894
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:941
+ bus_probe_device+0x131/0x390 drivers/base/bus.c:490
+ device_add+0x25b5/0x2df0 drivers/base/core.c:2201
+ usb_set_configuration+0x309f/0x3710 drivers/usb/core/message.c:2027
+ generic_probe+0xe7/0x280 drivers/usb/core/generic.c:210
+ usb_probe_device+0x146/0x200 drivers/usb/core/driver.c:266
+ really_probe+0xd91/0x1f90 drivers/base/dd.c:552
+ driver_probe_device+0x1ba/0x510 drivers/base/dd.c:721
+ __device_attach_driver+0x5b8/0x790 drivers/base/dd.c:828
+ bus_for_each_drv+0x28e/0x3b0 drivers/base/bus.c:430
+ __device_attach+0x489/0x750 drivers/base/dd.c:894
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:941
+ bus_probe_device+0x131/0x390 drivers/base/bus.c:490
+ device_add+0x25b5/0x2df0 drivers/base/core.c:2201
+ usb_new_device+0x23e5/0x2fb0 drivers/usb/core/hub.c:2536
+ hub_port_connect drivers/usb/core/hub.c:5098 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x581d/0x72f0 drivers/usb/core/hub.c:5441
+ process_one_work+0x1572/0x1ef0 kernel/workqueue.c:2269
+ worker_thread+0x111b/0x2460 kernel/workqueue.c:2415
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:355
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:150 [inline]
+ kmsan_internal_poison_shadow+0x60/0x110 mm/kmsan/kmsan.c:133
+ kmsan_slab_alloc+0xaa/0x130 mm/kmsan/kmsan_hooks.c:101
+ slab_alloc_node mm/slub.c:2792 [inline]
+ slab_alloc mm/slub.c:2801 [inline]
+ kmem_cache_alloc_trace+0x8c5/0xd20 mm/slub.c:2818
+ kmalloc include/linux/slab.h:556 [inline]
+ peak_usb_create_dev drivers/net/can/usb/peak_usb/pcan_usb_core.c:753 [inline]
+ peak_usb_probe+0x544/0x1b20 drivers/net/can/usb/peak_usb/pcan_usb_core.c:907
+ usb_probe_interface+0xd19/0x1310 drivers/usb/core/driver.c:361
+ really_probe+0xd91/0x1f90 drivers/base/dd.c:552
+ driver_probe_device+0x1ba/0x510 drivers/base/dd.c:721
+ __device_attach_driver+0x5b8/0x790 drivers/base/dd.c:828
+ bus_for_each_drv+0x28e/0x3b0 drivers/base/bus.c:430
+ __device_attach+0x489/0x750 drivers/base/dd.c:894
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:941
+ bus_probe_device+0x131/0x390 drivers/base/bus.c:490
+ device_add+0x25b5/0x2df0 drivers/base/core.c:2201
+ usb_set_configuration+0x309f/0x3710 drivers/usb/core/message.c:2027
+ generic_probe+0xe7/0x280 drivers/usb/core/generic.c:210
+ usb_probe_device+0x146/0x200 drivers/usb/core/driver.c:266
+ really_probe+0xd91/0x1f90 drivers/base/dd.c:552
+ driver_probe_device+0x1ba/0x510 drivers/base/dd.c:721
+ __device_attach_driver+0x5b8/0x790 drivers/base/dd.c:828
+ bus_for_each_drv+0x28e/0x3b0 drivers/base/bus.c:430
+ __device_attach+0x489/0x750 drivers/base/dd.c:894
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:941
+ bus_probe_device+0x131/0x390 drivers/base/bus.c:490
+ device_add+0x25b5/0x2df0 drivers/base/core.c:2201
+ usb_new_device+0x23e5/0x2fb0 drivers/usb/core/hub.c:2536
+ hub_port_connect drivers/usb/core/hub.c:5098 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x581d/0x72f0 drivers/usb/core/hub.c:5441
+ process_one_work+0x1572/0x1ef0 kernel/workqueue.c:2269
+ worker_thread+0x111b/0x2460 kernel/workqueue.c:2415
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:355
+
+Bytes 2-15 of 16 are uninitialized
+Memory access of size 16 starts at ffff88810fa82fa0
+=====================================================

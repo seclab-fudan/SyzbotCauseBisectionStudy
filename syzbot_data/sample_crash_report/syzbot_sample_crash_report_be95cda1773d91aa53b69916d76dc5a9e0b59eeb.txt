@@ -1,0 +1,60 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/l1tf.html for details.
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+CPU: 0 PID: 4489 Comm: syz-executor233 Not tainted 4.18.0+ #103
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__fire_sched_in_preempt_notifiers kernel/sched/core.c:2481 [inline]
+RIP: 0010:fire_sched_in_preempt_notifiers kernel/sched/core.c:2487 [inline]
+RIP: 0010:finish_task_switch+0x538/0x870 kernel/sched/core.c:2679
+Code: 89 e1 48 c1 e9 03 42 80 3c 39 00 0f 85 ab 01 00 00 4d 8b 24 24 4d 85 e4 0f 84 e3 fc ff ff 49 8d 7c 24 10 48 89 f9 48 c1 e9 03 <42> 80 3c 39 00 74 a5 e8 8c a5 67 00 eb 9e 80 3d 8b c3 32 07 00 0f
+RSP: 0018:ffff8801ac0ff058 EFLAGS: 00010a06
+RAX: 0000000000000000 RBX: ffff8801db02cc40 RCX: 1bd5a00000000022
+RDX: 0000000000000000 RSI: ffffffff810ed162 RDI: dead000000000110
+RBP: ffff8801ac0ff140 R08: ffff8801acb8c300 R09: ffffed003b221b6c
+R10: ffffed003b221b6c R11: ffff8801d910db67 R12: dead000000000100
+R13: ffff8801ca5e0040 R14: 0000000000000000 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8801db000000(0063) knlGS:00000000f7f07b40
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 00007f1304e0b000 CR3: 00000001acab3000 CR4: 00000000001426f0
+Call Trace:
+ context_switch kernel/sched/core.c:2826 [inline]
+ __schedule+0x884/0x1df0 kernel/sched/core.c:3471
+ schedule+0xfb/0x450 kernel/sched/core.c:3515
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ futex_wait_queue_me+0x3f9/0x840 kernel/futex.c:2530
+ futex_wait+0x45b/0xa20 kernel/futex.c:2645
+ do_futex+0x336/0x27d0 kernel/futex.c:3527
+ __do_compat_sys_futex kernel/futex_compat.c:201 [inline]
+ __se_compat_sys_futex kernel/futex_compat.c:175 [inline]
+ __ia32_compat_sys_futex+0x3d9/0x5f0 kernel/futex_compat.c:175
+ do_syscall_32_irqs_on arch/x86/entry/common.c:326 [inline]
+ do_fast_syscall_32+0x34d/0xfb2 arch/x86/entry/common.c:397
+ entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7f0bca9
+Code: 55 08 8b 88 64 cd ff ff 8b 98 68 cd ff ff 89 c8 85 d2 74 02 89 0a 5b 5d c3 8b 04 24 c3 8b 1c 24 c3 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000f7f071ec EFLAGS: 00000296 ORIG_RAX: 00000000000000f0
+RAX: ffffffffffffffda RBX: 00000000080fb008 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000005
+RBP: 00000000c080aebe R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+---[ end trace a4bb2f1beb6735f0 ]---
+RIP: 0010:__fire_sched_in_preempt_notifiers kernel/sched/core.c:2481 [inline]
+RIP: 0010:fire_sched_in_preempt_notifiers kernel/sched/core.c:2487 [inline]
+RIP: 0010:finish_task_switch+0x538/0x870 kernel/sched/core.c:2679
+Code: 89 e1 48 c1 e9 03 42 80 3c 39 00 0f 85 ab 01 00 00 4d 8b 24 24 4d 85 e4 0f 84 e3 fc ff ff 49 8d 7c 24 10 48 89 f9 48 c1 e9 03 <42> 80 3c 39 00 74 a5 e8 8c a5 67 00 eb 9e 80 3d 8b c3 32 07 00 0f
+RSP: 0018:ffff8801ac0ff058 EFLAGS: 00010a06
+RAX: 0000000000000000 RBX: ffff8801db02cc40 RCX: 1bd5a00000000022
+RDX: 0000000000000000 RSI: ffffffff810ed162 RDI: dead000000000110
+RBP: ffff8801ac0ff140 R08: ffff8801acb8c300 R09: ffffed003b221b6c
+R10: ffffed003b221b6c R11: ffff8801d910db67 R12: dead000000000100
+R13: ffff8801ca5e0040 R14: 0000000000000000 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8801db000000(0063) knlGS:00000000f7f07b40
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 00007f1304e0b000 CR3: 00000001acab3000 CR4: 00000000001426f0

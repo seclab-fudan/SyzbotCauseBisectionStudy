@@ -1,0 +1,76 @@
+BUG: unable to handle page fault for address: ffffeefda00001ff
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 0 P4D 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 687 Comm: kworker/u4:0 Not tainted 6.0.0-rc1-syzkaller-00049-g4e55e22d3d9a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+RIP: 0010:native_pud_val arch/x86/include/asm/pgtable_types.h:347 [inline]
+RIP: 0010:pud_none arch/x86/include/asm/pgtable.h:829 [inline]
+RIP: 0010:follow_pud_mask mm/gup.c:730 [inline]
+RIP: 0010:follow_p4d_mask mm/gup.c:782 [inline]
+RIP: 0010:follow_page_mask+0x1a9/0x1c90 mm/gup.c:846
+Code: 00 80 88 ff ff 4c 01 e8 4d 89 e5 49 c1 ed 1b 41 81 e5 f8 0f 00 00 49 01 c5 48 b8 00 00 00 00 00 fc ff df 4c 89 ea 48 c1 ea 03 <80> 3c 02 00 0f 85 d4 18 00 00 4d 8b 75 00 31 ff 49 83 e6 9f 4c 89
+RSP: 0000:ffffc90001e7fb10 EFLAGS: 00010a06
+RAX: dffffc0000000000 RBX: ffff88810e732500 RCX: 0000000000000000
+RDX: 1ffff2fda00001ff RSI: ffffffff8167fdbd RDI: 0000000000000007
+RBP: ffffc90001e7fc48 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 00007fffffffefc0
+R13: ffff97ed00000ff8 R14: 0000000000000000 R15: 0000000000002017
+FS:  0000000000000000(0000) GS:ffff8881f6900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffeefda00001ff CR3: 0000000007825000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __get_user_pages+0x3f2/0x1020 mm/gup.c:1193
+ __get_user_pages_locked mm/gup.c:1399 [inline]
+ __get_user_pages_remote+0x18f/0x830 mm/gup.c:2109
+ get_user_pages_remote+0x84/0xc0 mm/gup.c:2182
+ get_arg_page+0xe4/0x2a0 fs/exec.c:222
+ copy_string_kernel+0x169/0x460 fs/exec.c:639
+ copy_strings_kernel+0xb3/0x190 fs/exec.c:655
+ kernel_execve+0x377/0x500 fs/exec.c:2001
+ call_usermodehelper_exec_async+0x2e3/0x580 kernel/umh.c:112
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+CR2: ffffeefda00001ff
+---[ end trace 0000000000000000 ]---
+RIP: 0010:native_pud_val arch/x86/include/asm/pgtable_types.h:347 [inline]
+RIP: 0010:pud_none arch/x86/include/asm/pgtable.h:829 [inline]
+RIP: 0010:follow_pud_mask mm/gup.c:730 [inline]
+RIP: 0010:follow_p4d_mask mm/gup.c:782 [inline]
+RIP: 0010:follow_page_mask+0x1a9/0x1c90 mm/gup.c:846
+Code: 00 80 88 ff ff 4c 01 e8 4d 89 e5 49 c1 ed 1b 41 81 e5 f8 0f 00 00 49 01 c5 48 b8 00 00 00 00 00 fc ff df 4c 89 ea 48 c1 ea 03 <80> 3c 02 00 0f 85 d4 18 00 00 4d 8b 75 00 31 ff 49 83 e6 9f 4c 89
+RSP: 0000:ffffc90001e7fb10 EFLAGS: 00010a06
+RAX: dffffc0000000000 RBX: ffff88810e732500 RCX: 0000000000000000
+RDX: 1ffff2fda00001ff RSI: ffffffff8167fdbd RDI: 0000000000000007
+RBP: ffffc90001e7fc48 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 00007fffffffefc0
+R13: ffff97ed00000ff8 R14: 0000000000000000 R15: 0000000000002017
+FS:  0000000000000000(0000) GS:ffff8881f6900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffeefda00001ff CR3: 0000000007825000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	00 80 88 ff ff 4c    	add    %al,0x4cffff88(%rax)
+   6:	01 e8                	add    %ebp,%eax
+   8:	4d 89 e5             	mov    %r12,%r13
+   b:	49 c1 ed 1b          	shr    $0x1b,%r13
+   f:	41 81 e5 f8 0f 00 00 	and    $0xff8,%r13d
+  16:	49 01 c5             	add    %rax,%r13
+  19:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  20:	fc ff df
+  23:	4c 89 ea             	mov    %r13,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	0f 85 d4 18 00 00    	jne    0x1908
+  34:	4d 8b 75 00          	mov    0x0(%r13),%r14
+  38:	31 ff                	xor    %edi,%edi
+  3a:	49 83 e6 9f          	and    $0xffffffffffffff9f,%r14
+  3e:	4c                   	rex.WR
+  3f:	89                   	.byte 0x89

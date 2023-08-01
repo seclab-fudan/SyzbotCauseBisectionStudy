@@ -1,0 +1,108 @@
+==================================================================
+BUG: KASAN: use-after-free in xfrm_migrate_policy_find net/xfrm/xfrm_policy.c:4055 [inline]
+BUG: KASAN: use-after-free in xfrm_migrate+0x178f/0x1a30 net/xfrm/xfrm_policy.c:4193
+Read of size 4 at addr ffff8880901edbb4 by task syz-executor2/4922
+
+CPU: 0 PID: 4922 Comm: syz-executor2 Not tainted 5.0.0-rc3+ #24
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:134
+ xfrm_migrate_policy_find net/xfrm/xfrm_policy.c:4055 [inline]
+ xfrm_migrate+0x178f/0x1a30 net/xfrm/xfrm_policy.c:4193
+ xfrm_do_migrate+0x9e5/0xd90 net/xfrm/xfrm_user.c:2380
+ xfrm_user_rcv_msg+0x458/0x8d0 net/xfrm/xfrm_user.c:2663
+ netlink_rcv_skb+0x17d/0x410 net/netlink/af_netlink.c:2485
+ xfrm_netlink_rcv+0x70/0x90 net/xfrm/xfrm_user.c:2671
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x574/0x770 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa05/0xf90 net/netlink/af_netlink.c:1925
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x7ec/0x910 net/socket.c:2116
+ __sys_sendmsg+0x112/0x270 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x458089
+Code: 6d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 3b b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f8216caec78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000458089
+RDX: 0000000000000000 RSI: 0000000020000000 RDI: 0000000000000003
+RBP: 000000000073bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f8216caf6d4
+R13: 00000000004c568f R14: 00000000004d9400 R15: 00000000ffffffff
+
+Allocated by task 25114:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_kmalloc mm/kasan/common.c:496 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:469
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:504
+ __do_kmalloc_node mm/slab.c:3673 [inline]
+ __kmalloc_node_track_caller+0x4e/0x70 mm/slab.c:3687
+ __kmalloc_reserve.isra.0+0x40/0xe0 net/core/skbuff.c:140
+ __alloc_skb+0x12d/0x730 net/core/skbuff.c:208
+ alloc_skb include/linux/skbuff.h:1011 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1182 [inline]
+ netlink_sendmsg+0xb11/0xf90 net/netlink/af_netlink.c:1900
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x7ec/0x910 net/socket.c:2116
+ __sys_sendmsg+0x112/0x270 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 25114:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:458
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:466
+ __cache_free mm/slab.c:3487 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3806
+ skb_free_head+0x93/0xb0 net/core/skbuff.c:553
+ skb_release_data+0x6ea/0x970 net/core/skbuff.c:573
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:627
+ __kfree_skb net/core/skbuff.c:641 [inline]
+ consume_skb net/core/skbuff.c:701 [inline]
+ consume_skb+0x18c/0x550 net/core/skbuff.c:695
+ netlink_unicast_kernel net/netlink/af_netlink.c:1311 [inline]
+ netlink_unicast+0x57c/0x770 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa05/0xf90 net/netlink/af_netlink.c:1925
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x7ec/0x910 net/socket.c:2116
+ __sys_sendmsg+0x112/0x270 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8880901edb00
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 180 bytes inside of
+ 1024-byte region [ffff8880901edb00, ffff8880901edf00)
+The buggy address belongs to the page:
+page:ffffea0002407b00 count:1 mapcount:0 mapping:ffff88812c3f0ac0 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea0001962588 ffffea0002452e88 ffff88812c3f0ac0
+raw: 0000000000000000 ffff8880901ec000 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880901eda80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8880901edb00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8880901edb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff8880901edc00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880901edc80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,45 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 1310 Comm: kworker/0:3 Not tainted 4.13.0-rc6+ #44
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events netlink_sock_destruct_work
+task: ffff8801d3eb47c0 task.stack: ffff8801d3fc0000
+RIP: 0010:__list_del_entry_valid+0x7e/0x150 lib/list_debug.c:51
+RSP: 0018:ffff8801d3fc70b8 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff8801cf968b58 RDI: ffff8801cf968b60
+RBP: ffff8801d3fc70d0 R08: ffffffff86e006a8 R09: ffff8801d3fc6a18
+R10: ffff8801d3fc6f98 R11: 1ffff1003a7d6b53 R12: 0000000000000000
+R13: ffff8801d3fc7198 R14: ffffffff860680f8 R15: ffff8801cf968b60
+FS:  0000000000000000(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000006d00a8 CR3: 0000000005a22000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:116 [inline]
+ list_del include/linux/list.h:124 [inline]
+ xfrm_policy_walk_done+0xfa/0x310 net/xfrm/xfrm_policy.c:1076
+ xfrm_dump_policy_done+0x73/0xa0 net/xfrm/xfrm_user.c:1690
+ netlink_sock_destruct+0xfa/0x3c0 net/netlink/af_netlink.c:362
+ __sk_destruct+0xfd/0x910 net/core/sock.c:1552
+ sk_destruct+0x47/0x80 net/core/sock.c:1587
+ __sk_free+0x57/0x230 net/core/sock.c:1595
+ sk_free+0x2a/0x40 net/core/sock.c:1606
+ netlink_sock_destruct_work+0x19/0x20 net/netlink/af_netlink.c:384
+ process_one_work+0xbf3/0x1bc0 kernel/workqueue.c:2097
+ worker_thread+0x223/0x1860 kernel/workqueue.c:2231
+ kthread+0x35e/0x430 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:425
+Code: 00 00 00 00 ad de 49 39 c4 74 66 48 b8 00 02 00 00 00 00 ad de 48 89 da 48 39 c3 74 65 48 c1 ea 03 48 b8 00 00 00 00 00 fc ff df <80> 3c 02 00 75 7b 48 8b 13 48 39 f2 75 57 49 8d 7c 24 08 48 b8 
+RIP: __list_del_entry_valid+0x7e/0x150 lib/list_debug.c:51 RSP: ffff8801d3fc70b8
+---[ end trace c760b41370daff30 ]---
+Kernel panic - not syncing: Fatal exception in interrupt
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

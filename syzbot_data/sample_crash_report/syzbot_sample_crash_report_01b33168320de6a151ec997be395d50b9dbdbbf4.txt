@@ -1,0 +1,117 @@
+IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+==================================================================
+BUG: KASAN: use-after-free in sock_i_ino+0x94/0xa0 net/core/sock.c:1921
+Read of size 8 at addr ffff8801b38330b0 by task syz-executor0/5635
+
+CPU: 1 PID: 5635 Comm: syz-executor0 Not tainted 4.19.0-rc3+ #232
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+ print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ sock_i_ino+0x94/0xa0 net/core/sock.c:1921
+ tipc_sk_fill_sock_diag+0x39c/0xd90 net/tipc/socket.c:3316
+ __tipc_add_sock_diag+0x233/0x360 net/tipc/diag.c:62
+ tipc_nl_sk_walk+0x122/0x1d0 net/tipc/socket.c:3250
+ tipc_diag_dump+0x24/0x30 net/tipc/diag.c:73
+ netlink_dump+0x519/0xd50 net/netlink/af_netlink.c:2233
+ __netlink_dump_start+0x4f1/0x6f0 net/netlink/af_netlink.c:2329
+ netlink_dump_start include/linux/netlink.h:213 [inline]
+ tipc_sock_diag_handler_dump+0x28e/0x3d0 net/tipc/diag.c:91
+ __sock_diag_cmd net/core/sock_diag.c:232 [inline]
+ sock_diag_rcv_msg+0x31d/0x410 net/core/sock_diag.c:263
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2454
+ sock_diag_rcv+0x2a/0x40 net/core/sock_diag.c:274
+ netlink_unicast_kernel net/netlink/af_netlink.c:1317 [inline]
+ netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1343
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1908
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2114
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2152
+ __do_sys_sendmsg net/socket.c:2161 [inline]
+ __se_sys_sendmsg net/socket.c:2159 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2159
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4572d9
+Code: fd b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f41f40adc78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f41f40ae6d4 RCX: 00000000004572d9
+RDX: 0000000000000000 RSI: 0000000020000040 RDI: 0000000000000006
+RBP: 00000000009300a0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000004d4f40 R14: 00000000004c941e R15: 0000000000000000
+
+Allocated by task 5635:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x730 mm/slab.c:3554
+ sock_alloc_inode+0x1d/0x260 net/socket.c:244
+ alloc_inode+0x63/0x190 fs/inode.c:210
+ new_inode_pseudo+0x71/0x1a0 fs/inode.c:903
+ sock_alloc+0x41/0x270 net/socket.c:547
+ __sock_create+0x175/0x930 net/socket.c:1239
+ sock_create net/socket.c:1315 [inline]
+ __sys_socket+0x106/0x260 net/socket.c:1345
+ __do_sys_socket net/socket.c:1354 [inline]
+ __se_sys_socket net/socket.c:1352 [inline]
+ __x64_sys_socket+0x73/0xb0 net/socket.c:1352
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 5634:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x83/0x290 mm/slab.c:3756
+ sock_destroy_inode+0x51/0x60 net/socket.c:272
+ destroy_inode+0x159/0x200 fs/inode.c:267
+ evict+0x5e0/0x980 fs/inode.c:575
+ iput_final fs/inode.c:1547 [inline]
+ iput+0x679/0xa90 fs/inode.c:1573
+ dentry_unlink_inode+0x461/0x5e0 fs/dcache.c:374
+ __dentry_kill+0x44c/0x7a0 fs/dcache.c:566
+ dentry_kill+0xc9/0x5a0 fs/dcache.c:685
+ dput.part.26+0x660/0x790 fs/dcache.c:846
+ dput+0x15/0x20 fs/dcache.c:828
+ __fput+0x4cf/0xa30 fs/file_table.c:291
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:193 [inline]
+ exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801b3833040
+ which belongs to the cache sock_inode_cache(17:syz0) of size 984
+The buggy address is located 112 bytes inside of
+ 984-byte region [ffff8801b3833040, ffff8801b3833418)
+The buggy address belongs to the page:
+page:ffffea0006ce0cc0 count:1 mapcount:0 mapping:ffff8801ca015800 index:0xffff8801b3833ffd
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0006ce0c08 ffffea0006ce0d08 ffff8801ca015800
+raw: ffff8801b3833ffd ffff8801b3833040 0000000100000003 ffff8801ce8a4640
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff8801ce8a4640
+
+Memory state around the buggy address:
+ ffff8801b3832f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801b3833000: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>ffff8801b3833080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff8801b3833100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801b3833180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

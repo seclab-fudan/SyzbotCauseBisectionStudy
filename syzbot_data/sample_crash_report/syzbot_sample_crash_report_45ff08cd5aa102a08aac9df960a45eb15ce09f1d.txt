@@ -1,0 +1,92 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 5983 Comm: syz-executor521 Not tainted 4.20.0-rc6+ #345
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__read_once_size include/linux/compiler.h:182 [inline]
+RIP: 0010:inet6_lhash2_lookup+0xc4/0x640 net/ipv6/inet6_hashtables.c:132
+Code: f2 f2 f2 f2 c7 40 0c 00 f2 f2 f2 65 48 8b 04 25 28 00 00 00 48 89 45 d0 31 c0 e8 d7 6c 84 fa 48 8d 7b 40 48 89 f8 48 c1 e8 03 <42> 80 3c 20 00 0f 85 59 05 00 00 4c 8d a5 58 ff ff ff 48 8b 5b 40
+RSP: 0018:ffff8881daf07010 EFLAGS: 00010202
+RAX: 0000000000000008 RBX: 0000000000000000 RCX: 0000000000000014
+RDX: 0000000000000100 RSI: ffffffff86fb17b9 RDI: 0000000000000040
+RBP: ffff8881daf07128 R08: ffff8881d1c3f97c R09: 000000000000b39e
+R10: ffffed1038a1d4f8 R11: ffff8881c50ea7c3 R12: dffffc0000000000
+R13: 0000000000004e20 R14: ffff8881d1c3f98c R15: ffffffff8bc662ec
+FS:  00000000022a0880(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020419000 CR3: 00000001c2f5a000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ inet6_lookup_listener+0x17d/0x790 net/ipv6/inet6_hashtables.c:167
+ __inet6_lookup include/net/inet6_hashtables.h:81 [inline]
+ __inet6_lookup_skb include/net/inet6_hashtables.h:98 [inline]
+ dccp_v6_rcv+0x12b5/0x1ce9 net/dccp/ipv6.c:715
+ ip6_protocol_deliver_rcu+0x381/0x1950 net/ipv6/ip6_input.c:394
+ ip6_input_finish+0x84/0x170 net/ipv6/ip6_input.c:434
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ip6_input+0xe9/0x600 net/ipv6/ip6_input.c:443
+ dst_input include/net/dst.h:450 [inline]
+ ip6_rcv_finish+0x17a/0x330 net/ipv6/ip6_input.c:76
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ipv6_rcv+0x115/0x640 net/ipv6/ip6_input.c:272
+ __netif_receive_skb_one_core+0x14d/0x200 net/core/dev.c:4972
+ __netif_receive_skb+0x2c/0x1e0 net/core/dev.c:5082
+ process_backlog+0x24e/0x7a0 net/core/dev.c:5912
+ napi_poll net/core/dev.c:6335 [inline]
+ net_rx_action+0x7fa/0x19b0 net/core/dev.c:6401
+ __do_softirq+0x308/0xb7e kernel/softirq.c:292
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1027
+ </IRQ>
+ do_softirq.part.14+0x126/0x160 kernel/softirq.c:337
+ do_softirq kernel/softirq.c:329 [inline]
+ __local_bh_enable_ip+0x21d/0x260 kernel/softirq.c:189
+ local_bh_enable include/linux/bottom_half.h:32 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:696 [inline]
+ ip6_finish_output2+0xcef/0x2940 net/ipv6/ip6_output.c:121
+ ip6_finish_output+0x58c/0xc60 net/ipv6/ip6_output.c:154
+ NF_HOOK_COND include/linux/netfilter.h:278 [inline]
+ ip6_output+0x232/0x9d0 net/ipv6/ip6_output.c:171
+ dst_output include/net/dst.h:444 [inline]
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ip6_xmit+0xf1c/0x24d0 net/ipv6/ip6_output.c:275
+ inet6_csk_xmit+0x378/0x630 net/ipv6/inet6_connection_sock.c:139
+ dccp_transmit_skb+0x98c/0x12e0 net/dccp/output.c:142
+ dccp_connect+0x39a/0x6e0 net/dccp/output.c:564
+ dccp_v6_connect+0x1959/0x1f20 net/dccp/ipv6.c:950
+ __inet_stream_connect+0x992/0x1150 net/ipv4/af_inet.c:655
+ inet_stream_connect+0x58/0xa0 net/ipv4/af_inet.c:719
+ __sys_connect+0x37d/0x4c0 net/socket.c:1664
+ __do_sys_connect net/socket.c:1675 [inline]
+ __se_sys_connect net/socket.c:1672 [inline]
+ __x64_sys_connect+0x73/0xb0 net/socket.c:1672
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441179
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db 0a fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffdb9682dc8 EFLAGS: 00000217 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000441179
+RDX: 000000000000001c RSI: 0000000020419000 RDI: 0000000000000003
+RBP: 00000000006cc018 R08: 0000000000000100 R09: 0000000000000100
+R10: 0000000000000100 R11: 0000000000000217 R12: 00000000004020e0
+R13: 0000000000402170 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+---[ end trace c508e51ca3b34290 ]---
+RIP: 0010:__read_once_size include/linux/compiler.h:182 [inline]
+RIP: 0010:inet6_lhash2_lookup+0xc4/0x640 net/ipv6/inet6_hashtables.c:132
+Code: f2 f2 f2 f2 c7 40 0c 00 f2 f2 f2 65 48 8b 04 25 28 00 00 00 48 89 45 d0 31 c0 e8 d7 6c 84 fa 48 8d 7b 40 48 89 f8 48 c1 e8 03 <42> 80 3c 20 00 0f 85 59 05 00 00 4c 8d a5 58 ff ff ff 48 8b 5b 40
+RSP: 0018:ffff8881daf07010 EFLAGS: 00010202
+RAX: 0000000000000008 RBX: 0000000000000000 RCX: 0000000000000014
+RDX: 0000000000000100 RSI: ffffffff86fb17b9 RDI: 0000000000000040
+RBP: ffff8881daf07128 R08: ffff8881d1c3f97c R09: 000000000000b39e
+R10: ffffed1038a1d4f8 R11: ffff8881c50ea7c3 R12: dffffc0000000000
+R13: 0000000000004e20 R14: ffff8881d1c3f98c R15: ffffffff8bc662ec
+FS:  00000000022a0880(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020419000 CR3: 00000001c2f5a000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

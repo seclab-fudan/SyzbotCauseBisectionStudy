@@ -1,0 +1,51 @@
+audit: type=1400 audit(1519919225.460:7): avc:  denied  { map } for  pid=4234 comm="syzkaller497390" path="/root/syzkaller497390405" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 4234 Comm: syzkaller497390 Not tainted 4.16.0-rc3+ #334
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__read_once_size include/linux/compiler.h:188 [inline]
+RIP: 0010:hrtimer_active+0x1da/0x3c0 kernel/time/hrtimer.c:1277
+RSP: 0018:ffff8801cd4873c0 EFLAGS: 00010202
+RAX: 0000000000000008 RBX: 1ffff10039a90ea5 RCX: ffffffff81610225
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000010
+RBP: ffff8801cd487500 R08: 0000000000002c02 R09: 0000000000000000
+R10: 0000000000000011 R11: ffffed0036230078 R12: 0000000000000010
+R13: 0000000000000000 R14: ffffed0039a90e83 R15: dffffc0000000000
+FS:  0000000000793880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f082a9d8000 CR3: 00000001b12a6005 CR4: 00000000001626e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ hrtimer_try_to_cancel+0x91/0x5b0 kernel/time/hrtimer.c:1128
+ hrtimer_cancel+0x22/0x40 kernel/time/hrtimer.c:1154
+ kvm_lapic_reset+0x93/0xf40 arch/x86/kvm/lapic.c:2015
+ kvm_arch_vcpu_setup+0x31/0x50 arch/x86/kvm/x86.c:7978
+ kvm_vm_ioctl_create_vcpu arch/x86/kvm/../../../virt/kvm/kvm_main.c:2459 [inline]
+ kvm_vm_ioctl+0x52d/0x1cf0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2949
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43fcf9
+RSP: 002b:00007ffc298497d8 EFLAGS: 00000217 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fcf9
+RDX: 0000000000000000 RSI: 000000000000ae41 RDI: 0000000000000004
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000217 R12: 0000000000401620
+R13: 00000000004016b0 R14: 0000000000000000 R15: 0000000000000000
+Code: ff ff 48 8d 85 18 ff ff ff 48 c1 e8 03 4e 8d 34 38 e8 1b f2 0f 00 48 8b 85 f0 fe ff ff c6 00 00 48 8b 85 d8 fe ff ff 48 c1 e8 03 <42> 80 3c 38 00 0f 85 c2 01 00 00 48 8b 85 e8 fe ff ff 48 8b 58 
+RIP: __read_once_size include/linux/compiler.h:188 [inline] RSP: ffff8801cd4873c0
+RIP: hrtimer_active+0x1da/0x3c0 kernel/time/hrtimer.c:1277 RSP: ffff8801cd4873c0
+---[ end trace 8fb3962750b44435 ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

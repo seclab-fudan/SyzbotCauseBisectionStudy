@@ -1,0 +1,79 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+FAULT_FLAG_ALLOW_RETRY missing 30
+CPU: 0 PID: 3237 Comm: syz-executor0 Not tainted 4.14.0-rc5-mm1+ #20
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ handle_userfault+0x11ec/0x23a0 fs/userfaultfd.c:427
+ do_anonymous_page mm/memory.c:3121 [inline]
+ handle_pte_fault mm/memory.c:3934 [inline]
+ __handle_mm_fault+0x2d46/0x39c0 mm/memory.c:4060
+ handle_mm_fault+0x334/0x8d0 mm/memory.c:4097
+ __do_page_fault+0x5bd/0xd60 arch/x86/mm/fault.c:1438
+ do_page_fault+0xee/0x720 arch/x86/mm/fault.c:1514
+ page_fault+0x22/0x30 arch/x86/entry/entry_64.S:1066
+RIP: 0010:fault_in_pages_readable include/linux/pagemap.h:600 [inline]
+RIP: 0010:iov_iter_fault_in_readable+0x1a7/0x410 lib/iov_iter.c:421
+RSP: 0018:ffff8801ca2a7928 EFLAGS: 00010246
+RAX: 0000000000010000 RBX: 0000000020011fd2 RCX: ffffffff823f3bf1
+RDX: 00000000000000c6 RSI: ffffc90001735000 RDI: ffff8801ca2a7d28
+RBP: ffff8801ca2a7a08 R08: 1ffff100394ff4fa R09: 0000000000000000
+R10: ffff8801ca2a7858 R11: 0000000000000000 R12: 1ffff10039454f28
+R13: ffff8801ca2a79e0 R14: 0000000000000000 R15: ffff8801ca2a7d20
+ generic_perform_write+0x200/0x600 mm/filemap.c:3128
+ __generic_file_write_iter+0x366/0x5b0 mm/filemap.c:3263
+ generic_file_write_iter+0x399/0x790 mm/filemap.c:3291
+ call_write_iter include/linux/fs.h:1770 [inline]
+ new_sync_write fs/read_write.c:468 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:481
+ vfs_write+0x189/0x510 fs/read_write.c:543
+ SYSC_write fs/read_write.c:588 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:580
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x452879
+RSP: 002b:00007f78ecc17be8 EFLAGS: 00000212 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000758020 RCX: 0000000000452879
+RDX: 0000000000000030 RSI: 0000000020011fd2 RDI: 0000000000000015
+RBP: 0000000000000082 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 0000000000000000
+R13: 0000000000a6f7ff R14: 00007f78ecc189c0 R15: 0000000000000000
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 3273 Comm: syz-executor6 Not tainted 4.14.0-rc5-mm1+ #20
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801c98d05c0 task.stack: ffff8801c9ed0000
+RIP: 0010:asn1_ber_decoder+0x431/0x1c20 lib/asn1_decoder.c:233
+RSP: 0018:ffff8801c9ed7908 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffc90003b7d000 RDI: ffffffff851d1208
+RBP: ffff8801c9ed7bc0 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: dffffc0000000000 R15: ffff8801c9ed7b98
+FS:  00007fa8abf5a700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020001000 CR3: 00000001c9910000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ pkcs7_parse_message+0x2b3/0x710 crypto/asymmetric_keys/pkcs7_parser.c:136
+ verify_pkcs7_signature+0x8d/0x290 certs/system_keyring.c:216
+ pkcs7_preparse+0x7b/0xc0 crypto/asymmetric_keys/pkcs7_key_type.c:63
+ key_create_or_update+0x4c6/0xe20 security/keys/key.c:846
+ SYSC_add_key security/keys/keyctl.c:122 [inline]
+ SyS_add_key+0x18a/0x340 security/keys/keyctl.c:62
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x452879
+RSP: 002b:00007fa8abf59be8 EFLAGS: 00000212 ORIG_RAX: 00000000000000f8
+RAX: ffffffffffffffda RBX: 0000000000758020 RCX: 0000000000452879
+RDX: 0000000020000000 RSI: 0000000020000000 RDI: 0000000020001000
+RBP: 0000000000000082 R08: ffffffffffffffff R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f3d70
+R13: 00000000ffffffff R14: 00007fa8abf5a6d4 R15: 0000000000000000
+Code: 1a ff 48 8d 43 01 49 89 87 80 fe ff ff 48 89 85 90 fd ff ff 48 8b 85 b8 fd ff ff 48 01 d8 48 89 c2 48 89 c1 48 c1 ea 03 83 e1 07 <42> 0f b6 14 32 38 ca 7f 08 84 d2 0f 85 e5 0f 00 00 0f b6 00 88 
+RIP: asn1_ber_decoder+0x431/0x1c20 lib/asn1_decoder.c:233 RSP: ffff8801c9ed7908
+---[ end trace a9f52deef0e1a079 ]---
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=47717 sclass=netlink_route_socket pig=3279 comm=syz-executor7

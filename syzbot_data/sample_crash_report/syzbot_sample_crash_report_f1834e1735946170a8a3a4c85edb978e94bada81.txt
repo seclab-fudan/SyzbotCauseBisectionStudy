@@ -1,0 +1,103 @@
+audit: type=1400 audit(1512850514.083:7): avc:  denied  { map } for  pid=3149 comm="syzkaller168370" path="/root/syzkaller168370441" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: use-after-free in crypto_aead_alg include/crypto/aead.h:198 [inline]
+BUG: KASAN: use-after-free in crypto_aead_encrypt include/crypto/aead.h:330 [inline]
+BUG: KASAN: use-after-free in _aead_recvmsg crypto/algif_aead.c:308 [inline]
+BUG: KASAN: use-after-free in aead_recvmsg+0x1758/0x1bc0 crypto/algif_aead.c:329
+Read of size 4 at addr ffff8801c5259e5c by task syzkaller168370/3149
+
+CPU: 0 PID: 3149 Comm: syzkaller168370 Not tainted 4.15.0-rc2+ #214
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ crypto_aead_alg include/crypto/aead.h:198 [inline]
+ crypto_aead_encrypt include/crypto/aead.h:330 [inline]
+ _aead_recvmsg crypto/algif_aead.c:308 [inline]
+ aead_recvmsg+0x1758/0x1bc0 crypto/algif_aead.c:329
+ sock_recvmsg_nosec net/socket.c:809 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:816
+ ___sys_recvmsg+0x29b/0x630 net/socket.c:2185
+ __sys_recvmsg+0xe2/0x210 net/socket.c:2230
+ SYSC_recvmsg net/socket.c:2242 [inline]
+ SyS_recvmsg+0x2d/0x50 net/socket.c:2237
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x440009
+RSP: 002b:00007ffee19bc768 EFLAGS: 00000286 ORIG_RAX: 000000000000002f
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440009
+RDX: 0000000000002021 RSI: 0000000020b2dfc8 RDI: 0000000000000004
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000286 R12: 0000000000401970
+R13: 0000000000401a00 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3149:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc mm/slab.c:3711 [inline]
+ __kmalloc+0x162/0x760 mm/slab.c:3720
+ kmalloc include/linux/slab.h:504 [inline]
+ kzalloc include/linux/slab.h:688 [inline]
+ crypto_create_tfm+0x82/0x2e0 crypto/api.c:455
+ crypto_alloc_tfm+0x10e/0x2f0 crypto/api.c:540
+ crypto_alloc_skcipher+0x2c/0x40 crypto/skcipher.c:929
+ crypto_get_default_null_skcipher+0x5f/0x80 crypto/crypto_null.c:164
+ crypto_get_default_null_skcipher2 include/crypto/null.h:17 [inline]
+ aead_bind+0x89/0x140 crypto/algif_aead.c:488
+ alg_bind+0x1ab/0x440 crypto/af_alg.c:179
+ SYSC_bind+0x1b4/0x3f0 net/socket.c:1454
+ SyS_bind+0x24/0x30 net/socket.c:1440
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 3149:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3491 [inline]
+ kfree+0xca/0x250 mm/slab.c:3806
+ kzfree+0x28/0x30 mm/slab_common.c:1482
+ crypto_destroy_tfm+0x140/0x2e0 crypto/api.c:581
+ crypto_free_skcipher include/crypto/skcipher.h:212 [inline]
+ crypto_put_default_null_skcipher+0x35/0x60 crypto/crypto_null.c:185
+ crypto_put_default_null_skcipher2 include/crypto/null.h:22 [inline]
+ aead_sock_destruct+0x13c/0x220 crypto/algif_aead.c:538
+ __sk_destruct+0xfd/0x910 net/core/sock.c:1558
+ sk_destruct+0x47/0x80 net/core/sock.c:1593
+ __sk_free+0x57/0x230 net/core/sock.c:1601
+ sk_free+0x2a/0x40 net/core/sock.c:1612
+ sock_put include/net/sock.h:1651 [inline]
+ af_alg_release+0x5d/0x70 crypto/af_alg.c:126
+ sock_release+0x8d/0x1e0 net/socket.c:600
+ sock_close+0x16/0x20 net/socket.c:1129
+ __fput+0x333/0x7f0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x296/0x310 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x94/0x96
+
+The buggy address belongs to the object at ffff8801c5259e40
+ which belongs to the cache kmalloc-128 of size 128
+The buggy address is located 28 bytes inside of
+ 128-byte region [ffff8801c5259e40, ffff8801c5259ec0)
+The buggy address belongs to the page:
+page:00000000ac68fd2d count:1 mapcount:0 mapping:000000003296ebe9 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801c5259000 0000000000000000 0000000100000015
+raw: ffffea00071653a0 ffffea0007133320 ffff8801db000640 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c5259d00: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801c5259d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801c5259e00: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff8801c5259e80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801c5259f00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

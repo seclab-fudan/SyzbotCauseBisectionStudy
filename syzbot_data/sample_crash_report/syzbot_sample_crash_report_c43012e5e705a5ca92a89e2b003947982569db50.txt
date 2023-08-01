@@ -1,0 +1,47 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+
+=============================
+WARNING: suspicious RCU usage
+4.18.0-rc8-next-20180810+ #36 Not tainted
+-----------------------------
+kernel/bpf/core.c:1582 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+2 locks held by syz-executor287/4449:
+ #0: 00000000d8131c0c (&ctx->mutex){+.+.}, at: perf_event_ctx_lock_nested+0x375/0x600 kernel/events/core.c:1276
+ #1: 000000006c916250 (bpf_event_mutex){+.+.}, at: perf_event_query_prog_array+0x1c6/0x380 kernel/trace/bpf_trace.c:1062
+
+stack backtrace:
+CPU: 1 PID: 4449 Comm: syz-executor287 Not tainted 4.18.0-rc8-next-20180810+ #36
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ lockdep_rcu_suspicious+0x14a/0x153 kernel/locking/lockdep.c:4562
+ bpf_prog_array_copy_core+0x2d9/0x360 kernel/bpf/core.c:1582
+ bpf_prog_array_copy_info+0x9a/0x110 kernel/bpf/core.c:1720
+ perf_event_query_prog_array+0x22e/0x380 kernel/trace/bpf_trace.c:1063
+ _perf_ioctl+0x986/0x1600 kernel/events/core.c:5079
+ perf_ioctl+0x59/0x80 kernel/events/core.c:5110
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:501 [inline]
+ do_vfs_ioctl+0x1de/0x1720 fs/ioctl.c:685
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:702
+ __do_sys_ioctl fs/ioctl.c:709 [inline]
+ __se_sys_ioctl fs/ioctl.c:707 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:707
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440409
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fffc5fc1488 EFLAGS: 00000217 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440409
+RDX: 0000000020000180 RSI: 00000000c008240a RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000217 R12: 0000000000401c90
+R13: 0000000000401d20 R14: 0000000000000000

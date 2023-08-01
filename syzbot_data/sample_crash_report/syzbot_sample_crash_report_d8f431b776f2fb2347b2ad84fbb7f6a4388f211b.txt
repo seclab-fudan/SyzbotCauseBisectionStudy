@@ -1,0 +1,55 @@
+audit: type=1400 audit(1519255013.186:10): avc:  denied  { sys_chroot } for  pid=4168 comm="syzkaller711255" capability=18  scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=cap_userns permissive=1
+kasan: CONFIG_KASAN_INLINE enabled
+audit: type=1400 audit(1519255013.186:11): avc:  denied  { net_raw } for  pid=4168 comm="syzkaller711255" capability=13  scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=cap_userns permissive=1
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 4168 Comm: syzkaller711255 Not tainted 4.16.0-rc2+ #323
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:arpt_do_table+0x11e1/0x16a0 net/ipv4/netfilter/arp_tables.c:255
+RSP: 0018:ffff8801b1a0ea10 EFLAGS: 00010246
+RAX: 0000000000000001 RBX: ffff8801afc32250 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff8801afc32126
+RBP: ffff8801b1a0ebb0 R08: 0000000000000001 R09: 0000000000000002
+R10: ffff8801b1a0eb08 R11: 0000000000000000 R12: ffff8801b0c3004e
+R13: ffff8801afc32080 R14: dffffc0000000000 R15: 0000000000000000
+FS:  0000000001fda880(0000) GS:ffff8801db500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000400 CR3: 00000001b1964001 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ arptable_filter_hook+0x65/0x80 net/ipv4/netfilter/arptable_filter.c:36
+ nf_hook_entry_hookfn include/linux/netfilter.h:120 [inline]
+ nf_hook_slow+0xba/0x1a0 net/netfilter/core.c:483
+ nf_hook include/linux/netfilter.h:243 [inline]
+ NF_HOOK include/linux/netfilter.h:286 [inline]
+ arp_rcv+0x787/0x9d0 net/ipv4/arp.c:965
+ __netif_receive_skb_core+0x1a41/0x3460 net/core/dev.c:4554
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4619
+ netif_receive_skb_internal+0x10b/0x670 net/core/dev.c:4693
+ netif_receive_skb+0xae/0x390 net/core/dev.c:4717
+ tun_rx_batched.isra.52+0x5ee/0x870 drivers/net/tun.c:1555
+ tun_get_user+0x25a5/0x3810 drivers/net/tun.c:1956
+ tun_chr_write_iter+0xbd/0x1c0 drivers/net/tun.c:1984
+ call_write_iter include/linux/fs.h:1781 [inline]
+ do_iter_readv_writev+0x55c/0x830 fs/read_write.c:653
+ do_iter_write+0x154/0x540 fs/read_write.c:932
+ vfs_writev+0x18a/0x340 fs/read_write.c:977
+ do_writev+0xfc/0x2a0 fs/read_write.c:1012
+ SYSC_writev fs/read_write.c:1085 [inline]
+ SyS_writev+0x27/0x30 fs/read_write.c:1082
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x446bf0
+RSP: 002b:00000000007efe08 EFLAGS: 00000246 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000446bf0
+RDX: 0000000000000001 RSI: 00000000007efe40 RDI: 0000000000000003
+RBP: 0000000000000068 R08: 00000000000003f0 R09: 0000000120080522
+R10: 0000000020000400 R11: 0000000000000246 R12: 0000000000000000
+R13: 000000000000000a R14: 0000000000000000 R15: 0000000000000000
+Code: 00 00 00 4c 01 e8 48 39 c3 74 34 e8 7a f2 b7 fc 8b 8d a4 fe ff ff 48 8b b5 88 fe ff ff 4c 8d 3c ce 8d 41 01 4c 89 f9 48 c1 e9 03 <42> 80 3c 31 00 0f 85 00 01 00 00 4d 89 2f 89 85 a4 fe ff ff 49 
+RIP: arpt_do_table+0x11e1/0x16a0 net/ipv4/netfilter/arp_tables.c:255 RSP: ffff8801b1a0ea10
+---[ end trace 7546a75a4c50f196 ]---

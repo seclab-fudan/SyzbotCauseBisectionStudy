@@ -1,0 +1,58 @@
+=====================================================
+BUG: KMSAN: use-after-free in __list_add_valid+0x280/0x420 lib/list_debug.c:26
+CPU: 1 PID: 11834 Comm: syz-executor297 Not tainted 5.6.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ __list_add_valid+0x280/0x420 lib/list_debug.c:26
+ __list_add include/linux/list.h:67 [inline]
+ list_add_tail include/linux/list.h:100 [inline]
+ cma_listen_on_all drivers/infiniband/core/cma.c:2512 [inline]
+ rdma_listen+0x623/0x10b0 drivers/infiniband/core/cma.c:3622
+ ucma_listen+0x36c/0x5e0 drivers/infiniband/core/ucma.c:1092
+ ucma_write+0x5c5/0x630 drivers/infiniband/core/ucma.c:1684
+ __vfs_write+0x1a9/0xca0 fs/read_write.c:494
+ vfs_write+0x44a/0x8f0 fs/read_write.c:558
+ ksys_write+0x267/0x450 fs/read_write.c:611
+ __do_sys_write fs/read_write.c:623 [inline]
+ __se_sys_write fs/read_write.c:620 [inline]
+ __ia32_sys_write+0xdb/0x120 fs/read_write.c:620
+ do_syscall_32_irqs_on arch/x86/entry/common.c:339 [inline]
+ do_fast_syscall_32+0x3c7/0x6e0 arch/x86/entry/common.c:410
+ entry_SYSENTER_compat+0x68/0x77 arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7f46d99
+Code: 90 e8 0b 00 00 00 f3 90 0f ae e8 eb f9 8d 74 26 00 89 3c 24 c3 90 90 90 90 90 90 90 90 90 90 90 90 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000f7f2012c EFLAGS: 00000246 ORIG_RAX: 0000000000000004
+RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 0000000020000140
+RDX: 0000000000000010 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_poison_shadow+0x66/0xd0 mm/kmsan/kmsan.c:127
+ kmsan_slab_free+0x6e/0xb0 mm/kmsan/kmsan_hooks.c:107
+ slab_free_freelist_hook mm/slub.c:1477 [inline]
+ slab_free mm/slub.c:3040 [inline]
+ kfree+0x565/0x30a0 mm/slub.c:3993
+ rdma_destroy_id+0x197e/0x1b40 drivers/infiniband/core/cma.c:1861
+ ucma_close+0x334/0x4c0 drivers/infiniband/core/ucma.c:1762
+ __fput+0x4c7/0xb90 fs/file_table.c:280
+ ____fput+0x37/0x40 fs/file_table.c:313
+ task_work_run+0x214/0x2b0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0xf72/0x38e0 kernel/exit.c:803
+ do_group_exit+0x18a/0x320 kernel/exit.c:901
+ get_signal+0xb73/0x32e0 kernel/signal.c:2734
+ do_signal+0x6f/0xe30 arch/x86/kernel/signal.c:813
+ exit_to_usermode_loop arch/x86/entry/common.c:160 [inline]
+ prepare_exit_to_usermode+0x2f0/0x520 arch/x86/entry/common.c:195
+ syscall_return_slowpath+0x95/0x5f0 arch/x86/entry/common.c:278
+ do_syscall_32_irqs_on arch/x86/entry/common.c:354 [inline]
+ do_fast_syscall_32+0x422/0x6e0 arch/x86/entry/common.c:410
+ entry_SYSENTER_compat+0x68/0x77 arch/x86/entry/entry_64_compat.S:139
+=====================================================

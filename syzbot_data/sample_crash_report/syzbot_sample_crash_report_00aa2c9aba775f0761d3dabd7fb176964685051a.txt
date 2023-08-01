@@ -1,0 +1,61 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+urandom_read: 1 callbacks suppressed
+random: sshd: uninitialized urandom read (32 bytes read)
+vhci_hcd: invalid port number 132
+==================================================================
+BUG: KASAN: use-after-free in vhci_hub_control+0x1b88/0x1bf0 drivers/usb/usbip/vhci_hcd.c:441
+Read of size 4 at addr ffff8801ce635ebc by task syz-executor268/4643
+
+CPU: 1 PID: 4643 Comm: syz-executor268 Not tainted 4.19.0-rc1+ #217
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x30d mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ vhci_hub_control+0x1b88/0x1bf0 drivers/usb/usbip/vhci_hcd.c:441
+ rh_call_control drivers/usb/core/hcd.c:679 [inline]
+ rh_urb_enqueue drivers/usb/core/hcd.c:838 [inline]
+ usb_hcd_submit_urb+0x184a/0x2160 drivers/usb/core/hcd.c:1651
+ usb_submit_urb+0x895/0x14d0 drivers/usb/core/urb.c:570
+ usb_start_wait_urb+0x140/0x360 drivers/usb/core/message.c:57
+ usb_internal_control_msg drivers/usb/core/message.c:101 [inline]
+ usb_control_msg+0x332/0x4e0 drivers/usb/core/message.c:152
+ proc_control+0x99b/0xef0 drivers/usb/core/devio.c:1106
+ usbdev_do_ioctl+0x1eb4/0x3b30 drivers/usb/core/devio.c:2394
+ usbdev_ioctl+0x25/0x30 drivers/usb/core/devio.c:2551
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:501 [inline]
+ do_vfs_ioctl+0x1de/0x1720 fs/ioctl.c:685
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:702
+ __do_sys_ioctl fs/ioctl.c:709 [inline]
+ __se_sys_ioctl fs/ioctl.c:707 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:707
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x443d89
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b d8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffe827be308 EFLAGS: 00000213 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000443d89
+RDX: 0000000020000100 RSI: 00000000c0185500 RDI: 0000000000000003
+RBP: 00000000006ce018 R08: 0000000000000000 R09: 00000000004002e0
+R10: 000000000000000f R11: 0000000000000213 R12: 0000000000401a90
+R13: 0000000000401b20 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0007398d40 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 ffffffff07390101 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ce635d80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801ce635e00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8801ce635e80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                        ^
+ ffff8801ce635f00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801ce635f80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

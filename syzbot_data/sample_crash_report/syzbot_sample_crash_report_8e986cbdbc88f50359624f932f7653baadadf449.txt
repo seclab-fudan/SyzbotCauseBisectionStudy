@@ -1,0 +1,79 @@
+erofs: read_super, device -> /dev/loop5
+erofs: options -> nouser_xattr,fault_injection=0x00000000000007ff,fowner>00000000000000000000,uid<00000000000000000000,subj_type=ntfs
+erofs: cannot find valid erofs superblock
+vhci_hcd: default hub control req: 0080 v0400 i0000 l0
+==================================================================
+BUG: KASAN: double-free or invalid-free in port_over_current_notify drivers/usb/core/hub.c:5192 [inline]
+BUG: KASAN: double-free or invalid-free in port_event drivers/usb/core/hub.c:5241 [inline]
+BUG: KASAN: double-free or invalid-free in hub_event+0xd97/0x4140 drivers/usb/core/hub.c:5384
+
+CPU: 1 PID: 32710 Comm: kworker/1:3 Not tainted 4.20.0-rc3+ #129
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_invalid_free+0x64/0xa0 mm/kasan/report.c:336
+ __kasan_slab_free+0x13a/0x150 mm/kasan/kasan.c:501
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ port_over_current_notify drivers/usb/core/hub.c:5192 [inline]
+ port_event drivers/usb/core/hub.c:5241 [inline]
+ hub_event+0xd97/0x4140 drivers/usb/core/hub.c:5384
+ process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
+ worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+ kthread+0x35a/0x440 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Allocated by task 32710:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc mm/slab.c:3722 [inline]
+ __kmalloc_track_caller+0x157/0x760 mm/slab.c:3737
+ kvasprintf+0xb5/0x150 lib/kasprintf.c:25
+ kasprintf+0xab/0xe0 lib/kasprintf.c:59
+ port_over_current_notify drivers/usb/core/hub.c:5185 [inline]
+ port_event drivers/usb/core/hub.c:5241 [inline]
+ hub_event+0xd5e/0x4140 drivers/usb/core/hub.c:5384
+ process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
+ worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+ kthread+0x35a/0x440 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Freed by task 32580:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ port_over_current_notify drivers/usb/core/hub.c:5192 [inline]
+ port_event drivers/usb/core/hub.c:5241 [inline]
+ hub_event+0xd97/0x4140 drivers/usb/core/hub.c:5384
+ process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
+ worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+ kthread+0x35a/0x440 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8881bf0d01c0
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8881bf0d01c0, ffff8881bf0d01e0)
+The buggy address belongs to the page:
+page:ffffea0006fc3400 count:1 mapcount:0 mapping:ffff8881da8001c0 index:0xffff8881bf0d0fc1
+flags: 0x2fffc0000000200(slab)
+raw: 02fffc0000000200 ffffea00074d4b88 ffffea0007528bc8 ffff8881da8001c0
+raw: ffff8881bf0d0fc1 ffff8881bf0d0000 000000010000003d 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881bf0d0080: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8881bf0d0100: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8881bf0d0180: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+                                           ^
+ ffff8881bf0d0200: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8881bf0d0280: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

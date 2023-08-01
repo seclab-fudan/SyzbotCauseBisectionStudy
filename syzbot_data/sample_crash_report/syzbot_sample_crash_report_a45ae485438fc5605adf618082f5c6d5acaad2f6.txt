@@ -1,0 +1,87 @@
+device bridge_slave_1 left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+device bridge_slave_0 left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+============================================
+WARNING: possible recursive locking detected
+5.8.0-rc2-syzkaller #0 Not tainted
+--------------------------------------------
+kworker/u4:7/8825 is trying to acquire lock:
+ffff888059710280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: netif_addr_lock_nested include/linux/netdevice.h:4243 [inline]
+ffff888059710280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: dev_uc_sync_multiple+0xdc/0x190 net/core/dev_addr_lists.c:670
+
+but task is already holding lock:
+ffff88808ec48280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:358 [inline]
+ffff88808ec48280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: netif_addr_lock_bh include/linux/netdevice.h:4248 [inline]
+ffff88808ec48280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: dev_mc_unsync net/core/dev_addr_lists.c:914 [inline]
+ffff88808ec48280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: dev_mc_unsync+0xb0/0x190 net/core/dev_addr_lists.c:909
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&vlan_netdev_addr_lock_key/1);
+  lock(&vlan_netdev_addr_lock_key/1);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+7 locks held by kworker/u4:7/8825:
+ #0: ffff8880a97ad138 ((wq_completion)netns){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8880a97ad138 ((wq_completion)netns){+.+.}-{0:0}, at: atomic64_set include/asm-generic/atomic-instrumented.h:856 [inline]
+ #0: ffff8880a97ad138 ((wq_completion)netns){+.+.}-{0:0}, at: atomic_long_set include/asm-generic/atomic-long.h:41 [inline]
+ #0: ffff8880a97ad138 ((wq_completion)netns){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:616 [inline]
+ #0: ffff8880a97ad138 ((wq_completion)netns){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:643 [inline]
+ #0: ffff8880a97ad138 ((wq_completion)netns){+.+.}-{0:0}, at: process_one_work+0x82b/0x1670 kernel/workqueue.c:2240
+ #1: ffffc90004497da8 (net_cleanup_work){+.+.}-{0:0}, at: process_one_work+0x85f/0x1670 kernel/workqueue.c:2244
+ #2: ffffffff8a7a48b0 (pernet_ops_rwsem){++++}-{3:3}, at: cleanup_net+0x9b/0xa00 net/core/net_namespace.c:565
+ #3: ffffffff8a7b1728 (rtnl_mutex){+.+.}-{3:3}, at: rtnl_lock_unregistering net/core/dev.c:10557 [inline]
+ #3: ffffffff8a7b1728 (rtnl_mutex){+.+.}-{3:3}, at: default_device_exit_batch+0xea/0x3d0 net/core/dev.c:10595
+ #4: ffff88808ec48280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:358 [inline]
+ #4: ffff88808ec48280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: netif_addr_lock_bh include/linux/netdevice.h:4248 [inline]
+ #4: ffff88808ec48280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: dev_mc_unsync net/core/dev_addr_lists.c:914 [inline]
+ #4: ffff88808ec48280 (&vlan_netdev_addr_lock_key/1){+...}-{2:2}, at: dev_mc_unsync+0xb0/0x190 net/core/dev_addr_lists.c:909
+ #5: ffff88805cfbc280 (&dev_addr_list_lock_key#2/2){+...}-{2:2}, at: netif_addr_lock_nested include/linux/netdevice.h:4243 [inline]
+ #5: ffff88805cfbc280 (&dev_addr_list_lock_key#2/2){+...}-{2:2}, at: dev_mc_unsync net/core/dev_addr_lists.c:915 [inline]
+ #5: ffff88805cfbc280 (&dev_addr_list_lock_key#2/2){+...}-{2:2}, at: dev_mc_unsync+0xf4/0x190 net/core/dev_addr_lists.c:909
+ #6: ffffffff89bbe640 (rcu_read_lock){....}-{1:2}, at: team_set_rx_mode+0x0/0x220 drivers/net/team/team.c:857
+
+stack backtrace:
+CPU: 1 PID: 8825 Comm: kworker/u4:7 Not tainted 5.8.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_deadlock_bug kernel/locking/lockdep.c:2391 [inline]
+ check_deadlock kernel/locking/lockdep.c:2432 [inline]
+ validate_chain kernel/locking/lockdep.c:3202 [inline]
+ __lock_acquire.cold+0x178/0x3f8 kernel/locking/lockdep.c:4380
+ lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:4959
+ _raw_spin_lock_nested+0x30/0x40 kernel/locking/spinlock.c:361
+ netif_addr_lock_nested include/linux/netdevice.h:4243 [inline]
+ dev_uc_sync_multiple+0xdc/0x190 net/core/dev_addr_lists.c:670
+ team_set_rx_mode+0xce/0x220 drivers/net/team/team.c:1779
+ __dev_set_rx_mode+0x1ea/0x300 net/core/dev.c:8207
+ dev_mc_unsync net/core/dev_addr_lists.c:917 [inline]
+ dev_mc_unsync+0x139/0x190 net/core/dev_addr_lists.c:909
+ vlan_dev_stop+0x51/0x350 net/8021q/vlan_dev.c:315
+ __dev_close_many+0x1b3/0x2e0 net/core/dev.c:1605
+ dev_close_many+0x238/0x650 net/core/dev.c:1630
+ rollback_registered_many+0x3af/0xf60 net/core/dev.c:8953
+ unregister_netdevice_many.part.0+0x1a/0x2f0 net/core/dev.c:10121
+ unregister_netdevice_many net/core/dev.c:10120 [inline]
+ default_device_exit_batch+0x30c/0x3d0 net/core/dev.c:10604
+ ops_exit_list+0x10d/0x160 net/core/net_namespace.c:189
+ cleanup_net+0x4ea/0xa00 net/core/net_namespace.c:603
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:291
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+device veth1_macvtap left promiscuous mode
+device veth0_macvtap left promiscuous mode
+device veth1_vlan left promiscuous mode
+device veth0_vlan left promiscuous mode
+team0 (unregistering): Port device vlan2 removed

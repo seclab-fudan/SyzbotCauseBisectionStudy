@@ -1,0 +1,41 @@
+==================================================================
+BUG: KCSAN: data-race in rcu_gp_fqs_check_wake / rcu_note_context_switch
+
+write to 0xffffffff85c7d0d0 of 8 bytes by task 17503 on cpu 0:
+ rcu_preempt_ctxt_queue kernel/rcu/tree_plugin.h:223 [inline]
+ rcu_note_context_switch+0x6f6/0x760 kernel/rcu/tree_plugin.h:315
+ __schedule+0xa4/0x690 kernel/sched/core.c:4019
+ preempt_schedule_irq+0x57/0x90 kernel/sched/core.c:4338
+ restore_regs_and_return_to_kernel+0x0/0x25
+ check_kcov_mode kernel/kcov.c:153 [inline]
+ write_comp_data+0x17/0x70 kernel/kcov.c:208
+ __read_once_size+0x25/0xe0 include/linux/compiler.h:232
+ __ref_is_percpu include/linux/percpu-refcount.h:161 [inline]
+ percpu_ref_get_many include/linux/percpu-refcount.h:191 [inline]
+ percpu_ref_get include/linux/percpu-refcount.h:209 [inline]
+ cgroup_bpf_get include/linux/cgroup.h:939 [inline]
+ cgroup_sk_alloc+0x126/0x460 kernel/cgroup/cgroup.c:6270
+ sk_alloc+0x263/0x5b0 net/core/sock.c:1677
+ __netlink_create+0x59/0x140 net/netlink/af_netlink.c:629
+ netlink_create+0x29c/0x400 net/netlink/af_netlink.c:692
+ __sock_create+0x241/0x3a0 net/socket.c:1420
+ sock_create net/socket.c:1471 [inline]
+ __sys_socket+0x96/0x170 net/socket.c:1513
+ __do_sys_socket net/socket.c:1522 [inline]
+ __se_sys_socket net/socket.c:1520 [inline]
+ __x64_sys_socket+0x4c/0x60 net/socket.c:1520
+ do_syscall_64+0xcc/0x3a0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffffffff85c7d0d0 of 8 bytes by task 10 on cpu 1:
+ rcu_gp_fqs_check_wake kernel/rcu/tree.c:1606 [inline]
+ rcu_gp_fqs_check_wake+0x93/0xd0 kernel/rcu/tree.c:1596
+ rcu_gp_fqs_loop+0x1df/0x580 kernel/rcu/tree.c:1661
+ rcu_gp_kthread+0x143/0x230 kernel/rcu/tree.c:1821
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 10 Comm: rcu_preempt Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

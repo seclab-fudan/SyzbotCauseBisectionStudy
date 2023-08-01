@@ -1,0 +1,73 @@
+loop3: detected capacity change from 0 to 4096
+ntfs3: loop3: Different NTFS' sector size (1024) and media sector size (512)
+BUG: spinlock bad magic on CPU#1, syz-executor406/12278
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000470
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000000111fd4000
+[0000000000000470] pgd=0800000112c3a003, p4d=0800000112c3a003, pud=0800000111fb7003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 12278 Comm: syz-executor406 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+pstate: a0400005 (NzCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : task_pid_nr include/linux/sched.h:1568 [inline]
+pc : spin_dump kernel/locking/spinlock_debug.c:63 [inline]
+pc : spin_bug+0x88/0xec kernel/locking/spinlock_debug.c:77
+lr : spin_dump kernel/locking/spinlock_debug.c:60 [inline]
+lr : spin_bug+0x68/0xec kernel/locking/spinlock_debug.c:77
+sp : ffff800016053940
+x29: ffff800016053940 x28: 0000000000000000 x27: 0000000000000a00
+x26: 0000000000000010 x25: 0000000000000000 x24: 0000000000000001
+x23: 0000000000000001 x22: ffff800016053a60 x21: ffffffffffffff00
+x20: ffff80000cc04981 x19: ffff0000cff0ea6f x18: 0000000000000387
+x17: ffff80000c0cd83c x16: 0000000000000002 x15: 0000000000000000
+x14: 0000000000000000 x13: 205d383732323154 x12: 5b5d303535323234
+x11: ff808000081c4d64 x10: 0000000000000000 x9 : 35577adde7ee3200
+x8 : ffffffffffffff01 x7 : 545b5d3035353232 x6 : ffff80000c091ebc
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 00000000ad4ead00 x1 : 0000000000000001 x0 : 0000000000000037
+Call trace:
+ spin_bug+0x88/0xec kernel/locking/spinlock_debug.c:77
+ debug_spin_lock_before kernel/locking/spinlock_debug.c:85 [inline]
+ do_raw_spin_lock+0xb0/0x110 kernel/locking/spinlock_debug.c:114
+ __raw_spin_lock include/linux/spinlock_api_smp.h:134 [inline]
+ _raw_spin_lock+0x5c/0x6c kernel/locking/spinlock.c:154
+ spin_lock include/linux/spinlock.h:350 [inline]
+ writeback_single_inode+0x44/0x3dc fs/fs-writeback.c:1676
+ write_inode_now+0xb0/0xdc fs/fs-writeback.c:2744
+ iput_final fs/inode.c:1734 [inline]
+ iput+0x1e4/0x324 fs/inode.c:1773
+ ntfs_fill_super+0x1254/0x14a4 fs/ntfs3/super.c:1190
+ get_tree_bdev+0x1e8/0x2a0 fs/super.c:1324
+ ntfs_fs_get_tree+0x28/0x38 fs/ntfs3/super.c:1358
+ vfs_get_tree+0x40/0x140 fs/super.c:1531
+ do_new_mount+0x1dc/0x4e4 fs/namespace.c:3040
+ path_mount+0x358/0x890 fs/namespace.c:3370
+ do_mount fs/namespace.c:3383 [inline]
+ __do_sys_mount fs/namespace.c:3591 [inline]
+ __se_sys_mount fs/namespace.c:3568 [inline]
+ __arm64_sys_mount+0x2c4/0x3c4 fs/namespace.c:3568
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 900259c3 12800004 9120cc63 14000003 (b94572a4) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	900259c3 	adrp	x3, 0x4b38000
+   4:	12800004 	mov	w4, #0xffffffff            	// #-1
+   8:	9120cc63 	add	x3, x3, #0x833
+   c:	14000003 	b	0x18
+* 10:	b94572a4 	ldr	w4, [x21, #1392] <-- trapping instruction

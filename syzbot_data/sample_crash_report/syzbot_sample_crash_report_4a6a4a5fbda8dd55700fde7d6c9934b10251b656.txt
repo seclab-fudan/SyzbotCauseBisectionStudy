@@ -1,0 +1,93 @@
+protocol 86dd is buggy, dev sit0
+protocol 86dd is buggy, dev sit0
+protocol 86dd is buggy, dev sit0
+protocol 86dd is buggy, dev sit0
+==================================================================
+BUG: KASAN: slab-out-of-bounds in memcpy include/linux/string.h:352 [inline]
+BUG: KASAN: slab-out-of-bounds in skb_copy_from_linear_data include/linux/skbuff.h:3442 [inline]
+BUG: KASAN: slab-out-of-bounds in __pskb_copy_fclone+0x2dd/0xeb0 net/core/skbuff.c:1402
+Read of size 4294967282 at addr ffff8881b4332b1c by task syz-executor2/24718
+
+CPU: 1 PID: 24718 Comm: syz-executor2 Not tainted 4.20.0-rc6+ #179
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ memcpy+0x23/0x50 mm/kasan/kasan.c:302
+ memcpy include/linux/string.h:352 [inline]
+ skb_copy_from_linear_data include/linux/skbuff.h:3442 [inline]
+ __pskb_copy_fclone+0x2dd/0xeb0 net/core/skbuff.c:1402
+ __pskb_copy include/linux/skbuff.h:1064 [inline]
+ pskb_copy include/linux/skbuff.h:2926 [inline]
+ skb_realloc_headroom+0xe7/0x120 net/core/skbuff.c:1546
+ ipip6_tunnel_xmit net/ipv6/sit.c:965 [inline]
+ sit_tunnel_xmit+0xe23/0x30e0 net/ipv6/sit.c:1029
+ __netdev_start_xmit include/linux/netdevice.h:4367 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4376 [inline]
+ xmit_one net/core/dev.c:3276 [inline]
+ dev_hard_start_xmit+0x295/0xc80 net/core/dev.c:3292
+ __dev_queue_xmit+0x2f7a/0x3ae0 net/core/dev.c:3862
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3895
+ __bpf_tx_skb net/core/filter.c:2014 [inline]
+ __bpf_redirect_common net/core/filter.c:2052 [inline]
+ __bpf_redirect+0x5df/0xb60 net/core/filter.c:2059
+ ____bpf_clone_redirect net/core/filter.c:2092 [inline]
+ bpf_clone_redirect+0x2f6/0x490 net/core/filter.c:2064
+ bpf_prog_41f2bcae09cd4ac3+0xee1/0x1000
+
+Allocated by task 24718:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc_node mm/slab.c:3684 [inline]
+ __kmalloc_node_track_caller+0x50/0x70 mm/slab.c:3698
+ __kmalloc_reserve.isra.40+0x41/0xe0 net/core/skbuff.c:137
+ pskb_expand_head+0x230/0x10f0 net/core/skbuff.c:1467
+ skb_ensure_writable+0x3dd/0x640 net/core/skbuff.c:5107
+ __bpf_try_make_writable net/core/filter.c:1635 [inline]
+ bpf_try_make_writable net/core/filter.c:1641 [inline]
+ bpf_try_make_head_writable net/core/filter.c:1649 [inline]
+ ____bpf_clone_redirect net/core/filter.c:2086 [inline]
+ bpf_clone_redirect+0x14a/0x490 net/core/filter.c:2064
+ bpf_prog_41f2bcae09cd4ac3+0xee1/0x1000
+
+Freed by task 0:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ in_dev_finish_destroy+0x134/0x1a0 net/ipv4/devinet.c:246
+ in_dev_put include/linux/inetdevice.h:252 [inline]
+ in_dev_rcu_put+0x47/0x60 net/ipv4/devinet.c:298
+ __rcu_reclaim kernel/rcu/rcu.h:240 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2437 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2716 [inline]
+ rcu_process_callbacks+0x100a/0x1ac0 kernel/rcu/tree.c:2697
+ __do_softirq+0x308/0xb7e kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff8881b4332ac0
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 92 bytes inside of
+ 512-byte region [ffff8881b4332ac0, ffff8881b4332cc0)
+The buggy address belongs to the page:
+page:ffffea0006d0cc80 count:1 mapcount:0 mapping:ffff8881da800940 index:0x0
+flags: 0x2fffc0000000200(slab)
+raw: 02fffc0000000200 ffffea0007485e48 ffffea00075d0788 ffff8881da800940
+raw: 0000000000000000 ffff8881b43320c0 0000000100000006 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881b4332b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8881b4332c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8881b4332c80: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+                                           ^
+ ffff8881b4332d00: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8881b4332d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

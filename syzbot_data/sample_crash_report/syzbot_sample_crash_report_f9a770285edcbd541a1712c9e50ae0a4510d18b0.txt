@@ -1,0 +1,63 @@
+ntfs: (device loop0): check_windows_hibernation_status(): Failed to find inode number for hiberfil.sys.
+ntfs: (device loop0): load_system_files(): Failed to determine if Windows is hibernated.  Will not be able to remount read-write.  Run chkdsk.
+------------[ cut here ]------------
+kernel BUG at fs/inode.c:611!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 5068 Comm: syz-executor418 Not tainted 6.2.0-rc7-syzkaller-00018-g0983f6bf2bfc #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+RIP: 0010:clear_inode+0x13e/0x190 fs/inode.c:611
+Code: 02 00 75 65 48 8b 83 d8 01 00 00 48 39 c5 75 31 e8 97 11 9c ff 48 c7 83 d8 00 00 00 60 00 00 00 5b 5d 41 5c c3 e8 82 11 9c ff <0f> 0b e8 7b 11 9c ff 0f 0b e8 74 11 9c ff 0f 0b e8 6d 11 9c ff 0f
+RSP: 0018:ffffc90003f3fae8 EFLAGS: 00010093
+RAX: 0000000000000000 RBX: ffff88807326a420 RCX: 0000000000000000
+RDX: ffff888025deba80 RSI: ffffffff81e4e68e RDI: 0000000000000007
+RBP: 0000000000000001 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff88807326a650
+R13: ffff88807326a448 R14: ffffffff8a81de80 R15: ffff88807326a150
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f5d7e58cb88 CR3: 000000000c48e000 CR4: 0000000000350ee0
+Call Trace:
+ <TASK>
+ ntfs_evict_big_inode+0x41/0x520 fs/ntfs/inode.c:2252
+ evict+0x2ed/0x6b0 fs/inode.c:664
+ iput_final fs/inode.c:1747 [inline]
+ iput.part.0+0x59b/0x880 fs/inode.c:1773
+ iput+0x5c/0x80 fs/inode.c:1763
+ ntfs_put_super+0x979/0x1700 fs/ntfs/super.c:2356
+ generic_shutdown_super+0x158/0x410 fs/super.c:492
+ kill_block_super+0x9b/0xf0 fs/super.c:1386
+ deactivate_locked_super+0x98/0x160 fs/super.c:332
+ deactivate_super+0xb1/0xd0 fs/super.c:363
+ cleanup_mnt+0x2ae/0x3d0 fs/namespace.c:1291
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0xaa8/0x2950 kernel/exit.c:867
+ do_group_exit+0xd4/0x2a0 kernel/exit.c:1012
+ __do_sys_exit_group kernel/exit.c:1023 [inline]
+ __se_sys_exit_group kernel/exit.c:1021 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:1021
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f5d7e546449
+Code: Unable to access opcode bytes at 0x7f5d7e54641f.
+RSP: 002b:00007fffddbaa318 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007f5d7e5dd410 RCX: 00007f5d7e546449
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000001
+RBP: 0000000000000001 R08: ffffffffffffffc0 R09: 000000000001ee3c
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f5d7e5dd410
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:clear_inode+0x13e/0x190 fs/inode.c:611
+Code: 02 00 75 65 48 8b 83 d8 01 00 00 48 39 c5 75 31 e8 97 11 9c ff 48 c7 83 d8 00 00 00 60 00 00 00 5b 5d 41 5c c3 e8 82 11 9c ff <0f> 0b e8 7b 11 9c ff 0f 0b e8 74 11 9c ff 0f 0b e8 6d 11 9c ff 0f
+RSP: 0018:ffffc90003f3fae8 EFLAGS: 00010093
+RAX: 0000000000000000 RBX: ffff88807326a420 RCX: 0000000000000000
+RDX: ffff888025deba80 RSI: ffffffff81e4e68e RDI: 0000000000000007
+RBP: 0000000000000001 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff88807326a650
+R13: ffff88807326a448 R14: ffffffff8a81de80 R15: ffff88807326a150
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f5d7e58cb88 CR3: 000000000c48e000 CR4: 0000000000350ee0

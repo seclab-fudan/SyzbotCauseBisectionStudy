@@ -1,0 +1,101 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/l1tf.html for details.
+==================================================================
+BUG: KASAN: use-after-free in kvm_iodevice_destructor include/kvm/iodev.h:72 [inline]
+BUG: KASAN: use-after-free in kvm_io_bus_destroy arch/x86/kvm/../../../virt/kvm/kvm_main.c:3401 [inline]
+BUG: KASAN: use-after-free in kvm_destroy_vm arch/x86/kvm/../../../virt/kvm/kvm_main.c:740 [inline]
+BUG: KASAN: use-after-free in kvm_put_kvm+0xd7c/0xff0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:770
+Read of size 8 at addr ffff8801cd479910 by task syz-executor822/5583
+
+CPU: 0 PID: 5583 Comm: syz-executor822 Not tainted 4.19.0-rc8-next-20181019+ #98
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ kvm_iodevice_destructor include/kvm/iodev.h:72 [inline]
+ kvm_io_bus_destroy arch/x86/kvm/../../../virt/kvm/kvm_main.c:3401 [inline]
+ kvm_destroy_vm arch/x86/kvm/../../../virt/kvm/kvm_main.c:740 [inline]
+ kvm_put_kvm+0xd7c/0xff0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:770
+ kvm_vm_release+0x42/0x50 arch/x86/kvm/../../../virt/kvm/kvm_main.c:781
+ __fput+0x3bc/0xa70 fs/file_table.c:279
+ ____fput+0x15/0x20 fs/file_table.c:312
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1ad1/0x26d0 kernel/exit.c:867
+ do_group_exit+0x177/0x440 kernel/exit.c:970
+ __do_sys_exit_group kernel/exit.c:981 [inline]
+ __se_sys_exit_group kernel/exit.c:979 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:979
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43ecf8
+Code: Bad RIP value.
+RSP: 002b:00007ffdc564f908 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043ecf8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004be5a8 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 00000000004002c8 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d0180 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 5583:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x750 mm/slab.c:3620
+ kmalloc include/linux/slab.h:546 [inline]
+ kzalloc include/linux/slab.h:741 [inline]
+ kvm_vm_ioctl_register_coalesced_mmio+0xe8/0x4f0 arch/x86/kvm/../../../virt/kvm/coalesced_mmio.c:147
+ kvm_vm_ioctl+0x594/0x1d60 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3014
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:501 [inline]
+ do_vfs_ioctl+0x1de/0x1720 fs/ioctl.c:685
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:702
+ __do_sys_ioctl fs/ioctl.c:709 [inline]
+ __se_sys_ioctl fs/ioctl.c:707 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:707
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 5583:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ coalesced_mmio_destructor+0x1ad/0x2a0 arch/x86/kvm/../../../virt/kvm/coalesced_mmio.c:99
+ kvm_iodevice_destructor include/kvm/iodev.h:73 [inline]
+ kvm_vm_ioctl_unregister_coalesced_mmio+0x263/0x330 arch/x86/kvm/../../../virt/kvm/coalesced_mmio.c:184
+ kvm_vm_ioctl+0x6bc/0x1d60 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3023
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:501 [inline]
+ do_vfs_ioctl+0x1de/0x1720 fs/ioctl.c:685
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:702
+ __do_sys_ioctl fs/ioctl.c:709 [inline]
+ __se_sys_ioctl fs/ioctl.c:707 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:707
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801cd479900
+ which belongs to the cache kmalloc-64 of size 64
+The buggy address is located 16 bytes inside of
+ 64-byte region [ffff8801cd479900, ffff8801cd479940)
+The buggy address belongs to the page:
+page:ffffea0007351e40 count:1 mapcount:0 mapping:ffff8801da800340 index:0x0
+flags: 0x2fffc0000000200(slab)
+raw: 02fffc0000000200 ffffea000736b488 ffffea000736d808 ffff8801da800340
+raw: 0000000000000000 ffff8801cd479000 0000000100000020 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cd479800: 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc
+ ffff8801cd479880: 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc
+>ffff8801cd479900: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                         ^
+ ffff8801cd479980: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+ ffff8801cd479a00: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+==================================================================

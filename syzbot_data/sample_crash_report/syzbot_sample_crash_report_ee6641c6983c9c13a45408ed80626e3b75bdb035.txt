@@ -1,0 +1,61 @@
+Unable to handle kernel paging request at virtual address 002e6f696b6c629f
+Mem abort info:
+  ESR = 0x0000000096000004
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000004
+  CM = 0, WnR = 0
+[002e6f696b6c629f] address between user and kernel address ranges
+Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 4479 Comm: kworker/u4:21 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: phy15 ieee80211_iface_work
+pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __kmem_cache_alloc_node+0x17c/0x350 mm/slub.c:3437
+lr : slab_pre_alloc_hook mm/slab.h:712 [inline]
+lr : slab_alloc_node mm/slub.c:3318 [inline]
+lr : __kmem_cache_alloc_node+0x80/0x350 mm/slub.c:3437
+sp : ffff800015e63890
+x29: ffff800015e638a0 x28: ffff000124078000 x27: ffff0001238ab474
+x26: ffff00010b9e3658 x25: 00000000ffffffff x24: ffff80000bc33670
+x23: 0000000000000048 x22: 622e6f696b6c625f x21: 0000000000000000
+x20: 0000000000000b20 x19: ffff0000c0001200 x18: 00000000000003a6
+x17: 0000000000000075 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000005 x12: ffff80000d8f0a90
+x11: 0000000000000001 x10: 0000000000000000 x9 : 0000000000000040
+x8 : 0000000000387011 x7 : ffff80000bcf8a58 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : ffff80000bc33670 x3 : 0000000000387019
+x2 : 0000000000000000 x1 : 0000000000000080 x0 : fffffc000317aa00
+Call trace:
+ next_tid mm/slub.c:2349 [inline]
+ slab_alloc_node mm/slub.c:3382 [inline]
+ __kmem_cache_alloc_node+0x17c/0x350 mm/slub.c:3437
+ __do_kmalloc_node mm/slab_common.c:954 [inline]
+ __kmalloc+0xb4/0x140 mm/slab_common.c:968
+ kmalloc include/linux/slab.h:558 [inline]
+ kzalloc include/linux/slab.h:689 [inline]
+ cfg80211_inform_single_bss_frame_data net/wireless/scan.c:2471 [inline]
+ cfg80211_inform_bss_frame_data+0x29c/0xc40 net/wireless/scan.c:2532
+ ieee80211_bss_info_update+0x3f4/0x60c net/mac80211/scan.c:190
+ ieee80211_rx_bss_info net/mac80211/ibss.c:1120 [inline]
+ ieee80211_rx_mgmt_probe_beacon net/mac80211/ibss.c:1609 [inline]
+ ieee80211_ibss_rx_queued_mgmt+0xb9c/0x1078 net/mac80211/ibss.c:1638
+ ieee80211_iface_process_skb net/mac80211/iface.c:1630 [inline]
+ ieee80211_iface_work+0x444/0x68c net/mac80211/iface.c:1684
+ process_one_work+0x2d8/0x504 kernel/workqueue.c:2289
+ worker_thread+0x340/0x610 kernel/workqueue.c:2436
+ kthread+0x12c/0x158 kernel/kthread.c:376
+ ret_from_fork+0x10/0x20 arch/arm64/kernel/entry.S:863
+Code: 54000ee1 34000eeb b9402a69 91002103 (f8696ada) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	54000ee1 	b.ne	0x1dc  // b.any
+   4:	34000eeb 	cbz	w11, 0x1e0
+   8:	b9402a69 	ldr	w9, [x19, #40]
+   c:	91002103 	add	x3, x8, #0x8
+* 10:	f8696ada 	ldr	x26, [x22, x9] <-- trapping instruction

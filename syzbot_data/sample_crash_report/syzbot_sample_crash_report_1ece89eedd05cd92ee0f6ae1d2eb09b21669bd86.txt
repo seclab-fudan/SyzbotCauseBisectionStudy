@@ -1,0 +1,79 @@
+BUG: unable to handle page fault for address: fffffffff10cabec
+#PF: supervisor write access in kernel mode
+#PF: error_code(0x0002) - not-present page
+PGD 9e90067 P4D 9e90067 PUD 9e92067 PMD 0 
+Oops: 0002 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.9.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:update_pvclock_gtod arch/x86/kvm/x86.c:1746 [inline]
+RIP: 0010:pvclock_gtod_notify+0x1ad/0x570 arch/x86/kvm/x86.c:7466
+Code: fc ff df 0f b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 2b 03 00 00 8b 43 1c 48 8d 7b 20 48 89 fa 48 c1 ea 03 <89> 05 e9 77 00 70 07 b8 00 00 00 00 00 fc ff df 80 3c 02 00 0f 85
+RSP: 0018:ffffc90000007bf0 EFLAGS: 00010802
+RAX: 0000000000000018 RBX: ffffffff8d440980 RCX: 0000000000000001
+RDX: 1ffffffff1a88134 RSI: 0000000000000008 RDI: ffffffff8d4409a0
+RBP: ffffffff89f77140 R08: 0000000000000000 R09: ffffffff8d0c0a1f
+R10: fffffbfff1a18143 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: ffffffff89f02dc0
+FS:  0000000000000000(0000) GS:ffff8880ae400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffffff10cabec CR3: 0000000096209000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ notifier_call_chain+0xb5/0x200 kernel/notifier.c:83
+ update_pvclock_gtod kernel/time/timekeeping.c:581 [inline]
+ timekeeping_update+0x28a/0x4a0 kernel/time/timekeeping.c:675
+ timekeeping_advance+0x6ad/0xa40 kernel/time/timekeeping.c:2122
+ tick_do_update_jiffies64.part.0+0x1ec/0x330 kernel/time/tick-sched.c:101
+ tick_do_update_jiffies64 kernel/time/tick-sched.c:64 [inline]
+ tick_sched_do_timer kernel/time/tick-sched.c:147 [inline]
+ tick_sched_timer+0x236/0x2a0 kernel/time/tick-sched.c:1321
+ __run_hrtimer kernel/time/hrtimer.c:1524 [inline]
+ __hrtimer_run_queues+0x1d5/0xfc0 kernel/time/hrtimer.c:1588
+ hrtimer_interrupt+0x334/0x940 kernel/time/hrtimer.c:1650
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1080 [inline]
+ __sysvec_apic_timer_interrupt+0x147/0x5f0 arch/x86/kernel/apic/apic.c:1097
+ asm_call_irq_on_stack+0xf/0x20
+ </IRQ>
+ __run_sysvec_on_irqstack arch/x86/include/asm/irq_stack.h:37 [inline]
+ run_sysvec_on_irqstack_cond arch/x86/include/asm/irq_stack.h:89 [inline]
+ sysvec_apic_timer_interrupt+0xb2/0xf0 arch/x86/kernel/apic/apic.c:1091
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:581
+RIP: 0010:native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:61
+Code: 89 ef e8 a5 49 8e f9 e9 86 fe ff ff 48 89 df e8 98 49 8e f9 e9 7b ff ff ff cc cc cc e9 07 00 00 00 0f 00 2d 94 0f 60 00 fb f4 <c3> 90 e9 07 00 00 00 0f 00 2d 84 0f 60 00 f4 c3 cc cc 55 53 e8 69
+RSP: 0018:ffffffff89e07d48 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 1ffffffff16b2521
+RDX: ffffffff89e9bbc0 RSI: ffffffff8828d043 RDI: 0000000000000000
+RBP: ffff8880a69b0064 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000001
+R13: ffff8880a69b0000 R14: ffff8880a69b0064 R15: ffff8880a2c06004
+ arch_safe_halt arch/x86/include/asm/paravirt.h:150 [inline]
+ acpi_safe_halt drivers/acpi/processor_idle.c:111 [inline]
+ acpi_idle_do_entry+0x1e8/0x330 drivers/acpi/processor_idle.c:517
+ acpi_idle_enter+0x35a/0x550 drivers/acpi/processor_idle.c:648
+ cpuidle_enter_state+0x1ab/0xd20 drivers/cpuidle/cpuidle.c:237
+ cpuidle_enter+0x4a/0xa0 drivers/cpuidle/cpuidle.c:350
+ call_cpuidle kernel/sched/idle.c:132 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:213 [inline]
+ do_idle+0x48e/0x730 kernel/sched/idle.c:273
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:369
+ start_kernel+0x490/0x4b1 init/main.c:1049
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+Modules linked in:
+CR2: fffffffff10cabec
+---[ end trace e07bdfe73ff12f95 ]---
+RIP: 0010:update_pvclock_gtod arch/x86/kvm/x86.c:1746 [inline]
+RIP: 0010:pvclock_gtod_notify+0x1ad/0x570 arch/x86/kvm/x86.c:7466
+Code: fc ff df 0f b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 2b 03 00 00 8b 43 1c 48 8d 7b 20 48 89 fa 48 c1 ea 03 <89> 05 e9 77 00 70 07 b8 00 00 00 00 00 fc ff df 80 3c 02 00 0f 85
+RSP: 0018:ffffc90000007bf0 EFLAGS: 00010802
+RAX: 0000000000000018 RBX: ffffffff8d440980 RCX: 0000000000000001
+RDX: 1ffffffff1a88134 RSI: 0000000000000008 RDI: ffffffff8d4409a0
+RBP: ffffffff89f77140 R08: 0000000000000000 R09: ffffffff8d0c0a1f
+R10: fffffbfff1a18143 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: ffffffff89f02dc0
+FS:  0000000000000000(0000) GS:ffff8880ae400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffffff10cabec CR3: 0000000096209000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

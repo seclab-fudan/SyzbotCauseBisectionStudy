@@ -1,0 +1,70 @@
+kernel BUG at mm/khugepaged.c:469!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 6871 Comm: syz-executor011 Not tainted 5.9.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__khugepaged_enter+0x306/0x3d0 mm/khugepaged.c:469
+Code: e4 49 81 fe c0 b3 c9 89 74 2a e8 c5 75 bb ff 44 89 e0 5b 5d 41 5c 41 5d 41 5e 41 5f c3 e8 b2 75 bb ff 48 89 ef e8 ea d5 e9 ff <0f> 0b 41 bc f4 ff ff ff eb d6 e8 9b 75 bb ff 31 c9 ba 01 00 00 00
+RSP: 0018:ffffc900016d7a70 EFLAGS: 00010282
+RAX: 0000000000000363 RBX: 0000000000000003 RCX: 0000000000000000
+RDX: ffff888088fd6540 RSI: ffffffff815dafc7 RDI: fffff520002daeed
+RBP: ffff8880a8e97740 R08: 0000000000000363 R09: ffff8880ae7318e7
+R10: 0000000000000000 R11: 0000000000076a88 R12: ffff8880a6a69a50
+R13: ffff8880a8e9779c R14: 0000000020000000 R15: ffffc900016d7ba8
+FS:  00007f08fbb31700(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffe21bc3bb0 CR3: 00000000a8bd7000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ khugepaged_enter include/linux/khugepaged.h:62 [inline]
+ do_huge_pmd_anonymous_page+0xaa1/0x2230 mm/huge_memory.c:706
+ create_huge_pmd mm/memory.c:4106 [inline]
+ __handle_mm_fault mm/memory.c:4330 [inline]
+ handle_mm_fault+0x369d/0x4590 mm/memory.c:4457
+ do_user_addr_fault+0x598/0xbf0 arch/x86/mm/fault.c:1294
+ handle_page_fault arch/x86/mm/fault.c:1351 [inline]
+ exc_page_fault+0xa8/0x160 arch/x86/mm/fault.c:1404
+ asm_exc_page_fault+0x1e/0x30 arch/x86/include/asm/idtentry.h:538
+RIP: 0010:copy_user_generic_unrolled+0x89/0xc0 arch/x86/lib/copy_user_64.S:91
+Code: 38 4c 89 47 20 4c 89 4f 28 4c 89 57 30 4c 89 5f 38 48 8d 76 40 48 8d 7f 40 ff c9 75 b6 89 d1 83 e2 07 c1 e9 03 74 12 4c 8b 06 <4c> 89 07 48 8d 76 08 48 8d 7f 08 ff c9 75 ee 21 d2 74 10 89 d1 8a
+RSP: 0018:ffffc900016d7db0 EFLAGS: 00010206
+RAX: 0000000000000001 RBX: 0000000020000000 RCX: 0000000000000006
+RDX: 0000000000000001 RSI: ffff888092861800 RDI: 0000000020000000
+RBP: ffff888092861800 R08: 312020205b3e353c R09: ffff888092861830
+R10: ffffed101250c306 R11: 0000000000000000 R12: 0000000000000031
+R13: 0000000020000031 R14: 00007ffffffff000 R15: 0000000000000000
+ copy_user_generic arch/x86/include/asm/uaccess_64.h:37 [inline]
+ raw_copy_to_user arch/x86/include/asm/uaccess_64.h:74 [inline]
+ _copy_to_user+0x11e/0x160 lib/usercopy.c:30
+ copy_to_user include/linux/uaccess.h:168 [inline]
+ syslog_print_all kernel/printk/printk.c:1508 [inline]
+ do_syslog.part.0+0xf85/0x16c0 kernel/printk/printk.c:1579
+ do_syslog kernel/printk/printk.c:1654 [inline]
+ __do_sys_syslog kernel/printk/printk.c:1656 [inline]
+ __se_sys_syslog kernel/printk/printk.c:1654 [inline]
+ __x64_sys_syslog+0x97/0xc0 kernel/printk/printk.c:1654
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x4467d9
+Code: e8 0c e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db 06 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f08fbb30db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000067
+RAX: ffffffffffffffda RBX: 00000000006dbc28 RCX: 00000000004467d9
+RDX: 00000000000000ce RSI: 0000000020000000 RDI: 0000000000000003
+RBP: 00000000006dbc20 R08: 00007f08fbb31700 R09: 0000000000000000
+R10: 00007f08fbb31700 R11: 0000000000000246 R12: 00000000006dbc2c
+R13: 00007ffe21bc3b2f R14: 00007f08fbb319c0 R15: 000000000000002d
+Modules linked in:
+---[ end trace 44b202f01e0a7ac8 ]---
+RIP: 0010:__khugepaged_enter+0x306/0x3d0 mm/khugepaged.c:469
+Code: e4 49 81 fe c0 b3 c9 89 74 2a e8 c5 75 bb ff 44 89 e0 5b 5d 41 5c 41 5d 41 5e 41 5f c3 e8 b2 75 bb ff 48 89 ef e8 ea d5 e9 ff <0f> 0b 41 bc f4 ff ff ff eb d6 e8 9b 75 bb ff 31 c9 ba 01 00 00 00
+RSP: 0018:ffffc900016d7a70 EFLAGS: 00010282
+RAX: 0000000000000363 RBX: 0000000000000003 RCX: 0000000000000000
+RDX: ffff888088fd6540 RSI: ffffffff815dafc7 RDI: fffff520002daeed
+RBP: ffff8880a8e97740 R08: 0000000000000363 R09: ffff8880ae7318e7
+R10: 0000000000000000 R11: 0000000000076a88 R12: ffff8880a6a69a50
+R13: ffff8880a8e9779c R14: 0000000020000000 R15: ffffc900016d7ba8
+FS:  00007f08fbb31700(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 00000000a8bd7000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

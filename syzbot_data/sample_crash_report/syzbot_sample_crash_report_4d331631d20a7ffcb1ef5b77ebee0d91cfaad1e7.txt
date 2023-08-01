@@ -1,0 +1,100 @@
+==================================================================
+BUG: KASAN: use-after-free in n_tty_check_throttle drivers/tty/n_tty.c:266 [inline]
+BUG: KASAN: use-after-free in n_tty_receive_buf_common+0x270f/0x2b70 drivers/tty/n_tty.c:1761
+Read of size 1 at addr ffff8880a7648402 by task syz-executor319/11030
+
+CPU: 0 PID: 11030 Comm: syz-executor319 Not tainted 5.6.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x32 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:641
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ n_tty_check_throttle drivers/tty/n_tty.c:266 [inline]
+ n_tty_receive_buf_common+0x270f/0x2b70 drivers/tty/n_tty.c:1761
+ n_tty_receive_buf2+0x34/0x40 drivers/tty/n_tty.c:1777
+ tty_ldisc_receive_buf+0xad/0x1c0 drivers/tty/tty_buffer.c:461
+ paste_selection+0x1ff/0x460 drivers/tty/vt/selection.c:372
+ tioclinux+0x133/0x480 drivers/tty/vt/vt.c:3044
+ vt_ioctl+0x1a41/0x26d0 drivers/tty/vt/vt_ioctl.c:364
+ tty_ioctl+0xa37/0x14f0 drivers/tty/tty_io.c:2660
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl+0x123/0x180 fs/ioctl.c:763
+ __do_sys_ioctl fs/ioctl.c:772 [inline]
+ __se_sys_ioctl fs/ioctl.c:770 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:770
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441329
+Code: e8 ac e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffeae838978 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000441329
+RDX: 0000000020000040 RSI: 000000000000541c RDI: 0000000000000004
+RBP: 0000000000076975 R08: 000000000000000d R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004020a0
+R13: 0000000000402130 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 11034:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:488
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:529
+ __do_kmalloc mm/slab.c:3656 [inline]
+ __kmalloc+0x163/0x770 mm/slab.c:3665
+ kmalloc_array include/linux/slab.h:597 [inline]
+ set_selection_kernel+0x872/0x13b0 drivers/tty/vt/selection.c:305
+ set_selection_user+0x95/0xd9 drivers/tty/vt/selection.c:177
+ tioclinux+0x11c/0x480 drivers/tty/vt/vt.c:3039
+ vt_ioctl+0x1a41/0x26d0 drivers/tty/vt/vt_ioctl.c:364
+ tty_ioctl+0xa37/0x14f0 drivers/tty/tty_io.c:2660
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl+0x123/0x180 fs/ioctl.c:763
+ __do_sys_ioctl fs/ioctl.c:772 [inline]
+ __se_sys_ioctl fs/ioctl.c:770 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:770
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 11036:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:476
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:485
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ set_selection_kernel+0x88f/0x13b0 drivers/tty/vt/selection.c:312
+ set_selection_user+0x95/0xd9 drivers/tty/vt/selection.c:177
+ tioclinux+0x11c/0x480 drivers/tty/vt/vt.c:3039
+ vt_ioctl+0x1a41/0x26d0 drivers/tty/vt/vt_ioctl.c:364
+ tty_ioctl+0xa37/0x14f0 drivers/tty/tty_io.c:2660
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl+0x123/0x180 fs/ioctl.c:763
+ __do_sys_ioctl fs/ioctl.c:772 [inline]
+ __se_sys_ioctl fs/ioctl.c:770 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:770
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8880a7648400
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 2 bytes inside of
+ 512-byte region [ffff8880a7648400, ffff8880a7648600)
+The buggy address belongs to the page:
+page:ffffea00029d9200 refcount:1 mapcount:0 mapping:ffff8880aa400a80 index:0x0
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea00029c3a48 ffffea00027a7488 ffff8880aa400a80
+raw: 0000000000000000 ffff8880a7648000 0000000100000004 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a7648300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8880a7648380: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8880a7648400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8880a7648480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880a7648500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

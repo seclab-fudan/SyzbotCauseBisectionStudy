@@ -1,0 +1,57 @@
+divide error: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 5622 Comm: kworker/0:13 Not tainted 6.3.0-rc3-syzkaller-00317-g65aca32efdcb #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Workqueue: reiserfs/loop1 flush_async_commits
+RIP: 0010:flush_commit_list.isra.0+0xa2f/0x1e70 fs/reiserfs/journal.c:1051
+Code: c1 45 84 ca 0f 85 7a 0f 00 00 83 e2 07 40 38 d6 41 0f 9e c1 40 84 f6 0f 95 c2 41 84 d1 0f 85 61 0f 00 00 41 8b 7c 24 14 31 d2 <48> f7 f7 48 8b 44 24 38 8d 34 11 48 c1 e8 03 80 3c 18 00 0f 85 24
+RSP: 0018:ffffc9000a7e7c28 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: dffffc0000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffff8880779a0000 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff88808a9f8000
+R13: 0000000000000000 R14: 0000000000000100 R15: ffff88803fa5e000
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000202f5000 CR3: 0000000032888000 CR4: 0000000000350ef0
+Call Trace:
+ <TASK>
+ flush_async_commits+0xa9/0xe0 fs/reiserfs/journal.c:3554
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:flush_commit_list.isra.0+0xa2f/0x1e70 fs/reiserfs/journal.c:1051
+Code: c1 45 84 ca 0f 85 7a 0f 00 00 83 e2 07 40 38 d6 41 0f 9e c1 40 84 f6 0f 95 c2 41 84 d1 0f 85 61 0f 00 00 41 8b 7c 24 14 31 d2 <48> f7 f7 48 8b 44 24 38 8d 34 11 48 c1 e8 03 80 3c 18 00 0f 85 24
+RSP: 0018:ffffc9000a7e7c28 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: dffffc0000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffff8880779a0000 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff88808a9f8000
+R13: 0000000000000000 R14: 0000000000000100 R15: ffff88803fa5e000
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000202f5000 CR3: 000000003a462000 CR4: 0000000000350ef0
+----------------
+Code disassembly (best guess):
+   0:	c1 45 84 ca          	roll   $0xca,-0x7c(%rbp)
+   4:	0f 85 7a 0f 00 00    	jne    0xf84
+   a:	83 e2 07             	and    $0x7,%edx
+   d:	40 38 d6             	cmp    %dl,%sil
+  10:	41 0f 9e c1          	setle  %r9b
+  14:	40 84 f6             	test   %sil,%sil
+  17:	0f 95 c2             	setne  %dl
+  1a:	41 84 d1             	test   %dl,%r9b
+  1d:	0f 85 61 0f 00 00    	jne    0xf84
+  23:	41 8b 7c 24 14       	mov    0x14(%r12),%edi
+  28:	31 d2                	xor    %edx,%edx
+* 2a:	48 f7 f7             	div    %rdi <-- trapping instruction
+  2d:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
+  32:	8d 34 11             	lea    (%rcx,%rdx,1),%esi
+  35:	48 c1 e8 03          	shr    $0x3,%rax
+  39:	80 3c 18 00          	cmpb   $0x0,(%rax,%rbx,1)
+  3d:	0f                   	.byte 0xf
+  3e:	85                   	.byte 0x85
+  3f:	24                   	.byte 0x24

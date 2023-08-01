@@ -1,0 +1,92 @@
+==================================================================
+BUG: KASAN: use-after-free in __list_del_entry_valid+0x11d/0x150 lib/list_debug.c:42
+Read of size 8 at addr ffff8801c525d208 by task syzkaller184222/6821
+
+CPU: 1 PID: 6821 Comm: syzkaller184222 Not tainted 4.15.0-rc3+ #222
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ __list_del_entry_valid+0x11d/0x150 lib/list_debug.c:42
+ __list_del_entry include/linux/list.h:117 [inline]
+ list_del include/linux/list.h:125 [inline]
+ crypto_larval_kill+0x79/0x2e0 crypto/api.c:164
+ crypto_alg_mod_lookup+0x178/0x1b0 crypto/api.c:283
+ crypto_find_alg crypto/api.c:501 [inline]
+ crypto_alloc_tfm+0xf3/0x2f0 crypto/api.c:534
+ crypto_alloc_aead+0x2c/0x40 crypto/aead.c:342
+ aead_bind+0x70/0x140 crypto/algif_aead.c:482
+ alg_bind+0x1ab/0x440 crypto/af_alg.c:179
+ SYSC_bind+0x1b4/0x3f0 net/socket.c:1454
+ SyS_bind+0x24/0x30 net/socket.c:1440
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x4406f9
+RSP: 002b:00007ffe05f4b6d8 EFLAGS: 00000203 ORIG_RAX: 0000000000000031
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004406f9
+RDX: 0000000000000058 RSI: 0000000020269000 RDI: 0000000000000003
+RBP: 0000000000007a10 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000203 R12: 0000000000000000
+R13: 0000000000401c30 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 6821:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3610
+ kmalloc include/linux/slab.h:499 [inline]
+ kzalloc include/linux/slab.h:688 [inline]
+ crypto_larval_alloc+0x51/0x1e0 crypto/api.c:114
+ crypto_larval_add crypto/api.c:136 [inline]
+ crypto_larval_lookup.part.8+0x194/0x400 crypto/api.c:232
+ crypto_larval_lookup crypto/api.c:212 [inline]
+ crypto_alg_mod_lookup+0x77/0x1b0 crypto/api.c:271
+ crypto_find_alg crypto/api.c:501 [inline]
+ crypto_alloc_tfm+0xf3/0x2f0 crypto/api.c:534
+ crypto_alloc_aead+0x2c/0x40 crypto/aead.c:342
+ aead_bind+0x70/0x140 crypto/algif_aead.c:482
+ alg_bind+0x1ab/0x440 crypto/af_alg.c:179
+ SYSC_bind+0x1b4/0x3f0 net/socket.c:1454
+ SyS_bind+0x24/0x30 net/socket.c:1440
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 3209:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xca/0x250 mm/slab.c:3803
+ crypto_larval_destroy+0x110/0x150 crypto/api.c:107
+ crypto_alg_put crypto/internal.h:116 [inline]
+ crypto_larval_kill+0x1e8/0x2e0 crypto/api.c:167
+ crypto_wait_for_test+0x87/0xb0 crypto/algapi.c:351
+ crypto_register_instance+0x2bf/0x430 crypto/algapi.c:558
+ aead_register_instance+0x161/0x1c0 crypto/aead.c:421
+ pcrypt_create_aead crypto/pcrypt.c:322 [inline]
+ pcrypt_create+0x542/0x6c0 crypto/pcrypt.c:346
+ cryptomgr_probe+0x74/0x240 crypto/algboss.c:75
+ kthread+0x37a/0x440 kernel/kthread.c:238
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:441
+
+The buggy address belongs to the object at ffff8801c525d200
+ which belongs to the cache kmalloc-1024 of size 1024
+The buggy address is located 8 bytes inside of
+ 1024-byte region [ffff8801c525d200, ffff8801c525d600)
+The buggy address belongs to the page:
+page:00000000d279a1bb count:1 mapcount:0 mapping:00000000a05ea903 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801c525c000 0000000000000000 0000000100000007
+raw: ffffea00071858a0 ffffea0007124420 ffff8801db000ac0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c525d100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c525d180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801c525d200: fb fb fb fb 00 00 00 00 00 00 00 00 00 00 00 00
+                      ^
+ ffff8801c525d280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801c525d300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

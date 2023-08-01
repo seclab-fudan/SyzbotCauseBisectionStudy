@@ -1,0 +1,77 @@
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000014
+R13: 00000000000004d5 R14: 00000000006fa498 R15: 000000000000002a
+------------[ cut here ]------------
+do not call blocking ops when !TASK_RUNNING; state=2 set at [<        (ptrval)>] prepare_to_wait+0x126/0x4d0 kernel/sched/wait.c:229
+WARNING: CPU: 0 PID: 2271 at kernel/sched/core.c:6139 __might_sleep+0x13d/0x190 kernel/sched/core.c:6134
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 0 PID: 2271 Comm: jbd2/sda1-8 Not tainted 4.17.0-rc2+ #17
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ panic+0x22f/0x4de kernel/panic.c:184
+ __warn.cold.8+0x163/0x1b3 kernel/panic.c:536
+ report_bug+0x252/0x2d0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:178 [inline]
+ do_error_trap+0x1de/0x490 arch/x86/kernel/traps.c:296
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:992
+RIP: 0010:__might_sleep+0x13d/0x190 kernel/sched/core.c:6134
+RSP: 0018:ffff8801dae07930 EFLAGS: 00010082
+RAX: 000000000000006c RBX: ffff8801cc512240 RCX: ffffffff81843358
+RDX: 0000000000010000 RSI: ffffffff8160f4e1 RDI: 0000000000000001
+RBP: ffff8801dae07960 R08: ffff8801cc512240 R09: ffffed003b5c3eb2
+R10: ffffed003b5c3eb2 R11: ffff8801dae1f597 R12: ffffffff889d4985
+R13: 00000000000001a5 R14: 0000000000000000 R15: 00000000014088c0
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc mm/slab.c:3378 [inline]
+ __do_kmalloc mm/slab.c:3716 [inline]
+ __kmalloc+0x2b9/0x760 mm/slab.c:3727
+ kmalloc_array include/linux/slab.h:631 [inline]
+ kcalloc include/linux/slab.h:642 [inline]
+ numa_crng_init drivers/char/random.c:798 [inline]
+ crng_reseed+0x427/0x920 drivers/char/random.c:923
+ credit_entropy_bits+0x98d/0xa30 drivers/char/random.c:708
+ add_interrupt_randomness+0x494/0x860 drivers/char/random.c:1254
+bridge0: port 1(bridge_slave_0) entered blocking state
+ handle_irq_event_percpu+0xf9/0x1c0 kernel/irq/handle.c:191
+bridge0: port 1(bridge_slave_0) entered disabled state
+ handle_irq_event+0xa7/0x135 kernel/irq/handle.c:206
+ handle_edge_irq+0x20f/0x870 kernel/irq/chip.c:791
+ generic_handle_irq_desc include/linux/irqdesc.h:159 [inline]
+ handle_irq+0x18c/0x2e7 arch/x86/kernel/irq_64.c:77
+device bridge_slave_0 entered promiscuous mode
+ do_IRQ+0x78/0x190 arch/x86/kernel/irq.c:245
+ common_interrupt+0xf/0xf arch/x86/entry/entry_64.S:642
+ </IRQ>
+RIP: 0010:schedule+0x0/0x430 kernel/sched/core.c:3303
+RSP: 0018:ffff8801cc51ec20 EFLAGS: 00000246 ORIG_RAX: ffffffffffffffda
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 1ffff100398a2641 RSI: 0000000000000002 RDI: 0000000000000000
+RBP: ffff8801cc51ec38 R08: fffffbfff11812d2 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801cc512240
+bridge0: port 2(bridge_slave_1) entered blocking state
+R13: 0000000000000002 R14: ffff8801cc51ecf8 R15: ffff8801cc51ed10
+ bit_wait_io+0x18/0x90 kernel/sched/wait_bit.c:207
+bridge0: port 2(bridge_slave_1) entered disabled state
+ __wait_on_bit+0xb3/0x130 kernel/sched/wait_bit.c:48
+ out_of_line_wait_on_bit+0x204/0x3a0 kernel/sched/wait_bit.c:63
+device bridge_slave_1 entered promiscuous mode
+ wait_on_bit_io include/linux/wait_bit.h:101 [inline]
+ __wait_on_buffer+0x76/0x90 fs/buffer.c:118
+ wait_on_buffer include/linux/buffer_head.h:356 [inline]
+ journal_wait_on_commit_record fs/jbd2/commit.c:174 [inline]
+ jbd2_journal_commit_transaction+0x655b/0x8c18 fs/jbd2/commit.c:865
+IPv6: ADDRCONF(NETDEV_UP): veth0_to_bridge: link is not ready
+IPv6: ADDRCONF(NETDEV_UP): veth1_to_bridge: link is not ready
+ kjournald2+0x26c/0xb30 fs/jbd2/journal.c:229
+bond0: Enslaving bond_slave_0 as an active interface with an up link
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

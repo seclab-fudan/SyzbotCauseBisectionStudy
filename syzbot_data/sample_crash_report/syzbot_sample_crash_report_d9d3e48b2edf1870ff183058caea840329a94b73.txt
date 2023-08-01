@@ -1,0 +1,68 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in memcpy include/linux/string.h:345 [inline]
+BUG: KASAN: null-ptr-deref in rdma_resolve_addr+0x12e/0x26c0 drivers/infiniband/core/cma.c:2920
+Write of size 28 at addr 00000000000000a0 by task syzkaller326171/7671
+
+CPU: 0 PID: 7671 Comm: syzkaller326171 Not tainted 4.16.0-rc5+ #352
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ kasan_report_error mm/kasan/report.c:352 [inline]
+ kasan_report+0x140/0x360 mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x37/0x50 mm/kasan/kasan.c:303
+ memcpy include/linux/string.h:345 [inline]
+ rdma_resolve_addr+0x12e/0x26c0 drivers/infiniband/core/cma.c:2920
+ ucma_resolve_ip+0x142/0x1f0 drivers/infiniband/core/ucma.c:677
+ ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1633
+ __vfs_write+0xef/0x970 fs/read_write.c:480
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x446b29
+RSP: 002b:00007f72069e1da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 0000000000446b29
+RDX: 000000000000002e RSI: 0000000020000c40 RDI: 0000000000000004
+RBP: 00000000006e29f8 R08: 00007f72069e2700 R09: 0000000000000000
+R10: 00007f72069e2700 R11: 0000000000000246 R12: 006d635f616d6472
+R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000004
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 0 PID: 7671 Comm: syzkaller326171 Tainted: G    B            4.16.0-rc5+ #352
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ panic+0x1e4/0x41c kernel/panic.c:183
+ kasan_end_report+0x50/0x50 mm/kasan/report.c:180
+ kasan_report_error mm/kasan/report.c:359 [inline]
+ kasan_report+0x149/0x360 mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x37/0x50 mm/kasan/kasan.c:303
+ memcpy include/linux/string.h:345 [inline]
+ rdma_resolve_addr+0x12e/0x26c0 drivers/infiniband/core/cma.c:2920
+ ucma_resolve_ip+0x142/0x1f0 drivers/infiniband/core/ucma.c:677
+ ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1633
+ __vfs_write+0xef/0x970 fs/read_write.c:480
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x446b29
+RSP: 002b:00007f72069e1da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 0000000000446b29
+RDX: 000000000000002e RSI: 0000000020000c40 RDI: 0000000000000004
+RBP: 00000000006e29f8 R08: 00007f72069e2700 R09: 0000000000000000
+R10: 00007f72069e2700 R11: 0000000000000246 R12: 006d635f616d6472
+R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000004
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,102 @@
+em28xx 1-1:0.254: V4L2 device video0 deregistered
+xc2028 0-0061: destroying instance
+em28xx 1-1:0.254: Registering input extension
+usb 1-1:0.254: Direct firmware load for xc3028-v27.fw failed with error -2
+==================================================================
+BUG: KASAN: use-after-free in load_firmware_cb+0x173/0x18c drivers/media/tuners/tuner-xc2028.c:1364
+Read of size 8 at addr ffff8881cd067308 by task kworker/0:1/12
+
+CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.7.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events request_firmware_work_func
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xef/0x16e lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd3/0x314 mm/kasan/report.c:382
+ __kasan_report.cold+0x37/0x92 mm/kasan/report.c:511
+ kasan_report+0x33/0x50 mm/kasan/common.c:625
+ load_firmware_cb+0x173/0x18c drivers/media/tuners/tuner-xc2028.c:1364
+ request_firmware_work_func+0x126/0x242 drivers/base/firmware_loader/main.c:1005
+ process_one_work+0x965/0x1630 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x326/0x430 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 12:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ __kasan_kmalloc mm/kasan/common.c:495 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:468
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ tuner_probe+0xa4/0x1182 drivers/media/v4l2-core/tuner-core.c:638
+ i2c_device_probe+0x51a/0x800 drivers/i2c/i2c-core-base.c:396
+ really_probe+0x290/0xac0 drivers/base/dd.c:527
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:701
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:808
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x21a/0x390 drivers/base/dd.c:874
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1367/0x1c20 drivers/base/core.c:2533
+ i2c_new_client_device+0x589/0xa70 drivers/i2c/i2c-core-base.c:784
+ v4l2_i2c_new_subdev_board+0xaf/0x2c0 drivers/media/v4l2-core/v4l2-i2c.c:80
+ v4l2_i2c_new_subdev+0xb8/0xf0 drivers/media/v4l2-core/v4l2-i2c.c:135
+ em28xx_v4l2_init drivers/media/usb/em28xx/em28xx-video.c:2627 [inline]
+ em28xx_v4l2_init.cold+0x99d/0x33bc drivers/media/usb/em28xx/em28xx-video.c:2520
+ em28xx_init_extension+0x12f/0x1f0 drivers/media/usb/em28xx/em28xx-core.c:1128
+ request_module_async+0x5d/0x70 drivers/media/usb/em28xx/em28xx-cards.c:3338
+ process_one_work+0x965/0x1630 kernel/workqueue.c:2268
+ process_scheduled_works kernel/workqueue.c:2330 [inline]
+ worker_thread+0x73e/0xe20 kernel/workqueue.c:2419
+ kthread+0x326/0x430 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 12:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ kasan_set_free_info mm/kasan/common.c:317 [inline]
+ __kasan_slab_free+0x117/0x160 mm/kasan/common.c:456
+ slab_free_hook mm/slub.c:1445 [inline]
+ slab_free_freelist_hook mm/slub.c:1478 [inline]
+ slab_free mm/slub.c:3035 [inline]
+ kfree+0xd5/0x300 mm/slub.c:4003
+ tuner_remove+0x198/0x200 drivers/media/v4l2-core/tuner-core.c:791
+ i2c_device_remove+0xcf/0x250 drivers/i2c/i2c-core-base.c:426
+ __device_release_driver drivers/base/dd.c:1112 [inline]
+ device_release_driver_internal+0x231/0x500 drivers/base/dd.c:1145
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:533
+ device_del+0x481/0xd30 drivers/base/core.c:2710
+ device_unregister+0x22/0xc0 drivers/base/core.c:2742
+ i2c_unregister_device+0x38/0x40 include/linux/err.h:41
+ v4l2_i2c_subdev_unregister+0xa2/0xc0 drivers/media/v4l2-core/v4l2-i2c.c:28
+ v4l2_device_unregister drivers/media/v4l2-core/v4l2-device.c:102 [inline]
+ v4l2_device_unregister+0x18a/0x220 drivers/media/v4l2-core/v4l2-device.c:88
+ em28xx_v4l2_init drivers/media/usb/em28xx/em28xx-video.c:2908 [inline]
+ em28xx_v4l2_init.cold+0xcf7/0x33bc drivers/media/usb/em28xx/em28xx-video.c:2520
+ em28xx_init_extension+0x12f/0x1f0 drivers/media/usb/em28xx/em28xx-core.c:1128
+ request_module_async+0x5d/0x70 drivers/media/usb/em28xx/em28xx-cards.c:3338
+ process_one_work+0x965/0x1630 kernel/workqueue.c:2268
+ process_scheduled_works kernel/workqueue.c:2330 [inline]
+ worker_thread+0x73e/0xe20 kernel/workqueue.c:2419
+ kthread+0x326/0x430 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8881cd067000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 776 bytes inside of
+ 2048-byte region [ffff8881cd067000, ffff8881cd067800)
+The buggy address belongs to the page:
+page:ffffea0007341800 refcount:1 mapcount:0 mapping:00000000f480cbd2 index:0x0 head:ffffea0007341800 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0x200000000010200(slab|head)
+raw: 0200000000010200 dead000000000100 dead000000000122 ffff8881da00c000
+raw: 0000000000000000 0000000080080008 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881cd067200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881cd067280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881cd067300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff8881cd067380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881cd067400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

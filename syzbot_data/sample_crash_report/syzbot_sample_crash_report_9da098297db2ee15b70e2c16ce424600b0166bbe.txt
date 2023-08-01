@@ -1,0 +1,149 @@
+============================================
+WARNING: possible recursive locking detected
+6.3.0-rc3-syzkaller-00016-g2faac9a98f01 #0 Not tainted
+--------------------------------------------
+dhcpcd-run-hook/5187 is trying to acquire lock:
+ffff88807ab15338 (&br->multicast_lock
+){+.-.}-{2:2}, at: spin_lock include/linux/spinlock.h:350 [inline]
+){+.-.}-{2:2}, at: br_ip6_multicast_query net/bridge/br_multicast.c:3518 [inline]
+){+.-.}-{2:2}, at: br_multicast_ipv6_rcv net/bridge/br_multicast.c:3914 [inline]
+){+.-.}-{2:2}, at: br_multicast_rcv+0x202d/0x6850 net/bridge/br_multicast.c:3969
+
+but task is already holding lock:
+ffff88807ab11338 (&br->multicast_lock){+.-.}-{2:2}, at: spin_lock include/linux/spinlock.h:350 [inline]
+ffff88807ab11338 (&br->multicast_lock){+.-.}-{2:2}, at: br_multicast_port_query_expired+0x61/0x360 net/bridge/br_multicast.c:1900
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&br->multicast_lock);
+  lock(&br->multicast_lock);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+6 locks held by dhcpcd-run-hook/5187:
+ #0: ffff8880781e8ad8 (&mm->mmap_lock){++++}-{3:3}, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+ #0: ffff8880781e8ad8 (&mm->mmap_lock){++++}-{3:3}, at: vm_mmap_pgoff+0x159/0x280 mm/util.c:540
+ #1: ffffc900001e0d70 ((&pmctx->ip6_own_query.timer)){+.-.}-{0:0}, at: lockdep_copy_map include/linux/lockdep.h:31 [inline]
+ #1: ffffc900001e0d70 ((&pmctx->ip6_own_query.timer)){+.-.}-{0:0}, at: call_timer_fn+0xd5/0x580 kernel/time/timer.c:1690
+ #2: ffff88807ab11338 (&br->multicast_lock){+.-.}-{2:2}, at: spin_lock include/linux/spinlock.h:350 [inline]
+ #2: ffff88807ab11338 (&br->multicast_lock){+.-.}-{2:2}, at: br_multicast_port_query_expired+0x61/0x360 net/bridge/br_multicast.c:1900
+ #3: ffffffff8c795660 (rcu_read_lock_bh){....}-{1:2}, at: __dev_queue_xmit+0x23f/0x3c40 net/core/dev.c:4163
+ #4: ffffffff8c795660 (rcu_read_lock_bh){....}-{1:2}, at: __dev_queue_xmit+0x23f/0x3c40 net/core/dev.c:4163
+ #5: ffffffff8c7956c0 (rcu_read_lock){....}-{1:2}, at: br_dev_xmit+0x4/0x16c0 net/bridge/br_device.c:29
+
+stack backtrace:
+CPU: 1 PID: 5187 Comm: dhcpcd-run-hook Not tainted 6.3.0-rc3-syzkaller-00016-g2faac9a98f01 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ print_deadlock_bug kernel/locking/lockdep.c:2991 [inline]
+ check_deadlock kernel/locking/lockdep.c:3034 [inline]
+ validate_chain kernel/locking/lockdep.c:3819 [inline]
+ __lock_acquire+0x1362/0x5d40 kernel/locking/lockdep.c:5056
+ lock_acquire kernel/locking/lockdep.c:5669 [inline]
+ lock_acquire+0x1af/0x520 kernel/locking/lockdep.c:5634
+ __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+ _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+ spin_lock include/linux/spinlock.h:350 [inline]
+ br_ip6_multicast_query net/bridge/br_multicast.c:3518 [inline]
+ br_multicast_ipv6_rcv net/bridge/br_multicast.c:3914 [inline]
+ br_multicast_rcv+0x202d/0x6850 net/bridge/br_multicast.c:3969
+ br_dev_xmit+0x726/0x16c0 net/bridge/br_device.c:89
+ __netdev_start_xmit include/linux/netdevice.h:4883 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4897 [inline]
+ xmit_one net/core/dev.c:3580 [inline]
+ dev_hard_start_xmit+0x187/0x700 net/core/dev.c:3596
+ __dev_queue_xmit+0x2ce4/0x3c40 net/core/dev.c:4246
+ dev_queue_xmit include/linux/netdevice.h:3053 [inline]
+ vlan_dev_hard_start_xmit+0x1bc/0x5c0 net/8021q/vlan_dev.c:124
+ __netdev_start_xmit include/linux/netdevice.h:4883 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4897 [inline]
+ xmit_one net/core/dev.c:3580 [inline]
+ dev_hard_start_xmit+0x187/0x700 net/core/dev.c:3596
+ __dev_queue_xmit+0x2ce4/0x3c40 net/core/dev.c:4246
+ dev_queue_xmit include/linux/netdevice.h:3053 [inline]
+ br_dev_queue_push_xmit+0x26e/0x740 net/bridge/br_forward.c:53
+ NF_HOOK include/linux/netfilter.h:302 [inline]
+ __br_multicast_send_query+0x11c6/0x3c10 net/bridge/br_multicast.c:1804
+ br_multicast_send_query+0x266/0x4b0 net/bridge/br_multicast.c:1883
+ br_multicast_port_query_expired+0x2c3/0x360 net/bridge/br_multicast.c:1908
+ call_timer_fn+0x1a0/0x580 kernel/time/timer.c:1700
+ expire_timers+0x29b/0x4b0 kernel/time/timer.c:1751
+ __run_timers kernel/time/timer.c:2022 [inline]
+ __run_timers kernel/time/timer.c:1995 [inline]
+ run_timer_softirq+0x326/0x910 kernel/time/timer.c:2035
+ __do_softirq+0x1d4/0x905 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x114/0x190 kernel/softirq.c:650
+ irq_exit_rcu+0x9/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x97/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
+RIP: 0010:__unwind_start+0x37d/0x800 arch/x86/kernel/unwind_orc.c:688
+Code: 8b 77 28 4c 89 e1 4c 89 fa 48 89 ef e8 bc ee f4 ff 85 c0 0f 85 5e ff ff ff e9 eb fe ff ff 65 48 8b 04 25 80 b8 03 00 48 39 c5 <0f> 84 10 02 00 00 48 8d bd d8 17 00 00 48 b8 00 00 00 00 00 fc ff
+RSP: 0018:ffffc90003fbf400 EFLAGS: 00000246
+RAX: ffff8880236d1d40 RBX: ffffc90003fbf4d8 RCX: 0000000000000000
+RDX: 1ffff920007f7e8f RSI: 0000000000000000 RDI: ffffc90003fbf4b0
+RBP: ffff8880236d1d40 R08: 000000007fbfd3de R09: ffffc90003fbf450
+R10: fffffbfff1cef73a R11: 0000000000094001 R12: 0000000000000000
+R13: ffffc90003fbf478 R14: ffff8880236d1d40 R15: ffffc90003fbf450
+ unwind_start arch/x86/include/asm/unwind.h:64 [inline]
+ arch_stack_walk+0x60/0xf0 arch/x86/kernel/stacktrace.c:24
+ stack_trace_save+0x90/0xc0 kernel/stacktrace.c:122
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ __kasan_slab_alloc+0x7f/0x90 mm/kasan/common.c:328
+ kasan_slab_alloc include/linux/kasan.h:186 [inline]
+ slab_post_alloc_hook mm/slab.h:769 [inline]
+ kmem_cache_alloc_bulk+0x424/0x860 mm/slub.c:4034
+ mt_alloc_bulk lib/maple_tree.c:164 [inline]
+ mas_alloc_nodes+0x276/0x8a0 lib/maple_tree.c:1263
+ mas_node_count_gfp lib/maple_tree.c:1318 [inline]
+ mas_preallocate+0x1bb/0x360 lib/maple_tree.c:5731
+ vma_iter_prealloc mm/internal.h:972 [inline]
+ __split_vma+0x1b7/0x810 mm/mmap.c:2177
+ do_vmi_align_munmap+0x22a/0xf60 mm/mmap.c:2302
+ do_vmi_munmap+0x26e/0x2c0 mm/mmap.c:2452
+ mmap_region+0x1ee/0x2690 mm/mmap.c:2500
+ do_mmap+0x831/0xf60 mm/mmap.c:1364
+ vm_mmap_pgoff+0x1af/0x280 mm/util.c:542
+ ksys_mmap_pgoff+0x41f/0x5a0 mm/mmap.c:1410
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f0a6f4881f2
+Code: 04 00 00 5b 5d 41 5c c3 41 f7 c1 ff 0f 00 00 75 27 55 48 89 fd 53 89 cb 48 85 ff 74 33 41 89 da 48 89 ef b8 09 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 56 5b 5d c3 0f 1f 00 c7 05 9e 1f 01 00 16 00
+RSP: 002b:00007ffc897ce548 EFLAGS: 00000206 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 0000000000000812 RCX: 00007f0a6f4881f2
+RDX: 0000000000000005 RSI: 000000000013f000 RDI: 00007f0a6f206000
+RBP: 00007f0a6f206000 R08: 0000000000000003 R09: 0000000000022000
+R10: 0000000000000812 R11: 0000000000000206 R12: 00007ffc897ce560
+R13: 00007ffc897ce590 R14: 0000000000000005 R15: 00007f0a6f466500
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	8b 77 28             	mov    0x28(%rdi),%esi
+   3:	4c 89 e1             	mov    %r12,%rcx
+   6:	4c 89 fa             	mov    %r15,%rdx
+   9:	48 89 ef             	mov    %rbp,%rdi
+   c:	e8 bc ee f4 ff       	callq  0xfff4eecd
+  11:	85 c0                	test   %eax,%eax
+  13:	0f 85 5e ff ff ff    	jne    0xffffff77
+  19:	e9 eb fe ff ff       	jmpq   0xffffff09
+  1e:	65 48 8b 04 25 80 b8 	mov    %gs:0x3b880,%rax
+  25:	03 00
+  27:	48 39 c5             	cmp    %rax,%rbp
+* 2a:	0f 84 10 02 00 00    	je     0x240 <-- trapping instruction
+  30:	48 8d bd d8 17 00 00 	lea    0x17d8(%rbp),%rdi
+  37:	48                   	rex.W
+  38:	b8 00 00 00 00       	mov    $0x0,%eax
+  3d:	00 fc                	add    %bh,%ah
+  3f:	ff                   	.byte 0xff

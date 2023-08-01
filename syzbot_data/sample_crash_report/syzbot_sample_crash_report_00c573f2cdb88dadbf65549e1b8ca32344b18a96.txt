@@ -1,0 +1,53 @@
+==================================================================
+BUG: KASAN: vmalloc-out-of-bounds in __bpf_prog_put kernel/bpf/syscall.c:1812 [inline]
+BUG: KASAN: vmalloc-out-of-bounds in __bpf_prog_put kernel/bpf/syscall.c:1812 [inline] kernel/bpf/syscall.c:1829
+BUG: KASAN: vmalloc-out-of-bounds in bpf_prog_put+0x8c/0x4f0 kernel/bpf/syscall.c:1829 kernel/bpf/syscall.c:1829
+Read of size 8 at addr ffffc90000e76038 by task syz-executor020/3641
+
+CPU: 1 PID: 3641 Comm: syz-executor020 Not tainted 5.16.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ __dump_stack lib/dump_stack.c:88 [inline] lib/dump_stack.c:106
+ dump_stack_lvl+0x1dc/0x2d8 lib/dump_stack.c:106 lib/dump_stack.c:106
+ print_address_description+0x65/0x380 mm/kasan/report.c:247 mm/kasan/report.c:247
+ __kasan_report mm/kasan/report.c:433 [inline]
+ __kasan_report mm/kasan/report.c:433 [inline] mm/kasan/report.c:450
+ kasan_report+0x19a/0x1f0 mm/kasan/report.c:450 mm/kasan/report.c:450
+ __bpf_prog_put kernel/bpf/syscall.c:1812 [inline]
+ __bpf_prog_put kernel/bpf/syscall.c:1812 [inline] kernel/bpf/syscall.c:1829
+ bpf_prog_put+0x8c/0x4f0 kernel/bpf/syscall.c:1829 kernel/bpf/syscall.c:1829
+ bpf_prog_release+0x37/0x40 kernel/bpf/syscall.c:1837 kernel/bpf/syscall.c:1837
+ __fput+0x3fc/0x870 fs/file_table.c:280 fs/file_table.c:280
+ task_work_run+0x146/0x1c0 kernel/task_work.c:164 kernel/task_work.c:164
+ exit_task_work include/linux/task_work.h:32 [inline]
+ exit_task_work include/linux/task_work.h:32 [inline] kernel/exit.c:832
+ do_exit+0x705/0x24f0 kernel/exit.c:832 kernel/exit.c:832
+ do_group_exit+0x168/0x2d0 kernel/exit.c:929 kernel/exit.c:929
+ __do_sys_exit_group+0x13/0x20 kernel/exit.c:940 kernel/exit.c:940
+ __se_sys_exit_group+0x10/0x10 kernel/exit.c:938 kernel/exit.c:938
+ __x64_sys_exit_group+0x37/0x40 kernel/exit.c:938 kernel/exit.c:938
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline] arch/x86/entry/common.c:80
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f3b90ccd1d9
+Code: Unable to access opcode bytes at RIP 0x7f3b90ccd1af.
+RSP: 002b:00007ffdeec58318 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007f3b90d41330 RCX: 00007f3b90ccd1d9
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffffffffffc4 R09: 00007ffdeec58390
+R10: 00007ffdeec58390 R11: 0000000000000246 R12: 00007f3b90d41330
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+
+
+Memory state around the buggy address:
+ ffffc90000e75f00: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90000e75f80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+>ffffc90000e76000: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+                                        ^
+ ffffc90000e76080: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90000e76100: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+==================================================================

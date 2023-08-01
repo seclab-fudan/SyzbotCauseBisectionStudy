@@ -1,0 +1,47 @@
+==================================================================
+BUG: KASAN: use-after-free in btrfs_printk+0x421/0x46b fs/btrfs/super.c:245
+Read of size 8 at addr ffff8880125d86a0 by task systemd-udevd/8840
+
+CPU: 0 PID: 8840 Comm: systemd-udevd Not tainted 5.10.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x137/0x1be lib/dump_stack.c:118
+ print_address_description+0x6c/0x660 mm/kasan/report.c:385
+ __kasan_report mm/kasan/report.c:545 [inline]
+ kasan_report+0x136/0x1e0 mm/kasan/report.c:562
+ btrfs_printk+0x421/0x46b fs/btrfs/super.c:245
+ device_list_add+0x1a94/0x1d60 fs/btrfs/volumes.c:943
+ btrfs_scan_one_device+0x2e1/0x460 fs/btrfs/volumes.c:1366
+ btrfs_control_ioctl+0xd1/0x210 fs/btrfs/super.c:2327
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ __do_sys_ioctl fs/ioctl.c:753 [inline]
+ __se_sys_ioctl+0xfb/0x170 fs/ioctl.c:739
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f7f3d4fc017
+Code: 00 00 00 48 8b 05 81 7e 2b 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 51 7e 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007ffce37aa1d8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f7f3d4fc017
+RDX: 00007ffce37aa1f0 RSI: 0000000090009427 RDI: 000000000000000f
+RBP: 00007ffce37aa1f0 R08: 0000000000000000 R09: 0000000000000210
+R10: 0000000000000001 R11: 0000000000000246 R12: 000000000000000f
+R13: 0000000000000000 R14: 0000563cd0a326d0 R15: 0000563cd0a21060
+
+The buggy address belongs to the page:
+page:00000000af59a781 refcount:1 mapcount:0 mapping:0000000014b997b1 index:0x12 pfn:0x125d8
+aops:def_blk_aops ino:0
+flags: 0xfff00000020016(referenced|uptodate|lru|mappedtodisk)
+raw: 00fff00000020016 ffffea00004e33c8 ffffea0000497648 ffff888142ad2b00
+raw: 0000000000000012 0000000000000000 00000001ffffffff ffff8880110f0000
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff8880110f0000
+
+Memory state around the buggy address:
+ ffff8880125d8580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8880125d8600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8880125d8680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+                               ^
+ ffff8880125d8700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8880125d8780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

@@ -1,0 +1,31 @@
+==================================================================
+BUG: KCSAN: data-race in taskstats_exit / taskstats_exit
+
+write to 0xffff88811ff1d110 of 8 bytes by task 11725 on cpu 1:
+ taskstats_tgid_alloc kernel/taskstats.c:567 [inline]
+ taskstats_exit+0x6b7/0x720 kernel/taskstats.c:596
+ do_exit+0x281/0x18c0 kernel/exit.c:782
+ do_group_exit+0xb4/0x1c0 kernel/exit.c:895
+ get_signal+0x2a2/0x1320 kernel/signal.c:2734
+ do_signal+0x2f/0x6c0 arch/x86/kernel/signal.c:815
+ exit_to_usermode_loop+0x250/0x2c0 arch/x86/entry/common.c:160
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:278 [inline]
+ do_syscall_64+0x384/0x3a0 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffff88811ff1d110 of 8 bytes by task 11722 on cpu 0:
+ taskstats_tgid_alloc kernel/taskstats.c:559 [inline]
+ taskstats_exit+0xb2/0x720 kernel/taskstats.c:596
+ do_exit+0x281/0x18c0 kernel/exit.c:782
+ do_group_exit+0xb4/0x1c0 kernel/exit.c:895
+ __do_sys_exit_group kernel/exit.c:906 [inline]
+ __se_sys_exit_group kernel/exit.c:904 [inline]
+ __x64_sys_exit_group+0x2e/0x30 kernel/exit.c:904
+ do_syscall_64+0xcc/0x3a0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 11722 Comm: syz-executor.1 Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

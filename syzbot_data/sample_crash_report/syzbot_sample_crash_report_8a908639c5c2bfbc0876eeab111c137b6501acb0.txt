@@ -1,0 +1,38 @@
+=====================================================
+BUG: KMSAN: uninit-value in ppp_async_encode drivers/net/ppp/ppp_async.c:550 [inline]
+BUG: KMSAN: uninit-value in ppp_async_push+0xd6d/0x2260 drivers/net/ppp/ppp_async.c:680
+ ppp_async_encode drivers/net/ppp/ppp_async.c:550 [inline]
+ ppp_async_push+0xd6d/0x2260 drivers/net/ppp/ppp_async.c:680
+ ppp_async_send+0x144/0x1e0 drivers/net/ppp/ppp_async.c:639
+ __ppp_channel_push+0x1ab/0x3a0 drivers/net/ppp/ppp_generic.c:2142
+ ppp_channel_push+0x263/0x320 drivers/net/ppp/ppp_generic.c:2169
+ ppp_write+0x572/0x5e0 drivers/net/ppp/ppp_generic.c:517
+ vfs_write+0x8ce/0x2030 fs/read_write.c:588
+ ksys_write+0x28c/0x520 fs/read_write.c:643
+ __do_sys_write fs/read_write.c:655 [inline]
+ __se_sys_write fs/read_write.c:652 [inline]
+ __x64_sys_write+0xdb/0x120 fs/read_write.c:652
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:524 [inline]
+ slab_alloc_node mm/slub.c:3251 [inline]
+ __kmalloc_node_track_caller+0xe0c/0x1510 mm/slub.c:4974
+ kmalloc_reserve net/core/skbuff.c:354 [inline]
+ __alloc_skb+0x545/0xf90 net/core/skbuff.c:426
+ alloc_skb include/linux/skbuff.h:1126 [inline]
+ ppp_write+0x11d/0x5e0 drivers/net/ppp/ppp_generic.c:501
+ vfs_write+0x8ce/0x2030 fs/read_write.c:588
+ ksys_write+0x28c/0x520 fs/read_write.c:643
+ __do_sys_write fs/read_write.c:655 [inline]
+ __se_sys_write fs/read_write.c:652 [inline]
+ __x64_sys_write+0xdb/0x120 fs/read_write.c:652
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+CPU: 0 PID: 6368 Comm: syz-executor544 Not tainted 5.16.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=====================================================

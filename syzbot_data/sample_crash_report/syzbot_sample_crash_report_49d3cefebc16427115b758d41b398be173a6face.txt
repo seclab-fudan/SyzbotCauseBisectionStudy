@@ -1,0 +1,104 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.2.0-rc1-syzkaller #0 Not tainted
+------------------------------------------------------
+kworker/0:1H/52 is trying to acquire lock:
+ffff8880277440e0 (&type->s_umount_key#44){+.+.}-{3:3}, at: freeze_super+0x45/0x420 fs/super.c:1655
+
+but task is already holding lock:
+ffffc90000bd7d00 ((work_completion)(&(&gl->gl_work)->work)){+.+.}-{0:0}, at: process_one_work+0x831/0xdb0 kernel/workqueue.c:2264
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 ((work_completion)(&(&gl->gl_work)->work)){+.+.}-{0:0}:
+       lock_acquire+0x182/0x3c0 kernel/locking/lockdep.c:5668
+       process_one_work+0x852/0xdb0 kernel/workqueue.c:2265
+       worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+       kthread+0x266/0x300 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+-> #1 ((wq_completion)glock_workqueue){+.+.}-{0:0}:
+       lock_acquire+0x182/0x3c0 kernel/locking/lockdep.c:5668
+       __flush_workqueue+0x178/0x1680 kernel/workqueue.c:2809
+       gfs2_gl_hash_clear+0xa3/0x300 fs/gfs2/glock.c:2191
+       gfs2_put_super+0x862/0x8d0 fs/gfs2/super.c:627
+       generic_shutdown_super+0x130/0x310 fs/super.c:492
+       kill_block_super+0x79/0xd0 fs/super.c:1386
+       deactivate_locked_super+0xa7/0xf0 fs/super.c:332
+       cleanup_mnt+0x494/0x520 fs/namespace.c:1291
+       task_work_run+0x243/0x300 kernel/task_work.c:179
+       ptrace_notify+0x29a/0x340 kernel/signal.c:2354
+       ptrace_report_syscall include/linux/ptrace.h:411 [inline]
+       ptrace_report_syscall_exit include/linux/ptrace.h:473 [inline]
+       syscall_exit_work+0x8c/0xe0 kernel/entry/common.c:251
+       syscall_exit_to_user_mode_prepare+0x63/0xc0 kernel/entry/common.c:278
+       __syscall_exit_to_user_mode_work kernel/entry/common.c:283 [inline]
+       syscall_exit_to_user_mode+0xa/0x60 kernel/entry/common.c:296
+       do_syscall_64+0x49/0xb0 arch/x86/entry/common.c:86
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&type->s_umount_key#44){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3097 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+       validate_chain+0x1898/0x6ae0 kernel/locking/lockdep.c:3831
+       __lock_acquire+0x1292/0x1f60 kernel/locking/lockdep.c:5055
+       lock_acquire+0x182/0x3c0 kernel/locking/lockdep.c:5668
+       down_write+0x9c/0x270 kernel/locking/rwsem.c:1562
+       freeze_super+0x45/0x420 fs/super.c:1655
+       freeze_go_sync+0x178/0x340 fs/gfs2/glops.c:577
+       do_xmote+0x34d/0x13d0 fs/gfs2/glock.c:708
+       glock_work_func+0x2c2/0x450 fs/gfs2/glock.c:1056
+       process_one_work+0x877/0xdb0 kernel/workqueue.c:2289
+       worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+       kthread+0x266/0x300 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+other info that might help us debug this:
+
+Chain exists of:
+  &type->s_umount_key#44 --> (wq_completion)glock_workqueue --> (work_completion)(&(&gl->gl_work)->work)
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock((work_completion)(&(&gl->gl_work)->work));
+                               lock((wq_completion)glock_workqueue);
+                               lock((work_completion)(&(&gl->gl_work)->work));
+  lock(&type->s_umount_key#44);
+
+ *** DEADLOCK ***
+
+2 locks held by kworker/0:1H/52:
+ #0: ffff888018293938 ((wq_completion)glock_workqueue){+.+.}-{0:0}, at: process_one_work+0x7f2/0xdb0
+ #1: ffffc90000bd7d00 ((work_completion)(&(&gl->gl_work)->work)
+){+.+.}-{0:0}
+, at: process_one_work+0x831/0xdb0 kernel/workqueue.c:2264
+
+stack backtrace:
+CPU: 0 PID: 52 Comm: kworker/0:1H Not tainted 6.2.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: glock_workqueue glock_work_func
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1b1/0x290 lib/dump_stack.c:106
+ check_noncircular+0x2cc/0x390 kernel/locking/lockdep.c:2177
+ check_prev_add kernel/locking/lockdep.c:3097 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain+0x1898/0x6ae0 kernel/locking/lockdep.c:3831
+ __lock_acquire+0x1292/0x1f60 kernel/locking/lockdep.c:5055
+ lock_acquire+0x182/0x3c0 kernel/locking/lockdep.c:5668
+ down_write+0x9c/0x270 kernel/locking/rwsem.c:1562
+ freeze_super+0x45/0x420 fs/super.c:1655
+ freeze_go_sync+0x178/0x340 fs/gfs2/glops.c:577
+ do_xmote+0x34d/0x13d0 fs/gfs2/glock.c:708
+ glock_work_func+0x2c2/0x450 fs/gfs2/glock.c:1056
+ process_one_work+0x877/0xdb0 kernel/workqueue.c:2289
+ worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>

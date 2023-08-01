@@ -1,0 +1,79 @@
+audit: type=1400 audit(1517546098.866:9): avc:  denied  { prog_run } for  pid=4159 comm="syzkaller076311" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=bpf permissive=1
+
+=============================
+WARNING: suspicious RCU usage
+4.15.0+ #10 Not tainted
+-----------------------------
+./include/linux/rcupdate.h:302 Illegal context switch in RCU read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+3 locks held by syzkaller076311/4159:
+ #0:  (&ctx->mutex){+.+.}, at: [<0000000027c8872d>] perf_event_ctx_lock_nested+0x21b/0x450 kernel/events/core.c:1253
+ #1:  (bpf_event_mutex){+.+.}, at: [<0000000092294d8c>] perf_event_query_prog_array+0x10e/0x280 kernel/trace/bpf_trace.c:876
+ #2:  (rcu_read_lock){....}, at: [<000000002b518ca0>] bpf_prog_array_copy_to_user+0x0/0x4d0 kernel/bpf/core.c:1568
+
+stack backtrace:
+CPU: 0 PID: 4159 Comm: syzkaller076311 Not tainted 4.15.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4592
+ rcu_preempt_sleep_check include/linux/rcupdate.h:301 [inline]
+ ___might_sleep+0x385/0x470 kernel/sched/core.c:6079
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6067
+ __might_fault+0xab/0x1d0 mm/memory.c:4532
+ _copy_to_user+0x2c/0xc0 lib/usercopy.c:25
+ copy_to_user include/linux/uaccess.h:155 [inline]
+ bpf_prog_array_copy_to_user+0x217/0x4d0 kernel/bpf/core.c:1587
+ bpf_prog_array_copy_info+0x17b/0x1c0 kernel/bpf/core.c:1685
+ perf_event_query_prog_array+0x196/0x280 kernel/trace/bpf_trace.c:877
+ _perf_ioctl kernel/events/core.c:4737 [inline]
+ perf_ioctl+0x3e1/0x1480 kernel/events/core.c:4757
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x43ffd9
+RSP: 002b:00007ffde8594aa8 EFLAGS: 00000217 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 000000000043ffd9
+RDX: 0000000020a40000 RSI: 00000000c008240a RDI: 0000000000000004
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000401900
+R13: 0000000000401990 R14: 0000000000000000 R15: 0000000000000000
+BUG: sleeping function called from invalid context at lib/usercopy.c:25
+in_atomic(): 1, irqs_disabled(): 0, pid: 4159, name: syzkaller076311
+3 locks held by syzkaller076311/4159:
+ #0:  (&ctx->mutex){+.+.}, at: [<0000000027c8872d>] perf_event_ctx_lock_nested+0x21b/0x450 kernel/events/core.c:1253
+ #1:  (bpf_event_mutex){+.+.}, at: [<0000000092294d8c>] perf_event_query_prog_array+0x10e/0x280 kernel/trace/bpf_trace.c:876
+ #2:  (rcu_read_lock){....}, at: [<000000002b518ca0>] bpf_prog_array_copy_to_user+0x0/0x4d0 kernel/bpf/core.c:1568
+CPU: 0 PID: 4159 Comm: syzkaller076311 Not tainted 4.15.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ ___might_sleep+0x2b2/0x470 kernel/sched/core.c:6114
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6067
+ __might_fault+0xab/0x1d0 mm/memory.c:4532
+ _copy_to_user+0x2c/0xc0 lib/usercopy.c:25
+ copy_to_user include/linux/uaccess.h:155 [inline]
+ bpf_prog_array_copy_to_user+0x217/0x4d0 kernel/bpf/core.c:1587
+ bpf_prog_array_copy_info+0x17b/0x1c0 kernel/bpf/core.c:1685
+ perf_event_query_prog_array+0x196/0x280 kernel/trace/bpf_trace.c:877
+ _perf_ioctl kernel/events/core.c:4737 [inline]
+ perf_ioctl+0x3e1/0x1480 kernel/events/core.c:4757
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x43ffd9
+RSP: 002b:00007ffde8594aa8 EFLAGS: 00000217 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 000000000043ffd9
+RDX: 0000000020a40000 RSI: 00000000c008240a RDI: 0000000000000004
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000

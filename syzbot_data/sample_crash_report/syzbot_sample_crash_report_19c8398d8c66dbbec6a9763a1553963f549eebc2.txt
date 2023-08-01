@@ -1,0 +1,79 @@
+EXT4-fs (sda1): DAX enabled. Warning: EXPERIMENTAL, use at your own risk
+EXT4-fs (sda1): warning: refusing change of dax flag with busy inodes while remounting
+EXT4-fs (sda1): re-mounted. Opts: dax,
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
+#PF error: [INSTR]
+PGD 918fe067 P4D 918fe067 PUD a9248067 PMD 0 
+Oops: 0010 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 12468 Comm: syz-executor.3 Not tainted 5.0.0-rc8+ #88
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:          (null)
+Code: Bad RIP value.
+RSP: 0018:ffff88804ccdf9b8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000018
+RDX: 0000000000000000 RSI: ffff8880442dc9f0 RDI: ffff888085cf9c80
+RBP: ffff88804ccdfad0 R08: 0000000000000000 R09: ffff88804ccdfa48
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000018
+R13: ffffffff877ae9a0 R14: ffff88804ccdfaa8 R15: ffff8880442dc9f0
+FS:  00007f4e9fe4d700(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffffffffd6 CR3: 00000000a4d70000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __generic_file_write_iter+0x25e/0x630 mm/filemap.c:3333
+ ext4_file_write_iter+0x33f/0x1160 fs/ext4/file.c:266
+ call_write_iter include/linux/fs.h:1863 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x613/0x8e0 fs/read_write.c:487
+ vfs_write+0x20c/0x580 fs/read_write.c:549
+ ksys_write+0xea/0x1f0 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457e29
+Code: ad b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f4e9fe4cc78 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457e29
+RDX: 0000000000000018 RSI: 0000000020000140 RDI: 0000000000000008
+RBP: 000000000073bfa0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f4e9fe4d6d4
+R13: 00000000004c6ca2 R14: 00000000004dc530 R15: 00000000ffffffff
+Modules linked in:
+CR2: 0000000000000000
+---[ end trace 65c82dcf04efd9f6 ]---
+RIP: 0010:          (null)
+kobject: 'loop5' (00000000c074be4c): kobject_uevent_env
+Code: Bad RIP value.
+kobject: 'loop4' (000000001e6074c4): kobject_uevent_env
+kobject: 'loop5' (00000000c074be4c): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop4' (000000001e6074c4): fill_kobj_path: path = '/devices/virtual/block/loop4'
+RSP: 0018:ffff88804ccdf9b8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000018
+RDX: 0000000000000000 RSI: ffff8880442dc9f0 RDI: ffff888085cf9c80
+RBP: ffff88804ccdfad0 R08: 0000000000000000 R09: ffff88804ccdfa48
+kobject: 'loop0' (000000000cd03e85): kobject_uevent_env
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000018
+kobject: 'loop0' (000000000cd03e85): fill_kobj_path: path = '/devices/virtual/block/loop0'
+R13: ffffffff877ae9a0 R14: ffff88804ccdfaa8 R15: ffff8880442dc9f0
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+FS:  00007f4e9fe4d700(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CPU: 0 PID: 12458 Comm: syz-executor.0 Tainted: G      D           5.0.0-rc8+ #88
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail.cold+0xa/0x1b lib/fault-inject.c:149
+CR2: 0000000000c099b8 CR3: 00000000a4d70000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ __should_failslab+0x121/0x190 mm/failslab.c:32
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+ should_failslab+0x9/0x14 mm/slab_common.c:1604
+ slab_pre_alloc_hook mm/slab.h:423 [inline]
+ slab_alloc_node mm/slab.c:3295 [inline]
+ kmem_cache_alloc_node_trace+0x270/0x720 mm/slab.c:3655

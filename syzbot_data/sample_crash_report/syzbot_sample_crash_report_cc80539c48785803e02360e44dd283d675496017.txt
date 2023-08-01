@@ -1,0 +1,140 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0 Not tainted
+------------------------------------------------------
+syz-executor.3/8019 is trying to acquire lock:
+ffff000118015b98 (&sbi->s_writepages_rwsem){++++}-{0:0}, at: ext4_ind_migrate+0xc8/0x318 fs/ext4/migrate.c:624
+
+but task is already holding lock:
+ffff000113706d30 (&sb->s_type->i_mutex_key#8){++++}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ffff000113706d30 (&sb->s_type->i_mutex_key#8){++++}-{3:3}, at: vfs_fileattr_set+0x78/0x458 fs/ioctl.c:681
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&sb->s_type->i_mutex_key#8){++++}-{3:3}:
+       down_read+0x5c/0x78 kernel/locking/rwsem.c:1509
+       inode_lock_shared include/linux/fs.h:766 [inline]
+       ext4_bmap+0x34/0x1c8 fs/ext4/inode.c:3164
+       bmap+0x40/0x6c fs/inode.c:1798
+       jbd2_journal_bmap fs/jbd2/journal.c:977 [inline]
+       __jbd2_journal_erase fs/jbd2/journal.c:1789 [inline]
+       jbd2_journal_flush+0x2a8/0x55c fs/jbd2/journal.c:2492
+       ext4_ioctl_checkpoint fs/ext4/ioctl.c:1081 [inline]
+       __ext4_ioctl fs/ext4/ioctl.c:1586 [inline]
+       ext4_ioctl+0x1cb8/0x2378 fs/ext4/ioctl.c:1606
+       vfs_ioctl fs/ioctl.c:51 [inline]
+       __do_sys_ioctl fs/ioctl.c:870 [inline]
+       __se_sys_ioctl fs/ioctl.c:856 [inline]
+       __arm64_sys_ioctl+0xd0/0x140 fs/ioctl.c:856
+       __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+       invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+       el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+       do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+       el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+       el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+       el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+
+-> #1 (&journal->j_checkpoint_mutex){+.+.}-{3:3}:
+       __mutex_lock_common+0xd4/0xca8 kernel/locking/mutex.c:603
+       mutex_lock_io_nested+0x6c/0x88 kernel/locking/mutex.c:833
+       __jbd2_log_wait_for_space+0xc0/0x330 fs/jbd2/checkpoint.c:110
+       add_transaction_credits+0x4b4/0x604 fs/jbd2/transaction.c:298
+       start_this_handle+0x2a0/0x7fc fs/jbd2/transaction.c:422
+       jbd2__journal_start+0x148/0x1f0 fs/jbd2/transaction.c:520
+       __ext4_journal_start_sb+0x124/0x1dc fs/ext4/ext4_jbd2.c:105
+       __ext4_journal_start fs/ext4/ext4_jbd2.h:326 [inline]
+       ext4_ind_migrate+0xec/0x318 fs/ext4/migrate.c:626
+       ext4_ioctl_setflags+0x5c0/0x5f0 fs/ext4/ioctl.c:695
+       ext4_fileattr_set+0x174/0x528 fs/ext4/ioctl.c:1003
+       vfs_fileattr_set+0x400/0x458 fs/ioctl.c:696
+       do_vfs_ioctl+0x1374/0x16a4
+       __do_sys_ioctl fs/ioctl.c:868 [inline]
+       __se_sys_ioctl fs/ioctl.c:856 [inline]
+       __arm64_sys_ioctl+0x98/0x140 fs/ioctl.c:856
+       __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+       invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+       el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+       do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+       el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+       el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+       el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+
+-> #0 (&sbi->s_writepages_rwsem){++++}-{0:0}:
+       check_prev_add kernel/locking/lockdep.c:3097 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+       validate_chain kernel/locking/lockdep.c:3831 [inline]
+       __lock_acquire+0x1530/0x3084 kernel/locking/lockdep.c:5055
+       lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5668
+       percpu_down_write+0x6c/0x188 kernel/locking/percpu-rwsem.c:227
+       ext4_ind_migrate+0xc8/0x318 fs/ext4/migrate.c:624
+       ext4_ioctl_setflags+0x5c0/0x5f0 fs/ext4/ioctl.c:695
+       ext4_fileattr_set+0x174/0x528 fs/ext4/ioctl.c:1003
+       vfs_fileattr_set+0x400/0x458 fs/ioctl.c:696
+       do_vfs_ioctl+0x1374/0x16a4
+       __do_sys_ioctl fs/ioctl.c:868 [inline]
+       __se_sys_ioctl fs/ioctl.c:856 [inline]
+       __arm64_sys_ioctl+0x98/0x140 fs/ioctl.c:856
+       __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+       invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+       el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+       do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+       el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+       el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+       el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+
+other info that might help us debug this:
+
+Chain exists of:
+  &sbi->s_writepages_rwsem --> &journal->j_checkpoint_mutex --> &sb->s_type->i_mutex_key#8
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&sb->s_type->i_mutex_key#8);
+                               lock(&journal->j_checkpoint_mutex);
+                               lock(&sb->s_type->i_mutex_key#8);
+  lock(&sbi->s_writepages_rwsem);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor.3/8019:
+ #0: ffff000118016460 (sb_writers#3){.+.+}-{0:0}, at: mnt_want_write_file+0x28/0xd8 fs/namespace.c:437
+ #1: ffff000113706d30 (&sb->s_type->i_mutex_key#8){++++}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #1: ffff000113706d30 (&sb->s_type->i_mutex_key#8){++++}-{3:3}, at: vfs_fileattr_set+0x78/0x458 fs/ioctl.c:681
+
+stack backtrace:
+CPU: 1 PID: 8019 Comm: syz-executor.3 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ print_circular_bug+0x2c4/0x2c8 kernel/locking/lockdep.c:2055
+ check_noncircular+0x14c/0x154 kernel/locking/lockdep.c:2177
+ check_prev_add kernel/locking/lockdep.c:3097 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain kernel/locking/lockdep.c:3831 [inline]
+ __lock_acquire+0x1530/0x3084 kernel/locking/lockdep.c:5055
+ lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5668
+ percpu_down_write+0x6c/0x188 kernel/locking/percpu-rwsem.c:227
+ ext4_ind_migrate+0xc8/0x318 fs/ext4/migrate.c:624
+ ext4_ioctl_setflags+0x5c0/0x5f0 fs/ext4/ioctl.c:695
+ ext4_fileattr_set+0x174/0x528 fs/ext4/ioctl.c:1003
+ vfs_fileattr_set+0x400/0x458 fs/ioctl.c:696
+ do_vfs_ioctl+0x1374/0x16a4
+ __do_sys_ioctl fs/ioctl.c:868 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __arm64_sys_ioctl+0x98/0x140 fs/ioctl.c:856
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584

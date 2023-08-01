@@ -1,0 +1,88 @@
+BUG: KASAN: double-free or invalid-free in selinux_tun_dev_free_security+0x15/0x20 security/selinux/hooks.c:5023
+
+CPU: 0 PID: 3000 Comm: syzkaller887527 Not tainted 4.13.0-rc5+ #43
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_double_free+0x55/0x80 mm/kasan/report.c:333
+ kasan_slab_free+0xa3/0xc0 mm/kasan/kasan.c:514
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ selinux_tun_dev_free_security+0x15/0x20 security/selinux/hooks.c:5023
+ security_tun_dev_free_security+0x48/0x80 security/security.c:1512
+ tun_set_iff drivers/net/tun.c:1884 [inline]
+ __tun_chr_ioctl+0x2ce6/0x3d50 drivers/net/tun.c:2064
+ tun_chr_ioctl+0x2a/0x40 drivers/net/tun.c:2309
+ vfs_ioctl fs/ioctl.c:45 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:685
+ SYSC_ioctl fs/ioctl.c:700 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:691
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x443eb9
+RSP: 002b:00007ffc37b9f4f8 EFLAGS: 00000217 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 3ce0bf1bfd9aecc7 RCX: 0000000000443eb9
+RDX: 0000000020533000 RSI: 00000000400454ca RDI: 0000000000000018
+RBP: 0000000000000086 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000001000003a8d
+R13: 74656e2f7665642f R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3000:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x12f/0x740 mm/slab.c:3627
+ kmalloc include/linux/slab.h:493 [inline]
+ kzalloc include/linux/slab.h:666 [inline]
+ selinux_tun_dev_alloc_security+0x49/0x170 security/selinux/hooks.c:5012
+ security_tun_dev_alloc_security+0x6d/0xa0 security/security.c:1506
+ tun_set_iff drivers/net/tun.c:1839 [inline]
+ __tun_chr_ioctl+0x1730/0x3d50 drivers/net/tun.c:2064
+ tun_chr_ioctl+0x2a/0x40 drivers/net/tun.c:2309
+ vfs_ioctl fs/ioctl.c:45 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:685
+ SYSC_ioctl fs/ioctl.c:700 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:691
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 3000:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ selinux_tun_dev_free_security+0x15/0x20 security/selinux/hooks.c:5023
+ security_tun_dev_free_security+0x48/0x80 security/security.c:1512
+ tun_free_netdev+0x13b/0x1b0 drivers/net/tun.c:1563
+ register_netdevice+0x8d0/0xee0 net/core/dev.c:7605
+ tun_set_iff drivers/net/tun.c:1859 [inline]
+ __tun_chr_ioctl+0x1caf/0x3d50 drivers/net/tun.c:2064
+ tun_chr_ioctl+0x2a/0x40 drivers/net/tun.c:2309
+ vfs_ioctl fs/ioctl.c:45 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:685
+ SYSC_ioctl fs/ioctl.c:700 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:691
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+The buggy address belongs to the object at ffff8801dada7dc0
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8801dada7dc0, ffff8801dada7de0)
+The buggy address belongs to the page:
+page:ffffea00076b69c0 count:1 mapcount:0 mapping:ffff8801dada7000 index:0xffff8801dada7fc1
+flags: 0x200000000000100(slab)
+raw: 0200000000000100 ffff8801dada7000 ffff8801dada7fc1 000000010000003f
+raw: ffffea00076b73a0 ffffea0007613fe0 ffff8801dac001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801dada7c80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801dada7d00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801dada7d80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+                                           ^
+ ffff8801dada7e00: 00 00 00 00 fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801dada7e80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

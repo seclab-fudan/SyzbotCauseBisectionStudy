@@ -1,0 +1,37 @@
+rtlwifi: Loading alternative firmware rtlwifi/rtl8192cufw.bin
+rtlwifi: Selected firmware is not available
+==================================================================
+BUG: KASAN: use-after-free in rtl_fw_do_work.cold+0x68/0x6a drivers/net/wireless/realtek/rtlwifi/core.c:93
+Write of size 4 at addr ffff88814688ff50 by task kworker/1:8/7523
+
+CPU: 1 PID: 7523 Comm: kworker/1:8 Not tainted 5.10.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events request_firmware_work_func
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xae/0x4c8 mm/kasan/report.c:385
+ __kasan_report mm/kasan/report.c:545 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:562
+ rtl_fw_do_work.cold+0x68/0x6a drivers/net/wireless/realtek/rtlwifi/core.c:93
+ request_firmware_work_func+0x12c/0x230 drivers/base/firmware_loader/main.c:1079
+ process_one_work+0x933/0x1520 kernel/workqueue.c:2272
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2418
+ kthread+0x38c/0x460 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+The buggy address belongs to the page:
+page:00000000e9105a92 refcount:0 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x14688f
+flags: 0x200000000000000()
+raw: 0200000000000000 0000000000000000 dead000000000122 0000000000000000
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88814688fe00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88814688fe80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff88814688ff00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                                 ^
+ ffff88814688ff80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888146890000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

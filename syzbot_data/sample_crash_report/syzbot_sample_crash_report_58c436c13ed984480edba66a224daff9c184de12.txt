@@ -1,0 +1,28 @@
+BUG: memory leak
+unreferenced object 0xffff888123547c80 (size 64):
+  comm "syz-executor647", pid 6976, jiffies 4294940919 (age 7.920s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<0000000019b1b22a>] kmemleak_alloc_recursive /./include/linux/kmemleak.h:43 [inline]
+    [<0000000019b1b22a>] slab_post_alloc_hook /mm/slab.h:522 [inline]
+    [<0000000019b1b22a>] slab_alloc /mm/slab.c:3319 [inline]
+    [<0000000019b1b22a>] kmem_cache_alloc_trace+0x145/0x280 /mm/slab.c:3548
+    [<00000000d64c33c7>] kmalloc /./include/linux/slab.h:552 [inline]
+    [<00000000d64c33c7>] kzalloc /./include/linux/slab.h:748 [inline]
+    [<00000000d64c33c7>] roles_init /security/selinux/ss/policydb.c:188 [inline]
+    [<00000000d64c33c7>] policydb_init /security/selinux/ss/policydb.c:294 [inline]
+    [<00000000d64c33c7>] policydb_read+0x141/0x1b80 /security/selinux/ss/policydb.c:2259
+    [<000000004dd18ef6>] security_load_policy+0x182/0x740 /security/selinux/ss/services.c:2141
+    [<000000004f5bb277>] sel_write_load+0x101/0x1f0 /security/selinux/selinuxfs.c:564
+    [<00000000ee05c840>] __vfs_write+0x43/0xa0 /fs/read_write.c:494
+    [<000000008ca23315>] vfs_write /fs/read_write.c:558 [inline]
+    [<000000008ca23315>] vfs_write+0xee/0x210 /fs/read_write.c:542
+    [<00000000d97bcbc9>] ksys_write+0x7c/0x130 /fs/read_write.c:611
+    [<000000007a3f006b>] __do_sys_write /fs/read_write.c:623 [inline]
+    [<000000007a3f006b>] __se_sys_write /fs/read_write.c:620 [inline]
+    [<000000007a3f006b>] __x64_sys_write+0x1e/0x30 /fs/read_write.c:620
+    [<000000001c16ef20>] do_syscall_64+0x76/0x1a0 /arch/x86/entry/common.c:296
+    [<000000007784189d>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+

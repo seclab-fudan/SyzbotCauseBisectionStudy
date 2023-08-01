@@ -1,0 +1,45 @@
+watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [aoe_tx0:1378]
+Modules linked in:
+irq event stamp: 34814405
+hardirqs last  enabled at (34814404): [<ffff80000bfd85d4>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+hardirqs last  enabled at (34814404): [<ffff80000bfd85d4>] _raw_spin_unlock_irqrestore+0x48/0x8c kernel/locking/spinlock.c:194
+hardirqs last disabled at (34814405): [<ffff80000bfc5d58>] __el1_irq arch/arm64/kernel/entry-common.c:455 [inline]
+hardirqs last disabled at (34814405): [<ffff80000bfc5d58>] el1_interrupt+0x24/0x68 arch/arm64/kernel/entry-common.c:473
+softirqs last  enabled at (8188): [<ffff80000b20ab54>] local_bh_enable+0x10/0x34 include/linux/bottom_half.h:32
+softirqs last disabled at (8192): [<ffff80000b20ab20>] local_bh_disable+0x10/0x34 include/linux/bottom_half.h:19
+CPU: 0 PID: 1378 Comm: aoe_tx0 Not tainted 6.0.0-rc4-syzkaller-17255-ga6b443748715 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+pc : _raw_spin_unlock_irqrestore+0x58/0x8c kernel/locking/spinlock.c:194
+lr : __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+lr : _raw_spin_unlock_irqrestore+0x48/0x8c kernel/locking/spinlock.c:194
+sp : ffff800014a53b80
+x29: ffff800014a53b80 x28: ffff0000c4ea0c30 x27: 0000000000000000
+x26: ffff80000f0ed9b8 x25: 0000000000000002 x24: 0000000000000001
+x23: ffff0000c8bf38b0 x22: 0000000000000020 x21: 0000000000000001
+x20: ffff80000f0ed9b8 x19: 0000000000000000 x18: 00000000000000c0
+x17: ffff80000dd3a698 x16: ffff80000db78658 x15: ffff0000c42b0000
+x14: 0000000000000028 x13: 00000000ffffffff x12: ffff0000c42b0000
+x11: ff808000095d7628 x10: 0000000000000000 x9 : 0000000000000080
+x8 : 00000000000000c0 x7 : ffff8000098f58f0 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000002 x1 : ffff80000ce5df15 x0 : ffff8001f1d2f000
+Call trace:
+ arch_local_irq_restore arch/arm64/include/asm/irqflags.h:122 [inline]
+ __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+ _raw_spin_unlock_irqrestore+0x58/0x8c kernel/locking/spinlock.c:194
+ spin_unlock_irqrestore include/linux/spinlock.h:404 [inline]
+ uart_write+0x204/0x458 drivers/tty/serial/serial_core.c:589
+ handle_tx+0x10c/0x34c drivers/net/caif/caif_serial.c:236
+ caif_xmit+0xa4/0xe0 drivers/net/caif/caif_serial.c:282
+ __netdev_start_xmit include/linux/netdevice.h:4819 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4833 [inline]
+ xmit_one net/core/dev.c:3590 [inline]
+ dev_hard_start_xmit+0xd4/0x1ec net/core/dev.c:3606
+ __dev_queue_xmit+0x78c/0xc88 net/core/dev.c:4256
+ dev_queue_xmit include/linux/netdevice.h:3008 [inline]
+ tx+0x74/0x118 drivers/block/aoe/aoenet.c:63
+ kthread+0x90/0x154 kernel/kthread.c:357
+ kthread+0x12c/0x158 kernel/kthread.c:376
+ ret_from_fork+0x10/0x20

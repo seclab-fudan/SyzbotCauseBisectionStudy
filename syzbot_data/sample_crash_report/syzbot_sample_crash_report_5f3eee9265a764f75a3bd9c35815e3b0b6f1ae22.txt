@@ -1,0 +1,67 @@
+================================================================================
+UBSAN: shift-out-of-bounds in ./include/net/red.h:312:18
+shift exponent 193 is too large for 64-bit type 'long unsigned int'
+CPU: 0 PID: 17949 Comm: syz-executor.2 Not tainted 5.12.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ubsan_epilogue+0xb/0x5a lib/ubsan.c:148
+ __ubsan_handle_shift_out_of_bounds.cold+0xb1/0x181 lib/ubsan.c:327
+ red_calc_qavg_from_idle_time include/net/red.h:312 [inline]
+ red_adaptative_algo include/net/red.h:444 [inline]
+ red_adaptative_timer.cold+0x1bd/0x26c net/sched/sch_red.c:324
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1431
+ expire_timers kernel/time/timer.c:1476 [inline]
+ __run_timers.part.0+0x67c/0xa50 kernel/time/timer.c:1745
+ __run_timers kernel/time/timer.c:1726 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1758
+ __do_softirq+0x29b/0x9f6 kernel/softirq.c:345
+ invoke_softirq kernel/softirq.c:221 [inline]
+ __irq_exit_rcu kernel/softirq.c:422 [inline]
+ irq_exit_rcu+0x134/0x200 kernel/softirq.c:434
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1100
+ </IRQ>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:632
+RIP: 0010:__rcu_read_lock+0x63/0xa0 kernel/rcu/tree_plugin.h:378
+Code: cc 03 00 00 01 48 b8 00 00 00 00 00 fc ff df 65 48 8b 1c 25 00 f0 01 00 48 8d bb cc 03 00 00 48 89 fa 48 c1 ea 03 0f b6 14 02 <48> 89 f8 83 e0 07 83 c0 03 38 d0 7c 04 84 d2 75 19 81 bb cc 03 00
+RSP: 0018:ffffc90009a376c8 EFLAGS: 00000213
+RAX: dffffc0000000000 RBX: ffff888023e21c40 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81abe4fd RDI: ffff888023e2200c
+RBP: ffffc90009a37738 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff81a6e11c R11: 0000000000000000 R12: ffffea0001ab1c88
+R13: 0000000000000000 R14: dffffc0000000000 R15: ffffea0001ab1c88
+ rcu_read_lock include/linux/rcupdate.h:654 [inline]
+ lock_page_memcg+0x49/0x510 mm/memcontrol.c:2142
+ page_remove_rmap+0x25/0x1430 mm/rmap.c:1348
+ zap_pte_range mm/memory.c:1270 [inline]
+ zap_pmd_range mm/memory.c:1374 [inline]
+ zap_pud_range mm/memory.c:1403 [inline]
+ zap_p4d_range mm/memory.c:1424 [inline]
+ unmap_page_range+0xe30/0x2650 mm/memory.c:1445
+ unmap_single_vma+0x198/0x300 mm/memory.c:1490
+ unmap_vmas+0x16d/0x2f0 mm/memory.c:1522
+ exit_mmap+0x2a8/0x590 mm/mmap.c:3218
+ __mmput+0x122/0x470 kernel/fork.c:1090
+ mmput+0x58/0x60 kernel/fork.c:1111
+ exit_mm kernel/exit.c:501 [inline]
+ do_exit+0xb0a/0x2a60 kernel/exit.c:812
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ get_signal+0x42c/0x2100 kernel/signal.c:2777
+ arch_do_signal_or_restart+0x2a8/0x1eb0 arch/x86/kernel/signal.c:789
+ handle_signal_work kernel/entry/common.c:147 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x148/0x250 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x466459
+Code: Unable to access opcode bytes at RIP 0x46642f.
+RSP: 002b:00007f3b053f8218 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000001 RBX: 000000000056bf68 RCX: 0000000000466459
+RDX: 00000000000f4240 RSI: 0000000000000081 RDI: 000000000056bf6c
+RBP: 000000000056bf60 R08: 0000000000000016 R09: 0000000000000000
+R10: ffffffffffffffff R11: 0000000000000246 R12: 000000000056bf6c
+R13: 00007ffdc85e6c9f R14: 00007f3b053f8300 R15: 0000000000022000
+================================================================================

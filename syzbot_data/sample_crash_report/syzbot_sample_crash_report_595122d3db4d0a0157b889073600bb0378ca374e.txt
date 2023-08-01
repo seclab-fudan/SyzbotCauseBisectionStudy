@@ -1,0 +1,80 @@
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+rcu: 	Tasks blocked on level-0 rcu_node (CPUs 0-1):
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 30808 at kernel/sched/core.c:3013 rq_unlock kernel/sched/sched.h:1325 [inline]
+WARNING: CPU: 0 PID: 30808 at kernel/sched/core.c:3013 try_invoke_on_locked_down_task+0x12d/0x270 kernel/sched/core.c:3019
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 30808 Comm: systemd-udevd Not tainted 5.9.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d6/0x29e lib/dump_stack.c:118
+ panic+0x2c0/0x800 kernel/panic.c:231
+ __warn+0x227/0x250 kernel/panic.c:600
+ report_bug+0x1b1/0x2e0 lib/bug.c:198
+ handle_bug+0x42/0x80 arch/x86/kernel/traps.c:234
+ exc_invalid_op+0x16/0x40 arch/x86/kernel/traps.c:254
+ asm_exc_invalid_op+0x12/0x20 arch/x86/include/asm/idtentry.h:536
+RIP: 0010:try_invoke_on_locked_down_task+0x12d/0x270 kernel/sched/sched.h:1325
+Code: f8 48 c1 e8 03 42 8a 04 38 84 c0 0f 85 10 01 00 00 8b 74 24 18 48 89 ef e8 90 47 09 00 4c 89 ef e8 48 1c fb 06 e9 a4 00 00 00 <0f> 0b e9 2b ff ff ff 48 c7 c1 74 d5 af 89 80 e1 07 80 c1 03 38 c1
+RSP: 0018:ffffc90000007c50 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8880a9bb27c0 RCX: 16c6f9e9214ef600
+RDX: ffffc90000007d00 RSI: ffffffff8162e8d0 RDI: ffff8880a8ada340
+RBP: ffffffff8162e8d0 R08: dffffc0000000000 R09: fffffbfff12df8f9
+R10: fffffbfff12df8f9 R11: 0000000000000000 R12: 0000000000000000
+R13: ffffffff896ff600 R14: ffff8880a8ada340 R15: dffffc0000000000
+ rcu_print_task_stall kernel/rcu/tree_stall.h:267 [inline]
+ print_other_cpu_stall kernel/rcu/tree_stall.h:475 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:634 [inline]
+ rcu_pending kernel/rcu/tree.c:3637 [inline]
+ rcu_sched_clock_irq+0x12bc/0x1eb0 kernel/rcu/tree.c:2519
+ update_process_times+0x130/0x1b0 kernel/time/timer.c:1710
+ tick_sched_handle kernel/time/tick-sched.c:176 [inline]
+ tick_sched_timer+0x25e/0x410 kernel/time/tick-sched.c:1328
+ __run_hrtimer kernel/time/hrtimer.c:1524 [inline]
+ __hrtimer_run_queues+0x42d/0x930 kernel/time/hrtimer.c:1588
+ hrtimer_interrupt+0x373/0xd60 kernel/time/hrtimer.c:1650
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1080 [inline]
+ __sysvec_apic_timer_interrupt+0xf0/0x260 arch/x86/kernel/apic/apic.c:1097
+ asm_call_on_stack+0xf/0x20 arch/x86/entry/entry_64.S:706
+ </IRQ>
+ __run_on_irqstack arch/x86/include/asm/irq_stack.h:22 [inline]
+ run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:48 [inline]
+ sysvec_apic_timer_interrupt+0x94/0xf0 arch/x86/kernel/apic/apic.c:1091
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:581
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:770 [inline]
+RIP: 0010:slab_alloc mm/slab.c:3305 [inline]
+RIP: 0010:__do_kmalloc mm/slab.c:3653 [inline]
+RIP: 0010:__kmalloc+0x196/0x300 mm/slab.c:3664
+Code: 7c 24 20 48 8b 7c 24 10 f7 c7 00 02 00 00 74 0a e8 8f 65 c6 ff 48 8b 7c 24 10 48 83 3d 4a ac b8 07 00 0f 84 63 01 00 00 57 9d <0f> 1f 44 00 00 41 0f 18 0f e9 25 00 00 00 89 d8 c1 e8 08 83 e0 01
+RSP: 0018:ffffc900053d7b60 EFLAGS: 00000282
+RAX: 000000000000ae2f RBX: 0000000000000c40 RCX: ffff88808ddc82c0
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000282
+RBP: ffff8880aa440900 R08: ffffffff817ad120 R09: ffffed1015488341
+R10: ffffed1015488341 R11: 0000000000000000 R12: 0000000000001000
+R13: 0000000000000c40 R14: ffffffff838566e8 R15: ffff88806e032000
+ kmalloc include/linux/slab.h:559 [inline]
+ tomoyo_realpath_from_path+0xd8/0x630 security/tomoyo/realpath.c:254
+ tomoyo_get_realpath security/tomoyo/file.c:151 [inline]
+ tomoyo_path_perm+0x17d/0x740 security/tomoyo/file.c:822
+ security_inode_getattr+0xc0/0x140 security/security.c:1278
+ vfs_getattr fs/stat.c:121 [inline]
+ vfs_statx+0x118/0x380 fs/stat.c:206
+ vfs_lstat include/linux/fs.h:3178 [inline]
+ __do_sys_newlstat fs/stat.c:374 [inline]
+ __se_sys_newlstat fs/stat.c:368 [inline]
+ __x64_sys_newlstat+0x81/0xd0 fs/stat.c:368
+ do_syscall_64+0x31/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f753b78f335
+Code: 69 db 2b 00 64 c7 00 16 00 00 00 b8 ff ff ff ff c3 0f 1f 40 00 83 ff 01 48 89 f0 77 30 48 89 c7 48 89 d6 b8 06 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 03 f3 c3 90 48 8b 15 31 db 2b 00 f7 d8 64 89
+RSP: 002b:00007ffe76fa30f8 EFLAGS: 00000246 ORIG_RAX: 0000000000000006
+RAX: ffffffffffffffda RBX: 00005620599f5de0 RCX: 00007f753b78f335
+RDX: 00007ffe76fa3270 RSI: 00007ffe76fa3270 RDI: 00005620599e0d80
+RBP: 00007ffe76fa3270 R08: 0000562058300670 R09: 00000000000001b0
+R10: 0000562058300d0c R11: 0000000000000246 R12: 00007ffe76fa31c0
+R13: 0000000000000000 R14: 0000000000000003 R15: 000000000000000e
+Shutting down cpus with NMI
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

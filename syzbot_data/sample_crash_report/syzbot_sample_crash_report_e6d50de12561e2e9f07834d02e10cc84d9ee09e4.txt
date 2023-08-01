@@ -1,0 +1,86 @@
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 0 PID: 0 at lib/refcount.c:28 refcount_warn_saturate+0x1d1/0x1e0 lib/refcount.c:28
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 6.1.0-rc2-syzkaller-00107-g200204f56f3b #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+RIP: 0010:refcount_warn_saturate+0x1d1/0x1e0 lib/refcount.c:28
+Code: e9 db fe ff ff 48 89 df e8 7c 5d c3 fd e9 8a fe ff ff e8 72 ca 77 fd 48 c7 c7 40 47 49 8a c6 05 04 c5 c7 09 01 e8 2b 6e 45 05 <0f> 0b e9 af fe ff ff 0f 1f 84 00 00 00 00 00 41 56 41 55 41 54 55
+RSP: 0018:ffffc90000007d88 EFLAGS: 00010082
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffffffff8bcbc9c0 RSI: ffffffff816142b8 RDI: fffff52000000fa3
+RBP: 0000000000000003 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000010002 R11: 0000000063666572 R12: 0000000000000000
+R13: ffff888074dd9c08 R14: ffff888022cc8400 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff88802c800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9b583a8000 CR3: 000000005d02f000 CR4: 0000000000150ef0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __refcount_sub_and_test include/linux/refcount.h:283 [inline]
+ __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ p9_req_put+0x1f2/0x250 net/9p/client.c:392
+ req_done+0x1de/0x2e0 net/9p/trans_virtio.c:148
+ vring_interrupt drivers/virtio/virtio_ring.c:2470 [inline]
+ vring_interrupt+0x29d/0x3d0 drivers/virtio/virtio_ring.c:2445
+ __handle_irq_event_percpu+0x260/0x970 kernel/irq/handle.c:158
+ handle_irq_event_percpu kernel/irq/handle.c:193 [inline]
+ handle_irq_event+0xa7/0x1e0 kernel/irq/handle.c:210
+ handle_edge_irq+0x25f/0xd00 kernel/irq/chip.c:819
+ generic_handle_irq_desc include/linux/irqdesc.h:158 [inline]
+ handle_irq arch/x86/kernel/irq.c:231 [inline]
+ __common_interrupt+0x9d/0x210 arch/x86/kernel/irq.c:250
+ common_interrupt+0xa4/0xc0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x22/0x40 arch/x86/include/asm/idtentry.h:640
+RIP: 0010:default_idle+0xb/0x10 arch/x86/kernel/process.c:731
+Code: f8 e9 8c fd ff ff 4c 89 f7 e8 b1 03 36 f8 e9 3a fd ff ff cc cc cc cc cc cc cc cc cc cc cc cc 66 90 0f 00 2d 67 85 55 00 fb f4 <c3> 0f 1f 40 00 41 54 be 08 00 00 00 53 65 48 8b 1c 25 80 6f 02 00
+RSP: 0018:ffffffff8bc07e10 EFLAGS: 00000246
+RAX: 0000000000000000 RBX: ffffffff8bcbc9c0 RCX: ffffffff898e3d75
+RDX: ffffed100590698a RSI: 0000000000000000 RDI: ffffffff89915c8f
+RBP: dffffc0000000000 R08: 0000000000000000 R09: ffff88802c834c4b
+R10: ffffed1005906989 R11: 0000000000000001 R12: 0000000000000000
+R13: 0000000000000000 R14: ffffffff8de16c50 R15: 0000000000000000
+ default_idle_call+0x80/0xc0 kernel/sched/idle.c:109
+ cpuidle_idle_call kernel/sched/idle.c:191 [inline]
+ do_idle+0x410/0x590 kernel/sched/idle.c:303
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:400
+ rest_init+0x169/0x270 init/main.c:729
+ arch_call_rest_init+0xf/0x14 init/main.c:890
+ start_kernel+0x478/0x499 init/main.c:1145
+ secondary_startup_64_no_verify+0xce/0xdb
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	f8                   	clc
+   1:	e9 8c fd ff ff       	jmpq   0xfffffd92
+   6:	4c 89 f7             	mov    %r14,%rdi
+   9:	e8 b1 03 36 f8       	callq  0xf83603bf
+   e:	e9 3a fd ff ff       	jmpq   0xfffffd4d
+  13:	cc                   	int3
+  14:	cc                   	int3
+  15:	cc                   	int3
+  16:	cc                   	int3
+  17:	cc                   	int3
+  18:	cc                   	int3
+  19:	cc                   	int3
+  1a:	cc                   	int3
+  1b:	cc                   	int3
+  1c:	cc                   	int3
+  1d:	cc                   	int3
+  1e:	cc                   	int3
+  1f:	66 90                	xchg   %ax,%ax
+  21:	0f 00 2d 67 85 55 00 	verw   0x558567(%rip)        # 0x55858f
+  28:	fb                   	sti
+  29:	f4                   	hlt
+* 2a:	c3                   	retq <-- trapping instruction
+  2b:	0f 1f 40 00          	nopl   0x0(%rax)
+  2f:	41 54                	push   %r12
+  31:	be 08 00 00 00       	mov    $0x8,%esi
+  36:	53                   	push   %rbx
+  37:	65 48 8b 1c 25 80 6f 	mov    %gs:0x26f80,%rbx
+  3e:	02 00

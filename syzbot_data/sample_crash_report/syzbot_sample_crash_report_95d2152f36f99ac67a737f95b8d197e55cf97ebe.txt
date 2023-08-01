@@ -1,0 +1,46 @@
+divide error: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 21 Comm: ksoftirqd/1 Tainted: G        W         5.17.0-syzkaller-13673-ge8b767f5e040 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:ath9k_htc_choose_bslot drivers/net/wireless/ath/ath9k/htc_drv_beacon.c:277 [inline]
+RIP: 0010:ath9k_htc_swba+0x1b2/0xc70 drivers/net/wireless/ath/ath9k/htc_drv_beacon.c:310
+Code: c0 40 84 c6 0f 85 db 09 00 00 48 8b 55 00 0f b7 c9 bd 01 00 00 00 48 0f ca 48 89 d0 c1 ea 0a 48 c1 e8 20 c1 e0 16 09 d0 31 d2 <f7> f1 8d 04 12 31 d2 f7 f1 29 c5 48 8d 83 b0 03 00 00 48 89 c7 48
+RSP: 0018:ffffc900003cfcb0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffff88806fa733a0 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000001
+RBP: 0000000000000001 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff8527728a R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff88807671340c R15: ffff88807d1751f0
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fe835156111 CR3: 000000000ba8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ ath9k_wmi_event_tasklet+0x33a/0x450 drivers/net/wireless/ath/ath9k/wmi.c:165
+ tasklet_action_common.constprop.0+0x201/0x2e0 kernel/softirq.c:784
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ run_ksoftirqd kernel/softirq.c:921 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:913
+----------------
+Code disassembly (best guess):
+   0:	c0 40 84 c6          	rolb   $0xc6,-0x7c(%rax)
+   4:	0f 85 db 09 00 00    	jne    0x9e5
+   a:	48 8b 55 00          	mov    0x0(%rbp),%rdx
+   e:	0f b7 c9             	movzwl %cx,%ecx
+  11:	bd 01 00 00 00       	mov    $0x1,%ebp
+  16:	48 0f ca             	bswap  %rdx
+  19:	48 89 d0             	mov    %rdx,%rax
+  1c:	c1 ea 0a             	shr    $0xa,%edx
+  1f:	48 c1 e8 20          	shr    $0x20,%rax
+  23:	c1 e0 16             	shl    $0x16,%eax
+  26:	09 d0                	or     %edx,%eax
+  28:	31 d2                	xor    %edx,%edx
+* 2a:	f7 f1                	div    %ecx <-- trapping instruction
+  2c:	8d 04 12             	lea    (%rdx,%rdx,1),%eax
+  2f:	31 d2                	xor    %edx,%edx
+  31:	f7 f1                	div    %ecx
+  33:	29 c5                	sub    %eax,%ebp
+  35:	48 8d 83 b0 03 00 00 	lea    0x3b0(%rbx),%rax
+  3c:	48 89 c7             	mov    %rax,%rdi
+  3f:	48                   	rex.W

@@ -1,0 +1,72 @@
+ mount_ns+0xc4/0x190 fs/super.c:1036
+ proc_mount+0x7a/0x90 fs/proc/root.c:101
+refcount_t: underflow; use-after-free.
+ mount_fs+0x66/0x2d0 fs/super.c:1222
+ vfs_kern_mount.part.26+0xc6/0x4a0 fs/namespace.c:1037
+WARNING: CPU: 0 PID: 4482 at lib/refcount.c:187 refcount_sub_and_test+0x167/0x1b0 lib/refcount.c:187
+Kernel panic - not syncing: panic_on_warn set ...
+
+ vfs_kern_mount fs/namespace.c:3292 [inline]
+ kern_mount_data+0x50/0xb0 fs/namespace.c:3292
+ pid_ns_prepare_proc+0x1e/0x80 fs/proc/root.c:222
+ alloc_pid+0x87e/0xa00 kernel/pid.c:208
+ copy_process.part.38+0x2516/0x4bd0 kernel/fork.c:1807
+ copy_process kernel/fork.c:1606 [inline]
+ _do_fork+0x1f7/0xf70 kernel/fork.c:2087
+ SYSC_clone kernel/fork.c:2194 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2188
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x454e79
+RSP: 002b:00007fac6a5c2c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 00007fac6a5c36d4 RCX: 0000000000454e79
+RDX: 00000000200008c0 RSI: 0000000020000800 RDI: 000000002000c100
+RBP: 000000000072bea0 R08: 0000000020000940 R09: 0000000000000000
+R10: 0000000020000900 R11: 0000000000000246 R12: 0000000000000004
+R13: 0000000000000051 R14: 00000000006f2838 R15: 0000000000000028
+CPU: 0 PID: 4482 Comm: syz-executor7 Not tainted 4.16.0-rc7+ #373
+proc_fill_super: allocate dentry failed
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+IPVS: ftp: loaded support on port[0] = 21
+ panic+0x1e4/0x41c kernel/panic.c:183
+ __warn+0x1dc/0x200 kernel/panic.c:547
+ report_bug+0x1f4/0x2b0 lib/bug.c:186
+ fixup_bug.part.10+0x37/0x80 arch/x86/kernel/traps.c:178
+ fixup_bug arch/x86/kernel/traps.c:247 [inline]
+ do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:296
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+ invalid_op+0x1b/0x40 arch/x86/entry/entry_64.S:986
+RIP: 0010:refcount_sub_and_test+0x167/0x1b0 lib/refcount.c:187
+RSP: 0018:ffff8801b9d9f318 EFLAGS: 00010282
+RAX: dffffc0000000008 RBX: 0000000000000000 RCX: ffffffff815b193e
+RDX: 0000000000000000 RSI: 1ffff100373b3e13 RDI: 1ffff100373b3de8
+RBP: ffff8801b9d9f3a8 R08: 0000000000000000 R09: 0000000000000000
+R10: ffff8801b9d9f2d0 R11: 0000000000000000 R12: 1ffff100373b3e64
+R13: 00000000ffffffff R14: 0000000000000001 R15: ffff8801b3004720
+ refcount_dec_and_test+0x1a/0x20 lib/refcount.c:212
+ kref_put include/linux/kref.h:69 [inline]
+ put_pid_ns+0x9d/0xc0 kernel/pid_namespace.c:192
+ free_nsproxy+0xfa/0x1f0 kernel/nsproxy.c:182
+ switch_task_namespaces+0x9d/0xc0 kernel/nsproxy.c:229
+ exit_task_namespaces+0x17/0x20 kernel/nsproxy.c:234
+ copy_process.part.38+0x3aba/0x4bd0 kernel/fork.c:1988
+ copy_process kernel/fork.c:1606 [inline]
+ _do_fork+0x1f7/0xf70 kernel/fork.c:2087
+ SYSC_clone kernel/fork.c:2194 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2188
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x454e79
+RSP: 002b:00007fd1669b7c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 00007fd1669b86d4 RCX: 0000000000454e79
+RDX: 00000000200008c0 RSI: 0000000020000800 RDI: 000000002000c100
+RBP: 000000000072bea0 R08: 0000000020000940 R09: 0000000000000000
+R10: 0000000020000900 R11: 0000000000000246 R12: 0000000000000004
+R13: 0000000000000051 R14: 00000000006f2838 R15: 0000000000000028
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,52 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc6-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+1 lock held by syz-executor.4/11109:
+ #0: 
+ffffffff8ca6dd68
+ (
+loop_ctl_mutex
+){+.+.}-{3:3}
+, at: loop_control_ioctl+0x7b/0x4c0 drivers/block/loop.c:2246
+
+stack backtrace:
+CPU: 1 PID: 11109 Comm: syz-executor.4 Not tainted 5.13.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ __mutex_lock_common kernel/locking/mutex.c:938 [inline]
+ __mutex_lock+0xa9/0x10c0 kernel/locking/mutex.c:1104
+ kernfs_find_and_get_ns+0x21/0x60 fs/kernfs/dir.c:904
+ kernfs_find_and_get include/linux/kernfs.h:548 [inline]
+ sysfs_unmerge_group+0x5d/0x160 fs/sysfs/group.c:366
+ dpm_sysfs_remove+0x62/0xb0 drivers/base/power/sysfs.c:833
+ device_del+0x20c/0xd40 drivers/base/core.c:3489
+ device_unregister+0x22/0xc0 drivers/base/core.c:3545
+ bdi_unregister+0x3e0/0x590 mm/backing-dev.c:876
+ del_gendisk+0x7c5/0xa00 block/genhd.c:633
+ loop_remove drivers/block/loop.c:2180 [inline]
+ loop_control_ioctl drivers/block/loop.c:2280 [inline]
+ loop_control_ioctl+0x3e7/0x4c0 drivers/block/loop.c:2240
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:1069 [inline]
+ __se_sys_ioctl fs/ioctl.c:1055 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4665d9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f288c3f5188 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 000000000056c038 RCX: 00000000004665d9
+RDX: 0000000000000002 RSI: 0000000000004c81 RDI: 0000000000000004
+RBP: 00000000004bfcb9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056c038
+R13: 00007fffdf065b7f R14: 00007f288c3f5300 R15: 0000000000022000

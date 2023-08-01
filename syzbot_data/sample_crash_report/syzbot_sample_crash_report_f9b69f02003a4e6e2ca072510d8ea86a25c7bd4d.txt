@@ -1,0 +1,60 @@
+loop0: detected capacity change from 0 to 32768
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000008
+Mem abort info:
+  ESR = 0x0000000096000046
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000046
+  CM = 0, WnR = 1
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010bcb4000
+[0000000000000008] pgd=080000010bc93003, p4d=080000010bc93003, pud=080000010bd0b003, pmd=0000000000000000
+Internal error: Oops: 0000000096000046 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 3073 Comm: syz-executor340 Not tainted 6.0.0-rc7-syzkaller-18095-gbbed346d5a96 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : dtInsertEntry+0x470/0x660 fs/jfs/jfs_dtree.c:3708
+lr : dtInsertEntry+0x468/0x660 fs/jfs/jfs_dtree.c:3708
+sp : ffff80000ff73820
+x29: ffff80000ff738a0 x28: ffff0000ca51aed8 x27: ffff0000ca51aef8
+x26: 0000000000000000 x25: 000000000000000d x24: 0000000000000001
+x23: 0000000000000000 x22: 0000000000000073 x21: 0000000000000002
+x20: ffff80000ff73908 x19: 0000000000000079 x18: ffff80000ff73a90
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000008000 x12: ffff80000d5335c0
+x11: ff80800008d4af20 x10: 0000000000000000 x9 : 0000000000000000
+x8 : 00000000000000ff x7 : ffff800008d5b764 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : ffff80000ff73900 x3 : ffff80000ff73908
+x2 : ffff80000ff739b0 x1 : 0000000000000000 x0 : 0000000000000000
+Call trace:
+ dtInsertEntry+0x470/0x660
+ dtInsert+0x21c/0x378 fs/jfs/jfs_dtree.c:886
+ jfs_create+0x390/0x488 fs/jfs/namei.c:137
+ lookup_open fs/namei.c:3413 [inline]
+ open_last_lookups fs/namei.c:3481 [inline]
+ path_openat+0x804/0x11c4 fs/namei.c:3688
+ do_filp_open+0xdc/0x1b8 fs/namei.c:3718
+ do_sys_openat2+0xb8/0x22c fs/open.c:1313
+ do_sys_open fs/open.c:1329 [inline]
+ __do_sys_openat fs/open.c:1345 [inline]
+ __se_sys_openat fs/open.c:1340 [inline]
+ __arm64_sys_openat+0xb0/0xe0 fs/open.c:1340
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:636
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+Code: 370800d3 97d5533e f9400fe9 52801fe8 (39002128) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	370800d3 	tbnz	w19, #1, 0x18
+   4:	97d5533e 	bl	0xffffffffff554cfc
+   8:	f9400fe9 	ldr	x9, [sp, #24]
+   c:	52801fe8 	mov	w8, #0xff                  	// #255
+* 10:	39002128 	strb	w8, [x9, #8] <-- trapping instruction

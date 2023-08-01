@@ -1,0 +1,98 @@
+==================================================================
+BUG: KASAN: use-after-free in con_shutdown+0x61/0x80 drivers/tty/vt/vt.c:3287
+Write of size 8 at addr ffff888097055108 by task syz-executor653/7167
+
+CPU: 1 PID: 7167 Comm: syz-executor653 Not tainted 5.6.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1e9/0x30e lib/dump_stack.c:118
+ print_address_description+0x74/0x5c0 mm/kasan/report.c:374
+ __kasan_report+0x14b/0x1c0 mm/kasan/report.c:506
+ kasan_report+0x25/0x50 mm/kasan/common.c:641
+ con_shutdown+0x61/0x80 drivers/tty/vt/vt.c:3287
+ release_tty+0xb9/0x530 drivers/tty/tty_io.c:1514
+ tty_release_struct+0xb8/0xd0 drivers/tty/tty_io.c:1625
+ tty_release+0xe23/0x1100 drivers/tty/tty_io.c:1785
+ __fput+0x2d8/0x730 fs/file_table.c:280
+ task_work_run+0x176/0x1b0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x5ef/0x1f80 kernel/exit.c:801
+ do_group_exit+0x15e/0x2c0 kernel/exit.c:899
+ __do_sys_exit_group+0x13/0x20 kernel/exit.c:910
+ __se_sys_exit_group+0x10/0x10 kernel/exit.c:908
+ __x64_sys_exit_group+0x37/0x40 kernel/exit.c:908
+ do_syscall_64+0xf3/0x1b0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43ff58
+Code: 00 00 be 3c 00 00 00 eb 19 66 0f 1f 84 00 00 00 00 00 48 89 d7 89 f0 0f 05 48 3d 00 f0 ff ff 77 21 f4 48 89 d7 44 89 c0 0f 05 <48> 3d 00 f0 ff ff 76 e0 f7 d8 64 41 89 01 eb d8 0f 1f 84 00 00 00
+RSP: 002b:00007ffd9da660f8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043ff58
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004bf970 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 000000000000000e R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d2180 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 7167:
+ save_stack mm/kasan/common.c:72 [inline]
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc+0x118/0x1c0 mm/kasan/common.c:515
+ kmem_cache_alloc_trace+0x234/0x300 mm/slab.c:3551
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ vc_allocate+0x148/0x5b0 drivers/tty/vt/vt.c:1096
+ con_install+0x48/0x460 drivers/tty/vt/vt.c:3238
+ tty_driver_install_tty drivers/tty/tty_io.c:1228 [inline]
+ tty_init_dev+0xc6/0x4c0 drivers/tty/tty_io.c:1341
+ tty_open_by_driver drivers/tty/tty_io.c:1983 [inline]
+ tty_open+0x7cd/0xca0 drivers/tty/tty_io.c:2031
+ chrdev_open+0x498/0x580 fs/char_dev.c:414
+ do_dentry_open+0x828/0x10a0 fs/open.c:797
+ do_last fs/namei.c:3490 [inline]
+ path_openat+0x13b5/0x40d0 fs/namei.c:3607
+ do_filp_open+0x191/0x3a0 fs/namei.c:3637
+ do_sys_openat2+0x448/0x6c0 fs/open.c:1146
+ do_sys_open fs/open.c:1162 [inline]
+ ksys_open include/linux/syscalls.h:1386 [inline]
+ __do_sys_open fs/open.c:1168 [inline]
+ __se_sys_open fs/open.c:1166 [inline]
+ __x64_sys_open+0x1af/0x1e0 fs/open.c:1166
+ do_syscall_64+0xf3/0x1b0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7159:
+ save_stack mm/kasan/common.c:72 [inline]
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x12e/0x1e0 mm/kasan/common.c:476
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x220 mm/slab.c:3757
+ vt_disallocate_all drivers/tty/vt/vt_ioctl.c:323 [inline]
+ vt_ioctl+0x229d/0x3a30 drivers/tty/vt/vt_ioctl.c:816
+ tty_ioctl+0xee6/0x15c0 drivers/tty/tty_io.c:2656
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl fs/ioctl.c:763 [inline]
+ __do_sys_ioctl fs/ioctl.c:772 [inline]
+ __se_sys_ioctl+0xf9/0x160 fs/ioctl.c:770
+ do_syscall_64+0xf3/0x1b0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888097055000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 264 bytes inside of
+ 2048-byte region [ffff888097055000, ffff888097055800)
+The buggy address belongs to the page:
+page:ffffea00025c1540 refcount:1 mapcount:0 mapping:ffff8880aa400e00 index:0x0
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea00029947c8 ffffea00025c3708 ffff8880aa400e00
+raw: 0000000000000000 ffff888097055000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888097055000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888097055080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888097055100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff888097055180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888097055200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

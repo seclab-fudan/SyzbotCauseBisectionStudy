@@ -1,0 +1,101 @@
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x3b1e/0x48a0 kernel/locking/lockdep.c:4250
+Read of size 8 at addr ffff888086217940 by task syz-executor.5/15483
+
+CPU: 1 PID: 15483 Comm: syz-executor.5 Not tainted 5.7.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x188/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd3/0x413 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ __lock_acquire+0x3b1e/0x48a0 kernel/locking/lockdep.c:4250
+ lock_acquire+0x1f2/0x8f0 kernel/locking/lockdep.c:4959
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+ lockref_get+0x11/0x50 include/linux/spinlock.h:353
+ dget include/linux/dcache.h:323 [inline]
+ simple_recursive_removal+0x43/0x730 fs/libfs.c:268
+ debugfs_remove fs/debugfs/inode.c:703 [inline]
+ debugfs_remove+0x59/0x80 fs/debugfs/inode.c:697
+ blk_trace_free+0x31/0x130 kernel/trace/blktrace.c:311
+ do_blk_trace_setup+0x711/0xb30 kernel/trace/blktrace.c:557
+ __blk_trace_setup+0xca/0x180 kernel/trace/blktrace.c:571
+ blk_trace_ioctl+0x162/0x2b0 kernel/trace/blktrace.c:712
+ blkdev_ioctl+0xc1/0x6c0 block/ioctl.c:613
+ block_ioctl+0xf9/0x140 fs/block_dev.c:1987
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl+0x11a/0x180 fs/ioctl.c:771
+ __do_sys_ioctl fs/ioctl.c:780 [inline]
+ __se_sys_ioctl fs/ioctl.c:778 [inline]
+ __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:778
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x45ca69
+Code: 0d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f553d9a0c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004e1900 RCX: 000000000045ca69
+RDX: 0000000020000080 RSI: 00000000c0481273 RDI: 0000000000000008
+RBP: 000000000078bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 000000000000022a R14: 00000000004c4746 R15: 00007f553d9a16d4
+
+Allocated by task 15483:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc mm/kasan/common.c:494 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:467
+ slab_post_alloc_hook mm/slab.h:586 [inline]
+ slab_alloc mm/slab.c:3320 [inline]
+ kmem_cache_alloc+0x11b/0x740 mm/slab.c:3484
+ __d_alloc+0x2a/0x920 fs/dcache.c:1709
+ d_alloc+0x4a/0x240 fs/dcache.c:1788
+ d_alloc_parallel+0xe8/0x1b10 fs/dcache.c:2540
+ __lookup_slow+0x193/0x490 fs/namei.c:1515
+ lookup_one_len+0x163/0x190 fs/namei.c:2548
+ start_creating+0x12b/0x250 fs/debugfs/inode.c:338
+ __debugfs_create_file+0x62/0x400 fs/debugfs/inode.c:383
+ do_blk_trace_setup+0x351/0xb30 kernel/trace/blktrace.c:524
+ __blk_trace_setup+0xca/0x180 kernel/trace/blktrace.c:571
+ blk_trace_ioctl+0x162/0x2b0 kernel/trace/blktrace.c:712
+ blkdev_ioctl+0xc1/0x6c0 block/ioctl.c:613
+ block_ioctl+0xf9/0x140 fs/block_dev.c:1987
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl+0x11a/0x180 fs/ioctl.c:771
+ __do_sys_ioctl fs/ioctl.c:780 [inline]
+ __se_sys_ioctl fs/ioctl.c:778 [inline]
+ __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:778
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+Freed by task 6811:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ kasan_set_free_info mm/kasan/common.c:316 [inline]
+ __kasan_slab_free+0xf7/0x140 mm/kasan/common.c:455
+ __cache_free mm/slab.c:3426 [inline]
+ kmem_cache_free+0x7f/0x320 mm/slab.c:3694
+ rcu_do_batch kernel/rcu/tree.c:2396 [inline]
+ rcu_core+0x59f/0x1370 kernel/rcu/tree.c:2623
+ __do_softirq+0x26c/0x9f7 kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff8880862178a0
+ which belongs to the cache dentry of size 304
+The buggy address is located 160 bytes inside of
+ 304-byte region [ffff8880862178a0, ffff8880862179d0)
+The buggy address belongs to the page:
+page:ffffea00021885c0 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea0002185648 ffffea0002188648 ffff88821bc50540
+raw: 0000000000000000 ffff888086217000 000000010000000b 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888086217800: 00 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc
+ ffff888086217880: fc fc fc fc fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888086217900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                           ^
+ ffff888086217980: fb fb fb fb fb fb fb fb fb fb fc fc fc fc fc fc
+ ffff888086217a00: fc fc 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

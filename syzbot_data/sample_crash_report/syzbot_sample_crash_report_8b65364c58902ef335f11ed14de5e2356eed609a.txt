@@ -1,0 +1,27 @@
+==================================================================
+BUG: KCSAN: data-race in rcu_gp_fqs_check_wake / rcu_preempt_deferred_qs_irqrestore
+
+write to 0xffffffff85c7d0d0 of 8 bytes by task 24003 on cpu 1:
+ rcu_preempt_deferred_qs_irqrestore+0x43d/0x580 kernel/rcu/tree_plugin.h:496
+ rcu_read_unlock_special kernel/rcu/tree_plugin.h:644 [inline]
+ __rcu_read_unlock+0x16a/0x3d0 kernel/rcu/tree_plugin.h:383
+ rcu_read_unlock include/linux/rcupdate.h:670 [inline]
+ batadv_nc_purge_orig_hash net/batman-adv/network-coding.c:411 [inline]
+ batadv_nc_worker+0x13a/0x390 net/batman-adv/network-coding.c:718
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2264
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2410
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+read to 0xffffffff85c7d0d0 of 8 bytes by task 10 on cpu 0:
+ rcu_gp_fqs_check_wake kernel/rcu/tree.c:1606 [inline]
+ rcu_gp_fqs_check_wake+0x93/0xd0 kernel/rcu/tree.c:1596
+ rcu_gp_fqs_loop+0x39d/0x580 kernel/rcu/tree.c:1661
+ rcu_gp_kthread+0x143/0x230 kernel/rcu/tree.c:1821
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 10 Comm: rcu_preempt Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

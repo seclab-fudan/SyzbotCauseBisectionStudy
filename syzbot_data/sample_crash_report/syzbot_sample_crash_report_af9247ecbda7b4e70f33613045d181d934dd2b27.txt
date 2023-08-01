@@ -1,0 +1,65 @@
+============================================
+WARNING: possible recursive locking detected
+5.9.0-rc2-syzkaller #0 Not tainted
+--------------------------------------------
+syz-executor427/6851 is trying to acquire lock:
+ffff888095008098 (&sighand->siglock){....}-{2:2}, at: __lock_task_sighand+0x106/0x2d0 kernel/signal.c:1390
+
+but task is already holding lock:
+ffff888095008098 (&sighand->siglock){....}-{2:2}, at: force_sig_info_to_task+0x6c/0x3a0 kernel/signal.c:1316
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&sighand->siglock);
+  lock(&sighand->siglock);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+3 locks held by syz-executor427/6851:
+ #0: ffff888095008098 (&sighand->siglock){....}-{2:2}, at: force_sig_info_to_task+0x6c/0x3a0 kernel/signal.c:1316
+ #1: ffff8880950080e0 (&sighand->signalfd_wqh){....}-{2:2}, at: __wake_up_common_lock+0xb4/0x130 kernel/sched/wait.c:122
+ #2: ffffffff89bd6900 (rcu_read_lock){....}-{1:2}, at: __lock_task_sighand+0x0/0x2d0 kernel/signal.c:1352
+
+stack backtrace:
+CPU: 1 PID: 6851 Comm: syz-executor427 Not tainted 5.9.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_deadlock_bug kernel/locking/lockdep.c:2391 [inline]
+ check_deadlock kernel/locking/lockdep.c:2432 [inline]
+ validate_chain kernel/locking/lockdep.c:3202 [inline]
+ __lock_acquire.cold+0x115/0x396 kernel/locking/lockdep.c:4426
+ lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:5005
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x8c/0xc0 kernel/locking/spinlock.c:159
+ __lock_task_sighand+0x106/0x2d0 kernel/signal.c:1390
+ lock_task_sighand include/linux/sched/signal.h:687 [inline]
+ task_work_add+0x1d7/0x290 kernel/task_work.c:51
+ io_req_task_work_add fs/io_uring.c:1765 [inline]
+ __io_async_wake+0x415/0x980 fs/io_uring.c:4589
+ __wake_up_common+0x147/0x650 kernel/sched/wait.c:93
+ __wake_up_common_lock+0xd0/0x130 kernel/sched/wait.c:123
+ signalfd_notify include/linux/signalfd.h:22 [inline]
+ __send_signal+0x75b/0xf90 kernel/signal.c:1163
+ force_sig_info_to_task+0x2a0/0x3a0 kernel/signal.c:1333
+ force_sig_fault_to_task kernel/signal.c:1672 [inline]
+ force_sig_fault+0xb0/0xf0 kernel/signal.c:1679
+ __bad_area_nosemaphore+0x32a/0x480 arch/x86/mm/fault.c:778
+ do_user_addr_fault+0x852/0xbf0 arch/x86/mm/fault.c:1257
+ handle_page_fault arch/x86/mm/fault.c:1351 [inline]
+ exc_page_fault+0xa8/0x160 arch/x86/mm/fault.c:1404
+ asm_exc_page_fault+0x1e/0x30 arch/x86/include/asm/idtentry.h:538
+RIP: 0033:0x400d4d
+Code: 48 8b 54 24 e0 8b 86 0c 01 00 00 44 8b 86 08 01 00 00 c1 e0 04 8d b8 7f 01 00 00 83 e7 c0 45 85 c0 74 07 89 d0 31 d2 41 f7 f0 <4c> 8b 01 89 d0 c1 e0 06 4c 01 c8 4c 89 00 4c 8b 41 08 4c 89 40 08
+RSP: 002b:00007ffffa7ff7c8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000000000
+RDX: 0000000000000005 RSI: 0000000020ee7000 RDI: 0000000000002140
+RBP: 00000000006ca018 R08: 0000000000000100 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401d20
+R13: 0000000000401db0 R14: 0000000000000000 R15: 0000000000000000

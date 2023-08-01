@@ -1,0 +1,99 @@
+ICMPv6: ndisc: ndisc_alloc_skb failed to allocate an skb
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 0 at mm/page_alloc.c:5098 __alloc_pages_slowpath.constprop.0+0x1b7b/0x20d0 mm/page_alloc.c:5098
+Modules linked in:
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.16.0-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+RIP: 0010:__alloc_pages_slowpath.constprop.0+0x1b7b/0x20d0 mm/page_alloc.c:5098
+Code: 90 08 00 00 48 81 c7 d8 04 00 00 48 89 f8 48 c1 e8 03 42 80 3c 30 00 0f 84 f0 ea ff ff e8 9d 30 09 00 e9 e6 ea ff ff 4d 89 fd <0f> 0b 48 b8 00 00 00 00 00 fc ff df 48 8b 54 24 30 48 c1 ea 03 80
+RSP: 0000:ffffc90000728488 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff88801191e180 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000002 RDI: ffff88801191f410
+RBP: ffff88803fffc300 R08: 000000000000107b R09: 0000000000001062
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: ffffc900007286b8 R14: dffffc0000000000 R15: ffffc900007286b8
+FS:  0000000000000000(0000) GS:ffff88802cb00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f019e4d1210 CR3: 000000000b88e000 CR4: 0000000000150ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __alloc_pages+0x412/0x500 mm/page_alloc.c:5399
+ __alloc_pages_node include/linux/gfp.h:572 [inline]
+ kmem_getpages mm/slab.c:1378 [inline]
+ cache_grow_begin+0x75/0x350 mm/slab.c:2584
+ fallback_alloc+0x1e4/0x2e0 mm/slab.c:3132
+ __do_cache_alloc mm/slab.c:3274 [inline]
+ slab_alloc mm/slab.c:3308 [inline]
+ kmem_cache_alloc_trace+0x309/0x4a0 mm/slab.c:3565
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ ref_tracker_alloc+0xe7/0x440 lib/ref_tracker.c:74
+ netdev_tracker_alloc include/linux/netdevice.h:3859 [inline]
+ dev_hold_track include/linux/netdevice.h:3876 [inline]
+ dst_init+0xe0/0x520 net/core/dst.c:52
+ dst_alloc+0x16b/0x1f0 net/core/dst.c:96
+ ip6_dst_alloc+0x2e/0x100 net/ipv6/route.c:340
+ icmp6_dst_alloc+0x6d/0x6c0 net/ipv6/route.c:3271
+ ndisc_send_skb+0x1146/0x17f0 net/ipv6/ndisc.c:488
+ ndisc_send_rs+0x12e/0x6f0 net/ipv6/ndisc.c:702
+ addrconf_rs_timer+0x3f2/0x820 net/ipv6/addrconf.c:3898
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1421
+ expire_timers kernel/time/timer.c:1466 [inline]
+ __run_timers.part.0+0x67c/0xa30 kernel/time/timer.c:1734
+ __run_timers kernel/time/timer.c:1715 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1747
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:637
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:649
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:default_idle+0xb/0x10 arch/x86/kernel/process.c:734
+Code: ff ff e8 08 09 6f f8 e9 24 fe ff ff e8 fe 1e fd ff cc cc cc cc cc cc cc cc cc cc cc cc cc cc eb 07 0f 00 2d 77 2b 57 00 fb f4 <c3> 0f 1f 40 00 41 54 be 08 00 00 00 53 65 48 8b 1c 25 00 70 02 00
+RSP: 0000:ffffc9000065fdf8 EFLAGS: 00000206
+RAX: 0000000000122699 RBX: ffff88801191e180 RCX: ffffffff894c5ca1
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
+RBP: 0000000000000001 R08: 0000000000000001 R09: ffff88802cb3ac93
+R10: ffffed1005967592 R11: 0000000000000000 R12: ffffed1002323c30
+R13: 0000000000000001 R14: ffffffff8d942a10 R15: 0000000000000000
+ default_idle_call+0x87/0xd0 kernel/sched/idle.c:112
+ cpuidle_idle_call kernel/sched/idle.c:194 [inline]
+ do_idle+0x401/0x590 kernel/sched/idle.c:306
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:403
+ start_secondary+0x265/0x340 arch/x86/kernel/smpboot.c:272
+ secondary_startup_64_no_verify+0xc3/0xcb
+ </TASK>
+----------------
+Code disassembly (best guess), 2 bytes skipped:
+   0:	e8 08 09 6f f8       	callq  0xf86f090d
+   5:	e9 24 fe ff ff       	jmpq   0xfffffe2e
+   a:	e8 fe 1e fd ff       	callq  0xfffd1f0d
+   f:	cc                   	int3
+  10:	cc                   	int3
+  11:	cc                   	int3
+  12:	cc                   	int3
+  13:	cc                   	int3
+  14:	cc                   	int3
+  15:	cc                   	int3
+  16:	cc                   	int3
+  17:	cc                   	int3
+  18:	cc                   	int3
+  19:	cc                   	int3
+  1a:	cc                   	int3
+  1b:	cc                   	int3
+  1c:	cc                   	int3
+  1d:	eb 07                	jmp    0x26
+  1f:	0f 00 2d 77 2b 57 00 	verw   0x572b77(%rip)        # 0x572b9d
+  26:	fb                   	sti
+  27:	f4                   	hlt
+* 28:	c3                   	retq <-- trapping instruction
+  29:	0f 1f 40 00          	nopl   0x0(%rax)
+  2d:	41 54                	push   %r12
+  2f:	be 08 00 00 00       	mov    $0x8,%esi
+  34:	53                   	push   %rbx
+  35:	65 48 8b 1c 25 00 70 	mov    %gs:0x27000,%rbx
+  3c:	02 00

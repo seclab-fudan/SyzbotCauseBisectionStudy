@@ -1,0 +1,72 @@
+Kernel panic - not syncing: stack-protector: Kernel stack is corrupted in: select_idle_sibling+0xc3c/0xda0 kernel/sched/fair.c:6210
+CPU: 1 PID: 23082 Comm: syz-executor5 Not tainted 4.20.0+ #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.20.0+ #3 Not tainted
+------------------------------------------------------
+syz-executor5/23082 is trying to acquire lock:
+000000006aa466c7 ((console_sem).lock){-.-.}, at: down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+
+but task is already holding lock:
+000000003a577703 (&p->pi_lock){-.-.}, at: try_to_wake_up+0xb9/0x1480 kernel/sched/core.c:1965
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&p->pi_lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       try_to_wake_up+0xb9/0x1480 kernel/sched/core.c:1965
+       wake_up_process+0x10/0x20 kernel/sched/core.c:2129
+       __up.isra.0+0x1c0/0x2a0 kernel/locking/semaphore.c:262
+       up+0x13e/0x1c0 kernel/locking/semaphore.c:187
+       __up_console_sem+0xb7/0x1c0 kernel/printk/printk.c:236
+       console_unlock+0x778/0x11e0 kernel/printk/printk.c:2426
+       vprintk_emit+0x370/0x960 kernel/printk/printk.c:1931
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1958
+       vprintk_func+0x7e/0x189 kernel/printk/printk_safe.c:398
+       printk+0xba/0xed kernel/printk/printk.c:1991
+       check_stack_usage kernel/exit.c:755 [inline]
+       do_exit.cold+0x155/0x16a kernel/exit.c:916
+       do_group_exit+0x177/0x430 kernel/exit.c:970
+       __do_sys_exit_group kernel/exit.c:981 [inline]
+       __se_sys_exit_group kernel/exit.c:979 [inline]
+       __x64_sys_exit_group+0x44/0x50 kernel/exit.c:979
+       do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 ((console_sem).lock){-.-.}:
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&p->pi_lock);
+                               lock((console_sem).lock);
+                               lock(&p->pi_lock);
+  lock((console_sem).lock);
+
+ *** DEADLOCK ***
+
+4 locks held by syz-executor5/23082:
+ #0: 000000008c618ce7 (rcu_read_lock){....}, at: __skb_unlink include/linux/skbuff.h:1925 [inline]
+ #0: 000000008c618ce7 (rcu_read_lock){....}, at: __skb_dequeue include/linux/skbuff.h:1941 [inline]
+ #0: 000000008c618ce7 (rcu_read_lock){....}, at: process_backlog+0x195/0x750 net/core/dev.c:5921
+ #1: 000000008c618ce7 (rcu_read_lock){....}, at: __skb_pull include/linux/skbuff.h:2158 [inline]
+ #1: 000000008c618ce7 (rcu_read_lock){....}, at: ip_local_deliver_finish+0x13a/0x390 net/ipv4/ip_input.c:231
+ #2: 000000003a577703 (&p->pi_lock){-.-.}, at: try_to_wake_up+0xb9/0x1480 kernel/sched/core.c:1965
+ #3: 000000008c618ce7 (rcu_read_lock){....}, at: select_task_rq_fair+0x31f/0x3b60 kernel/sched/fair.c:6605
+
+stack backtrace:
+CPU: 1 PID: 23082 Comm: syz-executor5 Not tainted 4.20.0+ #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

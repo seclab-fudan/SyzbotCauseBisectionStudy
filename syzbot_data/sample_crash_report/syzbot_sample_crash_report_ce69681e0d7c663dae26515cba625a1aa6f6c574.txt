@@ -1,0 +1,118 @@
+==================================================================
+BUG: KASAN: use-after-free in hlist_move_list include/linux/list.h:729 [inline]
+BUG: KASAN: use-after-free in __collect_expired_timers kernel/time/timer.c:1339 [inline]
+BUG: KASAN: use-after-free in collect_expired_timers kernel/time/timer.c:1569 [inline]
+BUG: KASAN: use-after-free in __run_timers+0xa2e/0xb90 kernel/time/timer.c:1616
+Write of size 8 at addr ffff8801cd3f4088 by task syz-executor7/19749
+
+CPU: 1 PID: 19749 Comm: syz-executor7 Not tainted 4.13.0+ #87
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+ __asan_report_store8_noabort+0x17/0x20 mm/kasan/report.c:435
+ hlist_move_list include/linux/list.h:729 [inline]
+ __collect_expired_timers kernel/time/timer.c:1339 [inline]
+ collect_expired_timers kernel/time/timer.c:1569 [inline]
+ __run_timers+0xa2e/0xb90 kernel/time/timer.c:1616
+ run_timer_softirq+0x4c/0xb0 kernel/time/timer.c:1646
+ __do_softirq+0x2bb/0xbd0 kernel/softirq.c:284
+ invoke_softirq kernel/softirq.c:364 [inline]
+ irq_exit+0x1d3/0x210 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:638 [inline]
+ smp_apic_timer_interrupt+0x177/0x710 arch/x86/kernel/apic/apic.c:1048
+ apic_timer_interrupt+0x9d/0xb0 arch/x86/entry/entry_64.S:770
+ </IRQ>
+RIP: 0010:update_stack_state+0x7a/0x700 arch/x86/kernel/unwind_frame.c:189
+RSP: 0018:ffff8801c104f5a0 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff10
+RAX: ffffed0038209ebc RBX: ffff8801c104f7e8 RCX: ffff8801c104f838
+RDX: dffffc0000000000 RSI: ffff8801c104fb68 RDI: ffff8801c104f7e8
+RBP: ffff8801c104f6a8 R08: ffff8801c104f810 R09: ffff8801c104f820
+R10: ffff8801c104f798 R11: 1ffff100398022ab R12: 1ffff10038209ebc
+R13: ffff8801c104fb68 R14: 1ffff10038209ee3 R15: ffff8801c104f7e8
+ unwind_next_frame.part.6+0x1ae/0xc70 arch/x86/kernel/unwind_frame.c:302
+ unwind_next_frame+0x3e/0x50 arch/x86/kernel/unwind_frame.c:260
+ __save_stack_trace+0x6e/0xd0 arch/x86/kernel/stacktrace.c:44
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3627
+ kmalloc include/linux/slab.h:493 [inline]
+ kzalloc include/linux/slab.h:666 [inline]
+ alloc_perf_context+0x4c/0xe0 kernel/events/core.c:3814
+ find_get_context.isra.84+0x16f/0x670 kernel/events/core.c:3903
+ SYSC_perf_event_open+0xd1c/0x2e00 kernel/events/core.c:10068
+ SyS_perf_event_open+0x39/0x50 kernel/events/core.c:9899
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x451e59
+RSP: 002b:00007fe5cb366c08 EFLAGS: 00000216 ORIG_RAX: 000000000000012a
+RAX: ffffffffffffffda RBX: 0000000000718160 RCX: 0000000000451e59
+RDX: ffffffffffffffff RSI: 0000000000000000 RDI: 000000002001d000
+RBP: 0000000000000082 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffffffffffff R11: 0000000000000216 R12: 0000000000000000
+R13: 0000000000a6f7ef R14: 00007fe5cb3679c0 R15: 0000000000000011
+
+Allocated by task 19252:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc_node mm/slab.c:3689 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3696
+ kmalloc_node include/linux/slab.h:535 [inline]
+ kvmalloc_node+0x64/0xd0 mm/util.c:397
+ kvmalloc include/linux/mm.h:529 [inline]
+ kvzalloc include/linux/mm.h:537 [inline]
+ alloc_netdev_mqs+0x16e/0xed0 net/core/dev.c:8018
+ tun_set_iff drivers/net/tun.c:2022 [inline]
+ __tun_chr_ioctl+0x12be/0x3d20 drivers/net/tun.c:2276
+ tun_chr_ioctl+0x2a/0x40 drivers/net/tun.c:2521
+ vfs_ioctl fs/ioctl.c:45 [inline]
+ do_vfs_ioctl+0x1b1/0x1530 fs/ioctl.c:685
+ SYSC_ioctl fs/ioctl.c:700 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:691
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 19252:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ kvfree+0x36/0x60 mm/util.c:416
+ netdev_freemem net/core/dev.c:7970 [inline]
+ free_netdev+0x2cf/0x360 net/core/dev.c:8132
+ tun_set_iff drivers/net/tun.c:2105 [inline]
+ __tun_chr_ioctl+0x2cf6/0x3d20 drivers/net/tun.c:2276
+ tun_chr_ioctl+0x2a/0x40 drivers/net/tun.c:2521
+ vfs_ioctl fs/ioctl.c:45 [inline]
+ do_vfs_ioctl+0x1b1/0x1530 fs/ioctl.c:685
+ SYSC_ioctl fs/ioctl.c:700 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:691
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+The buggy address belongs to the object at ffff8801cd3f0c80
+ which belongs to the cache kmalloc-16384 of size 16384
+The buggy address is located 13320 bytes inside of
+ 16384-byte region [ffff8801cd3f0c80, ffff8801cd3f4c80)
+The buggy address belongs to the page:
+page:ffffea000734fc00 count:1 mapcount:0 mapping:ffff8801cd3f0c80 index:0x0 compound_mapcount: 0
+flags: 0x200000000008100(slab|head)
+raw: 0200000000008100 ffff8801cd3f0c80 0000000000000000 0000000100000001
+raw: ffffea00072b4820 ffffea000743ca20 ffff8801dac02200 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cd3f3f80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801cd3f4000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801cd3f4080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff8801cd3f4100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801cd3f4180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

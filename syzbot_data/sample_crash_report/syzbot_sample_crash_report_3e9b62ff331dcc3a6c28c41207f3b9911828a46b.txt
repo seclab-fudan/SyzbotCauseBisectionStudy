@@ -1,0 +1,77 @@
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 0 at net/ipv4/af_inet.c:154 inet_sock_destruct+0x6df/0x8a0 net/ipv4/af_inet.c:154
+Modules linked in:
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 6.3.0-rc7-syzkaller-00139-gb7bc77e2f2c7 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+RIP: 0010:inet_sock_destruct+0x6df/0x8a0 net/ipv4/af_inet.c:154
+Code: ff e8 55 3f ec f8 0f 0b e9 07 fe ff ff e8 49 3f ec f8 0f 0b e9 3f fe ff ff e8 3d 3f ec f8 0f 0b e9 95 fd ff ff e8 31 3f ec f8 <0f> 0b e9 9f fe ff ff e8 c5 57 3d f9 e9 7a fc ff ff 4c 89 e7 e8 f8
+RSP: 0018:ffffc900001e0de8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000d00 RCX: 0000000000000100
+RDX: ffff8880167c1d40 RSI: ffffffff8896b14f RDI: 0000000000000005
+RBP: ffff88802cd93fc0 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000d00 R11: 0000000000000001 R12: ffff88802cd93fe8
+R13: ffff88802cd94234 R14: ffffc900001e0ed8 R15: 0000000000000005
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b32726000 CR3: 0000000043b3f000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __sk_destruct+0x4d/0x770 net/core/sock.c:2135
+ rcu_do_batch kernel/rcu/tree.c:2112 [inline]
+ rcu_core+0x814/0x1960 kernel/rcu/tree.c:2372
+ __do_softirq+0x1d4/0x905 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x114/0x190 kernel/softirq.c:650
+ irq_exit_rcu+0x9/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x97/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
+RIP: 0010:native_irq_disable arch/x86/include/asm/irqflags.h:37 [inline]
+RIP: 0010:arch_local_irq_disable arch/x86/include/asm/irqflags.h:72 [inline]
+RIP: 0010:acpi_safe_halt+0x40/0x50 drivers/acpi/processor_idle.c:113
+Code: eb 03 83 e3 01 89 de 0f 1f 44 00 00 84 db 75 1b 0f 1f 44 00 00 66 90 0f 1f 44 00 00 0f 00 2d c7 90 b1 00 0f 1f 44 00 00 fb f4 <fa> 5b c3 cc 0f 1f 00 66 0f 1f 84 00 00 00 00 00 55 48 89 fd 53 0f
+RSP: 0018:ffffc90000177d20 EFLAGS: 00000246
+RAX: ffff8880167c1d40 RBX: 0000000000000000 RCX: ffffffff8a000c45
+RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffff888017bc9864 R08: 0000000000000001 R09: ffff8880b9936cab
+R10: ffffed1017326d95 R11: 0000000000000000 R12: 0000000000000001
+R13: ffff888017bc9800 R14: ffff888017bc9864 R15: 0000000000000000
+ acpi_idle_do_entry+0x53/0x70 drivers/acpi/processor_idle.c:573
+ acpi_idle_enter+0x173/0x290 drivers/acpi/processor_idle.c:711
+ cpuidle_enter_state+0xd3/0x6f0 drivers/cpuidle/cpuidle.c:267
+ cpuidle_enter+0x4e/0xa0 drivers/cpuidle/cpuidle.c:388
+ cpuidle_idle_call kernel/sched/idle.c:215 [inline]
+ do_idle+0x305/0x3e0 kernel/sched/idle.c:282
+ cpu_startup_entry+0x18/0x20 kernel/sched/idle.c:379
+ start_secondary+0x221/0x2b0 arch/x86/kernel/smpboot.c:264
+ secondary_startup_64_no_verify+0xce/0xdb
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	eb 03                	jmp    0x5
+   2:	83 e3 01             	and    $0x1,%ebx
+   5:	89 de                	mov    %ebx,%esi
+   7:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+   c:	84 db                	test   %bl,%bl
+   e:	75 1b                	jne    0x2b
+  10:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  15:	66 90                	xchg   %ax,%ax
+  17:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  1c:	0f 00 2d c7 90 b1 00 	verw   0xb190c7(%rip)        # 0xb190ea
+  23:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  28:	fb                   	sti
+  29:	f4                   	hlt
+* 2a:	fa                   	cli <-- trapping instruction
+  2b:	5b                   	pop    %rbx
+  2c:	c3                   	retq
+  2d:	cc                   	int3
+  2e:	0f 1f 00             	nopl   (%rax)
+  31:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+  38:	00 00
+  3a:	55                   	push   %rbp
+  3b:	48 89 fd             	mov    %rdi,%rbp
+  3e:	53                   	push   %rbx
+  3f:	0f                   	.byte 0xf

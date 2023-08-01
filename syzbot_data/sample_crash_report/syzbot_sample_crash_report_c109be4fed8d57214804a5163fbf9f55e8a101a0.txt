@@ -1,0 +1,166 @@
+==================================================================
+BUG: KASAN: use-after-free in __hlist_del include/linux/list.h:884 [inline]
+BUG: KASAN: use-after-free in hlist_del_init_rcu include/linux/rculist.h:184 [inline]
+BUG: KASAN: use-after-free in rxrpc_destroy_local+0x2ad/0x2f0 net/rxrpc/local_object.c:389
+Write of size 8 at addr ffff88802b883020 by task krxrpcio/7001/15646
+
+CPU: 0 PID: 15646 Comm: krxrpcio/7001 Not tainted 6.1.0-syzkaller-13872-gb6bb9676f216 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x15e/0x461 mm/kasan/report.c:417
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:517
+ __hlist_del include/linux/list.h:884 [inline]
+ hlist_del_init_rcu include/linux/rculist.h:184 [inline]
+ rxrpc_destroy_local+0x2ad/0x2f0 net/rxrpc/local_object.c:389
+ rxrpc_io_thread+0xcde/0xfa0 net/rxrpc/io_thread.c:492
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+
+Allocated by task 5788:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:371 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:330 [inline]
+ __kasan_kmalloc+0xa3/0xb0 mm/kasan/common.c:380
+ kasan_kmalloc include/linux/kasan.h:211 [inline]
+ __do_kmalloc_node mm/slab_common.c:968 [inline]
+ __kmalloc+0x5a/0xd0 mm/slab_common.c:981
+ kmalloc include/linux/slab.h:584 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ ieee802_11_parse_elems_full+0x106/0x1330 net/mac80211/util.c:1655
+ ieee802_11_parse_elems_crc.constprop.0+0x99/0xd0 net/mac80211/ieee80211_i.h:2260
+ ieee802_11_parse_elems net/mac80211/ieee80211_i.h:2267 [inline]
+ ieee80211_bss_info_update+0x410/0xaf0 net/mac80211/scan.c:212
+ ieee80211_rx_bss_info net/mac80211/ibss.c:1120 [inline]
+ ieee80211_rx_mgmt_probe_beacon net/mac80211/ibss.c:1609 [inline]
+ ieee80211_ibss_rx_queued_mgmt+0x19fc/0x3160 net/mac80211/ibss.c:1638
+ ieee80211_iface_process_skb net/mac80211/iface.c:1581 [inline]
+ ieee80211_iface_work+0xa4d/0xd70 net/mac80211/iface.c:1635
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+Freed by task 5788:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2b/0x40 mm/kasan/generic.c:518
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x13b/0x1a0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ __cache_free mm/slab.c:3394 [inline]
+ __do_kmem_cache_free mm/slab.c:3580 [inline]
+ __kmem_cache_free+0xcd/0x3b0 mm/slab.c:3587
+ ieee80211_bss_info_update+0x4a2/0xaf0 net/mac80211/scan.c:223
+ ieee80211_rx_bss_info net/mac80211/ibss.c:1120 [inline]
+ ieee80211_rx_mgmt_probe_beacon net/mac80211/ibss.c:1609 [inline]
+ ieee80211_ibss_rx_queued_mgmt+0x19fc/0x3160 net/mac80211/ibss.c:1638
+ ieee80211_iface_process_skb net/mac80211/iface.c:1581 [inline]
+ ieee80211_iface_work+0xa4d/0xd70 net/mac80211/iface.c:1635
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+Last potentially related work creation:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0x7b/0x90 mm/kasan/generic.c:488
+ __call_rcu_common.constprop.0+0x99/0x820 kernel/rcu/tree.c:2753
+ rxrpc_put_local.part.0+0x128/0x170 net/rxrpc/local_object.c:332
+ rxrpc_put_local+0x25/0x30 net/rxrpc/local_object.c:324
+ rxrpc_clean_up_connection+0x3ac/0x4b0 net/rxrpc/conn_object.c:318
+ rxrpc_put_connection.part.0+0x1e8/0x210 net/rxrpc/conn_object.c:356
+ rxrpc_put_connection+0x25/0x30 net/rxrpc/conn_object.c:339
+ rxrpc_discard_expired_client_conns+0x388/0x500 net/rxrpc/conn_client.c:1059
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+The buggy address belongs to the object at ffff88802b883000
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 32 bytes inside of
+ 1024-byte region [ffff88802b883000, ffff88802b883400)
+
+The buggy address belongs to the physical page:
+page:ffffea0000ae20c0 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x2b883
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffff888012440700 ffffea0000a90b50 ffffea0000ccaa50
+raw: 0000000000000000 ffff88802b883000 0000000100000002 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x3c20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_COMP|__GFP_NOMEMALLOC|__GFP_HARDWALL|__GFP_THISNODE), pid 17520, tgid 17514 (syz-executor.1), ts 1210313663332, free_ts 1208616621469
+ prep_new_page mm/page_alloc.c:2531 [inline]
+ get_page_from_freelist+0x119c/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5549
+ __alloc_pages_node include/linux/gfp.h:237 [inline]
+ kmem_getpages mm/slab.c:1363 [inline]
+ cache_grow_begin+0x94/0x390 mm/slab.c:2574
+ cache_alloc_refill+0x27f/0x380 mm/slab.c:2947
+ ____cache_alloc mm/slab.c:3023 [inline]
+ ____cache_alloc mm/slab.c:3006 [inline]
+ __do_cache_alloc mm/slab.c:3206 [inline]
+ slab_alloc_node mm/slab.c:3254 [inline]
+ __kmem_cache_alloc_node+0x44f/0x510 mm/slab.c:3544
+ __do_kmalloc_node mm/slab_common.c:967 [inline]
+ __kmalloc_node_track_caller+0x4b/0xc0 mm/slab_common.c:988
+ kmalloc_reserve net/core/skbuff.c:492 [inline]
+ __alloc_skb+0xe9/0x310 net/core/skbuff.c:565
+ alloc_skb_fclone include/linux/skbuff.h:1320 [inline]
+ tcp_stream_alloc_skb+0x3c/0x580 net/ipv4/tcp.c:862
+ tcp_sendmsg_locked+0xc4c/0x2960 net/ipv4/tcp.c:1325
+ tcp_sendmsg+0x2f/0x50 net/ipv4/tcp.c:1483
+ inet_sendmsg+0x9d/0xe0 net/ipv4/af_inet.c:827
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xd3/0x120 net/socket.c:734
+ __sys_sendto+0x23a/0x340 net/socket.c:2117
+ __do_sys_sendto net/socket.c:2129 [inline]
+ __se_sys_sendto net/socket.c:2125 [inline]
+ __x64_sys_sendto+0xe1/0x1b0 net/socket.c:2125
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1446 [inline]
+ free_pcp_prepare+0x65c/0xc00 mm/page_alloc.c:1496
+ free_unref_page_prepare mm/page_alloc.c:3369 [inline]
+ free_unref_page+0x1d/0x490 mm/page_alloc.c:3464
+ kasan_depopulate_vmalloc_pte+0x60/0x80 mm/kasan/shadow.c:372
+ apply_to_pte_range mm/memory.c:2600 [inline]
+ apply_to_pmd_range mm/memory.c:2644 [inline]
+ apply_to_pud_range mm/memory.c:2680 [inline]
+ apply_to_p4d_range mm/memory.c:2716 [inline]
+ __apply_to_page_range+0x68c/0x1030 mm/memory.c:2750
+ kasan_release_vmalloc+0xab/0xc0 mm/kasan/shadow.c:486
+ __purge_vmap_area_lazy+0x897/0x1f80 mm/vmalloc.c:1776
+ _vm_unmap_aliases.part.0+0x420/0x550 mm/vmalloc.c:2187
+ _vm_unmap_aliases mm/vmalloc.c:2161 [inline]
+ vm_unmap_aliases+0x49/0x50 mm/vmalloc.c:2210
+ change_page_attr_set_clr+0x226/0x470 arch/x86/mm/pat/set_memory.c:1837
+ change_page_attr_clear arch/x86/mm/pat/set_memory.c:1885 [inline]
+ set_memory_ro+0x7c/0xa0 arch/x86/mm/pat/set_memory.c:2076
+ bpf_prog_lock_ro include/linux/filter.h:855 [inline]
+ bpf_prog_select_runtime+0x508/0x650 kernel/bpf/core.c:2202
+ bpf_prog_load+0x1577/0x2220 kernel/bpf/syscall.c:2623
+ __sys_bpf+0x1436/0x4ff0 kernel/bpf/syscall.c:4979
+ __do_sys_bpf kernel/bpf/syscall.c:5083 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:5081 [inline]
+ __x64_sys_bpf+0x79/0xc0 kernel/bpf/syscall.c:5081
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Memory state around the buggy address:
+ ffff88802b882f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88802b882f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88802b883000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                               ^
+ ffff88802b883080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88802b883100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

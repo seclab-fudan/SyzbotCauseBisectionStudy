@@ -1,0 +1,64 @@
+loop0: detected capacity change from 0 to 4096
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000008
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010d11c000
+[0000000000000008] pgd=080000010d116003, p4d=080000010d116003, pud=080000010b3b6003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 3072 Comm: syz-executor354 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : d_flags_for_inode fs/dcache.c:1980 [inline]
+pc : __d_instantiate+0x2a0/0x2e4 fs/dcache.c:1998
+lr : d_flags_for_inode fs/dcache.c:1979 [inline]
+lr : __d_instantiate+0x80/0x2e4 fs/dcache.c:1998
+sp : ffff800012f4bac0
+x29: ffff800012f4bac0 x28: 0000000040000000 x27: ffff0000cd0a0000
+x26: ffff80000cf6e000 x25: fffffc0000000000 x24: 000000000001f000
+x23: ffff0000cd0a0000 x22: 0000000000000008 x21: 0000000000000000
+x20: ffff0000c05a5530 x19: ffff0000c9f48138 x18: 000000000000ba7e
+x17: 000000000000b67e x16: ffff80000dbe6158 x15: ffff0000c434b480
+x14: 00000000000000b8 x13: 00000000ffffffff x12: ffff0000c434b480
+x11: ff808000085f41e4 x10: 0000000000000000 x9 : ffff0000c434b480
+x8 : 0000000000000000 x7 : ffff8000085f4568 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000001 x1 : 0000000000000000 x0 : 0000000000000000
+Call trace:
+ d_flags_for_inode fs/dcache.c:1980 [inline]
+ __d_instantiate+0x2a0/0x2e4 fs/dcache.c:1998
+ d_instantiate fs/dcache.c:2036 [inline]
+ d_make_root+0x64/0xa8 fs/dcache.c:2071
+ ntfs_fill_super+0x1420/0x14a4 fs/ntfs3/super.c:1269
+ get_tree_bdev+0x1e8/0x2a0 fs/super.c:1324
+ ntfs_fs_get_tree+0x28/0x38 fs/ntfs3/super.c:1358
+ vfs_get_tree+0x40/0x140 fs/super.c:1531
+ do_new_mount+0x1dc/0x4e4 fs/namespace.c:3040
+ path_mount+0x358/0x890 fs/namespace.c:3370
+ do_mount fs/namespace.c:3383 [inline]
+ __do_sys_mount fs/namespace.c:3591 [inline]
+ __se_sys_mount fs/namespace.c:3568 [inline]
+ __arm64_sys_mount+0x2c4/0x3c4 fs/namespace.c:3568
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 79000688 52a00417 17ffff83 f9401288 (f9400508) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	79000688 	strh	w8, [x20, #2]
+   4:	52a00417 	mov	w23, #0x200000              	// #2097152
+   8:	17ffff83 	b	0xfffffffffffffe14
+   c:	f9401288 	ldr	x8, [x20, #32]
+* 10:	f9400508 	ldr	x8, [x8, #8] <-- trapping instruction

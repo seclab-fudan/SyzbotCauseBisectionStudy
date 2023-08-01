@@ -1,0 +1,42 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 1549 Comm: kworker/0:2 Not tainted 4.15.0-rc8+ #264
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events bpf_map_free_deferred
+RIP: 0010:css_put include/linux/cgroup.h:386 [inline]
+RIP: 0010:cgroup_put include/linux/cgroup.h:415 [inline]
+RIP: 0010:cgroup_fd_array_put_ptr+0x71/0x2a0 kernel/bpf/arraymap.c:573
+RSP: 0018:ffff8801d35af490 EFLAGS: 00010a02
+RAX: 10f40039400001e5 RBX: 1ffff1003a6b5e92 RCX: ffffffff8180f5a5
+RDX: 0000000000000000 RSI: ffff8801d8b55464 RDI: 87a001ca00000f2b
+RBP: ffff8801d35af518 R08: 1ffff1003a6b5e70 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 87a001ca00000ebf
+R13: ffff8801d35af4f0 R14: dffffc0000000000 R15: 87a001ca00000ebf
+FS:  0000000000000000(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000203e2fe4 CR3: 0000000006822003 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ fd_array_map_delete_elem kernel/bpf/arraymap.c:420 [inline]
+ bpf_fd_array_map_clear kernel/bpf/arraymap.c:461 [inline]
+ cgroup_fd_array_free+0xd2/0x150 kernel/bpf/arraymap.c:578
+ bpf_map_free_deferred+0xb0/0xe0 kernel/bpf/syscall.c:217
+ process_one_work+0xbbf/0x1b10 kernel/workqueue.c:2112
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2246
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x37/0x50 arch/x86/entry/entry_64.S:530
+Code: 45 88 40 f5 80 81 c7 00 f1 f1 f1 f1 c7 40 04 00 f2 f2 f2 c7 40 08 f3 f3 f3 f3 e8 1b 22 ef ff 49 8d 7c 24 6c 48 89 f8 48 c1 e8 03 <42> 0f b6 14 30 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 
+RIP: css_put include/linux/cgroup.h:386 [inline] RSP: ffff8801d35af490
+RIP: cgroup_put include/linux/cgroup.h:415 [inline] RSP: ffff8801d35af490
+RIP: cgroup_fd_array_put_ptr+0x71/0x2a0 kernel/bpf/arraymap.c:573 RSP: ffff8801d35af490
+---[ end trace b83cbbb5164d5c72 ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

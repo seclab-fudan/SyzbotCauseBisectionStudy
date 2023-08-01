@@ -1,0 +1,57 @@
+mcba_usb 1-1:0.180 can1: Failed to send cmd (169)
+mcba_usb 1-1:0.180: Microchip CAN BUS Analyzer connected
+usb 1-1: USB disconnect, device number 2
+mcba_usb 1-1:0.95 can0: device disconnected
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x3377/0x3eb0 kernel/locking/lockdep.c:3828
+Read of size 8 at addr ffff8881d2e98f48 by task kworker/0:1/12
+
+CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.3.0+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description.constprop.0+0x36/0x50 mm/kasan/report.c:374
+ __kasan_report.cold+0x1a/0x33 mm/kasan/report.c:506
+ kasan_report+0xe/0x12 mm/kasan/common.c:634
+ __lock_acquire+0x3377/0x3eb0 kernel/locking/lockdep.c:3828
+ lock_acquire+0x127/0x320 kernel/locking/lockdep.c:4487
+ __raw_spin_lock_irq include/linux/spinlock_api_smp.h:128 [inline]
+ _raw_spin_lock_irq+0x2d/0x40 kernel/locking/spinlock.c:167
+ spin_lock_irq include/linux/spinlock.h:363 [inline]
+ usb_kill_anchored_urbs+0x1e/0x110 drivers/usb/core/urb.c:787
+ mcba_urb_unlink drivers/net/can/usb/mcba_usb.c:711 [inline]
+ mcba_usb_disconnect+0xd6/0xe4 drivers/net/can/usb/mcba_usb.c:881
+ usb_unbind_interface+0x1bd/0x8a0 drivers/usb/core/driver.c:423
+ __device_release_driver drivers/base/dd.c:1134 [inline]
+ device_release_driver_internal+0x42f/0x500 drivers/base/dd.c:1165
+ bus_remove_device+0x2dc/0x4a0 drivers/base/bus.c:532
+ device_del+0x420/0xb10 drivers/base/core.c:2375
+ usb_disable_device+0x211/0x690 drivers/usb/core/message.c:1237
+ usb_disconnect+0x284/0x8d0 drivers/usb/core/hub.c:2199
+ hub_port_connect drivers/usb/core/hub.c:4949 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x1454/0x3640 drivers/usb/core/hub.c:5441
+ process_one_work+0x92b/0x1530 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0x7ab/0xe20 kernel/workqueue.c:2417
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the page:
+page:ffffea00074ba600 refcount:0 mapcount:-128 mapping:0000000000000000 index:0x0
+flags: 0x200000000000000()
+raw: 0200000000000000 ffffea0007479208 ffff88821fffac18 0000000000000000
+raw: 0000000000000000 0000000000000003 00000000ffffff7f 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881d2e98e00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8881d2e98e80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8881d2e98f00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                              ^
+ ffff8881d2e98f80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8881d2e99000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

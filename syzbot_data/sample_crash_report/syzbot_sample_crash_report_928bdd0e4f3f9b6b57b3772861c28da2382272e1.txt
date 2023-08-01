@@ -1,0 +1,101 @@
+input: Technisat SkyStar USB HD (DVB-S/S2) as /devices/platform/dummy_hcd.0/usb1/1-1/rc/rc0/input16
+dvb-usb: schedule remote query interval to 100 msecs.
+dvb-usb: Technisat SkyStar USB HD (DVB-S/S2) successfully initialized and connected.
+==================================================================
+BUG: KASAN: slab-out-of-bounds in technisat_usb2_get_ir drivers/media/usb/dvb-usb/technisat-usb2.c:664 [inline]
+BUG: KASAN: slab-out-of-bounds in technisat_usb2_rc_query+0x5f5/0x650 drivers/media/usb/dvb-usb/technisat-usb2.c:679
+Read of size 1 at addr ffff8881d9f53c28 by task kworker/1:1/21
+
+CPU: 1 PID: 21 Comm: kworker/1:1 Not tainted 5.2.0-rc6+ #13
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events dvb_usb_read_remote_control
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description+0x67/0x231 mm/kasan/report.c:188
+ __kasan_report.cold+0x1a/0x32 mm/kasan/report.c:317
+ kasan_report+0xe/0x20 mm/kasan/common.c:614
+ technisat_usb2_get_ir drivers/media/usb/dvb-usb/technisat-usb2.c:664 [inline]
+ technisat_usb2_rc_query+0x5f5/0x650 drivers/media/usb/dvb-usb/technisat-usb2.c:679
+ dvb_usb_read_remote_control+0xdb/0x1b0 drivers/media/usb/dvb-usb/dvb-usb-remote.c:261
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x30b/0x410 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 21:
+ save_stack+0x1b/0x80 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_kmalloc mm/kasan/common.c:489 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:462
+ dvb_usb_init drivers/media/usb/dvb-usb/dvb-usb-init.c:149 [inline]
+ dvb_usb_device_init.cold+0x463/0x11b0 drivers/media/usb/dvb-usb/dvb-usb-init.c:274
+ technisat_usb2_probe+0x7d/0x2c0 drivers/media/usb/dvb-usb/technisat-usb2.c:763
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x660 drivers/base/dd.c:509
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:670
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:777
+ bus_for_each_drv+0x15c/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:843
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2111
+ usb_set_configuration+0xdf6/0x1670 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x660 drivers/base/dd.c:509
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:670
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:777
+ bus_for_each_drv+0x15c/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:843
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2111
+ usb_new_device.cold+0x8c1/0x1016 drivers/usb/core/hub.c:2534
+ hub_port_connect drivers/usb/core/hub.c:5089 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0x1ada/0x3590 drivers/usb/core/hub.c:5432
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x30b/0x410 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 1:
+ save_stack+0x1b/0x80 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_slab_free+0x130/0x180 mm/kasan/common.c:451
+ slab_free_hook mm/slub.c:1421 [inline]
+ slab_free_freelist_hook mm/slub.c:1448 [inline]
+ slab_free mm/slub.c:2994 [inline]
+ kfree+0xd7/0x280 mm/slub.c:3949
+ krealloc+0x78/0xc0 mm/slab_common.c:1570
+ add_sysfs_param.isra.0+0xc8/0x930 kernel/params.c:621
+ kernel_add_sysfs_param kernel/params.c:782 [inline]
+ param_sysfs_builtin kernel/params.c:821 [inline]
+ param_sysfs_init+0x35f/0x430 kernel/params.c:942
+ do_one_initcall+0xd7/0x5a4 init/main.c:915
+ do_initcall_level init/main.c:983 [inline]
+ do_initcalls init/main.c:991 [inline]
+ do_basic_setup init/main.c:1009 [inline]
+ kernel_init_freeable+0x4ae/0x59b init/main.c:1169
+ kernel_init+0xd/0x1bf init/main.c:1087
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8881d9f53b40
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 232 bytes inside of
+ 256-byte region [ffff8881d9f53b40, ffff8881d9f53c40)
+The buggy address belongs to the page:
+page:ffffea000767d4c0 refcount:1 mapcount:0 mapping:ffff8881dac02e00 index:0x0
+flags: 0x200000000000200(slab)
+raw: 0200000000000200 dead000000000100 dead000000000200 ffff8881dac02e00
+raw: 0000000000000000 00000000000c000c 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881d9f53b00: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+ ffff8881d9f53b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8881d9f53c00: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
+                                  ^
+ ffff8881d9f53c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8881d9f53d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

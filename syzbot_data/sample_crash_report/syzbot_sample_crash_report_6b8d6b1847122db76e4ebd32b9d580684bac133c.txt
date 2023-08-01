@@ -1,0 +1,88 @@
+audit: type=1400 audit(1514426602.652:7): avc:  denied  { map } for  pid=3146 comm="syzkaller047195" path="/root/syzkaller047195405" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: double-free or invalid-free in relay_open+0x6a1/0xa40 kernel/relay.c:614
+
+CPU: 1 PID: 3146 Comm: syzkaller047195 Not tainted 4.15.0-rc5+ #239
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_double_free+0x55/0x80 mm/kasan/report.c:333
+ kasan_slab_free+0xa3/0xc0 mm/kasan/kasan.c:514
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ relay_open+0x6a1/0xa40 kernel/relay.c:614
+ do_blk_trace_setup+0x4a4/0xcd0 kernel/trace/blktrace.c:544
+ __blk_trace_setup+0xbe/0x150 kernel/trace/blktrace.c:589
+ blk_trace_setup+0x4d/0x70 kernel/trace/blktrace.c:607
+ sg_ioctl+0xc71/0x2d90 drivers/scsi/sg.c:1089
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x443de9
+RSP: 002b:00007ffcff34a028 EFLAGS: 00000202 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000443de9
+RDX: 0000000020001f8a RSI: 00000000c0481273 RDI: 0000000000000003
+RBP: 00000000006ce018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000202 R12: 0000000000401ad0
+R13: 0000000000401b60 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3146:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3610
+ kmalloc include/linux/slab.h:499 [inline]
+ kzalloc include/linux/slab.h:688 [inline]
+ relay_open+0xf2/0xa40 kernel/relay.c:576
+ do_blk_trace_setup+0x4a4/0xcd0 kernel/trace/blktrace.c:544
+ __blk_trace_setup+0xbe/0x150 kernel/trace/blktrace.c:589
+ blk_trace_setup+0x4d/0x70 kernel/trace/blktrace.c:607
+ sg_ioctl+0xc71/0x2d90 drivers/scsi/sg.c:1089
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 3146:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ relay_destroy_channel kernel/relay.c:199 [inline]
+ kref_put include/linux/kref.h:70 [inline]
+ relay_open+0x84a/0xa40 kernel/relay.c:612
+ do_blk_trace_setup+0x4a4/0xcd0 kernel/trace/blktrace.c:544
+ __blk_trace_setup+0xbe/0x150 kernel/trace/blktrace.c:589
+ blk_trace_setup+0x4d/0x70 kernel/trace/blktrace.c:607
+ sg_ioctl+0xc71/0x2d90 drivers/scsi/sg.c:1089
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+The buggy address belongs to the object at ffff8801ce8b7340
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 0 bytes inside of
+ 512-byte region [ffff8801ce8b7340, ffff8801ce8b7540)
+The buggy address belongs to the page:
+page:00000000a9b1225b count:1 mapcount:0 mapping:000000009c14237f index:0xffff8801ce8b75c0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801ce8b70c0 ffff8801ce8b75c0 0000000100000004
+raw: ffffea00073a3060 ffffea00073319a0 ffff8801db000940 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ce8b7200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ce8b7280: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8801ce8b7300: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                           ^
+ ffff8801ce8b7380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ce8b7400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

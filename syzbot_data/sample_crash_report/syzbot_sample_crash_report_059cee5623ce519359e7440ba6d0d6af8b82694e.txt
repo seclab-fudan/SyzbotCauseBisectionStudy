@@ -1,0 +1,53 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: use-after-free in _copy_to_user+0xe9/0x110 lib/usercopy.c:27
+Read of size 924 at addr ffff8801ab7ffff2 by task syz-executor173/4509
+
+CPU: 1 PID: 4509 Comm: syz-executor173 Not tainted 4.18.0-rc4+ #144
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ kasan_check_read+0x11/0x20 mm/kasan/kasan.c:272
+ _copy_to_user+0xe9/0x110 lib/usercopy.c:27
+ copy_to_user include/linux/uaccess.h:155 [inline]
+ bpf_test_finish.isra.7+0xee/0x1f0 net/bpf/test_run.c:59
+ bpf_prog_test_run_skb+0x7d7/0xa30 net/bpf/test_run.c:144
+ bpf_prog_test_run+0x130/0x1a0 kernel/bpf/syscall.c:1686
+ __do_sys_bpf kernel/bpf/syscall.c:2323 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:2267 [inline]
+ __x64_sys_bpf+0x3d8/0x510 kernel/bpf/syscall.c:2267
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440269
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007ffe962cae98 EFLAGS: 00000213 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440269
+RDX: 0000000000000028 RSI: 0000000020000180 RDI: 000000000000000a
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000213 R12: 0000000000401af0
+R13: 0000000000401b80 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0006adffc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 ffffea0006adffc8 ffffea0006adffc8 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ab7ffe80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801ab7fff00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8801ab7fff80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                                             ^
+ ffff8801ab800000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801ab800080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

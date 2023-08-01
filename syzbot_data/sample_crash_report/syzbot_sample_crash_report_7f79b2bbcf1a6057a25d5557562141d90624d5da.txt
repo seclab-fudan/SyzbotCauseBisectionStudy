@@ -1,0 +1,63 @@
+block nbd0: Receive control failed (result -107)
+block nbd0: shutting down sockets
+============================================
+WARNING: possible recursive locking detected
+5.5.0-rc1-syzkaller #0 Not tainted
+--------------------------------------------
+kworker/u5:0/1600 is trying to acquire lock:
+ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: flush_workqueue+0xf7/0x14c0 kernel/workqueue.c:2772
+
+but task is already holding lock:
+ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: __write_once_size include/linux/compiler.h:226 [inline]
+ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:855 [inline]
+ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:40 [inline]
+ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: set_work_data kernel/workqueue.c:615 [inline]
+ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:642 [inline]
+ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: process_one_work+0x88b/0x1740 kernel/workqueue.c:2235
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock((wq_completion)knbd0-recv);
+  lock((wq_completion)knbd0-recv);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+3 locks held by kworker/u5:0/1600:
+ #0: ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: __write_once_size include/linux/compiler.h:226 [inline]
+ #0: ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:855 [inline]
+ #0: ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:40 [inline]
+ #0: ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: set_work_data kernel/workqueue.c:615 [inline]
+ #0: ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:642 [inline]
+ #0: ffff8880a7e93d28 ((wq_completion)knbd0-recv){+.+.}, at: process_one_work+0x88b/0x1740 kernel/workqueue.c:2235
+ #1: ffffc900057c7dc0 ((work_completion)(&args->work)){+.+.}, at: process_one_work+0x8c1/0x1740 kernel/workqueue.c:2239
+ #2: ffff8880a1984978 (&nbd->config_lock){+.+.}, at: refcount_dec_and_mutex_lock lib/refcount.c:118 [inline]
+ #2: ffff8880a1984978 (&nbd->config_lock){+.+.}, at: refcount_dec_and_mutex_lock+0x55/0xe0 lib/refcount.c:113
+
+stack backtrace:
+CPU: 0 PID: 1600 Comm: kworker/u5:0 Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: knbd0-recv recv_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_deadlock_bug kernel/locking/lockdep.c:2371 [inline]
+ check_deadlock kernel/locking/lockdep.c:2412 [inline]
+ validate_chain kernel/locking/lockdep.c:2955 [inline]
+ __lock_acquire.cold+0x15d/0x385 kernel/locking/lockdep.c:3955
+ lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4485
+ flush_workqueue+0x126/0x14c0 kernel/workqueue.c:2775
+ drain_workqueue+0x1b4/0x3d0 kernel/workqueue.c:2940
+ destroy_workqueue+0x80/0x700 kernel/workqueue.c:4352
+ nbd_config_put+0x3dd/0x870 drivers/block/nbd.c:1210
+ recv_work+0x19b/0x200 drivers/block/nbd.c:792
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2264
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2410
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352

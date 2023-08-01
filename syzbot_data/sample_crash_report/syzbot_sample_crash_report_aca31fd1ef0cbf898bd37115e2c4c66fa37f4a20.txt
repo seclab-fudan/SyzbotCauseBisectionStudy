@@ -1,0 +1,119 @@
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 0 PID: 6821 Comm: kworker/0:0 Not tainted 5.8.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events l2cap_chan_timeout
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1f0/0x31e lib/dump_stack.c:118
+ register_lock_class+0xf06/0x1520 kernel/locking/lockdep.c:893
+ __lock_acquire+0xfa/0x2ab0 kernel/locking/lockdep.c:4305
+ lock_acquire+0x160/0x730 kernel/locking/lockdep.c:5005
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:135 [inline]
+ _raw_spin_lock_bh+0x31/0x40 kernel/locking/spinlock.c:175
+ spin_lock_bh include/linux/spinlock.h:359 [inline]
+ lock_sock_nested+0x43/0x110 net/core/sock.c:3048
+ l2cap_sock_teardown_cb+0x72/0x3e0 net/bluetooth/l2cap_sock.c:1520
+ l2cap_chan_del+0xa3/0x760 net/bluetooth/l2cap_core.c:618
+ l2cap_chan_close+0x7bf/0xae0 net/bluetooth/l2cap_core.c:823
+ l2cap_chan_timeout+0x125/0x1e0 net/bluetooth/l2cap_core.c:436
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2269
+ worker_thread+0xaa4/0x1460 kernel/workqueue.c:2415
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read include/linux/instrumented.h:56 [inline]
+BUG: KASAN: use-after-free in atomic_read include/asm-generic/atomic-instrumented.h:27 [inline]
+BUG: KASAN: use-after-free in pv_hybrid_queued_unfair_trylock kernel/locking/qspinlock_paravirt.h:88 [inline]
+BUG: KASAN: use-after-free in __pv_queued_spin_lock_slowpath+0x19d/0xc00 kernel/locking/qspinlock.c:443
+Read of size 4 at addr ffff88809b2b9088 by task kworker/0:0/6821
+
+CPU: 0 PID: 6821 Comm: kworker/0:0 Not tainted 5.8.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events l2cap_chan_timeout
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1f0/0x31e lib/dump_stack.c:118
+ print_address_description+0x66/0x620 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report+0x132/0x1d0 mm/kasan/report.c:530
+ check_memory_region_inline mm/kasan/generic.c:183 [inline]
+ check_memory_region+0x2b5/0x2f0 mm/kasan/generic.c:192
+ instrument_atomic_read include/linux/instrumented.h:56 [inline]
+ atomic_read include/asm-generic/atomic-instrumented.h:27 [inline]
+ pv_hybrid_queued_unfair_trylock kernel/locking/qspinlock_paravirt.h:88 [inline]
+ __pv_queued_spin_lock_slowpath+0x19d/0xc00 kernel/locking/qspinlock.c:443
+ pv_queued_spin_lock_slowpath arch/x86/include/asm/paravirt.h:656 [inline]
+ queued_spin_lock_slowpath arch/x86/include/asm/qspinlock.h:51 [inline]
+ queued_spin_lock include/asm-generic/qspinlock.h:85 [inline]
+ do_raw_spin_lock+0x5bf/0x800 kernel/locking/spinlock_debug.c:113
+ spin_lock_bh include/linux/spinlock.h:359 [inline]
+ lock_sock_nested+0x43/0x110 net/core/sock.c:3048
+ l2cap_sock_teardown_cb+0x72/0x3e0 net/bluetooth/l2cap_sock.c:1520
+ l2cap_chan_del+0xa3/0x760 net/bluetooth/l2cap_core.c:618
+ l2cap_chan_close+0x7bf/0xae0 net/bluetooth/l2cap_core.c:823
+ l2cap_chan_timeout+0x125/0x1e0 net/bluetooth/l2cap_core.c:436
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2269
+ worker_thread+0xaa4/0x1460 kernel/workqueue.c:2415
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Allocated by task 7587:
+ kasan_save_stack mm/kasan/common.c:48 [inline]
+ kasan_set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc+0x100/0x130 mm/kasan/common.c:461
+ kmem_cache_alloc_trace+0x1f6/0x2f0 mm/slab.c:3550
+ kmalloc include/linux/slab.h:554 [inline]
+ kzalloc include/linux/slab.h:666 [inline]
+ l2cap_chan_create+0x4c/0x320 net/bluetooth/l2cap_core.c:450
+ l2cap_sock_alloc+0x136/0x1d0 net/bluetooth/l2cap_sock.c:1805
+ l2cap_sock_create+0x11f/0x550 net/bluetooth/l2cap_sock.c:1836
+ bt_sock_create+0x15b/0x220 net/bluetooth/af_bluetooth.c:130
+ __sock_create+0x5b3/0x8c0 net/socket.c:1427
+ sock_create net/socket.c:1478 [inline]
+ __sys_socket+0xde/0x2d0 net/socket.c:1520
+ __do_sys_socket net/socket.c:1529 [inline]
+ __se_sys_socket net/socket.c:1527 [inline]
+ __x64_sys_socket+0x76/0x80 net/socket.c:1527
+ do_syscall_64+0x31/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 7587:
+ kasan_save_stack mm/kasan/common.c:48 [inline]
+ kasan_set_track+0x3d/0x70 mm/kasan/common.c:56
+ kasan_set_free_info+0x17/0x30 mm/kasan/generic.c:355
+ __kasan_slab_free+0xdd/0x110 mm/kasan/common.c:422
+ __cache_free mm/slab.c:3418 [inline]
+ kfree+0x10a/0x220 mm/slab.c:3756
+ l2cap_sock_release+0x154/0x190 net/bluetooth/l2cap_sock.c:1392
+ __sock_release net/socket.c:596 [inline]
+ sock_close+0xd8/0x260 net/socket.c:1277
+ __fput+0x34f/0x7b0 fs/file_table.c:281
+ task_work_run+0x137/0x1c0 kernel/task_work.c:135
+ get_signal+0x15ab/0x1d30 kernel/signal.c:2547
+ arch_do_signal+0x33/0x610 arch/x86/kernel/signal.c:811
+ exit_to_user_mode_loop kernel/entry/common.c:135 [inline]
+ exit_to_user_mode_prepare+0x8d/0x1c0 kernel/entry/common.c:166
+ syscall_exit_to_user_mode+0x5e/0x1a0 kernel/entry/common.c:241
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The buggy address belongs to the object at ffff88809b2b9000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 136 bytes inside of
+ 2048-byte region [ffff88809b2b9000, ffff88809b2b9800)
+The buggy address belongs to the page:
+page:000000009376a887 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x9b2b9
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea000269d408 ffffea00027df348 ffff8880aa440800
+raw: 0000000000000000 ffff88809b2b9000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809b2b8f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88809b2b9000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88809b2b9080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff88809b2b9100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88809b2b9180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

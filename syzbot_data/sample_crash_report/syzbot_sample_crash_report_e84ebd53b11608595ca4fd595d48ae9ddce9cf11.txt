@@ -1,0 +1,104 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: slab-out-of-bounds in predicate_parse kernel/trace/trace_events_filter.c:557 [inline]
+BUG: KASAN: slab-out-of-bounds in process_preds+0x3ecf/0x4160 kernel/trace/trace_events_filter.c:1509
+Write of size 4 at addr ffff8801cdbcdf70 by task syz-executor235/4508
+
+CPU: 0 PID: 4508 Comm: syz-executor235 Not tainted 4.17.0+ #105
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_store4_noabort+0x17/0x20 mm/kasan/report.c:437
+ predicate_parse kernel/trace/trace_events_filter.c:557 [inline]
+ process_preds+0x3ecf/0x4160 kernel/trace/trace_events_filter.c:1509
+ create_filter+0x167/0x280 kernel/trace/trace_events_filter.c:1717
+ ftrace_profile_set_filter+0x135/0x2f0 kernel/trace/trace_events_filter.c:2042
+ perf_event_set_filter+0x251/0x1260 kernel/events/core.c:9078
+ _perf_ioctl+0x865/0x1600 kernel/events/core.c:5059
+ perf_ioctl+0x59/0x80 kernel/events/core.c:5110
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:500 [inline]
+ do_vfs_ioctl+0x1de/0x1720 fs/ioctl.c:684
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:701
+ __do_sys_ioctl fs/ioctl.c:708 [inline]
+ __se_sys_ioctl fs/ioctl.c:706 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:706
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43fdb9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 6b 45 00 00 c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007ffc3e6e5df8 EFLAGS: 00000213 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fdb9
+RDX: 0000000020000040 RSI: 0000000040082406 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000213 R12: 00000000004016e0
+R13: 0000000000401770 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 19:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x780 mm/slab.c:3620
+ kmalloc include/linux/slab.h:513 [inline]
+ call_modprobe kernel/kmod.c:80 [inline]
+ __request_module+0x386/0xcdd kernel/kmod.c:171
+ snd_request_card+0x6b/0x80 sound/core/sound.c:75
+ snd_seq_client_use_ptr+0x3aa/0x3f0 sound/core/seq/seq_clientmgr.c:162
+ snd_seq_ioctl_query_next_client+0xd8/0x160 sound/core/seq/seq_clientmgr.c:2011
+ snd_seq_kernel_client_ctl+0x15a/0x190 sound/core/seq/seq_clientmgr.c:2360
+ snd_seq_oss_midi_lookup_ports+0xf6/0x270 sound/core/seq/oss/seq_oss_midi.c:90
+ async_call_lookup_ports+0x14/0x20 sound/core/seq/oss/seq_oss_init.c:67
+ process_one_work+0xc73/0x1ba0 kernel/workqueue.c:2153
+ worker_thread+0x189/0x13c0 kernel/workqueue.c:2296
+ kthread+0x345/0x410 kernel/kthread.c:240
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Freed by task 19:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ free_modprobe_argv+0x74/0xa0 kernel/kmod.c:67
+ call_usermodehelper_freeinfo kernel/umh.c:44 [inline]
+ call_usermodehelper_exec+0x27a/0x500 kernel/umh.c:576
+ call_modprobe kernel/kmod.c:99 [inline]
+ __request_module+0x4ba/0xcdd kernel/kmod.c:171
+ snd_request_card+0x6b/0x80 sound/core/sound.c:75
+ snd_seq_client_use_ptr+0x3aa/0x3f0 sound/core/seq/seq_clientmgr.c:162
+ snd_seq_ioctl_query_next_client+0xd8/0x160 sound/core/seq/seq_clientmgr.c:2011
+ snd_seq_kernel_client_ctl+0x15a/0x190 sound/core/seq/seq_clientmgr.c:2360
+ snd_seq_oss_midi_lookup_ports+0xf6/0x270 sound/core/seq/oss/seq_oss_midi.c:90
+ async_call_lookup_ports+0x14/0x20 sound/core/seq/oss/seq_oss_init.c:67
+ process_one_work+0xc73/0x1ba0 kernel/workqueue.c:2153
+ worker_thread+0x189/0x13c0 kernel/workqueue.c:2296
+ kthread+0x345/0x410 kernel/kthread.c:240
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+The buggy address belongs to the object at ffff8801cdbcdf00
+ which belongs to the cache kmalloc-64 of size 64
+The buggy address is located 48 bytes to the right of
+ 64-byte region [ffff8801cdbcdf00, ffff8801cdbcdf40)
+The buggy address belongs to the page:
+page:ffffea000736f340 count:1 mapcount:0 mapping:ffff8801da800340 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea000739d308 ffffea0007353e48 ffff8801da800340
+raw: 0000000000000000 ffff8801cdbcd000 0000000100000020 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cdbcde00: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801cdbcde80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8801cdbcdf00: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                                                             ^
+ ffff8801cdbcdf80: 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc
+ ffff8801cdbce000: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+==================================================================

@@ -1,0 +1,51 @@
+selinux_nlmsg_perm: 1 callbacks suppressed
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=0 sclass=netlink_route_socket pig=12502 comm=syz-executor3
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=0 sclass=netlink_route_socket pig=12528 comm=syz-executor3
+list_del corruption, 00000000fcc5fb27->next is LIST_POISON1 (00000000cb16e51d)
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:47!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 12537 Comm: syz-executor2 Not tainted 4.16.0-rc4+ #258
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__list_del_entry_valid+0xd3/0x150 lib/list_debug.c:45
+RSP: 0018:ffff8801b6387778 EFLAGS: 00010286
+RAX: 000000000000004e RBX: dead000000000200 RCX: 0000000000000000
+RDX: 000000000000004e RSI: ffffc90002ed6000 RDI: ffffed0036c70ee3
+RBP: ffff8801b6387790 R08: 1ffff10036c70e3b R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: dead000000000100
+R13: ffff8801d3164000 R14: ffff8801d8502220 R15: ffff8801b6387c58
+FS:  00007ff42042f700(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ff42040ddb8 CR3: 00000001bd840003 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:117 [inline]
+ list_del include/linux/list.h:125 [inline]
+ sctp_association_free+0x133/0x930 net/sctp/associola.c:341
+ sctp_sendmsg+0xc67/0x1a80 net/sctp/socket.c:2075
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:763
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:639
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1748
+ SyS_sendto+0x40/0x50 net/socket.c:1716
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x453e69
+RSP: 002b:00007ff42042ec68 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 00007ff42042f6d4 RCX: 0000000000453e69
+RDX: 0000000000000001 RSI: 0000000020000340 RDI: 0000000000000015
+RBP: 000000000072c0c8 R08: 00000000204d9000 R09: 000000000000001c
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000000004cd R14: 00000000006f73d8 R15: 0000000000000003
+Code: 8f 00 00 00 49 8b 54 24 08 48 39 f2 75 3b 48 83 c4 08 b8 01 00 00 00 5b 41 5c 5d c3 4c 89 e2 48 c7 c7 c0 7c 40 86 e8 75 f6 fb fe <0f> 0b 48 c7 c7 20 7d 40 86 e8 67 f6 fb fe 0f 0b 48 c7 c7 80 7d 
+RIP: __list_del_entry_valid+0xd3/0x150 lib/list_debug.c:45 RSP: ffff8801b6387778
+---[ end trace a6b157f61f9bd43a ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

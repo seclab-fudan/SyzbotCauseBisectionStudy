@@ -1,0 +1,42 @@
+=====================================================
+BUG: KMSAN: uninit-value in xfrm_state_find+0x1614/0x61f0 net/xfrm/xfrm_state.c:1094
+ xfrm_state_find+0x1614/0x61f0 net/xfrm/xfrm_state.c:1094
+ xfrm_tmpl_resolve_one net/xfrm/xfrm_policy.c:2392 [inline]
+ xfrm_tmpl_resolve net/xfrm/xfrm_policy.c:2437 [inline]
+ xfrm_resolve_and_create_bundle+0x7dd/0x4ed0 net/xfrm/xfrm_policy.c:2730
+ xfrm_bundle_lookup net/xfrm/xfrm_policy.c:2965 [inline]
+ xfrm_lookup_with_ifid+0xd3f/0x4120 net/xfrm/xfrm_policy.c:3096
+ xfrm_lookup net/xfrm/xfrm_policy.c:3193 [inline]
+ xfrm_lookup_route+0x5f/0x2b0 net/xfrm/xfrm_policy.c:3204
+ ip_route_output_flow+0x29b/0x340 net/ipv4/route.c:2880
+ ip_route_output_ports include/net/route.h:183 [inline]
+ igmpv3_newpack+0x43b/0x1440 net/ipv4/igmp.c:369
+ add_grhead+0x86/0x390 net/ipv4/igmp.c:440
+ add_grec+0x2185/0x2380 net/ipv4/igmp.c:574
+ igmpv3_send_cr net/ipv4/igmp.c:711 [inline]
+ igmp_ifc_timer_expire+0x11b6/0x1f30 net/ipv4/igmp.c:810
+ call_timer_fn+0x43/0x480 kernel/time/timer.c:1474
+ expire_timers+0x272/0x610 kernel/time/timer.c:1519
+ __run_timers+0x5bd/0x8c0 kernel/time/timer.c:1790
+ run_timer_softirq+0x64/0xe0 kernel/time/timer.c:1803
+ __do_softirq+0x1c5/0x7b9 kernel/softirq.c:571
+ invoke_softirq+0x8f/0x100 kernel/softirq.c:445
+ __irq_exit_rcu+0x5a/0x110 kernel/softirq.c:650
+ irq_exit_rcu+0xe/0x10 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x9a/0xc0 arch/x86/kernel/apic/apic.c:1107
+ asm_sysvec_apic_timer_interrupt+0x1b/0x20 arch/x86/include/asm/idtentry.h:649
+ arch_ptrace+0x27b/0x470 arch/x86/kernel/ptrace.c:828
+ __do_sys_ptrace kernel/ptrace.c:1296 [inline]
+ __se_sys_ptrace+0x2e5/0x780 kernel/ptrace.c:1269
+ __x64_sys_ptrace+0xb9/0x110 kernel/ptrace.c:1269
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Local variable fl4 created at:
+ igmpv3_newpack+0x7e/0x1440 net/ipv4/igmp.c:353
+ add_grhead+0x86/0x390 net/ipv4/igmp.c:440
+
+CPU: 1 PID: 3479 Comm: strace-static-x Not tainted 6.1.0-syzkaller-64311-g5c6259d6d19f #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+=====================================================

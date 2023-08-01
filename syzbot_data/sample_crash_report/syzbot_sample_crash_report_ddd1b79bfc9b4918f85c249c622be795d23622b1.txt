@@ -1,0 +1,210 @@
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: use-after-free in atomic_dec_and_test include/asm-generic/atomic-instrumented.h:542 [inline]
+BUG: KASAN: use-after-free in put_ucounts+0x1c/0x150 kernel/ucount.c:196
+Write of size 4 at addr ffff88801d11061c by task systemd-udevd/4874
+
+CPU: 1 PID: 4874 Comm: systemd-udevd Not tainted 5.14.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ print_address_description.constprop.0.cold+0x6c/0x309 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:436
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_dec_and_test include/asm-generic/atomic-instrumented.h:542 [inline]
+ put_ucounts+0x1c/0x150 kernel/ucount.c:196
+ put_cred_rcu+0x27a/0x520 kernel/cred.c:124
+ rcu_do_batch kernel/rcu/tree.c:2550 [inline]
+ rcu_core+0x7ab/0x1380 kernel/rcu/tree.c:2785
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x16e/0x1c0 kernel/softirq.c:636
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:648
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1100
+ </IRQ>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:rmqueue mm/page_alloc.c:3742 [inline]
+RIP: 0010:get_page_from_freelist+0x8c1/0x2f80 mm/page_alloc.c:4163
+Code: e8 a4 f8 a8 ff 48 83 7c 24 60 00 0f 85 8e 12 00 00 9c 58 f6 c4 02 0f 85 f6 17 00 00 48 83 7c 24 60 00 74 01 fb 48 8b 44 24 28 <49> 8d 9e b8 05 00 00 48 85 c0 0f 84 66 0f 00 00 48 c1 e8 03 42 80
+RSP: 0018:ffffc9000a6bf4b8 EFLAGS: 00000206
+RAX: ffffea000143bb40 RBX: 0000000000000001 RCX: 1ffffffff1f9acc2
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffff8880b9d4d660 R08: 0000000000000001 R09: ffffffff8fccf8b7
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff8880b9d4d688
+R13: dffffc0000000000 R14: ffff88813fffb700 R15: 0000000000000000
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5388
+ alloc_pages+0x18c/0x2a0 mm/mempolicy.c:2244
+ __pte_alloc_one include/asm-generic/pgalloc.h:63 [inline]
+ pte_alloc_one+0x16/0x230 arch/x86/mm/pgtable.c:33
+ __pte_alloc+0x1f/0x2d0 mm/memory.c:439
+ copy_pte_range mm/memory.c:1021 [inline]
+ copy_pmd_range mm/memory.c:1156 [inline]
+ copy_pud_range mm/memory.c:1193 [inline]
+ copy_p4d_range mm/memory.c:1217 [inline]
+ copy_page_range+0x1789/0x4420 mm/memory.c:1290
+ dup_mmap kernel/fork.c:598 [inline]
+ dup_mm+0x9e7/0x1380 kernel/fork.c:1379
+ copy_mm kernel/fork.c:1431 [inline]
+ copy_process+0x71ec/0x74d0 kernel/fork.c:2119
+ kernel_clone+0xe7/0xac0 kernel/fork.c:2509
+ __do_sys_clone+0xc8/0x110 kernel/fork.c:2626
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f52851df38b
+Code: db 45 85 f6 0f 85 95 01 00 00 64 4c 8b 04 25 10 00 00 00 31 d2 4d 8d 90 d0 02 00 00 31 f6 bf 11 00 20 01 b8 38 00 00 00 0f 05 <48> 3d 00 f0 ff ff 0f 87 de 00 00 00 85 c0 41 89 c5 0f 85 e5 00 00
+RSP: 002b:00007fff70f344c0 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 00007fff70f344c0 RCX: 00007f52851df38b
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000001200011
+RBP: 00007fff70f34510 R08: 00007f52863908c0 R09: 0000000000000210
+R10: 00007f5286390b90 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000000020 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 8480:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:513 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:472 [inline]
+ __kasan_kmalloc+0x9b/0xd0 mm/kasan/common.c:522
+ kmalloc include/linux/slab.h:591 [inline]
+ kzalloc include/linux/slab.h:721 [inline]
+ alloc_ucounts+0x23d/0x5b0 kernel/ucount.c:169
+ set_cred_ucounts+0x171/0x3a0 kernel/cred.c:684
+ copy_creds+0x70e/0xb60 kernel/cred.c:375
+ copy_process+0x13c5/0x74d0 kernel/fork.c:1992
+ kernel_clone+0xe7/0xac0 kernel/fork.c:2509
+ __do_sys_clone+0xc8/0x110 kernel/fork.c:2626
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 4874:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:360
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free mm/kasan/common.c:328 [inline]
+ __kasan_slab_free+0xfb/0x130 mm/kasan/common.c:374
+ kasan_slab_free include/linux/kasan.h:230 [inline]
+ slab_free_hook mm/slub.c:1625 [inline]
+ slab_free_freelist_hook+0xdf/0x240 mm/slub.c:1650
+ slab_free mm/slub.c:3210 [inline]
+ kfree+0xeb/0x650 mm/slub.c:4262
+ put_ucounts kernel/ucount.c:200 [inline]
+ put_ucounts+0x117/0x150 kernel/ucount.c:192
+ dec_pid_namespaces kernel/pid_namespace.c:67 [inline]
+ delayed_free_pidns+0x3f/0x120 kernel/pid_namespace.c:127
+ rcu_do_batch kernel/rcu/tree.c:2550 [inline]
+ rcu_core+0x7ab/0x1380 kernel/rcu/tree.c:2785
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+
+Last potentially related work creation:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_record_aux_stack+0xe5/0x110 mm/kasan/generic.c:348
+ insert_work+0x48/0x370 kernel/workqueue.c:1332
+ __queue_work+0x5c1/0xed0 kernel/workqueue.c:1498
+ queue_work_on+0xee/0x110 kernel/workqueue.c:1525
+ queue_work include/linux/workqueue.h:507 [inline]
+ call_usermodehelper_exec+0x1f0/0x4c0 kernel/umh.c:435
+ kobject_uevent_env+0xf8f/0x1650 lib/kobject_uevent.c:618
+ kobject_synth_uevent+0x701/0x850 lib/kobject_uevent.c:208
+ uevent_store+0x20/0x50 drivers/base/core.c:2370
+ dev_attr_store+0x50/0x80 drivers/base/core.c:2071
+ sysfs_kf_write+0x110/0x160 fs/sysfs/file.c:139
+ kernfs_fop_write_iter+0x342/0x500 fs/kernfs/file.c:296
+ call_write_iter include/linux/fs.h:2114 [inline]
+ new_sync_write+0x426/0x650 fs/read_write.c:518
+ vfs_write+0x75a/0xa40 fs/read_write.c:605
+ ksys_write+0x12d/0x250 fs/read_write.c:658
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_record_aux_stack+0xe5/0x110 mm/kasan/generic.c:348
+ insert_work+0x48/0x370 kernel/workqueue.c:1332
+ __queue_work+0x5c1/0xed0 kernel/workqueue.c:1498
+ queue_work_on+0xee/0x110 kernel/workqueue.c:1525
+ queue_work include/linux/workqueue.h:507 [inline]
+ call_usermodehelper_exec+0x1f0/0x4c0 kernel/umh.c:435
+ kobject_uevent_env+0xf8f/0x1650 lib/kobject_uevent.c:618
+ kobject_synth_uevent+0x701/0x850 lib/kobject_uevent.c:208
+ uevent_store+0x42/0x90 drivers/base/bus.c:581
+ drv_attr_store+0x6d/0xa0 drivers/base/bus.c:77
+ sysfs_kf_write+0x110/0x160 fs/sysfs/file.c:139
+ kernfs_fop_write_iter+0x342/0x500 fs/kernfs/file.c:296
+ call_write_iter include/linux/fs.h:2114 [inline]
+ new_sync_write+0x426/0x650 fs/read_write.c:518
+ vfs_write+0x75a/0xa40 fs/read_write.c:605
+ ksys_write+0x12d/0x250 fs/read_write.c:658
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff88801d110600
+ which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 28 bytes inside of
+ 192-byte region [ffff88801d110600, ffff88801d1106c0)
+The buggy address belongs to the page:
+page:ffffea0000744400 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1d110
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea00005e3480 0000000200000002 ffff888010841a00
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 1, ts 8484287209, free_ts 8471198798
+ prep_new_page mm/page_alloc.c:2433 [inline]
+ get_page_from_freelist+0xa72/0x2f80 mm/page_alloc.c:4166
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5388
+ alloc_page_interleave+0x1e/0x200 mm/mempolicy.c:2119
+ alloc_pages+0x238/0x2a0 mm/mempolicy.c:2242
+ alloc_slab_page mm/slub.c:1688 [inline]
+ allocate_slab+0x32e/0x4b0 mm/slub.c:1828
+ new_slab mm/slub.c:1891 [inline]
+ new_slab_objects mm/slub.c:2637 [inline]
+ ___slab_alloc+0x4ba/0x820 mm/slub.c:2800
+ __slab_alloc.constprop.0+0xa7/0xf0 mm/slub.c:2840
+ slab_alloc_node mm/slub.c:2922 [inline]
+ slab_alloc mm/slub.c:2964 [inline]
+ kmem_cache_alloc_trace+0x30f/0x3c0 mm/slub.c:2981
+ kmalloc include/linux/slab.h:591 [inline]
+ kzalloc include/linux/slab.h:721 [inline]
+ call_usermodehelper_setup+0x97/0x340 kernel/umh.c:365
+ kobject_uevent_env+0xf73/0x1650 lib/kobject_uevent.c:614
+ driver_register+0x2db/0x3a0 drivers/base/driver.c:179
+ init_tis+0x11a/0x1c5 drivers/char/tpm/tpm_tis.c:393
+ do_one_initcall+0x103/0x650 init/main.c:1282
+ do_initcall_level init/main.c:1355 [inline]
+ do_initcalls init/main.c:1371 [inline]
+ do_basic_setup init/main.c:1391 [inline]
+ kernel_init_freeable+0x6b8/0x741 init/main.c:1593
+ kernel_init+0x1a/0x1d0 init/main.c:1485
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1343 [inline]
+ free_pcp_prepare+0x2c5/0x780 mm/page_alloc.c:1394
+ free_unref_page_prepare mm/page_alloc.c:3329 [inline]
+ free_unref_page+0x19/0x690 mm/page_alloc.c:3408
+ __vunmap+0x783/0xb70 mm/vmalloc.c:2587
+ free_work+0x58/0x70 mm/vmalloc.c:82
+ process_one_work+0x98d/0x1630 kernel/workqueue.c:2276
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2422
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Memory state around the buggy address:
+ ffff88801d110500: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88801d110580: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff88801d110600: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff88801d110680: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff88801d110700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

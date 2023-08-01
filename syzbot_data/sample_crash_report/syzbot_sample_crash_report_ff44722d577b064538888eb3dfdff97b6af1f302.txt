@@ -1,0 +1,45 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: null-ptr-deref in atomic_read include/asm-generic/atomic-instrumented.h:21 [inline]
+BUG: KASAN: null-ptr-deref in refcount_inc_not_zero+0x8f/0x2d0 lib/refcount.c:120
+Read of size 4 at addr 0000000000000004 by task syzkaller821394/4488
+
+CPU: 1 PID: 4488 Comm: syzkaller821394 Not tainted 4.17.0-rc1+ #12
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ kasan_report_error mm/kasan/report.c:352 [inline]
+ kasan_report.cold.7+0x6d/0x2fe mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ kasan_check_read+0x11/0x20 mm/kasan/kasan.c:272
+ atomic_read include/asm-generic/atomic-instrumented.h:21 [inline]
+ refcount_inc_not_zero+0x8f/0x2d0 lib/refcount.c:120
+ refcount_inc+0x15/0x70 lib/refcount.c:153
+ llc_sap_hold include/net/llc.h:116 [inline]
+ llc_ui_release+0xba/0x2b0 net/llc/af_llc.c:207
+ sock_release+0x96/0x1b0 net/socket.c:594
+ sock_close+0x16/0x20 net/socket.c:1149
+ __fput+0x34d/0x890 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x1e4/0x290 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1aee/0x2730 kernel/exit.c:865
+ do_group_exit+0x16f/0x430 kernel/exit.c:968
+ __do_sys_exit_group kernel/exit.c:979 [inline]
+ __se_sys_exit_group kernel/exit.c:977 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:977
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43e878
+RSP: 002b:00007fffa13cebb8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043e878
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004be220 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006cc160 R14: 0000000000000000 R15: 0000000000000000
+==================================================================

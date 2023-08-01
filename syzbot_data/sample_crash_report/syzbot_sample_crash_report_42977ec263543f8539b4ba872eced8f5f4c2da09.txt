@@ -1,0 +1,75 @@
+==================================================================
+BUG: KFENCE: memory corruption in p9_fcall_fini net/9p/client.c:248 [inline]
+BUG: KFENCE: memory corruption in p9_req_put net/9p/client.c:396 [inline]
+BUG: KFENCE: memory corruption in p9_req_put+0x208/0x250 net/9p/client.c:390
+
+Corrupted memory at 0xffff88823bd7c016 [ 0x00 . . . . . . . . . . . . . . . ] (in kfence-#189):
+ p9_fcall_fini net/9p/client.c:248 [inline]
+ p9_req_put net/9p/client.c:396 [inline]
+ p9_req_put+0x208/0x250 net/9p/client.c:390
+ p9_client_walk+0x247/0x540 net/9p/client.c:1165
+ v9fs_vfs_lookup.part.0+0x143/0x5d0 fs/9p/vfs_inode.c:777
+ v9fs_vfs_lookup+0x6d/0x90 fs/9p/vfs_inode.c:762
+ __lookup_slow+0x24c/0x460 fs/namei.c:1685
+ lookup_slow fs/namei.c:1702 [inline]
+ walk_component+0x33f/0x5a0 fs/namei.c:1993
+ lookup_last fs/namei.c:2450 [inline]
+ path_lookupat+0x1ba/0x840 fs/namei.c:2474
+ filename_lookup+0x1d2/0x590 fs/namei.c:2503
+ vfs_statx+0x14c/0x430 fs/stat.c:229
+ vfs_fstatat+0x90/0xb0 fs/stat.c:267
+ vfs_stat include/linux/fs.h:3292 [inline]
+ __do_sys_newstat+0x8b/0x110 fs/stat.c:410
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+kfence-#189: 0xffff88823bd7c000-0xffff88823bd7c015, size=22, cache=kmalloc-32
+
+allocated by task 641 on cpu 0 at 2864.879249s:
+ kmalloc include/linux/slab.h:558 [inline]
+ p9_fcall_init+0x97/0x210 net/9p/client.c:228
+ p9_tag_alloc+0x208/0x840 net/9p/client.c:293
+ p9_client_prepare_req+0x177/0x590 net/9p/client.c:631
+ p9_client_rpc+0x1a1/0xd70 net/9p/client.c:678
+ p9_client_walk+0x1a0/0x540 net/9p/client.c:1152
+ v9fs_vfs_lookup.part.0+0x143/0x5d0 fs/9p/vfs_inode.c:777
+ v9fs_vfs_lookup+0x6d/0x90 fs/9p/vfs_inode.c:762
+ __lookup_slow+0x24c/0x460 fs/namei.c:1685
+ lookup_slow fs/namei.c:1702 [inline]
+ walk_component+0x33f/0x5a0 fs/namei.c:1993
+ lookup_last fs/namei.c:2450 [inline]
+ path_lookupat+0x1ba/0x840 fs/namei.c:2474
+ filename_lookup+0x1d2/0x590 fs/namei.c:2503
+ vfs_statx+0x14c/0x430 fs/stat.c:229
+ vfs_fstatat+0x90/0xb0 fs/stat.c:267
+ vfs_stat include/linux/fs.h:3292 [inline]
+ __do_sys_newstat+0x8b/0x110 fs/stat.c:410
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+freed by task 641 on cpu 0 at 2864.887801s:
+ p9_fcall_fini net/9p/client.c:248 [inline]
+ p9_req_put net/9p/client.c:396 [inline]
+ p9_req_put+0x208/0x250 net/9p/client.c:390
+ p9_client_walk+0x247/0x540 net/9p/client.c:1165
+ v9fs_vfs_lookup.part.0+0x143/0x5d0 fs/9p/vfs_inode.c:777
+ v9fs_vfs_lookup+0x6d/0x90 fs/9p/vfs_inode.c:762
+ __lookup_slow+0x24c/0x460 fs/namei.c:1685
+ lookup_slow fs/namei.c:1702 [inline]
+ walk_component+0x33f/0x5a0 fs/namei.c:1993
+ lookup_last fs/namei.c:2450 [inline]
+ path_lookupat+0x1ba/0x840 fs/namei.c:2474
+ filename_lookup+0x1d2/0x590 fs/namei.c:2503
+ vfs_statx+0x14c/0x430 fs/stat.c:229
+ vfs_fstatat+0x90/0xb0 fs/stat.c:267
+ vfs_stat include/linux/fs.h:3292 [inline]
+ __do_sys_newstat+0x8b/0x110 fs/stat.c:410
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+CPU: 0 PID: 641 Comm: syz-executor.2 Not tainted 6.1.0-rc5-syzkaller-00144-g84368d882b96 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+==================================================================

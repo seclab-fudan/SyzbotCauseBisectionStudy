@@ -1,0 +1,41 @@
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 1 PID: 16 at lib/refcount.c:190 refcount_sub_and_test_checked lib/refcount.c:190 [inline]
+WARNING: CPU: 1 PID: 16 at lib/refcount.c:190 refcount_sub_and_test_checked+0x1d0/0x200 lib/refcount.c:180
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 16 Comm: ksoftirqd/1 Not tainted 5.3.0-rc3 #91
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ panic+0x2dc/0x755 kernel/panic.c:219
+ __warn.cold+0x20/0x4c kernel/panic.c:576
+ report_bug+0x263/0x2b0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:179 [inline]
+ fixup_bug arch/x86/kernel/traps.c:174 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:272
+ do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:291
+ invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1026
+RIP: 0010:refcount_sub_and_test_checked lib/refcount.c:190 [inline]
+RIP: 0010:refcount_sub_and_test_checked+0x1d0/0x200 lib/refcount.c:180
+Code: 1d 7e b3 64 06 31 ff 89 de e8 9c a3 35 fe 84 db 75 94 e8 53 a2 35 fe 48 c7 c7 80 02 c6 87 c6 05 5e b3 64 06 01 e8 18 15 07 fe <0f> 0b e9 75 ff ff ff e8 34 a2 35 fe e9 6e ff ff ff 48 89 df e8 b7
+RSP: 0018:ffff8880a9917bb0 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000100 RSI: ffffffff815c3ba6 RDI: ffffed1015322f68
+RBP: ffff8880a9917c48 R08: ffff8880a990a440 R09: fffffbfff134ae10
+R10: fffffbfff134ae0f R11: ffffffff89a5707f R12: 00000000ffffffff
+R13: 0000000000000001 R14: ffff8880a9917c20 R15: 0000000000000000
+ refcount_dec_and_test_checked+0x1b/0x20 lib/refcount.c:220
+ blk_mq_free_request+0x3b8/0x580 block/blk-mq.c:524
+ __blk_mq_end_request block/blk-mq.c:550 [inline]
+ blk_mq_end_request+0x456/0x560 block/blk-mq.c:559
+ nbd_complete_rq+0x42/0x50 drivers/block/nbd.c:322
+ blk_done_softirq+0x2fe/0x4d0 block/blk-softirq.c:37
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ run_ksoftirqd kernel/softirq.c:603 [inline]
+ run_ksoftirqd+0x8e/0x110 kernel/softirq.c:595
+ smpboot_thread_fn+0x6a3/0xa40 kernel/smpboot.c:165
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,61 @@
+loop3: detected capacity change from 0 to 1024
+=====================================================
+BUG: KMSAN: uninit-value in hfsplus_attr_bin_cmp_key+0xf1/0x190 fs/hfsplus/attributes.c:42
+ hfsplus_attr_bin_cmp_key+0xf1/0x190 fs/hfsplus/attributes.c:42
+ hfs_find_rec_by_key+0xb0/0x240 fs/hfsplus/bfind.c:100
+ __hfsplus_brec_find+0x27e/0x7d0 fs/hfsplus/bfind.c:135
+ hfsplus_brec_find+0x46a/0x9d0 fs/hfsplus/bfind.c:195
+ hfsplus_find_attr+0x30c/0x390
+ __hfsplus_getxattr+0x384/0xe50 fs/hfsplus/xattr.c:522
+ hfsplus_getxattr+0x123/0x1e0 fs/hfsplus/xattr.c:590
+ hfsplus_security_getxattr+0x53/0x60 fs/hfsplus/xattr_security.c:20
+ vfs_getxattr_alloc+0x77a/0xc10 fs/xattr.c:396
+ ima_read_xattr+0x51/0xd0 security/integrity/ima/ima_appraise.c:231
+ process_measurement+0x1c24/0x36f0 security/integrity/ima/ima_main.c:322
+ ima_file_check+0xc0/0x120 security/integrity/ima/ima_main.c:539
+ do_open fs/namei.c:3562 [inline]
+ path_openat+0x4d4c/0x5b40 fs/namei.c:3715
+ do_filp_open+0x24d/0x660 fs/namei.c:3742
+ do_sys_openat2+0x1f0/0x910 fs/open.c:1348
+ do_sys_open fs/open.c:1364 [inline]
+ __do_compat_sys_openat fs/open.c:1424 [inline]
+ __se_compat_sys_openat fs/open.c:1422 [inline]
+ __ia32_compat_sys_openat+0x2ab/0x330 fs/open.c:1422
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Uninit was created at:
+ slab_post_alloc_hook+0x12d/0xb60 mm/slab.h:774
+ slab_alloc_node mm/slub.c:3452 [inline]
+ __kmem_cache_alloc_node+0x518/0x920 mm/slub.c:3491
+ __do_kmalloc_node mm/slab_common.c:966 [inline]
+ __kmalloc+0x121/0x3c0 mm/slab_common.c:980
+ kmalloc include/linux/slab.h:584 [inline]
+ hfsplus_find_init+0x91/0x250 fs/hfsplus/bfind.c:21
+ __hfsplus_getxattr+0x2d5/0xe50 fs/hfsplus/xattr.c:516
+ hfsplus_getxattr+0x123/0x1e0 fs/hfsplus/xattr.c:590
+ hfsplus_security_getxattr+0x53/0x60 fs/hfsplus/xattr_security.c:20
+ vfs_getxattr_alloc+0x77a/0xc10 fs/xattr.c:396
+ ima_read_xattr+0x51/0xd0 security/integrity/ima/ima_appraise.c:231
+ process_measurement+0x1c24/0x36f0 security/integrity/ima/ima_main.c:322
+ ima_file_check+0xc0/0x120 security/integrity/ima/ima_main.c:539
+ do_open fs/namei.c:3562 [inline]
+ path_openat+0x4d4c/0x5b40 fs/namei.c:3715
+ do_filp_open+0x24d/0x660 fs/namei.c:3742
+ do_sys_openat2+0x1f0/0x910 fs/open.c:1348
+ do_sys_open fs/open.c:1364 [inline]
+ __do_compat_sys_openat fs/open.c:1424 [inline]
+ __se_compat_sys_openat fs/open.c:1422 [inline]
+ __ia32_compat_sys_openat+0x2ab/0x330 fs/open.c:1422
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+CPU: 1 PID: 8120 Comm: syz-executor.3 Not tainted 6.3.0-rc6-syzkaller-gc478e5b17829 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+=====================================================

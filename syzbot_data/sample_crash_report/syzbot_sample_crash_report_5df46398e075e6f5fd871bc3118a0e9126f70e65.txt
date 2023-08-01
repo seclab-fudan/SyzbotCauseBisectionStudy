@@ -1,0 +1,62 @@
+============================================
+WARNING: possible recursive locking detected
+5.2.0-next-20190718 #41 Not tainted
+--------------------------------------------
+kworker/0:3/21678 is trying to acquire lock:
+00000000aa5eecdf (&(&rxnet->peer_hash_lock)->rlock){+.-.}, at: spin_lock_bh /./include/linux/spinlock.h:343 [inline]
+00000000aa5eecdf (&(&rxnet->peer_hash_lock)->rlock){+.-.}, at: __rxrpc_put_peer /net/rxrpc/peer_object.c:415 [inline]
+00000000aa5eecdf (&(&rxnet->peer_hash_lock)->rlock){+.-.}, at: rxrpc_put_peer+0x2d3/0x6a0 /net/rxrpc/peer_object.c:435
+
+but task is already holding lock:
+00000000aa5eecdf (&(&rxnet->peer_hash_lock)->rlock){+.-.}, at: spin_lock_bh /./include/linux/spinlock.h:343 [inline]
+00000000aa5eecdf (&(&rxnet->peer_hash_lock)->rlock){+.-.}, at: rxrpc_peer_keepalive_dispatch /net/rxrpc/peer_event.c:378 [inline]
+00000000aa5eecdf (&(&rxnet->peer_hash_lock)->rlock){+.-.}, at: rxrpc_peer_keepalive_worker+0x6b3/0xd02 /net/rxrpc/peer_event.c:430
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&(&rxnet->peer_hash_lock)->rlock);
+  lock(&(&rxnet->peer_hash_lock)->rlock);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+3 locks held by kworker/0:3/21678:
+ #0: 000000007c4c2bc3 ((wq_completion)krxrpcd){+.+.}, at: __write_once_size /./include/linux/compiler.h:226 [inline]
+ #0: 000000007c4c2bc3 ((wq_completion)krxrpcd){+.+.}, at: arch_atomic64_set /./arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: 000000007c4c2bc3 ((wq_completion)krxrpcd){+.+.}, at: atomic64_set /./include/asm-generic/atomic-instrumented.h:855 [inline]
+ #0: 000000007c4c2bc3 ((wq_completion)krxrpcd){+.+.}, at: atomic_long_set /./include/asm-generic/atomic-long.h:40 [inline]
+ #0: 000000007c4c2bc3 ((wq_completion)krxrpcd){+.+.}, at: set_work_data /kernel/workqueue.c:620 [inline]
+ #0: 000000007c4c2bc3 ((wq_completion)krxrpcd){+.+.}, at: set_work_pool_and_clear_pending /kernel/workqueue.c:647 [inline]
+ #0: 000000007c4c2bc3 ((wq_completion)krxrpcd){+.+.}, at: process_one_work+0x88b/0x1740 /kernel/workqueue.c:2240
+ #1: 000000006782bc7f ((work_completion)(&rxnet->peer_keepalive_work)){+.+.}, at: process_one_work+0x8c1/0x1740 /kernel/workqueue.c:2244
+ #2: 00000000aa5eecdf (&(&rxnet->peer_hash_lock)->rlock){+.-.}, at: spin_lock_bh /./include/linux/spinlock.h:343 [inline]
+ #2: 00000000aa5eecdf (&(&rxnet->peer_hash_lock)->rlock){+.-.}, at: rxrpc_peer_keepalive_dispatch /net/rxrpc/peer_event.c:378 [inline]
+ #2: 00000000aa5eecdf (&(&rxnet->peer_hash_lock)->rlock){+.-.}, at: rxrpc_peer_keepalive_worker+0x6b3/0xd02 /net/rxrpc/peer_event.c:430
+
+stack backtrace:
+CPU: 0 PID: 21678 Comm: kworker/0:3 Not tainted 5.2.0-next-20190718 #41
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: krxrpcd rxrpc_peer_keepalive_worker
+Call Trace:
+ __dump_stack /lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 /lib/dump_stack.c:113
+ print_deadlock_bug /kernel/locking/lockdep.c:2301 [inline]
+ check_deadlock /kernel/locking/lockdep.c:2342 [inline]
+ validate_chain /kernel/locking/lockdep.c:2881 [inline]
+ __lock_acquire.cold+0x194/0x398 /kernel/locking/lockdep.c:3880
+ lock_acquire+0x190/0x410 /kernel/locking/lockdep.c:4413
+ __raw_spin_lock_bh /./include/linux/spinlock_api_smp.h:135 [inline]
+ _raw_spin_lock_bh+0x33/0x50 /kernel/locking/spinlock.c:175
+ spin_lock_bh /./include/linux/spinlock.h:343 [inline]
+ __rxrpc_put_peer /net/rxrpc/peer_object.c:415 [inline]
+ rxrpc_put_peer+0x2d3/0x6a0 /net/rxrpc/peer_object.c:435
+ rxrpc_peer_keepalive_dispatch /net/rxrpc/peer_event.c:381 [inline]
+ rxrpc_peer_keepalive_worker+0x7a6/0xd02 /net/rxrpc/peer_event.c:430
+ process_one_work+0x9af/0x1740 /kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 /kernel/workqueue.c:2415
+ kthread+0x361/0x430 /kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 /arch/x86/entry/entry_64.S:352

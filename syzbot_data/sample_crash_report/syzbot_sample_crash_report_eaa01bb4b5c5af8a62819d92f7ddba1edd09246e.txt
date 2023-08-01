@@ -1,0 +1,244 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in do_csum+0x44/0x254 arch/arm64/lib/csum.c:39
+Read of size 4294967236 at addr ffff0000d5eae83c by task syz-executor633/5943
+
+CPU: 1 PID: 5943 Comm: syz-executor633 Not tainted 6.2.0-syzkaller-18300-g2ebd1fbb946d #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call trace:
+ dump_backtrace+0x1c8/0x1f4 arch/arm64/kernel/stacktrace.c:158
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:165
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd0/0x124 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x174/0x4c0 mm/kasan/report.c:417
+ kasan_report+0xd4/0x130 mm/kasan/report.c:517
+ kasan_check_range+0x264/0x2a4 mm/kasan/generic.c:189
+ __kasan_check_read+0x2c/0x3c mm/kasan/shadow.c:31
+ do_csum+0x44/0x254 arch/arm64/lib/csum.c:39
+ csum_partial+0x30/0x58 lib/checksum.c:128
+ gso_make_checksum include/linux/skbuff.h:4876 [inline]
+ __udp_gso_segment+0xaf4/0x1bcc net/ipv4/udp_offload.c:332
+ udp4_ufo_fragment+0x3f8/0x6d4 net/ipv4/udp_offload.c:392
+ inet_gso_segment+0x4c4/0x10f4 net/ipv4/af_inet.c:1399
+ skb_mac_gso_segment+0x294/0x56c net/core/gro.c:141
+ __skb_gso_segment+0x254/0x3d8 net/core/dev.c:3398
+ skb_gso_segment include/linux/netdevice.h:4807 [inline]
+ validate_xmit_skb+0x364/0xd38 net/core/dev.c:3656
+ __dev_queue_xmit+0x12fc/0x3488 net/core/dev.c:4233
+ dev_queue_xmit include/linux/netdevice.h:3033 [inline]
+ br_dev_queue_push_xmit+0x530/0x658 net/bridge/br_forward.c:53
+ NF_HOOK+0x300/0x3ac include/linux/netfilter.h:302
+ br_forward_finish+0xd0/0x118 net/bridge/br_forward.c:66
+ NF_HOOK+0x300/0x3ac include/linux/netfilter.h:302
+ __br_forward+0x2f4/0x434 net/bridge/br_forward.c:115
+ deliver_clone net/bridge/br_forward.c:131 [inline]
+ maybe_deliver+0x2c0/0x390 net/bridge/br_forward.c:189
+ br_flood+0x28c/0x3e0 net/bridge/br_forward.c:231
+ br_dev_xmit+0xdcc/0x13a0
+ __netdev_start_xmit include/linux/netdevice.h:4863 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4877 [inline]
+ xmit_one net/core/dev.c:3575 [inline]
+ dev_hard_start_xmit+0x324/0xc94 net/core/dev.c:3591
+ __dev_queue_xmit+0x16d8/0x3488 net/core/dev.c:4241
+ dev_queue_xmit+0x24/0x34 include/linux/netdevice.h:3033
+ packet_snd net/packet/af_packet.c:3073 [inline]
+ packet_sendmsg+0x3694/0x4ce4 net/packet/af_packet.c:3104
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x3b4/0x504 net/socket.c:2120
+ __do_sys_sendto net/socket.c:2132 [inline]
+ __se_sys_sendto net/socket.c:2128 [inline]
+ __arm64_sys_sendto+0xd8/0xf8 net/socket.c:2128
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x98/0x2c0 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0x138/0x258 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x168 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+
+Allocated by task 5943:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4c/0x80 mm/kasan/common.c:52
+ kasan_save_alloc_info+0x24/0x30 mm/kasan/generic.c:512
+ ____kasan_kmalloc mm/kasan/common.c:374 [inline]
+ __kasan_kmalloc+0xac/0xc4 mm/kasan/common.c:383
+ kasan_kmalloc include/linux/kasan.h:211 [inline]
+ __do_kmalloc_node mm/slab_common.c:968 [inline]
+ __kmalloc_node_track_caller+0xd0/0x1c0 mm/slab_common.c:988
+ kmalloc_reserve net/core/skbuff.c:492 [inline]
+ __alloc_skb+0x180/0x324 net/core/skbuff.c:565
+ skb_segment+0xb04/0x33a0 net/core/skbuff.c:4344
+ __udp_gso_segment+0x5d0/0x1bcc net/ipv4/udp_offload.c:290
+ udp4_ufo_fragment+0x3f8/0x6d4 net/ipv4/udp_offload.c:392
+ inet_gso_segment+0x4c4/0x10f4 net/ipv4/af_inet.c:1399
+ skb_mac_gso_segment+0x294/0x56c net/core/gro.c:141
+ __skb_gso_segment+0x254/0x3d8 net/core/dev.c:3398
+ skb_gso_segment include/linux/netdevice.h:4807 [inline]
+ validate_xmit_skb+0x364/0xd38 net/core/dev.c:3656
+ __dev_queue_xmit+0x12fc/0x3488 net/core/dev.c:4233
+ dev_queue_xmit include/linux/netdevice.h:3033 [inline]
+ br_dev_queue_push_xmit+0x530/0x658 net/bridge/br_forward.c:53
+ NF_HOOK+0x300/0x3ac include/linux/netfilter.h:302
+ br_forward_finish+0xd0/0x118 net/bridge/br_forward.c:66
+ NF_HOOK+0x300/0x3ac include/linux/netfilter.h:302
+ __br_forward+0x2f4/0x434 net/bridge/br_forward.c:115
+ deliver_clone net/bridge/br_forward.c:131 [inline]
+ maybe_deliver+0x2c0/0x390 net/bridge/br_forward.c:189
+ br_flood+0x28c/0x3e0 net/bridge/br_forward.c:231
+ br_dev_xmit+0xdcc/0x13a0
+ __netdev_start_xmit include/linux/netdevice.h:4863 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4877 [inline]
+ xmit_one net/core/dev.c:3575 [inline]
+ dev_hard_start_xmit+0x324/0xc94 net/core/dev.c:3591
+ __dev_queue_xmit+0x16d8/0x3488 net/core/dev.c:4241
+ dev_queue_xmit+0x24/0x34 include/linux/netdevice.h:3033
+ packet_snd net/packet/af_packet.c:3073 [inline]
+ packet_sendmsg+0x3694/0x4ce4 net/packet/af_packet.c:3104
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x3b4/0x504 net/socket.c:2120
+ __do_sys_sendto net/socket.c:2132 [inline]
+ __se_sys_sendto net/socket.c:2128 [inline]
+ __arm64_sys_sendto+0xd8/0xf8 net/socket.c:2128
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x98/0x2c0 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0x138/0x258 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x168 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+
+The buggy address belongs to the object at ffff0000d5eae800
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 60 bytes inside of
+ 1024-byte region [ffff0000d5eae800, ffff0000d5eaec00)
+
+The buggy address belongs to the physical page:
+page:0000000095e2f25a refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x115ea8
+head:0000000095e2f25a order:3 compound_mapcount:0 subpages_mapcount:0 compound_pincount:0
+flags: 0x5ffc00000010200(slab|head|node=0|zone=2|lastcpupid=0x7ff)
+raw: 05ffc00000010200 ffff0000c0002780 fffffc000335f200 dead000000000002
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff0000d5eaeb00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff0000d5eaeb80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff0000d5eaec00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                   ^
+ ffff0000d5eaec80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff0000d5eaed00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================
+================================================================================
+UBSAN: shift-out-of-bounds in arch/arm64/lib/csum.c:116:15
+shift exponent 512 is too large for 64-bit type 'u64' (aka 'unsigned long long')
+CPU: 1 PID: 5943 Comm: syz-executor633 Tainted: G    B              6.2.0-syzkaller-18300-g2ebd1fbb946d #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call trace:
+ dump_backtrace+0x1c8/0x1f4 arch/arm64/kernel/stacktrace.c:158
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:165
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd0/0x124 lib/dump_stack.c:106
+ dump_stack+0x1c/0x28 lib/dump_stack.c:113
+ ubsan_epilogue lib/ubsan.c:151 [inline]
+ __ubsan_handle_shift_out_of_bounds+0x2f4/0x36c lib/ubsan.c:321
+ do_csum+0x238/0x254 arch/arm64/lib/csum.c:116
+ csum_partial+0x30/0x58 lib/checksum.c:128
+ gso_make_checksum include/linux/skbuff.h:4876 [inline]
+ __udp_gso_segment+0xaf4/0x1bcc net/ipv4/udp_offload.c:332
+ udp4_ufo_fragment+0x3f8/0x6d4 net/ipv4/udp_offload.c:392
+ inet_gso_segment+0x4c4/0x10f4 net/ipv4/af_inet.c:1399
+ skb_mac_gso_segment+0x294/0x56c net/core/gro.c:141
+ __skb_gso_segment+0x254/0x3d8 net/core/dev.c:3398
+ skb_gso_segment include/linux/netdevice.h:4807 [inline]
+ validate_xmit_skb+0x364/0xd38 net/core/dev.c:3656
+ __dev_queue_xmit+0x12fc/0x3488 net/core/dev.c:4233
+ dev_queue_xmit include/linux/netdevice.h:3033 [inline]
+ br_dev_queue_push_xmit+0x530/0x658 net/bridge/br_forward.c:53
+ NF_HOOK+0x300/0x3ac include/linux/netfilter.h:302
+ br_forward_finish+0xd0/0x118 net/bridge/br_forward.c:66
+ NF_HOOK+0x300/0x3ac include/linux/netfilter.h:302
+ __br_forward+0x2f4/0x434 net/bridge/br_forward.c:115
+ deliver_clone net/bridge/br_forward.c:131 [inline]
+ maybe_deliver+0x2c0/0x390 net/bridge/br_forward.c:189
+ br_flood+0x28c/0x3e0 net/bridge/br_forward.c:231
+ br_dev_xmit+0xdcc/0x13a0
+ __netdev_start_xmit include/linux/netdevice.h:4863 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4877 [inline]
+ xmit_one net/core/dev.c:3575 [inline]
+ dev_hard_start_xmit+0x324/0xc94 net/core/dev.c:3591
+ __dev_queue_xmit+0x16d8/0x3488 net/core/dev.c:4241
+ dev_queue_xmit+0x24/0x34 include/linux/netdevice.h:3033
+ packet_snd net/packet/af_packet.c:3073 [inline]
+ packet_sendmsg+0x3694/0x4ce4 net/packet/af_packet.c:3104
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x3b4/0x504 net/socket.c:2120
+ __do_sys_sendto net/socket.c:2132 [inline]
+ __se_sys_sendto net/socket.c:2128 [inline]
+ __arm64_sys_sendto+0xd8/0xf8 net/socket.c:2128
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x98/0x2c0 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0x138/0x258 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x168 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+================================================================================
+================================================================================
+UBSAN: shift-out-of-bounds in arch/arm64/lib/csum.c:116:25
+shift exponent 512 is too large for 64-bit type 'u64' (aka 'unsigned long long')
+CPU: 1 PID: 5943 Comm: syz-executor633 Tainted: G    B              6.2.0-syzkaller-18300-g2ebd1fbb946d #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call trace:
+ dump_backtrace+0x1c8/0x1f4 arch/arm64/kernel/stacktrace.c:158
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:165
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd0/0x124 lib/dump_stack.c:106
+ dump_stack+0x1c/0x28 lib/dump_stack.c:113
+ ubsan_epilogue lib/ubsan.c:151 [inline]
+ __ubsan_handle_shift_out_of_bounds+0x2f4/0x36c lib/ubsan.c:321
+ do_csum+0x250/0x254 arch/arm64/lib/csum.c:116
+ csum_partial+0x30/0x58 lib/checksum.c:128
+ gso_make_checksum include/linux/skbuff.h:4876 [inline]
+ __udp_gso_segment+0xaf4/0x1bcc net/ipv4/udp_offload.c:332
+ udp4_ufo_fragment+0x3f8/0x6d4 net/ipv4/udp_offload.c:392
+ inet_gso_segment+0x4c4/0x10f4 net/ipv4/af_inet.c:1399
+ skb_mac_gso_segment+0x294/0x56c net/core/gro.c:141
+ __skb_gso_segment+0x254/0x3d8 net/core/dev.c:3398
+ skb_gso_segment include/linux/netdevice.h:4807 [inline]
+ validate_xmit_skb+0x364/0xd38 net/core/dev.c:3656
+ __dev_queue_xmit+0x12fc/0x3488 net/core/dev.c:4233
+ dev_queue_xmit include/linux/netdevice.h:3033 [inline]
+ br_dev_queue_push_xmit+0x530/0x658 net/bridge/br_forward.c:53
+ NF_HOOK+0x300/0x3ac include/linux/netfilter.h:302
+ br_forward_finish+0xd0/0x118 net/bridge/br_forward.c:66
+ NF_HOOK+0x300/0x3ac include/linux/netfilter.h:302
+ __br_forward+0x2f4/0x434 net/bridge/br_forward.c:115
+ deliver_clone net/bridge/br_forward.c:131 [inline]
+ maybe_deliver+0x2c0/0x390 net/bridge/br_forward.c:189
+ br_flood+0x28c/0x3e0 net/bridge/br_forward.c:231
+ br_dev_xmit+0xdcc/0x13a0
+ __netdev_start_xmit include/linux/netdevice.h:4863 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4877 [inline]
+ xmit_one net/core/dev.c:3575 [inline]
+ dev_hard_start_xmit+0x324/0xc94 net/core/dev.c:3591
+ __dev_queue_xmit+0x16d8/0x3488 net/core/dev.c:4241
+ dev_queue_xmit+0x24/0x34 include/linux/netdevice.h:3033
+ packet_snd net/packet/af_packet.c:3073 [inline]
+ packet_sendmsg+0x3694/0x4ce4 net/packet/af_packet.c:3104
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x3b4/0x504 net/socket.c:2120
+ __do_sys_sendto net/socket.c:2132 [inline]
+ __se_sys_sendto net/socket.c:2128 [inline]
+ __arm64_sys_sendto+0xd8/0xf8 net/socket.c:2128
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x98/0x2c0 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0x138/0x258 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x168 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+================================================================================

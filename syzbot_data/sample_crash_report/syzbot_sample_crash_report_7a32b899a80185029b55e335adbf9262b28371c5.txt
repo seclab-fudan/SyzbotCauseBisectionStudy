@@ -1,0 +1,75 @@
+REISERFS (device loop0): journal params: device loop0, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+REISERFS (device loop0): checking transaction log (loop0)
+REISERFS (device loop0): Using tea hash to sort names
+general protection fault, probably for non-canonical address 0xdffffc000000000d: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000068-0x000000000000006f]
+CPU: 0 PID: 6870 Comm: syz-executor567 Not tainted 5.9.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:d_really_is_negative include/linux/dcache.h:472 [inline]
+RIP: 0010:open_xa_root fs/reiserfs/xattr.c:124 [inline]
+RIP: 0010:open_xa_dir+0xf6/0x690 fs/reiserfs/xattr.c:152
+Code: 48 c1 ea 03 80 3c 02 00 0f 85 d2 04 00 00 4c 8b ad 98 05 00 00 48 b8 00 00 00 00 00 fc ff df 4d 8d 75 68 4c 89 f2 48 c1 ea 03 <80> 3c 02 00 0f 85 be 04 00 00 49 8b 6d 68 4c 89 04 24 48 85 ed 0f
+RSP: 0018:ffffc900026d7770 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: ffff88808534d7e0 RCX: ffffffff8200534e
+RDX: 000000000000000d RSI: ffffffff82002926 RDI: ffff88809e39b598
+RBP: ffff88809e39b000 R08: ffff8880931a6668 R09: ffff88808534d7f7
+R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff920004daef0
+R13: 0000000000000000 R14: 0000000000000068 R15: ffff8880931a6000
+FS:  0000000000a09880(0000) GS:ffff8880ae400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055dafd2a84a8 CR3: 00000000a3d25000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ xattr_lookup+0x21/0x3c0 fs/reiserfs/xattr.c:395
+ reiserfs_xattr_get+0x9d/0x9a0 fs/reiserfs/xattr.c:677
+ reiserfs_get_acl+0x57/0x660 fs/reiserfs/xattr_acl.c:209
+ get_acl fs/posix_acl.c:141 [inline]
+ get_acl+0x15c/0x360 fs/posix_acl.c:96
+ check_acl fs/namei.c:277 [inline]
+ acl_permission_check fs/namei.c:309 [inline]
+ generic_permission+0x437/0x550 fs/namei.c:353
+ reiserfs_permission+0x64/0x80 fs/reiserfs/xattr.c:953
+ do_inode_permission fs/namei.c:398 [inline]
+ inode_permission.part.0+0x270/0x410 fs/namei.c:463
+ inode_permission fs/namei.c:444 [inline]
+ lookup_one_len_common+0x279/0x3a0 fs/namei.c:2506
+ lookup_one_len+0xe6/0x190 fs/namei.c:2557
+ reiserfs_lookup_privroot+0x92/0x280 fs/reiserfs/xattr.c:972
+ reiserfs_fill_super+0x211b/0x2df3 fs/reiserfs/super.c:2176
+ mount_bdev+0x32e/0x3f0 fs/super.c:1417
+ legacy_get_tree+0x105/0x220 fs/fs_context.c:592
+ vfs_get_tree+0x89/0x2f0 fs/super.c:1547
+ do_new_mount fs/namespace.c:2875 [inline]
+ path_mount+0x1387/0x20a0 fs/namespace.c:3192
+ do_mount fs/namespace.c:3205 [inline]
+ __do_sys_mount fs/namespace.c:3413 [inline]
+ __se_sys_mount fs/namespace.c:3390 [inline]
+ __x64_sys_mount+0x27f/0x300 fs/namespace.c:3390
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x447dba
+Code: b8 08 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 7d a3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 5a a3 fb ff c3 66 0f 1f 84 00 00 00 00 00
+RSP: 002b:00007ffeebb723c8 EFLAGS: 00000297 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007ffeebb72420 RCX: 0000000000447dba
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007ffeebb723e0
+RBP: 00007ffeebb723e0 R08: 00007ffeebb72420 R09: 0000000000000000
+R10: 0000000000010000 R11: 0000000000000297 R12: 0000000000000007
+R13: 0000000000000004 R14: 0000000000000003 R15: 0000000000000003
+Modules linked in:
+---[ end trace b1df98a907ff27e6 ]---
+RIP: 0010:d_really_is_negative include/linux/dcache.h:472 [inline]
+RIP: 0010:open_xa_root fs/reiserfs/xattr.c:124 [inline]
+RIP: 0010:open_xa_dir+0xf6/0x690 fs/reiserfs/xattr.c:152
+Code: 48 c1 ea 03 80 3c 02 00 0f 85 d2 04 00 00 4c 8b ad 98 05 00 00 48 b8 00 00 00 00 00 fc ff df 4d 8d 75 68 4c 89 f2 48 c1 ea 03 <80> 3c 02 00 0f 85 be 04 00 00 49 8b 6d 68 4c 89 04 24 48 85 ed 0f
+RSP: 0018:ffffc900026d7770 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: ffff88808534d7e0 RCX: ffffffff8200534e
+RDX: 000000000000000d RSI: ffffffff82002926 RDI: ffff88809e39b598
+RBP: ffff88809e39b000 R08: ffff8880931a6668 R09: ffff88808534d7f7
+R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff920004daef0
+R13: 0000000000000000 R14: 0000000000000068 R15: ffff8880931a6000
+FS:  0000000000a09880(0000) GS:ffff8880ae400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055dafd2a84a8 CR3: 00000000a3d25000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

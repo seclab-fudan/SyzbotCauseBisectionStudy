@@ -1,0 +1,68 @@
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 0 PID: 2603 Comm: kworker/u4:4 Not tainted 5.3.0+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: writeback wb_workfn (flush-8:0)
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ assign_lock_key kernel/locking/lockdep.c:881 [inline]
+ register_lock_class+0x179e/0x1850 kernel/locking/lockdep.c:1190
+ __lock_acquire+0xf4/0x4e70 kernel/locking/lockdep.c:3837
+ lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4487
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:159
+ __wake_up_common_lock+0xc8/0x150 kernel/sched/wait.c:122
+ __wake_up+0xe/0x10 kernel/sched/wait.c:142
+ finish_writeback_work.isra.0+0xf6/0x120 fs/fs-writeback.c:168
+ wb_do_writeback fs/fs-writeback.c:2030 [inline]
+ wb_workfn+0x34f/0x11e0 fs/fs-writeback.c:2070
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 2603 Comm: kworker/u4:4 Not tainted 5.3.0+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: writeback wb_workfn (flush-8:0)
+RIP: 0010:__wake_up_common+0xdf/0x610 kernel/sched/wait.c:86
+Code: 05 00 00 4c 8b 43 38 49 83 e8 18 49 8d 78 18 48 39 7d d0 0f 84 64 02 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 f9 48 c1 e9 03 <80> 3c 01 00 0f 85 0b 05 00 00 49 8b 40 18 89 55 b0 31 db 49 bc 00
+RSP: 0018:ffff8880a1dc7a90 EFLAGS: 00010046
+RAX: dffffc0000000000 RBX: ffff888079642000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 1ffffffff138d60e RDI: 0000000000000000
+RBP: ffff8880a1dc7ae8 R08: ffffffffffffffe8 R09: ffff8880a1dc7b38
+R10: ffffed10143b8f4b R11: 0000000000000003 R12: 0000000000000000
+R13: 0000000000000286 R14: 0000000000000000 R15: 0000000000000003
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b2e620020 CR3: 00000000a3f3e000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __wake_up_common_lock+0xea/0x150 kernel/sched/wait.c:123
+ __wake_up+0xe/0x10 kernel/sched/wait.c:142
+ finish_writeback_work.isra.0+0xf6/0x120 fs/fs-writeback.c:168
+ wb_do_writeback fs/fs-writeback.c:2030 [inline]
+ wb_workfn+0x34f/0x11e0 fs/fs-writeback.c:2070
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+---[ end trace a54dff274d7cf269 ]---
+RIP: 0010:__wake_up_common+0xdf/0x610 kernel/sched/wait.c:86
+Code: 05 00 00 4c 8b 43 38 49 83 e8 18 49 8d 78 18 48 39 7d d0 0f 84 64 02 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 f9 48 c1 e9 03 <80> 3c 01 00 0f 85 0b 05 00 00 49 8b 40 18 89 55 b0 31 db 49 bc 00
+RSP: 0018:ffff8880a1dc7a90 EFLAGS: 00010046
+RAX: dffffc0000000000 RBX: ffff888079642000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 1ffffffff138d60e RDI: 0000000000000000
+RBP: ffff8880a1dc7ae8 R08: ffffffffffffffe8 R09: ffff8880a1dc7b38
+R10: ffffed10143b8f4b R11: 0000000000000003 R12: 0000000000000000
+R13: 0000000000000286 R14: 0000000000000000 R15: 0000000000000003
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b2e620020 CR3: 00000000a3f3e000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

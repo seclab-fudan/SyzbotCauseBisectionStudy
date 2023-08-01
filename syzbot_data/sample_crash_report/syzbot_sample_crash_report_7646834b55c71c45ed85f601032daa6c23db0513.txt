@@ -1,0 +1,168 @@
+usb 1-1: USB disconnect, device number 26
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x3d86/0x54a0 kernel/locking/lockdep.c:4885
+Read of size 8 at addr ffff88803aec4e28 by task kworker/0:2/2949
+
+CPU: 0 PID: 2949 Comm: kworker/0:2 Not tainted 5.14.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ print_address_description.constprop.0.cold+0x6c/0x2d6 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:436
+ __lock_acquire+0x3d86/0x54a0 kernel/locking/lockdep.c:4885
+ lock_acquire kernel/locking/lockdep.c:5625 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+ __raw_spin_lock_irq include/linux/spinlock_api_smp.h:128 [inline]
+ _raw_spin_lock_irq+0x32/0x50 kernel/locking/spinlock.c:167
+ do_wait_for_common kernel/sched/completion.c:86 [inline]
+ __wait_for_common kernel/sched/completion.c:106 [inline]
+ wait_for_common kernel/sched/completion.c:117 [inline]
+ wait_for_completion+0x181/0x280 kernel/sched/completion.c:138
+ r871xu_dev_remove+0x80/0x320 drivers/staging/rtl8712/usb_intf.c:599
+ usb_unbind_interface+0x1d8/0x8d0 drivers/usb/core/driver.c:458
+ __device_release_driver+0x3bd/0x6f0 drivers/base/dd.c:1201
+ device_release_driver_internal drivers/base/dd.c:1232 [inline]
+ device_release_driver+0x26/0x40 drivers/base/dd.c:1255
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:529
+ device_del+0x502/0xd40 drivers/base/core.c:3542
+ usb_disable_device+0x35b/0x7b0 drivers/usb/core/message.c:1419
+ usb_disconnect.cold+0x27a/0x78e drivers/usb/core/hub.c:2225
+ hub_port_connect drivers/usb/core/hub.c:5199 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5488 [inline]
+ port_event drivers/usb/core/hub.c:5634 [inline]
+ hub_event+0x1c9c/0x4330 drivers/usb/core/hub.c:5716
+ process_one_work+0x98d/0x1630 kernel/workqueue.c:2276
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2422
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Allocated by task 8480:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:513 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:472 [inline]
+ __kasan_kmalloc+0x98/0xc0 mm/kasan/common.c:522
+ kmalloc_node include/linux/slab.h:614 [inline]
+ kvmalloc_node+0xb4/0xf0 mm/util.c:587
+ kvmalloc include/linux/mm.h:806 [inline]
+ kvzalloc include/linux/mm.h:814 [inline]
+ alloc_netdev_mqs+0x98/0xe80 net/core/dev.c:10844
+ r8712_init_netdev+0x1d/0xe0 drivers/staging/rtl8712/os_intfs.c:202
+ r871xu_drv_init+0xba/0x440 drivers/staging/rtl8712/usb_intf.c:361
+ usb_probe_interface+0x315/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x23c/0xcd0 drivers/base/dd.c:595
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:747
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:777
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:894
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:965
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xc2f/0x2180 drivers/base/core.c:3354
+ usb_set_configuration+0x113a/0x1910 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd9/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x23c/0xcd0 drivers/base/dd.c:595
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:747
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:777
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:894
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:965
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xc2f/0x2180 drivers/base/core.c:3354
+ usb_new_device.cold+0x63f/0x108e drivers/usb/core/hub.c:2563
+ hub_port_connect drivers/usb/core/hub.c:5348 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5488 [inline]
+ port_event drivers/usb/core/hub.c:5634 [inline]
+ hub_event+0x2357/0x4330 drivers/usb/core/hub.c:5716
+ process_one_work+0x98d/0x1630 kernel/workqueue.c:2276
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2422
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Freed by task 8480:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:360
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free mm/kasan/common.c:328 [inline]
+ __kasan_slab_free+0xcd/0x100 mm/kasan/common.c:374
+ kasan_slab_free include/linux/kasan.h:230 [inline]
+ __cache_free mm/slab.c:3445 [inline]
+ kfree+0x106/0x2c0 mm/slab.c:3803
+ kvfree+0x42/0x50 mm/util.c:616
+ netdev_freemem net/core/dev.c:10798 [inline]
+ free_netdev+0x495/0x5b0 net/core/dev.c:10976
+ rtl871x_load_fw_cb drivers/staging/rtl8712/hal_init.c:46 [inline]
+ rtl871x_load_fw_cb.cold+0xf7/0x117 drivers/staging/rtl8712/hal_init.c:32
+ request_firmware_work_func+0x12c/0x230 drivers/base/firmware_loader/main.c:1081
+ process_one_work+0x98d/0x1630 kernel/workqueue.c:2276
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2422
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+The buggy address belongs to the object at ffff88803aec0000
+ which belongs to the cache kmalloc-32k of size 32768
+The buggy address is located 20008 bytes inside of
+ 32768-byte region [ffff88803aec0000, ffff88803aec8000)
+The buggy address belongs to the page:
+page:ffffea0000ebb000 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x3aec0
+head:ffffea0000ebb000 order:4 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffffea000105b408 ffffea000102f008 ffff888010840c00
+raw: 0000000000000000 ffff88803aec0000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 4, migratetype Unmovable, gfp_mask 0x2460c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_RETRY_MAYFAIL|__GFP_COMP|__GFP_THISNODE), pid 8480, ts 1260426872269, free_ts 1260389799235
+ prep_new_page mm/page_alloc.c:2436 [inline]
+ get_page_from_freelist+0xa72/0x2f80 mm/page_alloc.c:4169
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5391
+ __alloc_pages_node include/linux/gfp.h:570 [inline]
+ kmem_getpages mm/slab.c:1377 [inline]
+ cache_grow_begin+0x75/0x460 mm/slab.c:2593
+ cache_alloc_refill+0x27f/0x380 mm/slab.c:2965
+ ____cache_alloc mm/slab.c:3048 [inline]
+ ____cache_alloc mm/slab.c:3031 [inline]
+ slab_alloc_node mm/slab.c:3249 [inline]
+ kmem_cache_alloc_node_trace+0x4ca/0x5d0 mm/slab.c:3617
+ __do_kmalloc_node mm/slab.c:3639 [inline]
+ __kmalloc_node+0x38/0x60 mm/slab.c:3647
+ kmalloc_node include/linux/slab.h:614 [inline]
+ kvmalloc_node+0xb4/0xf0 mm/util.c:587
+ kvmalloc include/linux/mm.h:806 [inline]
+ kvzalloc include/linux/mm.h:814 [inline]
+ alloc_netdev_mqs+0x98/0xe80 net/core/dev.c:10844
+ r8712_init_netdev+0x1d/0xe0 drivers/staging/rtl8712/os_intfs.c:202
+ r871xu_drv_init+0xba/0x440 drivers/staging/rtl8712/usb_intf.c:361
+ usb_probe_interface+0x315/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x23c/0xcd0 drivers/base/dd.c:595
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:747
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:777
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:894
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1346 [inline]
+ __free_pages_ok+0x4d0/0xc00 mm/page_alloc.c:1649
+ slab_destroy mm/slab.c:1627 [inline]
+ drain_freelist.isra.0+0xc6/0x120 mm/slab.c:2219
+ cache_reap+0x1ba/0x290 mm/slab.c:4037
+ process_one_work+0x98d/0x1630 kernel/workqueue.c:2276
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2422
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Memory state around the buggy address:
+ ffff88803aec4d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88803aec4d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88803aec4e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                  ^
+ ffff88803aec4e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88803aec4f00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,78 @@
+8021q: adding VLAN 0 to HW filter on device batadv0
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 7852 Comm: syz-executor153 Not tainted 5.1.0-rc5+ #70
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:xs_net include/net/xfrm.h:253 [inline]
+RIP: 0010:xfrmi_decode_session net/xfrm/xfrm_interface.c:82 [inline]
+RIP: 0010:xfrmi_decode_session+0x15c/0x6c0 net/xfrm/xfrm_interface.c:73
+Code: 7c fc 08 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 2e 05 00 00 48 b8 00 00 00 00 00 fc ff df 4f 8b 64 fc 08 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 0f 85 01 05 00 00 4d 8b 3c 24 e8 01 94 51 fb e8 9c e7
+RSP: 0018:ffff88809c717130 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff88808f084940 RCX: ffffffff860ca3f3
+RDX: 0000000000000000 RSI: ffffffff860ca430 RDI: ffff88808f362c08
+RBP: ffff88809c717158 R08: ffff888094752380 R09: ffffed1015d25bc8
+R10: ffffed1015d25bc7 R11: ffff8880ae92de3b R12: 0000000000000000
+R13: 0000000000000035 R14: ffff88808f084950 R15: ffffffffffffffff
+FS:  0000000001175880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000110 CR3: 000000009fd7f000 CR4: 00000000001406e0
+Call Trace:
+ __xfrm_policy_check+0x1f8/0x2730 net/xfrm/xfrm_policy.c:3316
+ __xfrm_policy_check2 include/net/xfrm.h:1176 [inline]
+ xfrm_policy_check include/net/xfrm.h:1181 [inline]
+ xfrm4_policy_check include/net/xfrm.h:1186 [inline]
+ vti_input+0x4e3/0x7b0 net/ipv4/ip_vti.c:63
+ vti_rcv+0x10b/0x140 net/ipv4/ip_vti.c:109
+ xfrm4_esp_rcv+0xd8/0x240 net/ipv4/xfrm4_protocol.c:100
+ ip_protocol_deliver_rcu+0x60/0x8f0 net/ipv4/ip_input.c:208
+ ip_local_deliver_finish+0x23b/0x390 net/ipv4/ip_input.c:234
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ip_local_deliver+0x1e9/0x520 net/ipv4/ip_input.c:255
+ dst_input include/net/dst.h:450 [inline]
+ ip_rcv_finish+0x1e1/0x300 net/ipv4/ip_input.c:413
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ip_rcv+0xe8/0x3f0 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core+0x115/0x1a0 net/core/dev.c:4973
+ __netif_receive_skb+0x2c/0x1c0 net/core/dev.c:5085
+ netif_receive_skb_internal+0x117/0x660 net/core/dev.c:5188
+ napi_frags_finish net/core/dev.c:5755 [inline]
+ napi_gro_frags+0xade/0xd10 net/core/dev.c:5829
+ tun_get_user+0x2f24/0x3fb0 drivers/net/tun.c:1981
+ tun_chr_write_iter+0xbd/0x156 drivers/net/tun.c:2027
+ call_write_iter include/linux/fs.h:1866 [inline]
+ do_iter_readv_writev+0x5e1/0x8e0 fs/read_write.c:681
+ do_iter_write fs/read_write.c:957 [inline]
+ do_iter_write+0x184/0x610 fs/read_write.c:938
+ vfs_writev+0x1b3/0x2f0 fs/read_write.c:1002
+ do_writev+0x15e/0x370 fs/read_write.c:1037
+ __do_sys_writev fs/read_write.c:1110 [inline]
+ __se_sys_writev fs/read_write.c:1107 [inline]
+ __x64_sys_writev+0x75/0xb0 fs/read_write.c:1107
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441ff0
+Code: 05 48 3d 01 f0 ff ff 0f 83 3d 0f fc ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 83 3d 21 90 29 00 00 75 14 b8 14 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 14 0f fc ff c3 48 83 ec 08 e8 7a 2b 00 00
+RSP: 002b:00007ffcbc83b3b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 00007ffcbc83b3f0 RCX: 0000000000441ff0
+RDX: 0000000000000001 RSI: 00007ffcbc83b3f0 RDI: 00000000000000f0
+RBP: 0000000000000003 R08: 00000000bb1414ac R09: 00000000bb1414ac
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffcbc83b3c0
+R13: 0000000000403420 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+---[ end trace 9ee9eb0dfca58a58 ]---
+RIP: 0010:xs_net include/net/xfrm.h:253 [inline]
+RIP: 0010:xfrmi_decode_session net/xfrm/xfrm_interface.c:82 [inline]
+RIP: 0010:xfrmi_decode_session+0x15c/0x6c0 net/xfrm/xfrm_interface.c:73
+Code: 7c fc 08 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 2e 05 00 00 48 b8 00 00 00 00 00 fc ff df 4f 8b 64 fc 08 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 0f 85 01 05 00 00 4d 8b 3c 24 e8 01 94 51 fb e8 9c e7
+RSP: 0018:ffff88809c717130 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff88808f084940 RCX: ffffffff860ca3f3
+RDX: 0000000000000000 RSI: ffffffff860ca430 RDI: ffff88808f362c08
+RBP: ffff88809c717158 R08: ffff888094752380 R09: ffffed1015d25bc8
+R10: ffffed1015d25bc7 R11: ffff8880ae92de3b R12: 0000000000000000
+R13: 0000000000000035 R14: ffff88808f084950 R15: ffffffffffffffff
+FS:  0000000001175880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000110 CR3: 000000009fd7f000 CR4: 00000000001406e0

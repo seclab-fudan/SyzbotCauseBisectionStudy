@@ -1,0 +1,59 @@
+=====================================================
+BUG: KMSAN: uninit-value in __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline]
+BUG: KMSAN: uninit-value in INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline]
+BUG: KMSAN: uninit-value in IP_ECN_decapsulate include/net/inet_ecn.h:302 [inline]
+BUG: KMSAN: uninit-value in ip_tunnel_rcv+0xedc/0x2f60 net/ipv4/ip_tunnel.c:395
+ __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline]
+ INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline]
+ IP_ECN_decapsulate include/net/inet_ecn.h:302 [inline]
+ ip_tunnel_rcv+0xedc/0x2f60 net/ipv4/ip_tunnel.c:395
+ erspan_rcv net/ipv4/ip_gre.c:341 [inline]
+ gre_rcv+0x1647/0x1a30 net/ipv4/ip_gre.c:442
+ gre_rcv+0x2a0/0x390 net/ipv4/gre_demux.c:163
+ ip_protocol_deliver_rcu+0x260/0x1320 net/ipv4/ip_input.c:205
+ ip_local_deliver_finish+0x2a5/0x3a0 net/ipv4/ip_input.c:233
+ NF_HOOK include/linux/netfilter.h:302 [inline]
+ ip_local_deliver+0x278/0x4a0 net/ipv4/ip_input.c:254
+ dst_input include/net/dst.h:454 [inline]
+ ip_rcv_finish net/ipv4/ip_input.c:449 [inline]
+ NF_HOOK include/linux/netfilter.h:302 [inline]
+ ip_rcv+0x527/0x7c0 net/ipv4/ip_input.c:569
+ __netif_receive_skb_one_core net/core/dev.c:5482 [inline]
+ __netif_receive_skb+0x1b3/0x5d0 net/core/dev.c:5596
+ netif_receive_skb_internal+0x53/0x340 net/core/dev.c:5682
+ netif_receive_skb+0x35/0x350 net/core/dev.c:5741
+ tun_rx_batched+0x837/0x930
+ tun_get_user+0x3b07/0x4090 drivers/net/tun.c:1983
+ tun_chr_write_iter+0x3ab/0x5d0 drivers/net/tun.c:2029
+ call_write_iter include/linux/fs.h:2189 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x830/0x1570 fs/read_write.c:584
+ ksys_write+0x21b/0x4e0 fs/read_write.c:637
+ __do_sys_write fs/read_write.c:649 [inline]
+ __se_sys_write fs/read_write.c:646 [inline]
+ __x64_sys_write+0x8f/0xd0 fs/read_write.c:646
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was created at:
+ __alloc_pages+0x9f1/0xe80 mm/page_alloc.c:5572
+ alloc_pages+0xaae/0xd80 mm/mempolicy.c:2286
+ skb_page_frag_refill+0x128/0x7b0 net/core/sock.c:2865
+ tun_build_skb+0x170/0x1890 drivers/net/tun.c:1671
+ tun_get_user+0x123d/0x4090 drivers/net/tun.c:1811
+ tun_chr_write_iter+0x3ab/0x5d0 drivers/net/tun.c:2029
+ call_write_iter include/linux/fs.h:2189 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x830/0x1570 fs/read_write.c:584
+ ksys_write+0x21b/0x4e0 fs/read_write.c:637
+ __do_sys_write fs/read_write.c:649 [inline]
+ __se_sys_write fs/read_write.c:646 [inline]
+ __x64_sys_write+0x8f/0xd0 fs/read_write.c:646
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+CPU: 1 PID: 5037 Comm: syz-executor270 Not tainted 6.2.0-rc6-syzkaller-80422-geda666ff2276 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+=====================================================

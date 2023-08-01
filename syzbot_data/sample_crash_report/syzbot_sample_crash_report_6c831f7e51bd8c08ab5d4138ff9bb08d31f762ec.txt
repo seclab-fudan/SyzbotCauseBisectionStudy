@@ -1,0 +1,94 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.0.0-syzkaller #0 Not tainted
+------------------------------------------------------
+kworker/u4:3/52 is trying to acquire lock:
+ffff88807d3600e8 ((work_completion)(&(&cp->cp_send_w)->work)){+.+.}-{0:0}, at: __flush_work+0xdd/0xae0 kernel/workqueue.c:3066
+
+but task is already holding lock:
+ffff888017540df0 (k-sk_lock-AF_INET6){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1712 [inline]
+ffff888017540df0 (k-sk_lock-AF_INET6){+.+.}-{0:0}, at: rds_tcp_reset_callbacks+0x1bf/0x4d0 net/rds/tcp.c:169
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (k-sk_lock-AF_INET6){+.+.}-{0:0}:
+       lock_sock_nested+0x36/0xf0 net/core/sock.c:3393
+       lock_sock include/net/sock.h:1712 [inline]
+       tcp_sock_set_cork+0x16/0x90 net/ipv4/tcp.c:3337
+       rds_send_xmit+0x386/0x2540 net/rds/send.c:194
+       rds_send_worker+0x92/0x2e0 net/rds/threads.c:200
+       process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+       worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+       kthread+0x2e4/0x3a0 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+-> #0 ((work_completion)(&(&cp->cp_send_w)->work)){+.+.}-{0:0}:
+       check_prev_add kernel/locking/lockdep.c:3095 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3214 [inline]
+       validate_chain kernel/locking/lockdep.c:3829 [inline]
+       __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5053
+       lock_acquire kernel/locking/lockdep.c:5666 [inline]
+       lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
+       __flush_work+0x105/0xae0 kernel/workqueue.c:3069
+       __cancel_work_timer+0x3f9/0x570 kernel/workqueue.c:3160
+       rds_tcp_reset_callbacks+0x1cb/0x4d0 net/rds/tcp.c:171
+       rds_tcp_accept_one+0x9d5/0xd10 net/rds/tcp_listen.c:203
+       rds_tcp_accept_worker+0x55/0x80 net/rds/tcp.c:529
+       process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+       worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+       kthread+0x2e4/0x3a0 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(k-sk_lock-AF_INET6);
+                               lock((work_completion)(&(&cp->cp_send_w)->work));
+                               lock(k-sk_lock-AF_INET6);
+  lock((work_completion)(&(&cp->cp_send_w)->work));
+
+ *** DEADLOCK ***
+
+4 locks held by kworker/u4:3/52:
+ #0: ffff888026df9138 ((wq_completion)krdsd){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888026df9138 ((wq_completion)krdsd){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888026df9138 ((wq_completion)krdsd){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888026df9138 ((wq_completion)krdsd){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff888026df9138 ((wq_completion)krdsd){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff888026df9138 ((wq_completion)krdsd){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc90000bd7da8 ((work_completion)(&rtn->rds_tcp_accept_w)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffff88801fd86088 (&tc->t_conn_path_lock){+.+.}-{3:3}, at: rds_tcp_accept_one+0x892/0xd10 net/rds/tcp_listen.c:195
+ #3: ffff888017540df0 (k-sk_lock-AF_INET6){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1712 [inline]
+ #3: ffff888017540df0 (k-sk_lock-AF_INET6){+.+.}-{0:0}, at: rds_tcp_reset_callbacks+0x1bf/0x4d0 net/rds/tcp.c:169
+
+stack backtrace:
+CPU: 0 PID: 52 Comm: kworker/u4:3 Not tainted 6.0.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Workqueue: krdsd rds_tcp_accept_worker
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2175
+ check_prev_add kernel/locking/lockdep.c:3095 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3214 [inline]
+ validate_chain kernel/locking/lockdep.c:3829 [inline]
+ __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5053
+ lock_acquire kernel/locking/lockdep.c:5666 [inline]
+ lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
+ __flush_work+0x105/0xae0 kernel/workqueue.c:3069
+ __cancel_work_timer+0x3f9/0x570 kernel/workqueue.c:3160
+ rds_tcp_reset_callbacks+0x1cb/0x4d0 net/rds/tcp.c:171
+ rds_tcp_accept_one+0x9d5/0xd10 net/rds/tcp_listen.c:203
+ rds_tcp_accept_worker+0x55/0x80 net/rds/tcp.c:529
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>

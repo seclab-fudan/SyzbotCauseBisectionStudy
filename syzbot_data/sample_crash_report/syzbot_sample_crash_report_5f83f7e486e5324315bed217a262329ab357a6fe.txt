@@ -1,0 +1,378 @@
+xs_tcp_setup_socket: connect returned unhandled error -113
+xs_tcp_setup_socket: connect returned unhandled error -113
+xs_tcp_setup_socket: connect returned unhandled error -113
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.14.0-rc5-mm1+ #20 Not tainted
+------------------------------------------------------
+kworker/0:3/3820 is trying to acquire lock:
+ ("xprtiod"){+.+.}, at: [<ffffffff8146adda>] start_flush_work kernel/workqueue.c:2850 [inline]
+ ("xprtiod"){+.+.}, at: [<ffffffff8146adda>] flush_work+0x55a/0x8a0 kernel/workqueue.c:2882
+
+but task is already holding lock:
+ ((&task->u.tk_work)){+.+.}, at: [<ffffffff81471eb2>] process_one_work+0xb32/0x1bc0 kernel/workqueue.c:2087
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 ((&task->u.tk_work)){+.+.}:
+       process_one_work+0xba2/0x1bc0 kernel/workqueue.c:2088
+       worker_thread+0x223/0x1990 kernel/workqueue.c:2246
+       kthread+0x38b/0x470 kernel/kthread.c:242
+       ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+
+-> #0 ("xprtiod"){+.+.}:
+       lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3991
+       start_flush_work kernel/workqueue.c:2851 [inline]
+       flush_work+0x57f/0x8a0 kernel/workqueue.c:2882
+       __cancel_work_timer+0x30a/0x7e0 kernel/workqueue.c:2954
+       cancel_work_sync+0x17/0x20 kernel/workqueue.c:2990
+       xprt_destroy+0xa1/0x130 net/sunrpc/xprt.c:1467
+       xprt_destroy_kref net/sunrpc/xprt.c:1477 [inline]
+       kref_put include/linux/kref.h:70 [inline]
+       xprt_put+0x38/0x40 net/sunrpc/xprt.c:1501
+       rpc_task_release_client+0x299/0x430 net/sunrpc/clnt.c:986
+       rpc_release_resources_task+0x7f/0xa0 net/sunrpc/sched.c:1020
+       rpc_release_task net/sunrpc/sched.c:1059 [inline]
+       __rpc_execute+0x4d9/0xe70 net/sunrpc/sched.c:824
+       rpc_async_schedule+0x16/0x20 net/sunrpc/sched.c:848
+       process_one_work+0xbf0/0x1bc0 kernel/workqueue.c:2112
+       worker_thread+0x223/0x1990 kernel/workqueue.c:2246
+       kthread+0x38b/0x470 kernel/kthread.c:242
+       ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock((&task->u.tk_work));
+                               lock("xprtiod");
+                               lock((&task->u.tk_work));
+  lock("xprtiod");
+
+ *** DEADLOCK ***
+
+2 locks held by kworker/0:3/3820:
+ #0:  ("rpciod"){+.+.}, at: [<ffffffff81471e5f>] __write_once_size include/linux/compiler.h:305 [inline]
+ #0:  ("rpciod"){+.+.}, at: [<ffffffff81471e5f>] atomic64_set arch/x86/include/asm/atomic64_64.h:33 [inline]
+ #0:  ("rpciod"){+.+.}, at: [<ffffffff81471e5f>] atomic_long_set include/asm-generic/atomic-long.h:56 [inline]
+ #0:  ("rpciod"){+.+.}, at: [<ffffffff81471e5f>] set_work_data kernel/workqueue.c:618 [inline]
+ #0:  ("rpciod"){+.+.}, at: [<ffffffff81471e5f>] set_work_pool_and_clear_pending kernel/workqueue.c:645 [inline]
+ #0:  ("rpciod"){+.+.}, at: [<ffffffff81471e5f>] process_one_work+0xadf/0x1bc0 kernel/workqueue.c:2083
+ #1:  ((&task->u.tk_work)){+.+.}, at: [<ffffffff81471eb2>] process_one_work+0xb32/0x1bc0 kernel/workqueue.c:2087
+
+stack backtrace:
+CPU: 0 PID: 3820 Comm: kworker/0:3 Not tainted 4.14.0-rc5-mm1+ #20
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: rpciod rpc_async_schedule
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_circular_bug.isra.41+0x342/0x36a kernel/locking/lockdep.c:1258
+ check_prev_add kernel/locking/lockdep.c:1901 [inline]
+ check_prevs_add kernel/locking/lockdep.c:2018 [inline]
+ validate_chain kernel/locking/lockdep.c:2460 [inline]
+ __lock_acquire+0x2f55/0x3d50 kernel/locking/lockdep.c:3487
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3991
+ start_flush_work kernel/workqueue.c:2851 [inline]
+ flush_work+0x57f/0x8a0 kernel/workqueue.c:2882
+ __cancel_work_timer+0x30a/0x7e0 kernel/workqueue.c:2954
+ cancel_work_sync+0x17/0x20 kernel/workqueue.c:2990
+ xprt_destroy+0xa1/0x130 net/sunrpc/xprt.c:1467
+ xprt_destroy_kref net/sunrpc/xprt.c:1477 [inline]
+ kref_put include/linux/kref.h:70 [inline]
+ xprt_put+0x38/0x40 net/sunrpc/xprt.c:1501
+ rpc_task_release_client+0x299/0x430 net/sunrpc/clnt.c:986
+ rpc_release_resources_task+0x7f/0xa0 net/sunrpc/sched.c:1020
+ rpc_release_task net/sunrpc/sched.c:1059 [inline]
+ __rpc_execute+0x4d9/0xe70 net/sunrpc/sched.c:824
+ rpc_async_schedule+0x16/0x20 net/sunrpc/sched.c:848
+ process_one_work+0xbf0/0x1bc0 kernel/workqueue.c:2112
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2246
+ kthread+0x38b/0x470 kernel/kthread.c:242
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+QAT: Invalid ioctl
+QAT: Invalid ioctl
+QAT: Invalid ioctl
+QAT: Invalid ioctl
+*** Guest State ***
+CR0: actual=0x0000000080000031, shadow=0x0000000060000010, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002051, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+QAT: Invalid ioctl
+QAT: Invalid ioctl
+CR3 = 0x00000000fffbc000
+RSP = 0x000000000000fffa  RIP = 0x0000000000000000
+RFLAGS=0x00033000         DR7 = 0x0000000000000400
+QAT: Invalid ioctl
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+DS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+ES:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+QAT: Invalid ioctl
+GDTR:                           limit=0x0000ffff, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x00082, limit=0x0000ffff, base=0x0000000000000000
+IDTR:                           limit=0x0000ffff, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x0008b, limit=0x00002088, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811b9453  RSP = 0xffff8801c67bf4c8
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007f1a34fb3700 GSBase=ffff8801db300000 TRBase=ffff8801db322d40
+GDTBase=ffffffffff576000 IDTBase=ffffffffff57b000
+CR0=0000000080050033 CR3=00000001c3ee5000 CR4=00000000001426e0
+Sysenter RSP=0000000000000000 CS:RIP=0010:ffffffff84e590f0
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b6a1edfa SecondaryExec=00000043
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=ffffbfff PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffff93c1db7b71
+TPR Threshold = 0x00
+EPT pointer = 0x000000019d00201e
+*** Guest State ***
+CR0: actual=0x0000000080000031, shadow=0x0000000060000010, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002051, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x000000000000fffa  RIP = 0x0000000000000000
+RFLAGS=0x00033000         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+DS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+ES:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GDTR:                           limit=0x0000ffff, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x00082, limit=0x0000ffff, base=0x0000000000000000
+IDTR:                           limit=0x0000ffff, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x0008b, limit=0x00002088, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811b9453  RSP = 0xffff8801cb8b74c8
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007f1a34fb3700 GSBase=ffff8801db200000 TRBase=ffff8801db322d40
+GDTBase=ffffffffff576000 IDTBase=ffffffffff57b000
+CR0=0000000080050033 CR3=00000001cbb5d000 CR4=00000000001426f0
+Sysenter RSP=0000000000000000 CS:RIP=0010:ffffffff84e590f0
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b6a1edfa SecondaryExec=00000043
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=ffffbfff PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffff92e5540734
+TPR Threshold = 0x00
+EPT pointer = 0x00000001d433b01e
+*** Guest State ***
+CR0: actual=0x0000000080000031, shadow=0x0000000060000010, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002051, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x000000000000fffa  RIP = 0x0000000000000000
+RFLAGS=0x00033000         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+DS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+ES:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GDTR:                           limit=0x0000ffff, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x00082, limit=0x0000ffff, base=0x0000000000000000
+IDTR:                           limit=0x0000ffff, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x0008b, limit=0x00002088, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811b9453  RSP = 0xffff8801c160f4c8
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007f1a34fb3700 GSBase=ffff8801db200000 TRBase=ffff8801db322d40
+GDTBase=ffffffffff576000 IDTBase=ffffffffff57b000
+CR0=0000000080050033 CR3=00000001c1e49000 CR4=00000000001426f0
+Sysenter RSP=0000000000000000 CS:RIP=0010:ffffffff84e590f0
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b6a1edfa SecondaryExec=00000043
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=ffffbfff PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffff921b278ff9
+TPR Threshold = 0x00
+EPT pointer = 0x00000001d26c201e
+*** Guest State ***
+CR0: actual=0x0000000080000031, shadow=0x0000000060000010, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002051, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x000000000000fffa  RIP = 0x0000000000000000
+RFLAGS=0x00033000         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+DS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+ES:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GDTR:                           limit=0x0000ffff, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x00082, limit=0x0000ffff, base=0x0000000000000000
+IDTR:                           limit=0x0000ffff, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x0008b, limit=0x00002088, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811b9453  RSP = 0xffff8801cd58f4c8
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007f1a34fb3700 GSBase=ffff8801db300000 TRBase=ffff8801db222d40
+GDTBase=ffffffffff577000 IDTBase=ffffffffff57b000
+CR0=0000000080050033 CR3=00000001d317f000 CR4=00000000001426e0
+Sysenter RSP=0000000000000000 CS:RIP=0010:ffffffff84e590f0
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b6a1edfa SecondaryExec=00000043
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=ffffbfff PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffff91d9b9078c
+TPR Threshold = 0x00
+EPT pointer = 0x00000001cc03f01e
+*** Guest State ***
+CR0: actual=0x0000000080000031, shadow=0x0000000060000010, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002051, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x000000000000fffa  RIP = 0x0000000000000000
+RFLAGS=0x00033000         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+DS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+ES:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GDTR:                           limit=0x0000ffff, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x00082, limit=0x0000ffff, base=0x0000000000000000
+IDTR:                           limit=0x0000ffff, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x0008b, limit=0x00002088, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811b9453  RSP = 0xffff8801c72474c8
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007f1a34fb4700 GSBase=ffff8801db300000 TRBase=ffff8801db322d40
+GDTBase=ffffffffff576000 IDTBase=ffffffffff57b000
+CR0=0000000080050033 CR3=000000019a934000 CR4=00000000001426e0
+Sysenter RSP=0000000000000000 CS:RIP=0010:ffffffff84e590f0
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b699edfa SecondaryExec=00000042
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=ffffbfff PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffff918c4e7f87
+EPT pointer = 0x00000001c1dfb01e
+*** Guest State ***
+CR0: actual=0x0000000080000031, shadow=0x0000000060000010, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002051, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x000000000000fffa  RIP = 0x0000000000000000
+RFLAGS=0x00033000         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+DS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+ES:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GDTR:                           limit=0x0000ffff, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x00082, limit=0x0000ffff, base=0x0000000000000000
+IDTR:                           limit=0x0000ffff, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x0008b, limit=0x00002088, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811b9453  RSP = 0xffff8801d28474c8
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007f1a34fb3700 GSBase=ffff8801db300000 TRBase=ffff8801db322d40
+GDTBase=ffffffffff576000 IDTBase=ffffffffff57b000
+CR0=0000000080050033 CR3=00000001d32b4000 CR4=00000000001426e0
+Sysenter RSP=0000000000000000 CS:RIP=0010:ffffffff84e590f0
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b6a1edfa SecondaryExec=00000043
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=ffffbfff PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffff90e4479991
+TPR Threshold = 0x00
+EPT pointer = 0x00000001d32bc01e
+*** Guest State ***
+CR0: actual=0x0000000080000031, shadow=0x0000000060000010, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002051, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x000000000000fffa  RIP = 0x0000000000000000
+RFLAGS=0x00033000         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+DS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+ES:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x000f3, limit=0x0000ffff, base=0x0000000000000000
+GDTR:                           limit=0x0000ffff, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x00082, limit=0x0000ffff, base=0x0000000000000000
+IDTR:                           limit=0x0000ffff, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x0008b, limit=0x00002088, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811b9453  RSP = 0xffff8801d28474c8
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007f1a34fb3700 GSBase=ffff8801db300000 TRBase=ffff8801db322d40
+GDTBase=ffffffffff576000 IDTBase=ffffffffff57b000
+CR0=0000000080050033 CR3=00000001d32b4000 CR4=00000000001426e0
+Sysenter RSP=0000000000000000 CS:RIP=0010:ffffffff84e590f0
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b6a1edfa SecondaryExec=00000043
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=ffffbfff PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffff90b0b2cf23
+TPR Threshold = 0x00
+EPT pointer = 0x00000001c069e01e

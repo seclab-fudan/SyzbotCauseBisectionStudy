@@ -1,0 +1,84 @@
+8<--- cut here ---
+Unable to handle kernel paging request at virtual address 5bd2a000
+[5bd2a000] *pgd=80000080005003, *pmd=00000000
+Internal error: Oops: 206 [#1] PREEMPT SMP ARM
+Modules linked in:
+CPU: 0 PID: 21137 Comm: kworker/0:3 Not tainted 6.1.0-rc2-syzkaller #0
+Hardware name: ARM-Versatile Express
+Workqueue: events free_ipc
+PC is at percpu_counter_add_batch+0x38/0x108 lib/percpu_counter.c:87
+LR is at __this_cpu_preempt_check+0x1c/0x20 lib/smp_processor_id.c:66
+pc : [<80810214>]    lr : [<81756784>]    psr: 20000113
+sp : eb335e28  ip : eb335e18  fp : eb335e4c
+r10: 83f57608  r9 : 7fffffff  r8 : 852d9d2c
+r7 : 7fffffff  r6 : ffffffff  r5 : 83f57608  r4 : ffffffff
+r3 : 5bd2a000  r2 : ffffffff  r1 : 00000000  r0 : 00000000
+Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+Control: 30c5387d  Table: 85dbcc00  DAC: fffffffd
+Register r0 information: NULL pointer
+Register r1 information: NULL pointer
+Register r2 information: non-paged memory
+Register r3 information: non-paged memory
+Register r4 information: non-paged memory
+Register r5 information: slab kmalloc-cg-1k start 83f57400 pointer offset 520 size 1024
+Register r6 information: non-paged memory
+Register r7 information: non-paged memory
+Register r8 information: slab kmalloc-cg-192 start 852d9cc0 pointer offset 108 size 192
+Register r9 information: non-paged memory
+Register r10 information: slab kmalloc-cg-1k start 83f57400 pointer offset 520 size 1024
+Register r11 information: 2-page vmalloc region starting at 0xeb334000 allocated at kernel_clone+0x9c/0x3f4 kernel/fork.c:2671
+Register r12 information: 2-page vmalloc region starting at 0xeb334000 allocated at kernel_clone+0x9c/0x3f4 kernel/fork.c:2671
+Process kworker/0:3 (pid: 21137, stack limit = 0xeb334000)
+Stack: (0xeb335e28 to 0xeb336000)
+5e20:                   852d9c00 852d9d2c 852d9cc0 83f57400 852d9d2c 7fffffff
+5e40: eb335e94 eb335e50 80663838 808101e8 7fffffff 802a0f18 0000002f 00000001
+5e60: eb335e5c ee1b8040 83f574b8 00000001 83f574b8 0000002f 83f57400 80663768
+5e80: 00000000 852d9cc0 eb335ecc eb335e98 8066ed08 80663774 eb335ebc 83f574a0
+5ea0: 80810168 83f57400 00000000 dddd4a40 dddd8200 00000010 85da6780 dddd8215
+5ec0: eb335ee4 eb335ed0 80664d48 8066eca0 83f57400 00000000 eb335efc eb335ee8
+5ee0: 8066e834 80664d20 8232cd6c 853db100 eb335f44 eb335f00 802611c0 8066e7bc
+5f00: 80275518 802a0f18 eb335f2c eb335f18 80262ea4 00000000 dddd4a40 853db100
+5f20: dddd4a40 853db118 dddd4a5c 82204d40 00000008 dddd4a40 eb335f84 eb335f48
+5f40: 802615cc 80260fc0 eb335f64 81cffe50 823d7b4e 85da6780 eb335f84 8503c200
+5f60: 85da6780 80261560 853db100 8528c140 ed6e9e8c 00000000 eb335fac eb335f88
+5f80: 80269b24 8026156c 8503c200 80269a38 00000000 00000000 00000000 00000000
+5fa0: 00000000 eb335fb0 80200100 80269a44 00000000 00000000 00000000 00000000
+5fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+5fe0: 00000000 00000000 00000000 00000000 00000013 00000000 00000000 00000000
+Backtrace: 
+[<808101dc>] (percpu_counter_add_batch) from [<80663838>] (percpu_counter_add_local include/linux/percpu_counter.h:75 [inline])
+[<808101dc>] (percpu_counter_add_batch) from [<80663838>] (percpu_counter_sub_local include/linux/percpu_counter.h:225 [inline])
+[<808101dc>] (percpu_counter_add_batch) from [<80663838>] (freeque+0xd0/0x16c ipc/msg.c:289)
+ r9:7fffffff r8:852d9d2c r7:83f57400 r6:852d9cc0 r5:852d9d2c r4:852d9c00
+[<80663768>] (freeque) from [<8066ed08>] (free_ipcs+0x74/0x90 ipc/namespace.c:125)
+ r10:852d9cc0 r9:00000000 r8:80663768 r7:83f57400 r6:0000002f r5:83f574b8
+ r4:00000001
+[<8066ec94>] (free_ipcs) from [<80664d48>] (msg_exit_ns+0x34/0x48 ipc/msg.c:1334)
+ r10:dddd8215 r9:85da6780 r8:00000010 r7:dddd8200 r6:dddd4a40 r5:00000000
+ r4:83f57400
+[<80664d14>] (msg_exit_ns) from [<8066e834>] (free_ipc_ns ipc/namespace.c:138 [inline])
+[<80664d14>] (msg_exit_ns) from [<8066e834>] (free_ipc+0x84/0xfc ipc/namespace.c:157)
+ r5:00000000 r4:83f57400
+[<8066e7b0>] (free_ipc) from [<802611c0>] (process_one_work+0x20c/0x5ac kernel/workqueue.c:2289)
+ r5:853db100 r4:8232cd6c
+[<80260fb4>] (process_one_work) from [<802615cc>] (worker_thread+0x6c/0x4e0 kernel/workqueue.c:2436)
+ r10:dddd4a40 r9:00000008 r8:82204d40 r7:dddd4a5c r6:853db118 r5:dddd4a40
+ r4:853db100
+[<80261560>] (worker_thread) from [<80269b24>] (kthread+0xec/0x11c kernel/kthread.c:376)
+ r10:00000000 r9:ed6e9e8c r8:8528c140 r7:853db100 r6:80261560 r5:85da6780
+ r4:8503c200
+[<80269a38>] (kthread) from [<80200100>] (ret_from_fork+0x14/0x34 arch/arm/kernel/entry-common.S:148)
+Exception stack(0xeb335fb0 to 0xeb335ff8)
+5fa0:                                     00000000 00000000 00000000 00000000
+5fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+5fe0: 00000000 00000000 00000000 00000000 00000013 00000000
+ r9:00000000 r8:00000000 r7:00000000 r6:00000000 r5:80269a38 r4:8503c200
+Code: e34801ec eb3d1956 e5951018 ee1d3f90 (e7918003) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	e34801ec 	movt	r0, #33260	; 0x81ec
+   4:	eb3d1956 	bl	0xf46564
+   8:	e5951018 	ldr	r1, [r5, #24]
+   c:	ee1d3f90 	mrc	15, 0, r3, cr13, cr0, {4}
+* 10:	e7918003 	ldr	r8, [r1, r3] <-- trapping instruction

@@ -1,0 +1,43 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in test_and_set_bit include/asm-generic/bitops-instrumented.h:143 [inline]
+BUG: KASAN: null-ptr-deref in queue_work_on+0xa6/0x1b0 kernel/workqueue.c:1517
+Write of size 8 at addr 0000000000000050 by task syz-executor618/8958
+
+CPU: 1 PID: 8958 Comm: syz-executor618 Not tainted 5.3.0-rc4+ #79
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d8/0x2f8 lib/dump_stack.c:113
+ __kasan_report+0x169/0x1c0 mm/kasan/report.c:486
+ kasan_report+0x26/0x50 mm/kasan/common.c:612
+ check_memory_region_inline mm/kasan/generic.c:182 [inline]
+ check_memory_region+0x2cf/0x2e0 mm/kasan/generic.c:192
+ __kasan_check_write+0x14/0x20 mm/kasan/common.c:98
+ test_and_set_bit include/asm-generic/bitops-instrumented.h:143 [inline]
+ queue_work_on+0xa6/0x1b0 kernel/workqueue.c:1517
+ queue_work include/linux/workqueue.h:490 [inline]
+ schedule_work include/linux/workqueue.h:548 [inline]
+ slcan_write_wakeup+0x6f/0x80 drivers/net/can/slcan.c:348
+ tty_wakeup+0xb7/0x100 drivers/tty/tty_io.c:535
+ pty_unthrottle+0x3c/0x60 drivers/tty/pty.c:95
+ tty_unthrottle drivers/tty/tty_ioctl.c:139 [inline]
+ __tty_perform_flush drivers/tty/tty_ioctl.c:861 [inline]
+ n_tty_ioctl_helper+0x47c/0x670 drivers/tty/tty_ioctl.c:937
+ n_tty_ioctl+0x176/0x330 drivers/tty/n_tty.c:2466
+ tty_ioctl+0xf83/0x15c0 drivers/tty/tty_io.c:2666
+ do_vfs_ioctl+0x744/0x1730 fs/ioctl.c:46
+ ksys_ioctl fs/ioctl.c:713 [inline]
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0xe3/0x120 fs/ioctl.c:718
+ do_syscall_64+0xfe/0x140 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x446859
+Code: e8 9c b4 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb 07 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fafebc91d18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000006dbc38 RCX: 0000000000446859
+RDX: 0000000000000000 RSI: 000000000000540b RDI: 0000000000000003
+RBP: 00000000006dbc30 R08: 00007fafebc92700 R09: 0000000000000000
+R10: 00007fafebc92700 R11: 0000000000000246 R12: 00000000006dbc3c
+R13: 00007ffd75b65dcf R14: 00007fafebc929c0 R15: 20c49ba5e353f7cf
+==================================================================

@@ -1,0 +1,156 @@
+INFO: task syz-executor844:9965 blocked for more than 143 seconds.
+      Not tainted 5.5.0-rc3-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor844 D27416  9965   9964 0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:3385 [inline]
+ __schedule+0x934/0x1f90 kernel/sched/core.c:4081
+ schedule+0xdc/0x2b0 kernel/sched/core.c:4155
+ io_schedule+0x1c/0x70 kernel/sched/core.c:5799
+ wait_on_page_bit_common mm/filemap.c:1175 [inline]
+ wait_on_page_bit+0x27c/0xa60 mm/filemap.c:1224
+ wait_on_page_writeback+0x1b2/0x4f0 mm/page-writeback.c:2822
+ __filemap_fdatawait_range+0x145/0x340 mm/filemap.c:526
+ filemap_fdatawait_keep_errors+0x22/0x30 mm/filemap.c:621
+ wait_sb_inodes fs/fs-writeback.c:2436 [inline]
+ sync_inodes_sb+0x6e4/0xb50 fs/fs-writeback.c:2558
+ __sync_filesystem fs/sync.c:34 [inline]
+ sync_filesystem fs/sync.c:67 [inline]
+ sync_filesystem+0x168/0x260 fs/sync.c:48
+ generic_shutdown_super+0x75/0x370 fs/super.c:448
+ kill_block_super+0xa0/0x100 fs/super.c:1444
+ deactivate_locked_super+0x95/0x100 fs/super.c:335
+ deactivate_super fs/super.c:366 [inline]
+ deactivate_super+0x1b2/0x1d0 fs/super.c:362
+ cleanup_mnt+0x351/0x4c0 fs/namespace.c:1102
+ __cleanup_mnt+0x16/0x20 fs/namespace.c:1109
+ task_work_run+0x145/0x1c0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x316/0x380 arch/x86/entry/common.c:164
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:278 [inline]
+ do_syscall_64+0x676/0x790 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4488e7
+Code: Bad RIP value.
+RSP: 002b:00007ffdb2348d48 EFLAGS: 00000202 ORIG_RAX: 00000000000000a6
+RAX: 0000000000000000 RBX: 00000000000bacdb RCX: 00000000004488e7
+RDX: 0000000000400dc7 RSI: 0000000000000002 RDI: 00007ffdb2348df0
+RBP: 0000000000003c60 R08: 0000000000000000 R09: 000000000000000b
+R10: 0000000000000005 R11: 0000000000000202 R12: 00007ffdb2349e50
+R13: 0000000000cd5940 R14: 0000000000000000 R15: 0000000000000000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1108:
+ #0: ffffffff899a5680 (rcu_read_lock){....}, at: debug_show_all_locks+0x5f/0x279 kernel/locking/lockdep.c:5334
+2 locks held by rsyslogd/9815:
+ #0: ffff88809a8a1420 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0xee/0x110 fs/file.c:801
+ #1: ffff8880ae937358 (&rq->lock){-.-.}, at: rq_lock kernel/sched/sched.h:1215 [inline]
+ #1: ffff8880ae937358 (&rq->lock){-.-.}, at: __schedule+0x232/0x1f90 kernel/sched/core.c:4029
+2 locks held by getty/9937:
+ #0: ffff888097d12090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc900018532e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/9938:
+ #0: ffff888096dad090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc900018932e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/9939:
+ #0: ffff888096cc1090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc900018b32e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/9940:
+ #0: ffff888094579090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc900018332e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/9941:
+ #0: ffff88809fc55090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc900018a32e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/9942:
+ #0: ffff8880a2cc7090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc900018832e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/9943:
+ #0: ffff888215064090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc900011402e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by syz-executor844/9965:
+ #0: ffff88809f2b60d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super fs/super.c:365 [inline]
+ #0: ffff88809f2b60d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super+0x1aa/0x1d0 fs/super.c:362
+ #1: ffff88809f2b68b8 (&s->s_sync_lock){+.+.}, at: wait_sb_inodes fs/fs-writeback.c:2375 [inline]
+ #1: ffff88809f2b68b8 (&s->s_sync_lock){+.+.}, at: sync_inodes_sb+0x246/0xb50 fs/fs-writeback.c:2558
+2 locks held by syz-executor844/9966:
+ #0: ffff88807cc040d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super fs/super.c:365 [inline]
+ #0: ffff88807cc040d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super+0x1aa/0x1d0 fs/super.c:362
+ #1: ffff88807cc048b8 (&s->s_sync_lock){+.+.}, at: wait_sb_inodes fs/fs-writeback.c:2375 [inline]
+ #1: ffff88807cc048b8 (&s->s_sync_lock){+.+.}, at: sync_inodes_sb+0x246/0xb50 fs/fs-writeback.c:2558
+2 locks held by syz-executor844/9967:
+ #0: ffff8880933800d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super fs/super.c:365 [inline]
+ #0: ffff8880933800d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super+0x1aa/0x1d0 fs/super.c:362
+ #1: ffff8880933808b8 (&s->s_sync_lock){+.+.}, at: wait_sb_inodes fs/fs-writeback.c:2375 [inline]
+ #1: ffff8880933808b8 (&s->s_sync_lock){+.+.}, at: sync_inodes_sb+0x246/0xb50 fs/fs-writeback.c:2558
+2 locks held by syz-executor844/9968:
+ #0: ffff88808d1740d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super fs/super.c:365 [inline]
+ #0: ffff88808d1740d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super+0x1aa/0x1d0 fs/super.c:362
+ #1: ffff88808d1748b8 (&s->s_sync_lock){+.+.}, at: wait_sb_inodes fs/fs-writeback.c:2375 [inline]
+ #1: ffff88808d1748b8 (&s->s_sync_lock){+.+.}, at: sync_inodes_sb+0x246/0xb50 fs/fs-writeback.c:2558
+2 locks held by syz-executor844/9969:
+ #0: ffff88809519e0d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super fs/super.c:365 [inline]
+ #0: ffff88809519e0d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super+0x1aa/0x1d0 fs/super.c:362
+ #1: ffff88809519e8b8 (&s->s_sync_lock){+.+.}, at: wait_sb_inodes fs/fs-writeback.c:2375 [inline]
+ #1: ffff88809519e8b8 (&s->s_sync_lock){+.+.}, at: sync_inodes_sb+0x246/0xb50 fs/fs-writeback.c:2558
+2 locks held by syz-executor844/9970:
+ #0: ffff8880a32ca0d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super fs/super.c:365 [inline]
+ #0: ffff8880a32ca0d8 (&type->s_umount_key#56){+.+.}, at: deactivate_super+0x1aa/0x1d0 fs/super.c:362
+ #1: ffff8880a32ca8b8 (&s->s_sync_lock){+.+.}, at: wait_sb_inodes fs/fs-writeback.c:2375 [inline]
+ #1: ffff8880a32ca8b8 (&s->s_sync_lock){+.+.}, at: sync_inodes_sb+0x246/0xb50 fs/fs-writeback.c:2558
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1108 Comm: khungtaskd Not tainted 5.5.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x70/0xb2 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x23b/0x28b lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:205 [inline]
+ watchdog+0xb11/0x10c0 kernel/hung_task.c:289
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.5.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:trace_hardirqs_off+0x67/0x240 kernel/trace/trace_preemptirq.c:46
+Code: 67 5d 87 7e 81 e3 00 00 10 00 31 ff 89 de e8 40 6e fa ff 85 db 74 1d e8 b7 6c fa ff 48 8b 7d 08 e8 3e 80 e0 ff 48 83 c4 08 5b <41> 5c 41 5d 41 5e 41 5f 5d c3 e8 9a 6c fa ff 48 8b 45 00 4c 8b 75
+RSP: 0018:ffffc90000da8f48 EFLAGS: 00000092
+RAX: 0000000000000000 RBX: ffff8880ae937340 RCX: 0000000000000000
+RDX: 1ffff11015341174 RSI: 0000000000000000 RDI: ffff8880a9a08ba0
+RBP: ffffc90000da8f68 R08: ffff8880a9a08340 R09: ffffed1015d2703d
+R10: ffffed1015d2703c R11: ffff8880ae9381e3 R12: ffff8880a9a08340
+R13: ffffffff89558168 R14: ffff8880ae900000 R15: 0000000000000001
+FS:  0000000000000000(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000001e64510 CR3: 000000008eddd000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ irq_exit+0x3e/0x1e0 kernel/softirq.c:406
+ scheduler_ipi+0x38c/0x610 kernel/sched/core.c:2348
+ smp_reschedule_interrupt+0x78/0x4c0 arch/x86/kernel/smp.c:244
+ reschedule_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:853
+ </IRQ>
+RIP: 0010:native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:61
+Code: 78 3b ea f9 eb 8a cc cc cc cc cc cc e9 07 00 00 00 0f 00 2d 54 cb 5f 00 f4 c3 66 90 e9 07 00 00 00 0f 00 2d 44 cb 5f 00 fb f4 <c3> cc 55 48 89 e5 41 57 41 56 41 55 41 54 53 e8 3e 0f 9a f9 e8 79
+RSP: 0018:ffffc90000d3fd68 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff02
+RAX: 1ffffffff132669e RBX: ffff8880a9a08340 RCX: 0000000000000000
+RDX: dffffc0000000000 RSI: 0000000000000006 RDI: ffff8880a9a08bd4
+RBP: ffffc90000d3fd98 R08: ffff8880a9a08340 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: dffffc0000000000
+R13: ffffffff8a799900 R14: 0000000000000000 R15: 0000000000000001
+ arch_cpu_idle+0xa/0x10 arch/x86/kernel/process.c:690
+ default_idle_call+0x84/0xb0 kernel/sched/idle.c:94
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x3c8/0x6e0 kernel/sched/idle.c:269
+ cpu_startup_entry+0x1b/0x20 kernel/sched/idle.c:361
+ start_secondary+0x2f4/0x410 arch/x86/kernel/smpboot.c:264
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:242

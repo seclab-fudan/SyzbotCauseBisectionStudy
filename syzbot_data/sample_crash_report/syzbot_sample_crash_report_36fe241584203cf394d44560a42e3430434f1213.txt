@@ -1,0 +1,84 @@
+==================================================================
+BUG: KASAN: use-after-free in blk_mq_free_rqs+0x49f/0x4b0 block/blk-mq.c:2049
+Read of size 8 at addr ffff888219398250 by task kworker/0:3/8567
+
+CPU: 0 PID: 8567 Comm: kworker/0:3 Not tainted 5.2.0-rc3+ #23
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events __blk_release_queue
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:188
+ __kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ kasan_report+0x12/0x20 mm/kasan/common.c:614
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ blk_mq_free_rqs+0x49f/0x4b0 block/blk-mq.c:2049
+ blk_mq_sched_free_tags block/blk-mq-sched.c:453 [inline]
+ blk_mq_sched_tags_teardown+0x126/0x210 block/blk-mq-sched.c:485
+ blk_mq_exit_sched+0x1fa/0x2d0 block/blk-mq-sched.c:557
+ elevator_exit+0x70/0xa0 block/elevator.c:185
+ blk_exit_queue block/blk-sysfs.c:853 [inline]
+ __blk_release_queue+0x127/0x330 block/blk-sysfs.c:895
+ process_one_work+0x989/0x1790 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x354/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 1:
+ save_stack+0x23/0x90 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_kmalloc mm/kasan/common.c:489 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:462
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:503
+ kmem_cache_alloc_trace+0x151/0x750 mm/slab.c:3555
+ kmalloc include/linux/slab.h:547 [inline]
+ kzalloc include/linux/slab.h:742 [inline]
+ loop_add+0x51/0x8d0 drivers/block/loop.c:1973
+ loop_init+0x1fe/0x25a drivers/block/loop.c:2267
+ do_one_initcall+0x107/0x7ba init/main.c:915
+ do_initcall_level init/main.c:983 [inline]
+ do_initcalls init/main.c:991 [inline]
+ do_basic_setup init/main.c:1009 [inline]
+ kernel_init_freeable+0x4d4/0x5c3 init/main.c:1169
+ kernel_init+0x12/0x1c5 init/main.c:1087
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 8565:
+ save_stack+0x23/0x90 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:451
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:459
+ __cache_free mm/slab.c:3432 [inline]
+ kfree+0xcf/0x220 mm/slab.c:3755
+ loop_remove+0xa1/0xd0 drivers/block/loop.c:2078
+ loop_control_ioctl drivers/block/loop.c:2173 [inline]
+ loop_control_ioctl+0x320/0x360 drivers/block/loop.c:2139
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd5f/0x1380 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0xfd/0x680 arch/x86/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888219398040
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 528 bytes inside of
+ 1024-byte region [ffff888219398040, ffff888219398440)
+The buggy address belongs to the page:
+page:ffffea000864e600 refcount:1 mapcount:0 mapping:ffff8880aa400ac0 index:0x0 compound_mapcount: 0
+flags: 0x6fffc0000010200(slab|head)
+raw: 06fffc0000010200 ffffea0008659f88 ffffea000864ef88 ffff8880aa400ac0
+raw: 0000000000000000 ffff888219398040 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888219398100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888219398180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888219398200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                 ^
+ ffff888219398280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888219398300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

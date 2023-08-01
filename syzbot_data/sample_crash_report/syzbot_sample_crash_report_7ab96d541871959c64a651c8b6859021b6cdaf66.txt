@@ -1,0 +1,106 @@
+INFO: task syz-executor190:3622 blocked for more than 143 seconds.
+      Not tainted 6.0.0-rc4-syzkaller-00062-g0066f1b0e275 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor190 state:D stack:25904 pid: 3622 ppid:  3607 flags:0x00004006
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5182 [inline]
+ __schedule+0xadf/0x52b0 kernel/sched/core.c:6494
+ schedule+0xda/0x1b0 kernel/sched/core.c:6570
+ schedule_timeout+0x1db/0x2a0 kernel/time/timer.c:1911
+ do_wait_for_common kernel/sched/completion.c:85 [inline]
+ __wait_for_common+0x1be/0x530 kernel/sched/completion.c:106
+ __flush_work+0x56c/0xb10 kernel/workqueue.c:3075
+ __cancel_work_timer+0x3f9/0x570 kernel/workqueue.c:3162
+ tls_sk_proto_close+0x4a7/0xaf0 net/tls/tls_main.c:309
+ inet_release+0x12e/0x270 net/ipv4/af_inet.c:428
+ inet6_release+0x4c/0x70 net/ipv6/af_inet6.c:482
+ __sock_release+0xcd/0x280 net/socket.c:650
+ sock_close+0x18/0x20 net/socket.c:1365
+ __fput+0x277/0x9d0 fs/file_table.c:320
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:177
+ ptrace_notify+0x114/0x140 kernel/signal.c:2353
+ ptrace_report_syscall include/linux/ptrace.h:420 [inline]
+ ptrace_report_syscall_exit include/linux/ptrace.h:482 [inline]
+ syscall_exit_work kernel/entry/common.c:249 [inline]
+ syscall_exit_to_user_mode_prepare+0x129/0x280 kernel/entry/common.c:276
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:281 [inline]
+ syscall_exit_to_user_mode+0x9/0x50 kernel/entry/common.c:294
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7feb3a347743
+RSP: 002b:00007fff4f8e9b48 EFLAGS: 00000246 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000006 RCX: 00007feb3a347743
+RDX: fffffffffffffe60 RSI: 00000000200005c0 RDI: 0000000000000005
+RBP: 0000000000000000 R08: 0000000000000000 R09: fffffffffffffe60
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fff4f8e9b60
+R13: 00000000000f4240 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/12:
+ #0: ffffffff8bf85db0 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x26/0xc70 kernel/rcu/tasks.h:507
+1 lock held by rcu_tasks_trace/13:
+ #0: ffffffff8bf85ab0 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x26/0xc70 kernel/rcu/tasks.h:507
+1 lock held by khungtaskd/28:
+ #0: ffffffff8bf86900 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6492
+1 lock held by klogd/2961:
+ #0: ffff8880b9b3a018 (&rq->__lock){-.-.}-{2:2}, at: raw_spin_rq_lock_nested+0x2b/0x120 kernel/sched/core.c:544
+2 locks held by getty/3286:
+ #0: ffff88801c816098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc90001c482f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xef0/0x13e0 drivers/tty/n_tty.c:2177
+3 locks held by kworker/0:4/3613:
+ #0: ffff888011867d38 ((wq_completion)events){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888011867d38 ((wq_completion)events){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888011867d38 ((wq_completion)events){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888011867d38 ((wq_completion)events){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff888011867d38 ((wq_completion)events){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff888011867d38 ((wq_completion)events){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc90002fbfda8 ((work_completion)(&(&sw_ctx_tx->tx_work.work)->work)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffff88807a695cd8 (&ctx->tx_lock){+.+.}-{3:3}, at: tx_work_handler+0x127/0x190 net/tls/tls_sw.c:2417
+1 lock held by syz-executor190/3622:
+ #0: ffff888070507990 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #0: ffff888070507990 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: __sock_release+0x86/0x280 net/socket.c:649
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 28 Comm: khungtaskd Not tainted 6.0.0-rc4-syzkaller-00062-g0066f1b0e275 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x46/0x14f lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x206/0x250 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:212 [inline]
+ watchdog+0xc18/0xf50 kernel/hung_task.c:369
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 55 Comm: kworker/u4:4 Not tainted 6.0.0-rc4-syzkaller-00062-g0066f1b0e275 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+Workqueue:  0x0 (events_unbound)
+RIP: 0010:pwq_dec_nr_in_flight+0x0/0x2a0 kernel/workqueue.c:1193
+Code: c6 f2 78 00 e9 b6 fd ff ff 48 89 df e8 b9 f2 78 00 e9 82 fd ff ff 4c 89 f7 e8 ac f2 78 00 e9 52 fd ff ff 0f 1f 80 00 00 00 00 <41> 55 41 54 55 48 89 fd 53 48 89 f3 e8 3f 54 2d 00 49 89 dc 83 e3
+RSP: 0018:ffffc90001c1fd10 EFLAGS: 00000046
+RAX: 0000000000000000 RBX: ffff888011874a10 RCX: 0000000000000000
+RDX: 1ffff11002f78f25 RSI: ffff888011875005 RDI: ffff888011875000
+RBP: 0000000000000000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000001
+R13: ffffc90001c1fda8 R14: ffff888017bc7900 R15: ffff888011874800
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000556f6c8b6000 CR3: 000000000bc8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ process_one_work+0xc76/0x1610 kernel/workqueue.c:2332
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>

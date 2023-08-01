@@ -1,0 +1,99 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.17.0-rc2+ #22 Not tainted
+------------------------------------------------------
+syz-executor762/4537 is trying to acquire lock:
+        (ptrval) (&mm->mmap_sem){++++}, at: __might_fault+0xfb/0x1e0 mm/memory.c:4554
+
+but task is already holding lock:
+        (ptrval) (sk_lock-AF_INET6){+.+.}, at: lock_sock include/net/sock.h:1469 [inline]
+        (ptrval) (sk_lock-AF_INET6){+.+.}, at: do_ipv6_setsockopt.isra.9+0x576/0x4680 net/ipv6/ipv6_sockglue.c:167
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (sk_lock-AF_INET6){+.+.}:
+       lock_sock_nested+0xd0/0x120 net/core/sock.c:2844
+       lock_sock include/net/sock.h:1469 [inline]
+       tcp_mmap+0x1c7/0x14f0 net/ipv4/tcp.c:1759
+       sock_mmap+0x8e/0xc0 net/socket.c:1144
+       call_mmap include/linux/fs.h:1789 [inline]
+       mmap_region+0xd13/0x1820 mm/mmap.c:1723
+       do_mmap+0xc79/0x11d0 mm/mmap.c:1494
+       do_mmap_pgoff include/linux/mm.h:2237 [inline]
+       vm_mmap_pgoff+0x1fb/0x2a0 mm/util.c:357
+       ksys_mmap_pgoff+0x4c9/0x640 mm/mmap.c:1544
+       __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+       __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+       __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+       do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&mm->mmap_sem){++++}:
+       lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+       __might_fault+0x155/0x1e0 mm/memory.c:4555
+       _copy_from_user+0x30/0x150 lib/usercopy.c:10
+       copy_from_user include/linux/uaccess.h:147 [inline]
+       do_ipv6_setsockopt.isra.9+0x29ab/0x4680 net/ipv6/ipv6_sockglue.c:677
+       ipv6_setsockopt+0xbd/0x170 net/ipv6/ipv6_sockglue.c:922
+       tcp_setsockopt+0x93/0xe0 net/ipv4/tcp.c:3029
+       sock_common_setsockopt+0x9a/0xe0 net/core/sock.c:3042
+       __sys_setsockopt+0x1bd/0x390 net/socket.c:1903
+       __do_sys_setsockopt net/socket.c:1914 [inline]
+       __se_sys_setsockopt net/socket.c:1911 [inline]
+       __x64_sys_setsockopt+0xbe/0x150 net/socket.c:1911
+       do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(sk_lock-AF_INET6);
+                               lock(&mm->mmap_sem);
+                               lock(sk_lock-AF_INET6);
+  lock(&mm->mmap_sem);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor762/4537:
+ #0:         (ptrval) (rtnl_mutex){+.+.}, at: rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+ #1:         (ptrval) (sk_lock-AF_INET6){+.+.}, at: lock_sock include/net/sock.h:1469 [inline]
+ #1:         (ptrval) (sk_lock-AF_INET6){+.+.}, at: do_ipv6_setsockopt.isra.9+0x576/0x4680 net/ipv6/ipv6_sockglue.c:167
+
+stack backtrace:
+CPU: 1 PID: 4537 Comm: syz-executor762 Not tainted 4.17.0-rc2+ #22
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_circular_bug.isra.36.cold.54+0x1bd/0x27d kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x343e/0x5140 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+ __might_fault+0x155/0x1e0 mm/memory.c:4555
+ _copy_from_user+0x30/0x150 lib/usercopy.c:10
+ copy_from_user include/linux/uaccess.h:147 [inline]
+ do_ipv6_setsockopt.isra.9+0x29ab/0x4680 net/ipv6/ipv6_sockglue.c:677
+ ipv6_setsockopt+0xbd/0x170 net/ipv6/ipv6_sockglue.c:922
+ tcp_setsockopt+0x93/0xe0 net/ipv4/tcp.c:3029
+ sock_common_setsockopt+0x9a/0xe0 net/core/sock.c:3042
+ __sys_setsockopt+0x1bd/0x390 net/socket.c:1903
+ __do_sys_setsockopt net/socket.c:1914 [inline]
+ __se_sys_setsockopt net/socket.c:1911 [inline]
+ __x64_sys_setsockopt+0xbe/0x150 net/socket.c:1911
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43fdc9
+RSP: 002b:00007ffdde7387f8 EFLAGS: 00000217 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RB

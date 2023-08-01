@@ -1,0 +1,99 @@
+=====================================================
+BUG: KMSAN: uninit-value in udf_evict_inode+0x2b6/0x830 fs/udf/inode.c:148
+ udf_evict_inode+0x2b6/0x830 fs/udf/inode.c:148
+ evict+0x4f4/0xdd0 fs/inode.c:590
+ iput_final fs/inode.c:1670 [inline]
+ iput+0xc53/0x1100 fs/inode.c:1696
+ udf_new_inode+0x5d2/0x16e0 fs/udf/ialloc.c:89
+ udf_tmpfile+0x7e/0x2d0 fs/udf/namei.c:631
+ vfs_tmpfile+0x2df/0x5c0 fs/namei.c:3474
+ do_tmpfile+0x29f/0x6c0 fs/namei.c:3509
+ path_openat+0x41bf/0x5ea0 fs/namei.c:3550
+ do_filp_open+0x306/0x760 fs/namei.c:3586
+ do_sys_openat2+0x263/0x8f0 fs/open.c:1212
+ do_sys_open fs/open.c:1228 [inline]
+ __do_compat_sys_openat fs/open.c:1288 [inline]
+ __se_compat_sys_openat fs/open.c:1286 [inline]
+ __ia32_compat_sys_openat+0x353/0x3c0 fs/open.c:1286
+ do_syscall_32_irqs_on arch/x86/entry/common.c:114 [inline]
+ __do_fast_syscall_32+0x96/0xf0 arch/x86/entry/common.c:180
+ do_fast_syscall_32+0x34/0x70 arch/x86/entry/common.c:205
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:248
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+
+Uninit was stored to memory at:
+ udf_new_inode+0xac1/0x16e0 fs/udf/ialloc.c:67
+ udf_tmpfile+0x7e/0x2d0 fs/udf/namei.c:631
+ vfs_tmpfile+0x2df/0x5c0 fs/namei.c:3474
+ do_tmpfile+0x29f/0x6c0 fs/namei.c:3509
+ path_openat+0x41bf/0x5ea0 fs/namei.c:3550
+ do_filp_open+0x306/0x760 fs/namei.c:3586
+ do_sys_openat2+0x263/0x8f0 fs/open.c:1212
+ do_sys_open fs/open.c:1228 [inline]
+ __do_compat_sys_openat fs/open.c:1288 [inline]
+ __se_compat_sys_openat fs/open.c:1286 [inline]
+ __ia32_compat_sys_openat+0x353/0x3c0 fs/open.c:1286
+ do_syscall_32_irqs_on arch/x86/entry/common.c:114 [inline]
+ __do_fast_syscall_32+0x96/0xf0 arch/x86/entry/common.c:180
+ do_fast_syscall_32+0x34/0x70 arch/x86/entry/common.c:205
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:248
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+
+Uninit was stored to memory at:
+ udf_alloc_inode+0x28a/0x2c0 fs/udf/super.c:149
+ alloc_inode fs/inode.c:235 [inline]
+ new_inode_pseudo+0xa6/0x5a0 fs/inode.c:944
+ new_inode+0x5a/0x3c0 fs/inode.c:973
+ udf_new_inode+0x139/0x16e0 fs/udf/ialloc.c:60
+ udf_tmpfile+0x7e/0x2d0 fs/udf/namei.c:631
+ vfs_tmpfile+0x2df/0x5c0 fs/namei.c:3474
+ do_tmpfile+0x29f/0x6c0 fs/namei.c:3509
+ path_openat+0x41bf/0x5ea0 fs/namei.c:3550
+ do_filp_open+0x306/0x760 fs/namei.c:3586
+ do_sys_openat2+0x263/0x8f0 fs/open.c:1212
+ do_sys_open fs/open.c:1228 [inline]
+ __do_compat_sys_openat fs/open.c:1288 [inline]
+ __se_compat_sys_openat fs/open.c:1286 [inline]
+ __ia32_compat_sys_openat+0x353/0x3c0 fs/open.c:1286
+ do_syscall_32_irqs_on arch/x86/entry/common.c:114 [inline]
+ __do_fast_syscall_32+0x96/0xf0 arch/x86/entry/common.c:180
+ do_fast_syscall_32+0x34/0x70 arch/x86/entry/common.c:205
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:248
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+
+Uninit was created at:
+ __alloc_pages+0xbbf/0x1090 mm/page_alloc.c:5409
+ alloc_pages+0x8a5/0xb80
+ alloc_slab_page mm/slub.c:1810 [inline]
+ allocate_slab+0x287/0x1c10 mm/slub.c:1947
+ new_slab mm/slub.c:2010 [inline]
+ ___slab_alloc+0xb85/0x1e30 mm/slub.c:3039
+ __slab_alloc mm/slub.c:3126 [inline]
+ slab_alloc_node mm/slub.c:3217 [inline]
+ slab_alloc mm/slub.c:3259 [inline]
+ kmem_cache_alloc+0xbb3/0x11c0 mm/slub.c:3264
+ udf_alloc_inode+0x60/0x2c0 fs/udf/super.c:139
+ alloc_inode fs/inode.c:235 [inline]
+ iget_locked+0x3ac/0x1430 fs/inode.c:1209
+ __udf_iget+0x13d/0x4710 fs/udf/inode.c:1906
+ udf_iget fs/udf/udfdecl.h:151 [inline]
+ udf_fill_super+0x2df8/0x3200 fs/udf/super.c:2285
+ mount_bdev+0x626/0x920 fs/super.c:1370
+ udf_mount+0xc9/0xe0 fs/udf/super.c:122
+ legacy_get_tree+0x163/0x2e0 fs/fs_context.c:610
+ vfs_get_tree+0xd8/0x5d0 fs/super.c:1500
+ do_new_mount+0x7b5/0x16f0 fs/namespace.c:2988
+ path_mount+0x1021/0x28b0 fs/namespace.c:3318
+ do_mount fs/namespace.c:3331 [inline]
+ __do_sys_mount fs/namespace.c:3539 [inline]
+ __se_sys_mount+0x8a8/0x9d0 fs/namespace.c:3516
+ __ia32_sys_mount+0x157/0x1b0 fs/namespace.c:3516
+ do_syscall_32_irqs_on arch/x86/entry/common.c:114 [inline]
+ __do_fast_syscall_32+0x96/0xf0 arch/x86/entry/common.c:180
+ do_fast_syscall_32+0x34/0x70 arch/x86/entry/common.c:205
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:248
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+
+CPU: 1 PID: 3532 Comm: syz-executor.2 Tainted: G        W         5.16.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=====================================================

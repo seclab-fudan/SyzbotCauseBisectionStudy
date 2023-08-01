@@ -1,0 +1,75 @@
+device eql entered promiscuous mode
+==================================================================
+BUG: KASAN: use-after-free in l2tp_session_create+0x9aa/0xb80 net/l2tp/l2tp_core.c:1749
+Read of size 4 at addr ffff8801cca736a8 by task syz-executor1/5528
+
+CPU: 0 PID: 5528 Comm: syz-executor1 Not tainted 4.16.0-rc2+ #323
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23b/0x360 mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ l2tp_session_create+0x9aa/0xb80 net/l2tp/l2tp_core.c:1749
+ pppol2tp_connect+0xed7/0x1dd0 net/l2tp/l2tp_ppp.c:748
+ SYSC_connect+0x213/0x4a0 net/socket.c:1639
+ SyS_connect+0x24/0x30 net/socket.c:1620
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x453da9
+RSP: 002b:00007fd3883bac68 EFLAGS: 00000246 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00007fd3883bb6d4 RCX: 0000000000453da9
+RDX: 000000000000002e RSI: 0000000020e92000 RDI: 0000000000000015
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 000000000000005c R14: 00000000006f0940 R15: 0000000000000000
+
+Allocated by task 5528:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ kmem_cache_alloc_trace+0x136/0x740 mm/slab.c:3607
+ kmalloc include/linux/slab.h:512 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ l2tp_tunnel_create+0x5e1/0x17f0 net/l2tp/l2tp_core.c:1545
+ pppol2tp_connect+0x14b1/0x1dd0 net/l2tp/l2tp_ppp.c:707
+ SYSC_connect+0x213/0x4a0 net/socket.c:1639
+ SyS_connect+0x24/0x30 net/socket.c:1620
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 5539:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3485 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3800
+ __rcu_reclaim kernel/rcu/rcu.h:167 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2674 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2933 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2900 [inline]
+ rcu_process_callbacks+0xe94/0x17f0 kernel/rcu/tree.c:2917
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801cca735c0
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 232 bytes inside of
+ 512-byte region [ffff8801cca735c0, ffff8801cca737c0)
+The buggy address belongs to the page:
+page:ffffea0007329cc0 count:1 mapcount:0 mapping:ffff8801cca730c0 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801cca730c0 0000000000000000 0000000100000006
+raw: ffffea0006d3ebe0 ffffea0007212f60 ffff8801db000940 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cca73580: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8801cca73600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801cca73680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                  ^
+ ffff8801cca73700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801cca73780: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================

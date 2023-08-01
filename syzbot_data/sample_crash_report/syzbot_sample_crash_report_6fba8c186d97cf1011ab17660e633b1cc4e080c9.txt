@@ -1,0 +1,49 @@
+==================================================================
+BUG: KASAN: global-out-of-bounds in __fb_pad_aligned_buffer include/linux/fb.h:655 [inline]
+BUG: KASAN: global-out-of-bounds in bit_putcs_aligned drivers/video/fbdev/core/bitblit.c:96 [inline]
+BUG: KASAN: global-out-of-bounds in bit_putcs+0xbb6/0xd20 drivers/video/fbdev/core/bitblit.c:185
+Read of size 1 at addr ffffffff88965a16 by task syz-executor471/8020
+
+CPU: 0 PID: 8020 Comm: syz-executor471 Not tainted 5.8.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0x5/0x436 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ __fb_pad_aligned_buffer include/linux/fb.h:655 [inline]
+ bit_putcs_aligned drivers/video/fbdev/core/bitblit.c:96 [inline]
+ bit_putcs+0xbb6/0xd20 drivers/video/fbdev/core/bitblit.c:185
+ fbcon_putcs+0x33c/0x3f0 drivers/video/fbdev/core/fbcon.c:1362
+ con_flush drivers/tty/vt/vt.c:2574 [inline]
+ do_con_write+0xd7a/0x7400 drivers/tty/vt/vt.c:2822
+ con_write+0x22/0xb0 drivers/tty/vt/vt.c:3159
+ process_output_block drivers/tty/n_tty.c:595 [inline]
+ n_tty_write+0x3ce/0xf80 drivers/tty/n_tty.c:2333
+ do_tty_write drivers/tty/tty_io.c:962 [inline]
+ tty_write+0x4d9/0x870 drivers/tty/tty_io.c:1046
+ vfs_write+0x2b0/0x6b0 fs/read_write.c:576
+ ksys_write+0x12d/0x250 fs/read_write.c:631
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x44b209
+Code: Bad RIP value.
+RSP: 002b:00007f1c50a3dce8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000006e8a38 RCX: 000000000044b209
+RDX: 0000000000001006 RSI: 0000000020001040 RDI: 0000000000000006
+RBP: 00000000006e8a30 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006e8a3c
+R13: 00007ffc8580f5cf R14: 00007f1c50a3e9c0 R15: 20c49ba5e353f7cf
+
+The buggy address belongs to the variable:
+ oid_index+0x516/0xa00
+
+Memory state around the buggy address:
+ ffffffff88965900: 00 06 fa fa fa fa fa fa 06 fa fa fa fa fa fa fa
+ ffffffff88965980: 00 00 00 04 fa fa fa fa 00 00 fa fa fa fa fa fa
+>ffffffff88965a00: 00 00 06 fa fa fa fa fa 00 00 06 fa fa fa fa fa
+                         ^
+ ffffffff88965a80: 00 00 01 fa fa fa fa fa 06 fa fa fa fa fa fa fa
+ ffffffff88965b00: 05 fa fa fa fa fa fa fa 00 06 fa fa fa fa fa fa
+==================================================================

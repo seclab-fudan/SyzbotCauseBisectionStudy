@@ -1,0 +1,77 @@
+tipc: 32-bit node address hash set to f9ff1eac
+==================================================================
+BUG: KASAN: use-after-free in tipc_named_reinit+0xef/0x290 net/tipc/name_distr.c:344
+Read of size 8 at addr ffff888052ab2000 by task kworker/0:13/30628
+
+CPU: 0 PID: 30628 Comm: kworker/0:13 Not tainted 5.8.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events tipc_net_finalize_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1f0/0x31e lib/dump_stack.c:118
+ print_address_description+0x66/0x5a0 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report+0x132/0x1d0 mm/kasan/report.c:530
+ tipc_named_reinit+0xef/0x290 net/tipc/name_distr.c:344
+ tipc_net_finalize+0x85/0xe0 net/tipc/net.c:138
+ tipc_net_finalize_work+0x50/0x70 net/tipc/net.c:150
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2269
+ worker_thread+0xaa4/0x1460 kernel/workqueue.c:2415
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+Allocated by task 19803:
+ save_stack mm/kasan/common.c:48 [inline]
+ set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc+0x103/0x140 mm/kasan/common.c:494
+ kmem_cache_alloc_trace+0x234/0x300 mm/slab.c:3551
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ tipc_nametbl_init+0x58/0x190 net/tipc/name_table.c:852
+ tipc_init_net+0x184/0x2a0 net/tipc/core.c:79
+ ops_init+0x320/0x410 net/core/net_namespace.c:151
+ setup_net+0x1cb/0x770 net/core/net_namespace.c:341
+ copy_net_ns+0x339/0x540 net/core/net_namespace.c:482
+ create_new_namespaces+0x52e/0x9f0 kernel/nsproxy.c:110
+ unshare_nsproxy_namespaces+0x123/0x190 kernel/nsproxy.c:231
+ ksys_unshare+0x463/0x950 kernel/fork.c:2983
+ __do_sys_unshare kernel/fork.c:3051 [inline]
+ __se_sys_unshare kernel/fork.c:3049 [inline]
+ __x64_sys_unshare+0x34/0x40 kernel/fork.c:3049
+ do_syscall_64+0x73/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 14058:
+ save_stack mm/kasan/common.c:48 [inline]
+ set_track mm/kasan/common.c:56 [inline]
+ kasan_set_free_info mm/kasan/common.c:316 [inline]
+ __kasan_slab_free+0x114/0x170 mm/kasan/common.c:455
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x220 mm/slab.c:3757
+ tipc_exit_net+0x29/0x50 net/tipc/core.c:113
+ ops_exit_list net/core/net_namespace.c:186 [inline]
+ cleanup_net+0x708/0xba0 net/core/net_namespace.c:603
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2269
+ worker_thread+0xaa4/0x1460 kernel/workqueue.c:2415
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+The buggy address belongs to the object at ffff888052ab0000
+ which belongs to the cache kmalloc-16k of size 16384
+The buggy address is located 8192 bytes inside of
+ 16384-byte region [ffff888052ab0000, ffff888052ab4000)
+The buggy address belongs to the page:
+page:ffffea00014aac00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 head:ffffea00014aac00 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0xfffe0000010200(slab|head)
+raw: 00fffe0000010200 ffffea0000b27808 ffffea0000991c08 ffff8880aa402380
+raw: 0000000000000000 ffff888052ab0000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888052ab1f00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888052ab1f80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888052ab2000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff888052ab2080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888052ab2100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

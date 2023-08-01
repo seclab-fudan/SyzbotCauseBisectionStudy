@@ -1,0 +1,66 @@
+IPv6: ADDRCONF(NETDEV_UP): team0: link is not ready
+8021q: adding VLAN 0 to HW filter on device team0
+IPv6: ADDRCONF(NETDEV_CHANGE): team0: link becomes ready
+
+=============================
+WARNING: suspicious RCU usage
+4.17.0-rc1+ #16 Not tainted
+-----------------------------
+net/ipv6/route.c:1550 suspicious rcu_dereference_protected() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+3 locks held by syz-executor0/4757:
+ #0: 00000000a61192eb (rcu_read_lock_bh){....}, at: lwtunnel_xmit_redirect include/net/lwtunnel.h:92 [inline]
+ #0: 00000000a61192eb (rcu_read_lock_bh){....}, at: ip6_finish_output2+0x253/0x2800 net/ipv6/ip6_output.c:106
+ #1: 00000000a61192eb (rcu_read_lock_bh){....}, at: __dev_queue_xmit+0x30f/0x34c0 net/core/dev.c:3519
+ #2: 0000000098dbd501 (rcu_read_lock){....}, at: ip6_link_failure+0xfe/0x790 net/ipv6/route.c:2227
+
+stack backtrace:
+CPU: 0 PID: 4757 Comm: syz-executor0 Not tainted 4.17.0-rc1+ #16
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ lockdep_rcu_suspicious+0x14a/0x153 kernel/locking/lockdep.c:4592
+ rt6_remove_exception_rt+0x416/0x4d0 net/ipv6/route.c:1549
+ ip6_link_failure+0x484/0x790 net/ipv6/route.c:2231
+ dst_link_failure include/net/dst.h:427 [inline]
+ ip6_tnl_xmit+0x49a/0x34b0 net/ipv6/ip6_tunnel.c:1222
+ ip6ip6_tnl_xmit net/ipv6/ip6_tunnel.c:1374 [inline]
+ ip6_tnl_start_xmit+0x8fc/0x2290 net/ipv6/ip6_tunnel.c:1397
+ __netdev_start_xmit include/linux/netdevice.h:4087 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4096 [inline]
+ xmit_one net/core/dev.c:3054 [inline]
+ dev_hard_start_xmit+0x264/0xc10 net/core/dev.c:3070
+ __dev_queue_xmit+0x2724/0x34c0 net/core/dev.c:3585
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3618
+ neigh_direct_output+0x15/0x20 net/core/neighbour.c:1398
+ neigh_output include/net/neighbour.h:482 [inline]
+ ip6_finish_output2+0xc93/0x2800 net/ipv6/ip6_output.c:120
+ ip6_finish_output+0x5fe/0xbc0 net/ipv6/ip6_output.c:154
+ NF_HOOK_COND include/linux/netfilter.h:277 [inline]
+ ip6_output+0x227/0x9b0 net/ipv6/ip6_output.c:171
+ dst_output include/net/dst.h:444 [inline]
+ NF_HOOK include/linux/netfilter.h:288 [inline]
+ rawv6_send_hdrinc net/ipv6/raw.c:678 [inline]
+ rawv6_sendmsg+0x2674/0x4590 net/ipv6/raw.c:924
+ inet_sendmsg+0x19f/0x690 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:639
+ ___sys_sendmsg+0x805/0x940 net/socket.c:2117
+ __sys_sendmsg+0x115/0x270 net/socket.c:2155
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2162
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455389
+RSP: 002b:00007ffcc085b9f8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000cec914 RCX: 0000000000455389
+RDX: 0000000000000000 RSI: 0000000020000040 RDI: 0000000000000003
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R1

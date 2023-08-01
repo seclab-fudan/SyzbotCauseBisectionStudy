@@ -1,0 +1,132 @@
+usb 1-1: USB disconnect, device number 2
+==================================================================
+BUG: KASAN: use-after-free in __media_entity_remove_links+0x134/0x160 drivers/media/mc/mc-entity.c:779
+Read of size 8 at addr ffff8881ce1c2320 by task kworker/1:0/17
+
+CPU: 1 PID: 17 Comm: kworker/1:0 Not tainted 5.6.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xef/0x16e lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd3/0x314 mm/kasan/report.c:374
+ __kasan_report.cold+0x37/0x77 mm/kasan/report.c:506
+ kasan_report+0xe/0x20 mm/kasan/common.c:641
+ __media_entity_remove_links+0x134/0x160 drivers/media/mc/mc-entity.c:779
+ __media_device_unregister_entity+0x187/0x300 drivers/media/mc/mc-device.c:596
+ media_device_unregister_entity+0x49/0x70 drivers/media/mc/mc-device.c:688
+ v4l2_device_unregister_subdev+0x257/0x380 drivers/media/v4l2-core/v4l2-device.c:283
+ v4l2_device_unregister drivers/media/v4l2-core/v4l2-device.c:100 [inline]
+ v4l2_device_unregister+0x139/0x220 drivers/media/v4l2-core/v4l2-device.c:88
+ uvc_unregister_video+0x11a/0x210 drivers/media/usb/uvc/uvc_driver.c:1957
+ uvc_disconnect+0xbc/0x160 drivers/media/usb/uvc/uvc_driver.c:2270
+ usb_unbind_interface+0x1bd/0x8a0 drivers/usb/core/driver.c:423
+ __device_release_driver drivers/base/dd.c:1137 [inline]
+ device_release_driver_internal+0x42f/0x500 drivers/base/dd.c:1168
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:533
+ device_del+0x481/0xd30 drivers/base/core.c:2664
+ usb_disable_device+0x23d/0x790 drivers/usb/core/message.c:1237
+ usb_disconnect+0x293/0x900 drivers/usb/core/hub.c:2201
+ hub_port_connect drivers/usb/core/hub.c:5036 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5325 [inline]
+ port_event drivers/usb/core/hub.c:5471 [inline]
+ hub_event+0x1a1d/0x4300 drivers/usb/core/hub.c:5553
+ process_one_work+0x94b/0x1620 kernel/workqueue.c:2264
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2410
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 95:
+ save_stack+0x1b/0x80 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:488
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ media_add_link+0x47/0x180 drivers/media/mc/mc-entity.c:592
+ media_create_pad_link+0x1fb/0x530 drivers/media/mc/mc-entity.c:684
+ uvc_mc_create_links drivers/media/usb/uvc/uvc_entity.c:50 [inline]
+ uvc_mc_register_entities+0x468/0x77a drivers/media/usb/uvc/uvc_entity.c:114
+ uvc_register_chains drivers/media/usb/uvc/uvc_driver.c:2103 [inline]
+ uvc_probe.cold+0x205c/0x2a51 drivers/media/usb/uvc/uvc_driver.c:2229
+ usb_probe_interface+0x310/0x800 drivers/usb/core/driver.c:361
+ really_probe+0x290/0xac0 drivers/base/dd.c:551
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:724
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:831
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x217/0x390 drivers/base/dd.c:897
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1459/0x1bf0 drivers/base/core.c:2487
+ usb_set_configuration+0xe47/0x17d0 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0xaf/0x140 drivers/usb/core/driver.c:266
+ really_probe+0x290/0xac0 drivers/base/dd.c:551
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:724
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:831
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x217/0x390 drivers/base/dd.c:897
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1459/0x1bf0 drivers/base/core.c:2487
+ usb_new_device.cold+0x540/0xcd0 drivers/usb/core/hub.c:2538
+ hub_port_connect drivers/usb/core/hub.c:5185 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5325 [inline]
+ port_event drivers/usb/core/hub.c:5471 [inline]
+ hub_event+0x21cb/0x4300 drivers/usb/core/hub.c:5553
+ process_one_work+0x94b/0x1620 kernel/workqueue.c:2264
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2410
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 17:
+ save_stack+0x1b/0x80 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x117/0x160 mm/kasan/common.c:476
+ slab_free_hook mm/slub.c:1444 [inline]
+ slab_free_freelist_hook mm/slub.c:1477 [inline]
+ slab_free mm/slub.c:3024 [inline]
+ kfree+0xd5/0x300 mm/slub.c:3976
+ __media_entity_remove_link+0x28c/0x660 drivers/media/mc/mc-entity.c:622
+ __media_entity_remove_links+0x86/0x160 drivers/media/mc/mc-entity.c:780
+ __media_device_unregister_entity+0x187/0x300 drivers/media/mc/mc-device.c:596
+ media_device_unregister_entity+0x49/0x70 drivers/media/mc/mc-device.c:688
+ v4l2_device_unregister_subdev+0x257/0x380 drivers/media/v4l2-core/v4l2-device.c:283
+ v4l2_device_unregister drivers/media/v4l2-core/v4l2-device.c:100 [inline]
+ v4l2_device_unregister+0x139/0x220 drivers/media/v4l2-core/v4l2-device.c:88
+ uvc_unregister_video+0x11a/0x210 drivers/media/usb/uvc/uvc_driver.c:1957
+ uvc_disconnect+0xbc/0x160 drivers/media/usb/uvc/uvc_driver.c:2270
+ usb_unbind_interface+0x1bd/0x8a0 drivers/usb/core/driver.c:423
+ __device_release_driver drivers/base/dd.c:1137 [inline]
+ device_release_driver_internal+0x42f/0x500 drivers/base/dd.c:1168
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:533
+ device_del+0x481/0xd30 drivers/base/core.c:2664
+ usb_disable_device+0x23d/0x790 drivers/usb/core/message.c:1237
+ usb_disconnect+0x293/0x900 drivers/usb/core/hub.c:2201
+ hub_port_connect drivers/usb/core/hub.c:5036 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5325 [inline]
+ port_event drivers/usb/core/hub.c:5471 [inline]
+ hub_event+0x1a1d/0x4300 drivers/usb/core/hub.c:5553
+ process_one_work+0x94b/0x1620 kernel/workqueue.c:2264
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2410
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8881ce1c2300
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 32 bytes inside of
+ 96-byte region [ffff8881ce1c2300, ffff8881ce1c2360)
+The buggy address belongs to the page:
+page:ffffea0007387080 refcount:1 mapcount:0 mapping:ffff8881da002f00 index:0x0
+flags: 0x200000000000200(slab)
+raw: 0200000000000200 ffffea0007397c00 0000000200000002 ffff8881da002f00
+raw: 0000000000000000 0000000080200020 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881ce1c2200: 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc
+ ffff8881ce1c2280: 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc
+>ffff8881ce1c2300: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+                               ^
+ ffff8881ce1c2380: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff8881ce1c2400: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+==================================================================

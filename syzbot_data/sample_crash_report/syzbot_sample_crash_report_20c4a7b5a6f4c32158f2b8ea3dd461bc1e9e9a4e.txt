@@ -1,0 +1,65 @@
+NILFS (loop0): discard dirty block: blocknr=18446744073709551615, size=1024
+NILFS (loop0): discard dirty block: blocknr=18446744073709551615, size=1024
+NILFS (loop0): discard dirty block: blocknr=18446744073709551615, size=1024
+------------[ cut here ]------------
+kernel BUG at fs/buffer.c:2685!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 3633 Comm: syz-executor141 Not tainted 6.0.0-syzkaller-07994-ge8bc52cb8df8 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+RIP: 0010:submit_bh_wbc+0x125/0x650 fs/buffer.c:2685
+Code: c1 ea 03 80 3c 02 00 0f 85 3f 04 00 00 48 8b 2b 31 ff 48 c1 ed 08 83 e5 01 89 ee e8 d5 93 94 ff 40 84 ed 74 07 e8 4b 97 94 ff <0f> 0b e8 44 97 94 ff be 08 00 00 00 48 89 df e8 77 af e1 ff 48 89
+RSP: 0018:ffffc90003f5f398 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: ffff88806fc28e80 RCX: 0000000000000000
+RDX: ffff88801f9f1d80 RSI: ffffffff81e67fe5 RDI: 0000000000000001
+RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff88806fc28e80 R15: 0000000000000000
+FS:  0000555557531300(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055d729914258 CR3: 000000001ec4b000 CR4: 0000000000350ef0
+Call Trace:
+ <TASK>
+ submit_bh fs/buffer.c:2724 [inline]
+ block_read_full_folio+0x63e/0x9d0 fs/buffer.c:2340
+ do_mpage_readpage+0x39f/0x19e0 fs/mpage.c:304
+ mpage_read_folio+0xa5/0x140 fs/mpage.c:379
+ filemap_read_folio+0xdb/0x2c0 mm/filemap.c:2399
+ filemap_fault+0x1f47/0x2640 mm/filemap.c:3212
+ __do_fault+0x10d/0x610 mm/memory.c:4173
+ do_read_fault mm/memory.c:4524 [inline]
+ do_fault mm/memory.c:4653 [inline]
+ handle_pte_fault mm/memory.c:4917 [inline]
+ __handle_mm_fault+0x2130/0x39b0 mm/memory.c:5059
+ handle_mm_fault+0x1c8/0x780 mm/memory.c:5157
+ faultin_page mm/gup.c:990 [inline]
+ __get_user_pages+0x4f3/0xfd0 mm/gup.c:1219
+ populate_vma_page_range+0x23d/0x320 mm/gup.c:1576
+ __mm_populate+0x1ea/0x3d0 mm/gup.c:1689
+ mm_populate include/linux/mm.h:2663 [inline]
+ vm_mmap_pgoff+0x1fd/0x270 mm/util.c:557
+ ksys_mmap_pgoff+0x41b/0x5a0 mm/mmap.c:1586
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f49d5970b89
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fff05db1d08 EFLAGS: 00000246 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 0000000000009191 RCX: 00007f49d5970b89
+RDX: 00000000027fffff RSI: 0000000000600000 RDI: 0000000020000000
+RBP: 0000000000000000 R08: 0000000000000003 R09: 0000000000000000
+R10: 0000000004002011 R11: 0000000000000246 R12: 00007fff05db1d3c
+R13: 00007fff05db1d70 R14: 00007fff05db1d50 R15: 000000000000000e
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:submit_bh_wbc+0x125/0x650 fs/buffer.c:2685
+Code: c1 ea 03 80 3c 02 00 0f 85 3f 04 00 00 48 8b 2b 31 ff 48 c1 ed 08 83 e5 01 89 ee e8 d5 93 94 ff 40 84 ed 74 07 e8 4b 97 94 ff <0f> 0b e8 44 97 94 ff be 08 00 00 00 48 89 df e8 77 af e1 ff 48 89
+RSP: 0018:ffffc90003f5f398 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: ffff88806fc28e80 RCX: 0000000000000000
+RDX: ffff88801f9f1d80 RSI: ffffffff81e67fe5 RDI: 0000000000000001
+RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff88806fc28e80 R15: 0000000000000000
+FS:  0000555557531300(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055d729914258 CR3: 000000001ec4b000 CR4: 0000000000350ef0

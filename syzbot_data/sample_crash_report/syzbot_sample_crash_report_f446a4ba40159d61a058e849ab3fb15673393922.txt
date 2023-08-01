@@ -1,0 +1,79 @@
+==================================================================
+BUG: KASAN: use-after-free in strlen+0x4c/0x60 lib/string.c:544
+Read of size 1 at addr ffff8880a29662c0 by task kworker/1:1/23
+
+CPU: 1 PID: 23 Comm: kworker/1:1 Not tainted 5.9.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: afs afs_manage_cell
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d6/0x29e lib/dump_stack.c:118
+ print_address_description+0x66/0x620 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report+0x132/0x1d0 mm/kasan/report.c:530
+ strlen+0x4c/0x60 lib/string.c:544
+ __proc_create+0x28d/0xb60 fs/proc/generic.c:399
+ proc_mkdir_data+0x84/0x160 fs/proc/generic.c:482
+ proc_net_mkdir include/linux/proc_fs.h:201 [inline]
+ afs_proc_cell_setup+0xaf/0x180 fs/afs/proc.c:620
+ afs_activate_cell fs/afs/cell.c:615 [inline]
+ afs_manage_cell+0x7db/0x1540 fs/afs/cell.c:697
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0xde4/0x1460 kernel/workqueue.c:2417
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Allocated by task 8801:
+ kasan_save_stack mm/kasan/common.c:48 [inline]
+ kasan_set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc+0x100/0x130 mm/kasan/common.c:461
+ __do_kmalloc mm/slab.c:3655 [inline]
+ __kmalloc+0x205/0x300 mm/slab.c:3664
+ kmalloc include/linux/slab.h:559 [inline]
+ afs_alloc_cell fs/afs/cell.c:157 [inline]
+ afs_lookup_cell+0x4d2/0x14d0 fs/afs/cell.c:262
+ afs_parse_source fs/afs/super.c:290 [inline]
+ afs_parse_param+0x526/0x790 fs/afs/super.c:326
+ vfs_parse_fs_param+0x1e5/0x460 fs/fs_context.c:117
+ vfs_parse_fs_string fs/fs_context.c:161 [inline]
+ generic_parse_monolithic+0x230/0x350 fs/fs_context.c:201
+ do_new_mount fs/namespace.c:2871 [inline]
+ path_mount+0x176c/0x29e0 fs/namespace.c:3192
+ do_mount fs/namespace.c:3205 [inline]
+ __do_sys_mount fs/namespace.c:3413 [inline]
+ __se_sys_mount+0x126/0x180 fs/namespace.c:3390
+ do_syscall_64+0x31/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 8668:
+ kasan_save_stack mm/kasan/common.c:48 [inline]
+ kasan_set_track+0x3d/0x70 mm/kasan/common.c:56
+ kasan_set_free_info+0x17/0x30 mm/kasan/generic.c:355
+ __kasan_slab_free+0xdd/0x110 mm/kasan/common.c:422
+ __cache_free mm/slab.c:3418 [inline]
+ kfree+0x113/0x200 mm/slab.c:3756
+ afs_cell_destroy+0x16b/0x240 fs/afs/cell.c:500
+ rcu_do_batch kernel/rcu/tree.c:2430 [inline]
+ rcu_core+0x79b/0x1130 kernel/rcu/tree.c:2658
+ __do_softirq+0x256/0x6d5 kernel/softirq.c:298
+
+The buggy address belongs to the object at ffff8880a29662c0
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8880a29662c0, ffff8880a29662e0)
+The buggy address belongs to the page:
+page:00000000f15c0556 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff8880a2966fc1 pfn:0xa2966
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea00028f7d48 ffffea0002a22248 ffff8880aa440100
+raw: ffff8880a2966fc1 ffff8880a2966000 000000010000003f 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a2966180: fa fb fb fb fc fc fc fc fa fb fb fb fc fc fc fc
+ ffff8880a2966200: fa fb fb fb fc fc fc fc fa fb fb fb fc fc fc fc
+>ffff8880a2966280: 00 00 03 fc fc fc fc fc fa fb fb fb fc fc fc fc
+                                           ^
+ ffff8880a2966300: 00 07 fc fc fc fc fc fc fa fb fb fb fc fc fc fc
+ ffff8880a2966380: fa fb fb fb fc fc fc fc 00 00 00 00 fc fc fc fc
+==================================================================

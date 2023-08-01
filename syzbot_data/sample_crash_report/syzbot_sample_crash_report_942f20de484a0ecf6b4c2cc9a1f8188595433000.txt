@@ -1,0 +1,125 @@
+REISERFS warning:  read_super_block: reiserfs filesystem is deprecated and scheduled to be removed from the kernel in 2025
+REISERFS (device loop0): found reiserfs format "3.6" with non-standard journal
+REISERFS (device loop0): using ordered data mode
+reiserfs: using flush barriers
+REISERFS (device loop0): journal params: device loop0, size 512, journal first block 18, max trans len 256, max batch 225, max commit age 30, max trans age 30
+REISERFS (device loop0): checking transaction log (loop0)
+REISERFS (device loop0): Using rupasov hash to sort names
+==================================================================
+BUG: KASAN: out-of-bounds in leaf_paste_entries+0x449/0x910 fs/reiserfs/lbalance.c:1377
+Read of size 18446744073709551584 at addr ffff88807c9e4fa4 by task syz-executor262/3604
+
+CPU: 1 PID: 3604 Comm: syz-executor262 Not tainted 6.0.0-syzkaller-09589-g55be6084c8e0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:317 [inline]
+ print_report.cold+0x2ba/0x719 mm/kasan/report.c:433
+ kasan_report+0xb1/0x1e0 mm/kasan/report.c:495
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ memmove+0x20/0x60 mm/kasan/shadow.c:54
+ leaf_paste_entries+0x449/0x910 fs/reiserfs/lbalance.c:1377
+ balance_leaf_finish_node_paste_dirent fs/reiserfs/do_balan.c:1295 [inline]
+ balance_leaf_finish_node_paste fs/reiserfs/do_balan.c:1321 [inline]
+ balance_leaf_finish_node fs/reiserfs/do_balan.c:1364 [inline]
+ balance_leaf+0x917d/0xde40 fs/reiserfs/do_balan.c:1452
+ do_balance+0x315/0x810 fs/reiserfs/do_balan.c:1888
+ reiserfs_paste_into_item+0x763/0x8e0 fs/reiserfs/stree.c:2159
+ reiserfs_add_entry+0x8cb/0xcf0 fs/reiserfs/namei.c:567
+ reiserfs_mkdir+0x675/0x980 fs/reiserfs/namei.c:860
+ xattr_mkdir fs/reiserfs/xattr.c:76 [inline]
+ create_privroot fs/reiserfs/xattr.c:882 [inline]
+ reiserfs_xattr_init+0x57a/0xc30 fs/reiserfs/xattr.c:1005
+ reiserfs_fill_super+0x21d7/0x2f80 fs/reiserfs/super.c:2177
+ mount_bdev+0x34d/0x410 fs/super.c:1400
+ legacy_get_tree+0x105/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x89/0x2f0 fs/super.c:1530
+ do_new_mount fs/namespace.c:3040 [inline]
+ path_mount+0x1326/0x1e20 fs/namespace.c:3370
+ do_mount fs/namespace.c:3383 [inline]
+ __do_sys_mount fs/namespace.c:3591 [inline]
+ __se_sys_mount fs/namespace.c:3568 [inline]
+ __x64_sys_mount+0x27f/0x300 fs/namespace.c:3568
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f285d4e035a
+Code: 83 c4 08 5b 5d c3 66 2e 0f 1f 84 00 00 00 00 00 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fff8a91f0d8 EFLAGS: 00000286 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f285d4e035a
+RDX: 0000000020000000 RSI: 0000000020000180 RDI: 00007fff8a91f0f0
+RBP: 00007fff8a91f0f0 R08: 00007fff8a91f130 R09: 0000555556cbb2c0
+R10: 0000000000000000 R11: 0000000000000286 R12: 0000000000000004
+R13: 00007fff8a91f130 R14: 0000000000000006 R15: 0000000020000290
+ </TASK>
+
+The buggy address belongs to the physical page:
+page:ffffea0001f27900 refcount:3 mapcount:0 mapping:ffff888140daeaf8 index:0x213 pfn:0x7c9e4
+memcg:ffff888140188000
+aops:def_blk_aops ino:700000
+flags: 0xfff00000002022(referenced|active|private|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000002022 0000000000000000 dead000000000122 ffff888140daeaf8
+raw: 0000000000000213 ffff8880700251d0 00000003ffffffff ffff888140188000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Movable, gfp_mask 0x148c48(GFP_NOFS|__GFP_NOFAIL|__GFP_COMP|__GFP_HARDWALL|__GFP_MOVABLE), pid 3604, tgid 3604 (syz-executor262), ts 40065573836, free_ts 40040802854
+ prep_new_page mm/page_alloc.c:2532 [inline]
+ get_page_from_freelist+0x109b/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages+0x1c7/0x510 mm/page_alloc.c:5549
+ alloc_pages+0x1a6/0x270 mm/mempolicy.c:2270
+ folio_alloc+0x1c/0x70 mm/mempolicy.c:2280
+ filemap_alloc_folio+0x306/0x3a0 mm/filemap.c:970
+ __filemap_get_folio+0x328/0xed0 mm/filemap.c:1970
+ pagecache_get_page+0x2e/0x290 mm/folio-compat.c:104
+ find_or_create_page include/linux/pagemap.h:613 [inline]
+ grow_dev_page fs/buffer.c:946 [inline]
+ grow_buffers fs/buffer.c:1011 [inline]
+ __getblk_slow+0x1f4/0x1030 fs/buffer.c:1038
+ __getblk_gfp+0x6e/0x80 fs/buffer.c:1333
+ sb_getblk include/linux/buffer_head.h:363 [inline]
+ search_by_key+0x3a8/0x3bc0 fs/reiserfs/stree.c:672
+ reiserfs_read_locked_inode+0x154/0x2160 fs/reiserfs/inode.c:1549
+ reiserfs_fill_super+0x1616/0x2f80 fs/reiserfs/super.c:2073
+ mount_bdev+0x34d/0x410 fs/super.c:1400
+ legacy_get_tree+0x105/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x89/0x2f0 fs/super.c:1530
+ do_new_mount fs/namespace.c:3040 [inline]
+ path_mount+0x1326/0x1e20 fs/namespace.c:3370
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1449 [inline]
+ free_pcp_prepare+0x5e4/0xd20 mm/page_alloc.c:1499
+ free_unref_page_prepare mm/page_alloc.c:3380 [inline]
+ free_unref_page_list+0x16f/0xb90 mm/page_alloc.c:3522
+ release_pages+0xbd3/0x1400 mm/swap.c:1012
+ folios_put include/linux/mm.h:1164 [inline]
+ folio_batch_move_lru+0x2b7/0x440 mm/swap.c:253
+ folio_batch_add_and_move+0xd4/0x130 mm/swap.c:263
+ folio_add_lru+0x26e/0x680 mm/swap.c:490
+ filemap_add_folio+0x133/0x1d0 mm/filemap.c:948
+ __filemap_get_folio+0x385/0xed0 mm/filemap.c:1981
+ pagecache_get_page+0x2e/0x290 mm/folio-compat.c:104
+ find_or_create_page include/linux/pagemap.h:613 [inline]
+ grow_dev_page fs/buffer.c:946 [inline]
+ grow_buffers fs/buffer.c:1011 [inline]
+ __getblk_slow+0x1f4/0x1030 fs/buffer.c:1038
+ __getblk_gfp fs/buffer.c:1333 [inline]
+ __bread_gfp+0x228/0x320 fs/buffer.c:1378
+ __bread include/linux/buffer_head.h:434 [inline]
+ journal_init+0xd9a/0x64c0 fs/reiserfs/journal.c:2787
+ reiserfs_fill_super+0xc57/0x2f80 fs/reiserfs/super.c:2024
+ mount_bdev+0x34d/0x410 fs/super.c:1400
+ legacy_get_tree+0x105/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x89/0x2f0 fs/super.c:1530
+
+Memory state around the buggy address:
+ ffff88807c9e4e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88807c9e4f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88807c9e4f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+                               ^
+ ffff88807c9e5000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88807c9e5080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

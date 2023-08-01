@@ -1,0 +1,79 @@
+viperboard 1-1:0.143: version 0.00 found at bus 001 address 002
+viperboard-i2c viperboard-i2c.2.auto: failure setting i2c_bus_freq to 100
+viperboard-i2c: probe of viperboard-i2c.2.auto failed with error -5
+usb 1-1: USB disconnect, device number 2
+general protection fault, probably for non-canonical address 0xdffffc00000000b3: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000598-0x000000000000059f]
+CPU: 0 PID: 5 Comm: kworker/0:0 Not tainted 5.11.0-rc5-next-20210129-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+RIP: 0010:__list_del_entry_valid+0x1d/0xf0 lib/list_debug.c:42
+Code: 48 8b 34 24 eb b4 0f 1f 80 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 41 55 41 54 55 48 89 fd 48 83 c7 08 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 a0 00 00 00 48 89 ea 4c 8b 65 08 48 b8 00 00 00
+RSP: 0018:ffffc90000ca7308 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: ffff88814149e008 RCX: 0000000000000000
+RDX: 00000000000000b3 RSI: ffffffff83e19360 RDI: 0000000000000598
+RBP: 0000000000000590 R08: 0000000000000001 R09: ffffffff8ef7388f
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000590
+R13: 0000000000000598 R14: ffff88814782ff20 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9e00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055e1f4df6008 CR3: 0000000016785000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:132 [inline]
+ list_del include/linux/list.h:146 [inline]
+ gpiodevice_release+0x49/0x250 drivers/gpio/gpiolib.c:477
+ device_release+0x9f/0x240 drivers/base/core.c:2055
+ kobject_cleanup lib/kobject.c:705 [inline]
+ kobject_release lib/kobject.c:736 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x1c8/0x540 lib/kobject.c:753
+ put_device+0x1b/0x30 drivers/base/core.c:3283
+ release_nodes+0x49b/0x8f0 drivers/base/devres.c:523
+ devres_release_all+0x74/0xd0 drivers/base/devres.c:545
+ __device_release_driver+0x3d2/0x6f0 drivers/base/dd.c:1160
+ device_release_driver_internal drivers/base/dd.c:1187 [inline]
+ device_release_driver+0x26/0x40 drivers/base/dd.c:1210
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:533
+ device_del+0x502/0xd40 drivers/base/core.c:3363
+ platform_device_del.part.0+0x1f/0x220 drivers/base/platform.c:783
+ platform_device_del include/linux/err.h:41 [inline]
+ platform_device_unregister+0x38/0x80 drivers/base/platform.c:821
+ mfd_remove_devices_fn drivers/mfd/mfd-core.c:375 [inline]
+ mfd_remove_devices_fn+0x166/0x1b0 drivers/mfd/mfd-core.c:357
+ device_for_each_child_reverse+0x110/0x180 drivers/base/core.c:3526
+ mfd_remove_devices+0x75/0xa0 drivers/mfd/mfd-core.c:391
+ vprbrd_disconnect+0x43/0xf0 drivers/mfd/viperboard.c:111
+ usb_unbind_interface+0x1d8/0x8d0 drivers/usb/core/driver.c:458
+ __device_release_driver+0x3bd/0x6f0 drivers/base/dd.c:1156
+ device_release_driver_internal drivers/base/dd.c:1187 [inline]
+ device_release_driver+0x26/0x40 drivers/base/dd.c:1210
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:533
+ device_del+0x502/0xd40 drivers/base/core.c:3363
+ usb_disable_device+0x35b/0x7b0 drivers/usb/core/message.c:1413
+ usb_disconnect.cold+0x27d/0x780 drivers/usb/core/hub.c:2218
+ hub_port_connect drivers/usb/core/hub.c:5074 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5363 [inline]
+ port_event drivers/usb/core/hub.c:5509 [inline]
+ hub_event+0x1c8a/0x42d0 drivers/usb/core/hub.c:5591
+ process_one_work+0x98d/0x15f0 kernel/workqueue.c:2275
+ process_scheduled_works kernel/workqueue.c:2337 [inline]
+ worker_thread+0x82b/0x1120 kernel/workqueue.c:2423
+ kthread+0x3b1/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+Modules linked in:
+---[ end trace c9367f77087536d6 ]---
+RIP: 0010:__list_del_entry_valid+0x1d/0xf0 lib/list_debug.c:42
+Code: 48 8b 34 24 eb b4 0f 1f 80 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 41 55 41 54 55 48 89 fd 48 83 c7 08 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 a0 00 00 00 48 89 ea 4c 8b 65 08 48 b8 00 00 00
+RSP: 0018:ffffc90000ca7308 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: ffff88814149e008 RCX: 0000000000000000
+RDX: 00000000000000b3 RSI: ffffffff83e19360 RDI: 0000000000000598
+RBP: 0000000000000590 R08: 0000000000000001 R09: ffffffff8ef7388f
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000590
+R13: 0000000000000598 R14: ffff88814782ff20 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9e00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ff7b003f068 CR3: 000000001b33c000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

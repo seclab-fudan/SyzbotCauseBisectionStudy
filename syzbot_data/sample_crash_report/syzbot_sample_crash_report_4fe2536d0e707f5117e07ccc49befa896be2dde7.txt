@@ -1,0 +1,61 @@
+BUG: unable to handle kernel paging request at fffffc0000000000
+PGD 0 P4D 0 
+Oops: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 4476 Comm: syzkaller625382 Not tainted 4.16.0+ #17
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bytes_is_nonzero mm/kasan/kasan.c:166 [inline]
+RIP: 0010:memory_is_nonzero mm/kasan/kasan.c:184 [inline]
+RIP: 0010:memory_is_poisoned_n mm/kasan/kasan.c:210 [inline]
+RIP: 0010:memory_is_poisoned mm/kasan/kasan.c:241 [inline]
+RIP: 0010:check_memory_region_inline mm/kasan/kasan.c:257 [inline]
+RIP: 0010:check_memory_region+0x126/0x1b0 mm/kasan/kasan.c:267
+RSP: 0018:ffff8801aedaf2b0 EFLAGS: 00010212
+RAX: fffffc0000000000 RBX: fffffc0000000000 RCX: ffffffff87204f5a
+RDX: 0000000000000001 RSI: 0000000000000040 RDI: ffffffffffffffd8
+RBP: ffff8801aedaf2c8 R08: dffffc0000000003 R09: fffffbfffffffffb
+R10: dffffc0000000002 R11: 0000000000000017 R12: dffffc0000000003
+R13: 0000000000000000 R14: ffffffffffffffd8 R15: 0000000000000000
+FS:  0000000000de8880(0000) GS:ffff8801db100000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffc0000000000 CR3: 00000001af794000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ memset+0x23/0x40 mm/kasan/kasan.c:285
+ memset include/linux/string.h:330 [inline]
+ smc_ib_remember_port_attr+0x8a/0x370 net/smc/smc_ib.c:421
+ smc_pnet_add+0xb9b/0xec0 net/smc/smc_pnet.c:354
+ genl_family_rcv_msg+0x889/0x1120 net/netlink/genetlink.c:599
+ genl_rcv_msg+0xc6/0x170 net/netlink/genetlink.c:624
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2448
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:635
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x58b/0x740 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0x9f0/0xfa0 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:639
+ ___sys_sendmsg+0x805/0x940 net/socket.c:2117
+ __sys_sendmsg+0x115/0x270 net/socket.c:2155
+ SYSC_sendmsg net/socket.c:2164 [inline]
+ SyS_sendmsg+0x29/0x30 net/socket.c:2162
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43fd99
+RSP: 002b:00007fff486a8c58 EFLAGS: 00000213 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd99
+RDX: 0000000000000000 RSI: 0000000020000000 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000213 R12: 00000000004016c0
+R13: 0000000000401750 R14: 0000000000000000 R15: 0000000000000000
+Code: ff ff ff 4d 85 c0 74 ba 48 b8 01 00 00 00 00 fc ff df 4d 01 c8 48 01 d8 41 80 39 00 74 08 e9 8c 00 00 00 48 89 d8 4c 39 c0 74 97 <80> 38 00 48 8d 58 01 74 ef eb 87 4c 89 c0 49 39 c2 74 59 e8 12 
+RIP: bytes_is_nonzero mm/kasan/kasan.c:166 [inline] RSP: ffff8801aedaf2b0
+RIP: memory_is_nonzero mm/kasan/kasan.c:184 [inline] RSP: ffff8801aedaf2b0
+RIP: memory_is_poisoned_n mm/kasan/kasan.c:210 [inline] RSP: ffff8801aedaf2b0
+RIP: memory_is_poisoned mm/kasan/kasan.c:241 [inline] RSP: ffff8801aedaf2b0
+RIP: check_memory_region_inline mm/kasan/kasan.c:257 [inline] RSP: ffff8801aedaf2b0
+RIP: check_memory_region+0x126/0x1b0 mm/kasan/kasan.c:267 RSP: ffff8801aedaf2b0
+CR2: fffffc0000000000
+---[ end trace a142559361da7dc5 ]---

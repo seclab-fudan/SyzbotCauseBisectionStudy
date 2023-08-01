@@ -1,0 +1,152 @@
+======================================================
+WARNING: possible circular locking dependency detected
+5.13.0-syzkaller #0 Not tainted
+------------------------------------------------------
+systemd-udevd/8740 is trying to acquire lock:
+ffffffff8cc7c968 (loop_ctl_mutex){+.+.}-{3:3}, at: loop_probe+0xc7/0x150 drivers/block/loop.c:2397
+
+but task is already holding lock:
+ffffffff8c9e9ba8 (major_names_lock){+.+.}-{3:3}, at: blk_request_module+0x25/0x1d0 block/genhd.c:657
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #3 (major_names_lock){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:959 [inline]
+       __mutex_lock+0x12a/0x10a0 kernel/locking/mutex.c:1104
+       __register_blkdev+0x2b/0x3e0 block/genhd.c:216
+       register_mtd_blktrans+0x85/0x3c0 drivers/mtd/mtd_blkdevs.c:531
+       do_one_initcall+0x103/0x650 init/main.c:1246
+       do_initcall_level init/main.c:1319 [inline]
+       do_initcalls init/main.c:1335 [inline]
+       do_basic_setup init/main.c:1355 [inline]
+       kernel_init_freeable+0x6b8/0x741 init/main.c:1557
+       kernel_init+0x1a/0x1d0 init/main.c:1449
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+-> #2 (mtd_table_mutex){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:959 [inline]
+       __mutex_lock+0x12a/0x10a0 kernel/locking/mutex.c:1104
+       blktrans_open+0x69/0x600 drivers/mtd/mtd_blkdevs.c:210
+       blkdev_get_whole+0xa1/0x420 fs/block_dev.c:1251
+       blkdev_get_by_dev.part.0+0x30c/0xdd0 fs/block_dev.c:1415
+       blkdev_get_by_dev fs/block_dev.c:1504 [inline]
+       blkdev_open+0x295/0x300 fs/block_dev.c:1510
+       do_dentry_open+0x4c8/0x11c0 fs/open.c:826
+       do_open fs/namei.c:3361 [inline]
+       path_openat+0x1c0e/0x27e0 fs/namei.c:3494
+       do_filp_open+0x190/0x3d0 fs/namei.c:3521
+       do_sys_openat2+0x16d/0x420 fs/open.c:1195
+       do_sys_open fs/open.c:1211 [inline]
+       __do_sys_open fs/open.c:1219 [inline]
+       __se_sys_open fs/open.c:1215 [inline]
+       __x64_sys_open+0x119/0x1c0 fs/open.c:1215
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #1 (&disk->open_mutex){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:959 [inline]
+       __mutex_lock+0x12a/0x10a0 kernel/locking/mutex.c:1104
+       del_gendisk+0x8b/0x770 block/genhd.c:587
+       loop_remove drivers/block/loop.c:2344 [inline]
+       loop_control_ioctl drivers/block/loop.c:2443 [inline]
+       loop_control_ioctl+0x3e7/0x480 drivers/block/loop.c:2403
+       vfs_ioctl fs/ioctl.c:51 [inline]
+       __do_sys_ioctl fs/ioctl.c:1069 [inline]
+       __se_sys_ioctl fs/ioctl.c:1055 [inline]
+       __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #0 (loop_ctl_mutex){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3051 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3174 [inline]
+       validate_chain kernel/locking/lockdep.c:3789 [inline]
+       __lock_acquire+0x2a07/0x54a0 kernel/locking/lockdep.c:5015
+       lock_acquire kernel/locking/lockdep.c:5625 [inline]
+       lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+       __mutex_lock_common kernel/locking/mutex.c:959 [inline]
+       __mutex_lock+0x12a/0x10a0 kernel/locking/mutex.c:1104
+       loop_probe+0xc7/0x150 drivers/block/loop.c:2397
+       blk_request_module+0x111/0x1d0 block/genhd.c:660
+       blkdev_get_no_open+0x1d5/0x250 fs/block_dev.c:1332
+       blkdev_get_by_dev.part.0+0x25/0xdd0 fs/block_dev.c:1395
+       blkdev_get_by_dev fs/block_dev.c:1504 [inline]
+       blkdev_open+0x295/0x300 fs/block_dev.c:1510
+       do_dentry_open+0x4c8/0x11c0 fs/open.c:826
+       do_open fs/namei.c:3361 [inline]
+       path_openat+0x1c0e/0x27e0 fs/namei.c:3494
+       do_filp_open+0x190/0x3d0 fs/namei.c:3521
+       do_sys_openat2+0x16d/0x420 fs/open.c:1195
+       do_sys_open fs/open.c:1211 [inline]
+       __do_sys_open fs/open.c:1219 [inline]
+       __se_sys_open fs/open.c:1215 [inline]
+       __x64_sys_open+0x119/0x1c0 fs/open.c:1215
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+other info that might help us debug this:
+
+Chain exists of:
+  loop_ctl_mutex --> mtd_table_mutex --> major_names_lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(major_names_lock);
+                               lock(mtd_table_mutex);
+                               lock(major_names_lock);
+  lock(loop_ctl_mutex);
+
+ *** DEADLOCK ***
+
+1 lock held by systemd-udevd/8740:
+ #0: ffffffff8c9e9ba8 (major_names_lock){+.+.}-{3:3}, at: blk_request_module+0x25/0x1d0 block/genhd.c:657
+
+stack backtrace:
+CPU: 0 PID: 8740 Comm: systemd-udevd Not tainted 5.13.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:96
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2131
+ check_prev_add kernel/locking/lockdep.c:3051 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3174 [inline]
+ validate_chain kernel/locking/lockdep.c:3789 [inline]
+ __lock_acquire+0x2a07/0x54a0 kernel/locking/lockdep.c:5015
+ lock_acquire kernel/locking/lockdep.c:5625 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+ __mutex_lock_common kernel/locking/mutex.c:959 [inline]
+ __mutex_lock+0x12a/0x10a0 kernel/locking/mutex.c:1104
+ loop_probe+0xc7/0x150 drivers/block/loop.c:2397
+ blk_request_module+0x111/0x1d0 block/genhd.c:660
+ blkdev_get_no_open+0x1d5/0x250 fs/block_dev.c:1332
+ blkdev_get_by_dev.part.0+0x25/0xdd0 fs/block_dev.c:1395
+ blkdev_get_by_dev fs/block_dev.c:1504 [inline]
+ blkdev_open+0x295/0x300 fs/block_dev.c:1510
+ do_dentry_open+0x4c8/0x11c0 fs/open.c:826
+ do_open fs/namei.c:3361 [inline]
+ path_openat+0x1c0e/0x27e0 fs/namei.c:3494
+ do_filp_open+0x190/0x3d0 fs/namei.c:3521
+ do_sys_openat2+0x16d/0x420 fs/open.c:1195
+ do_sys_open fs/open.c:1211 [inline]
+ __do_sys_open fs/open.c:1219 [inline]
+ __se_sys_open fs/open.c:1215 [inline]
+ __x64_sys_open+0x119/0x1c0 fs/open.c:1215
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f8f34e56840
+Code: 73 01 c3 48 8b 0d 68 77 20 00 f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 83 3d 89 bb 20 00 00 75 10 b8 02 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 1e f6 ff ff 48 89 04 24
+RSP: 002b:00007ffcd8c5a778 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 00005615b087e810 RCX: 00007f8f34e56840
+RDX: 00005615b06c1fe3 RSI: 00000000000a0800 RDI: 00005615b08831b0
+RBP: 00007ffcd8c5a8f0 R08: 00005615b06c1670 R09: 0000000000000010
+R10: 00007f8f34bd0d70 R11: 0000000000000246 R12: 00007ffcd8c5a840
+R13: 00005615b0884e10 R14: 0000000000000003 R15: 000000000000000e

@@ -1,0 +1,65 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000001: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+CPU: 0 PID: 2838 Comm: kworker/u4:6 Not tainted 6.2.0-rc6-next-20230131-syzkaller-09515-g80bd9028feca #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+Workqueue: phy4 ieee80211_iface_work
+RIP: 0010:__skb_unlink include/linux/skbuff.h:2321 [inline]
+RIP: 0010:__skb_dequeue include/linux/skbuff.h:2337 [inline]
+RIP: 0010:skb_dequeue+0xf5/0x180 net/core/skbuff.c:3511
+Code: 8d 7e 08 49 8b 5c 24 08 48 b8 00 00 00 00 00 fc ff df 49 c7 44 24 08 00 00 00 00 48 89 fa 49 c7 04 24 00 00 00 00 48 c1 ea 03 <80> 3c 02 00 75 6d 48 89 da 49 89 5e 08 48 b8 00 00 00 00 00 fc ff
+RSP: 0018:ffffc9000ca2fc80 EFLAGS: 00010002
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000001 RSI: ffffffff8808951d RDI: 0000000000000008
+RBP: 0000000000000293 R08: 0000000000000001 R09: 0000000000000003
+R10: fffff52001945f7e R11: 0000000000000000 R12: ffff88801d8f63c0
+R13: ffff888075675880 R14: 0000000000000000 R15: ffff888075675868
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f4a51f6d150 CR3: 0000000072a78000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ ieee80211_iface_work+0x369/0xd70 net/mac80211/iface.c:1631
+ process_one_work+0x9bf/0x1820 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__skb_unlink include/linux/skbuff.h:2321 [inline]
+RIP: 0010:__skb_dequeue include/linux/skbuff.h:2337 [inline]
+RIP: 0010:skb_dequeue+0xf5/0x180 net/core/skbuff.c:3511
+Code: 8d 7e 08 49 8b 5c 24 08 48 b8 00 00 00 00 00 fc ff df 49 c7 44 24 08 00 00 00 00 48 89 fa 49 c7 04 24 00 00 00 00 48 c1 ea 03 <80> 3c 02 00 75 6d 48 89 da 49 89 5e 08 48 b8 00 00 00 00 00 fc ff
+RSP: 0018:ffffc9000ca2fc80 EFLAGS: 00010002
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000001 RSI: ffffffff8808951d RDI: 0000000000000008
+RBP: 0000000000000293 R08: 0000000000000001 R09: 0000000000000003
+R10: fffff52001945f7e R11: 0000000000000000 R12: ffff88801d8f63c0
+R13: ffff888075675880 R14: 0000000000000000 R15: ffff888075675868
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f4a51f6d150 CR3: 0000000072a78000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	8d 7e 08             	lea    0x8(%rsi),%edi
+   3:	49 8b 5c 24 08       	mov    0x8(%r12),%rbx
+   8:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+   f:	fc ff df
+  12:	49 c7 44 24 08 00 00 	movq   $0x0,0x8(%r12)
+  19:	00 00
+  1b:	48 89 fa             	mov    %rdi,%rdx
+  1e:	49 c7 04 24 00 00 00 	movq   $0x0,(%r12)
+  25:	00
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	75 6d                	jne    0x9d
+  30:	48 89 da             	mov    %rbx,%rdx
+  33:	49 89 5e 08          	mov    %rbx,0x8(%r14)
+  37:	48                   	rex.W
+  38:	b8 00 00 00 00       	mov    $0x0,%eax
+  3d:	00 fc                	add    %bh,%ah
+  3f:	ff                   	.byte 0xff

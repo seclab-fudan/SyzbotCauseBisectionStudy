@@ -1,0 +1,360 @@
+
+=============================
+WARNING: suspicious RCU usage
+4.15.0-rc6+ #245 Not tainted
+-----------------------------
+net/ipv6/ip6_fib.c:1702 suspicious rcu_dereference_protected() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+5 locks held by syzkaller678106/3508:
+ #0:  (&mm->mmap_sem){++++}, at: [<00000000083dfc98>] vm_mmap_pgoff+0x198/0x280 mm/util.c:331
+ #1:  ((&net->ipv6.ip6_fib_timer)){+.-.}, at: [<00000000507c2669>] lockdep_copy_map include/linux/lockdep.h:178 [inline]
+ #1:  ((&net->ipv6.ip6_fib_timer)){+.-.}, at: [<00000000507c2669>] call_timer_fn+0x1c6/0x820 kernel/time/timer.c:1308
+ #2:  (&(&net->ipv6.fib6_gc_lock)->rlock){+.-.}, at: [<0000000075a8ee5a>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #2:  (&(&net->ipv6.fib6_gc_lock)->rlock){+.-.}, at: [<0000000075a8ee5a>] fib6_run_gc+0x9d/0x3c0 net/ipv6/ip6_fib.c:2007
+ #3:  (rcu_read_lock){....}, at: [<000000006ed38d9d>] __fib6_clean_all+0x0/0x3a0 net/ipv6/ip6_fib.c:1560
+ #4:  (&(&tb->tb6_lock)->rlock){+.-.}, at: [<0000000088ded516>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #4:  (&(&tb->tb6_lock)->rlock){+.-.}, at: [<0000000088ded516>] __fib6_clean_all+0x1d0/0x3a0 net/ipv6/ip6_fib.c:1948
+
+stack backtrace:
+CPU: 0 PID: 3508 Comm: syzkaller678106 Not tainted 4.15.0-rc6+ #245
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4585
+ fib6_del+0xcb9/0x11b0 net/ipv6/ip6_fib.c:1701
+ fib6_clean_node+0x3b0/0x4f0 net/ipv6/ip6_fib.c:1892
+ fib6_walk_continue+0x46c/0x8a0 net/ipv6/ip6_fib.c:1815
+ fib6_walk+0x91/0xf0 net/ipv6/ip6_fib.c:1863
+ fib6_clean_tree+0x1e6/0x340 net/ipv6/ip6_fib.c:1933
+ __fib6_clean_all+0x1f4/0x3a0 net/ipv6/ip6_fib.c:1949
+ fib6_clean_all net/ipv6/ip6_fib.c:1960 [inline]
+ fib6_run_gc+0x16b/0x3c0 net/ipv6/ip6_fib.c:2016
+ fib6_gc_timer_cb+0x20/0x30 net/ipv6/ip6_fib.c:2033
+ call_timer_fn+0x228/0x820 kernel/time/timer.c:1318
+ expire_timers kernel/time/timer.c:1355 [inline]
+ __run_timers+0x7ee/0xb70 kernel/time/timer.c:1658
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1684
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:540 [inline]
+ smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xa9/0xb0 arch/x86/entry/entry_64.S:920
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:777 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x5e/0xba kernel/locking/spinlock.c:184
+RSP: 0018:ffff8801bf8f65b8 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff11
+RAX: dffffc0000000000 RBX: 0000000000000282 RCX: 0000000000000006
+RDX: 1ffffffff0d19075 RSI: 1ffff10037f71d7b RDI: 0000000000000282
+RBP: ffff8801bf8f65c8 R08: 1ffff10037f1ec85 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffffffff87f9ea68
+R13: ffff8801bf8f6780 R14: 0000000000000000 R15: dffffc0000000000
+ __debug_check_no_obj_freed lib/debugobjects.c:758 [inline]
+ debug_check_no_obj_freed+0x3da/0xf1f lib/debugobjects.c:774
+ free_pages_prepare mm/page_alloc.c:1065 [inline]
+ __free_pages_ok+0x765/0x31e0 mm/page_alloc.c:1259
+ free_compound_page+0x5e/0x70 mm/page_alloc.c:601
+ free_transhuge_page+0x2d2/0x430 mm/huge_memory.c:2740
+ __put_compound_page+0x87/0xb0 mm/swap.c:95
+ release_pages+0x64b/0x1230 mm/swap.c:788
+ free_pages_and_swap_cache+0x2ad/0x400 mm/swap_state.c:322
+ tlb_flush_mmu_free+0xb4/0x160 mm/memory.c:260
+ tlb_flush_mmu mm/memory.c:269 [inline]
+ arch_tlb_finish_mmu+0x9d/0x130 mm/memory.c:284
+ tlb_finish_mmu+0x10f/0x190 mm/memory.c:427
+ unmap_region+0x35c/0x4f0 mm/mmap.c:2514
+ do_munmap+0x726/0xdf0 mm/mmap.c:2726
+ mmap_region+0x59e/0x15a0 mm/mmap.c:1646
+ do_mmap+0x6c0/0xe00 mm/mmap.c:1483
+ do_mmap_pgoff include/linux/mm.h:2217 [inline]
+ vm_mmap_pgoff+0x1de/0x280 mm/util.c:333
+ SYSC_mmap_pgoff mm/mmap.c:1533 [inline]
+ SyS_mmap_pgoff+0x23b/0x5f0 mm/mmap.c:1491
+ SYSC_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ SyS_mmap+0x16/0x20 arch/x86/kernel/sys_x86_64.c:91
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x43ff29
+RSP: 002b:00007ffc4cbf62d8 EFLAGS: 00000216 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 000000000043ff29
+RDX: 0000000000000003 RSI: 0000000000fff000 RDI: 0000000020000000
+RBP: 0100000000000000 R08: 00000000ffffffff R09: 0000000000000000
+R10: 0000000000000032 R11: 0000000000000216 R12: 0000000000401890
+R13: 0000000000401920 R14: 0000000000000000 R15: 0000000000000000
+
+=============================
+WARNING: suspicious RCU usage
+4.15.0-rc6+ #245 Not tainted
+-----------------------------
+net/ipv6/ip6_fib.c:1729 suspicious rcu_dereference_protected() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+5 locks held by syzkaller678106/3508:
+ #0:  (&mm->mmap_sem){++++}, at: [<00000000083dfc98>] vm_mmap_pgoff+0x198/0x280 mm/util.c:331
+ #1:  ((&net->ipv6.ip6_fib_timer)){+.-.}, at: [<00000000507c2669>] lockdep_copy_map include/linux/lockdep.h:178 [inline]
+ #1:  ((&net->ipv6.ip6_fib_timer)){+.-.}, at: [<00000000507c2669>] call_timer_fn+0x1c6/0x820 kernel/time/timer.c:1308
+ #2:  (&(&net->ipv6.fib6_gc_lock)->rlock){+.-.}, at: [<0000000075a8ee5a>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #2:  (&(&net->ipv6.fib6_gc_lock)->rlock){+.-.}, at: [<0000000075a8ee5a>] fib6_run_gc+0x9d/0x3c0 net/ipv6/ip6_fib.c:2007
+ #3:  (rcu_read_lock){....}, at: [<000000006ed38d9d>] __fib6_clean_all+0x0/0x3a0 net/ipv6/ip6_fib.c:1560
+ #4:  (&(&tb->tb6_lock)->rlock){+.-.}, at: [<0000000088ded516>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #4:  (&(&tb->tb6_lock)->rlock){+.-.}, at: [<0000000088ded516>] __fib6_clean_all+0x1d0/0x3a0 net/ipv6/ip6_fib.c:1948
+
+stack backtrace:
+CPU: 0 PID: 3508 Comm: syzkaller678106 Not tainted 4.15.0-rc6+ #245
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4585
+ fib6_del+0x42b/0x11b0 net/ipv6/ip6_fib.c:1728
+ fib6_clean_node+0x3b0/0x4f0 net/ipv6/ip6_fib.c:1892
+ fib6_walk_continue+0x46c/0x8a0 net/ipv6/ip6_fib.c:1815
+ fib6_walk+0x91/0xf0 net/ipv6/ip6_fib.c:1863
+ fib6_clean_tree+0x1e6/0x340 net/ipv6/ip6_fib.c:1933
+ __fib6_clean_all+0x1f4/0x3a0 net/ipv6/ip6_fib.c:1949
+ fib6_clean_all net/ipv6/ip6_fib.c:1960 [inline]
+ fib6_run_gc+0x16b/0x3c0 net/ipv6/ip6_fib.c:2016
+ fib6_gc_timer_cb+0x20/0x30 net/ipv6/ip6_fib.c:2033
+ call_timer_fn+0x228/0x820 kernel/time/timer.c:1318
+ expire_timers kernel/time/timer.c:1355 [inline]
+ __run_timers+0x7ee/0xb70 kernel/time/timer.c:1658
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1684
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:540 [inline]
+ smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xa9/0xb0 arch/x86/entry/entry_64.S:920
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:777 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x5e/0xba kernel/locking/spinlock.c:184
+RSP: 0018:ffff8801bf8f65b8 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff11
+RAX: dffffc0000000000 RBX: 0000000000000282 RCX: 0000000000000006
+RDX: 1ffffffff0d19075 RSI: 1ffff10037f71d7b RDI: 0000000000000282
+RBP: ffff8801bf8f65c8 R08: 1ffff10037f1ec85 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffffffff87f9ea68
+R13: ffff8801bf8f6780 R14: 0000000000000000 R15: dffffc0000000000
+ __debug_check_no_obj_freed lib/debugobjects.c:758 [inline]
+ debug_check_no_obj_freed+0x3da/0xf1f lib/debugobjects.c:774
+ free_pages_prepare mm/page_alloc.c:1065 [inline]
+ __free_pages_ok+0x765/0x31e0 mm/page_alloc.c:1259
+ free_compound_page+0x5e/0x70 mm/page_alloc.c:601
+ free_transhuge_page+0x2d2/0x430 mm/huge_memory.c:2740
+ __put_compound_page+0x87/0xb0 mm/swap.c:95
+ release_pages+0x64b/0x1230 mm/swap.c:788
+ free_pages_and_swap_cache+0x2ad/0x400 mm/swap_state.c:322
+ tlb_flush_mmu_free+0xb4/0x160 mm/memory.c:260
+ tlb_flush_mmu mm/memory.c:269 [inline]
+ arch_tlb_finish_mmu+0x9d/0x130 mm/memory.c:284
+ tlb_finish_mmu+0x10f/0x190 mm/memory.c:427
+ unmap_region+0x35c/0x4f0 mm/mmap.c:2514
+ do_munmap+0x726/0xdf0 mm/mmap.c:2726
+ mmap_region+0x59e/0x15a0 mm/mmap.c:1646
+ do_mmap+0x6c0/0xe00 mm/mmap.c:1483
+ do_mmap_pgoff include/linux/mm.h:2217 [inline]
+ vm_mmap_pgoff+0x1de/0x280 mm/util.c:333
+ SYSC_mmap_pgoff mm/mmap.c:1533 [inline]
+ SyS_mmap_pgoff+0x23b/0x5f0 mm/mmap.c:1491
+ SYSC_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ SyS_mmap+0x16/0x20 arch/x86/kernel/sys_x86_64.c:91
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x43ff29
+RSP: 002b:00007ffc4cbf62d8 EFLAGS: 00000216 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 000000000043ff29
+RDX: 0000000000000003 RSI: 0000000000fff000 RDI: 0000000020000000
+RBP: 0100000000000000 R08: 00000000ffffffff R09: 0000000000000000
+R10: 0000000000000032 R11: 0000000000000216 R12: 0000000000401890
+R13: 0000000000401920 R14: 0000000000000000 R15: 0000000000000000
+
+=============================
+WARNING: suspicious RCU usage
+4.15.0-rc6+ #245 Not tainted
+-----------------------------
+net/ipv6/ip6_fib.c:1639 suspicious rcu_dereference_protected() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+5 locks held by syzkaller678106/3508:
+ #0:  (&mm->mmap_sem){++++}, at: [<00000000083dfc98>] vm_mmap_pgoff+0x198/0x280 mm/util.c:331
+ #1:  ((&net->ipv6.ip6_fib_timer)){+.-.}, at: [<00000000507c2669>] lockdep_copy_map include/linux/lockdep.h:178 [inline]
+ #1:  ((&net->ipv6.ip6_fib_timer)){+.-.}, at: [<00000000507c2669>] call_timer_fn+0x1c6/0x820 kernel/time/timer.c:1308
+ #2:  (&(&net->ipv6.fib6_gc_lock)->rlock){+.-.}, at: [<0000000075a8ee5a>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #2:  (&(&net->ipv6.fib6_gc_lock)->rlock){+.-.}, at: [<0000000075a8ee5a>] fib6_run_gc+0x9d/0x3c0 net/ipv6/ip6_fib.c:2007
+ #3:  (rcu_read_lock){....}, at: [<000000006ed38d9d>] __fib6_clean_all+0x0/0x3a0 net/ipv6/ip6_fib.c:1560
+ #4:  (&(&tb->tb6_lock)->rlock){+.-.}, at: [<0000000088ded516>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #4:  (&(&tb->tb6_lock)->rlock){+.-.}, at: [<0000000088ded516>] __fib6_clean_all+0x1d0/0x3a0 net/ipv6/ip6_fib.c:1948
+
+stack backtrace:
+CPU: 0 PID: 3508 Comm: syzkaller678106 Not tainted 4.15.0-rc6+ #245
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4585
+ fib6_del_route net/ipv6/ip6_fib.c:1638 [inline]
+ fib6_del+0xd27/0x11b0 net/ipv6/ip6_fib.c:1731
+ fib6_clean_node+0x3b0/0x4f0 net/ipv6/ip6_fib.c:1892
+ fib6_walk_continue+0x46c/0x8a0 net/ipv6/ip6_fib.c:1815
+ fib6_walk+0x91/0xf0 net/ipv6/ip6_fib.c:1863
+ fib6_clean_tree+0x1e6/0x340 net/ipv6/ip6_fib.c:1933
+ __fib6_clean_all+0x1f4/0x3a0 net/ipv6/ip6_fib.c:1949
+ fib6_clean_all net/ipv6/ip6_fib.c:1960 [inline]
+ fib6_run_gc+0x16b/0x3c0 net/ipv6/ip6_fib.c:2016
+ fib6_gc_timer_cb+0x20/0x30 net/ipv6/ip6_fib.c:2033
+ call_timer_fn+0x228/0x820 kernel/time/timer.c:1318
+ expire_timers kernel/time/timer.c:1355 [inline]
+ __run_timers+0x7ee/0xb70 kernel/time/timer.c:1658
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1684
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:540 [inline]
+ smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xa9/0xb0 arch/x86/entry/entry_64.S:920
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:777 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x5e/0xba kernel/locking/spinlock.c:184
+RSP: 0018:ffff8801bf8f65b8 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff11
+RAX: dffffc0000000000 RBX: 0000000000000282 RCX: 0000000000000006
+RDX: 1ffffffff0d19075 RSI: 1ffff10037f71d7b RDI: 0000000000000282
+RBP: ffff8801bf8f65c8 R08: 1ffff10037f1ec85 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffffffff87f9ea68
+R13: ffff8801bf8f6780 R14: 0000000000000000 R15: dffffc0000000000
+ __debug_check_no_obj_freed lib/debugobjects.c:758 [inline]
+ debug_check_no_obj_freed+0x3da/0xf1f lib/debugobjects.c:774
+ free_pages_prepare mm/page_alloc.c:1065 [inline]
+ __free_pages_ok+0x765/0x31e0 mm/page_alloc.c:1259
+ free_compound_page+0x5e/0x70 mm/page_alloc.c:601
+ free_transhuge_page+0x2d2/0x430 mm/huge_memory.c:2740
+ __put_compound_page+0x87/0xb0 mm/swap.c:95
+ release_pages+0x64b/0x1230 mm/swap.c:788
+ free_pages_and_swap_cache+0x2ad/0x400 mm/swap_state.c:322
+ tlb_flush_mmu_free+0xb4/0x160 mm/memory.c:260
+ tlb_flush_mmu mm/memory.c:269 [inline]
+ arch_tlb_finish_mmu+0x9d/0x130 mm/memory.c:284
+ tlb_finish_mmu+0x10f/0x190 mm/memory.c:427
+ unmap_region+0x35c/0x4f0 mm/mmap.c:2514
+ do_munmap+0x726/0xdf0 mm/mmap.c:2726
+ mmap_region+0x59e/0x15a0 mm/mmap.c:1646
+ do_mmap+0x6c0/0xe00 mm/mmap.c:1483
+ do_mmap_pgoff include/linux/mm.h:2217 [inline]
+ vm_mmap_pgoff+0x1de/0x280 mm/util.c:333
+ SYSC_mmap_pgoff mm/mmap.c:1533 [inline]
+ SyS_mmap_pgoff+0x23b/0x5f0 mm/mmap.c:1491
+ SYSC_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ SyS_mmap+0x16/0x20 arch/x86/kernel/sys_x86_64.c:91
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x43ff29
+RSP: 002b:00007ffc4cbf62d8 EFLAGS: 00000216 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 000000000043ff29
+RDX: 0000000000000003 RSI: 0000000000fff000 RDI: 0000000020000000
+RBP: 0100000000000000 R08: 00000000ffffffff R09: 0000000000000000
+R10: 0000000000000032 R11: 0000000000000216 R12: 0000000000401890
+R13: 0000000000401920 R14: 0000000000000000 R15: 0000000000000000
+
+=============================
+WARNING: suspicious RCU usage
+4.15.0-rc6+ #245 Not tainted
+-----------------------------
+net/ipv6/ip6_fib.c:1676 suspicious rcu_dereference_protected() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+6 locks held by syzkaller678106/3508:
+ #0:  (&mm->mmap_sem){++++}, at: [<00000000083dfc98>] vm_mmap_pgoff+0x198/0x280 mm/util.c:331
+ #1:  ((&net->ipv6.ip6_fib_timer)){+.-.}, at: [<00000000507c2669>] lockdep_copy_map include/linux/lockdep.h:178 [inline]
+ #1:  ((&net->ipv6.ip6_fib_timer)){+.-.}, at: [<00000000507c2669>] call_timer_fn+0x1c6/0x820 kernel/time/timer.c:1308
+ #2:  (&(&net->ipv6.fib6_gc_lock)->rlock){+.-.}, at: [<0000000075a8ee5a>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #2:  (&(&net->ipv6.fib6_gc_lock)->rlock){+.-.}, at: [<0000000075a8ee5a>] fib6_run_gc+0x9d/0x3c0 net/ipv6/ip6_fib.c:2007
+ #3:  (rcu_read_lock){....}, at: [<000000006ed38d9d>] __fib6_clean_all+0x0/0x3a0 net/ipv6/ip6_fib.c:1560
+ #4:  (&(&tb->tb6_lock)->rlock){+.-.}, at: [<0000000088ded516>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #4:  (&(&tb->tb6_lock)->rlock){+.-.}, at: [<0000000088ded516>] __fib6_clean_all+0x1d0/0x3a0 net/ipv6/ip6_fib.c:1948
+ #5:  (&net->ipv6.fib6_walker_lock){++--}, at: [<0000000070e826c5>] fib6_del_route net/ipv6/ip6_fib.c:1671 [inline]
+ #5:  (&net->ipv6.fib6_walker_lock){++--}, at: [<0000000070e826c5>] fib6_del+0x941/0x11b0 net/ipv6/ip6_fib.c:1731
+
+stack backtrace:
+CPU: 0 PID: 3508 Comm: syzkaller678106 Not tainted 4.15.0-rc6+ #245
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4585
+ fib6_del_route net/ipv6/ip6_fib.c:1675 [inline]
+ fib6_del+0xec2/0x11b0 net/ipv6/ip6_fib.c:1731
+ fib6_clean_node+0x3b0/0x4f0 net/ipv6/ip6_fib.c:1892
+ fib6_walk_continue+0x46c/0x8a0 net/ipv6/ip6_fib.c:1815
+ fib6_walk+0x91/0xf0 net/ipv6/ip6_fib.c:1863
+ fib6_clean_tree+0x1e6/0x340 net/ipv6/ip6_fib.c:1933
+ __fib6_clean_all+0x1f4/0x3a0 net/ipv6/ip6_fib.c:1949
+ fib6_clean_all net/ipv6/ip6_fib.c:1960 [inline]
+ fib6_run_gc+0x16b/0x3c0 net/ipv6/ip6_fib.c:2016
+ fib6_gc_timer_cb+0x20/0x30 net/ipv6/ip6_fib.c:2033
+ call_timer_fn+0x228/0x820 kernel/time/timer.c:1318
+ expire_timers kernel/time/timer.c:1355 [inline]
+ __run_timers+0x7ee/0xb70 kernel/time/timer.c:1658
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1684
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:540 [inline]
+ smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xa9/0xb0 arch/x86/entry/entry_64.S:920
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:777 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x5e/0xba kernel/locking/spinlock.c:184
+RSP: 0018:ffff8801bf8f65b8 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff11
+RAX: dffffc0000000000 RBX: 0000000000000282 RCX: 0000000000000006
+RDX: 1ffffffff0d19075 RSI: 1ffff10037f71d7b RDI: 0000000000000282
+RBP: ffff8801bf8f65c8 R08: 1ffff10037f1ec85 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffffffff87f9ea68
+R13: ffff8801bf8f6780 R14: 0000000000000000 R15: dffffc0000000000
+ __debug_check_no_obj_freed lib/debugobjects.c:758 [inline]
+ debug_check_no_obj_freed+0x3da/0xf1f lib/debugobjects.c:774
+ free_pages_prepare mm/page_alloc.c:1065 [inline]
+ __free_pages_ok+0x765/0x31e0 mm/page_alloc.c:1259
+ free_compound_page+0x5e/0x70 mm/page_alloc.c:601
+ free_transhuge_page+0x2d2/0x430 mm/huge_memory.c:2740
+ __put_compound_page+0x87/0xb0 mm/swap.c:95
+ release_pages+0x64b/0x1230 mm/swap.c:788
+ free_pages_and_swap_cache+0x2ad/0x400 mm/swap_state.c:322
+ tlb_flush_mmu_free+0xb4/0x160 mm/memory.c:260
+ tlb_flush_mmu mm/memory.c:269 [inline]
+ arch_tlb_finish_mmu+0x9d/0x130 mm/memory.c:284
+ tlb_finish_mmu+0x10f/0x190 mm/memory.c:427
+ unmap_region+0x35c/0x4f0 mm/mmap.c:2514
+ do_munmap+0x726/0xdf0 mm/mmap.c:2726
+ mmap_region+0x59e/0x15a0 mm/mmap.c:1646
+ do_mmap+0x6c0/0xe00 mm/mmap.c:1483
+ do_mmap_pgoff include/linux/mm.h:2217 [inline]
+ vm_mmap_pgoff+0x1de/0x280 mm/util.c:333
+ SYSC_mmap_pgoff mm/mmap.c:1533 [inline]
+ SyS_mmap_pgoff+0x23b/0x5f0 mm/mmap.c:1491
+ SYSC_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ SyS_mmap+0x16/0x20 arch/x86/kernel/sys_x86_64.c:91
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x43ff29
+RSP: 002b:00007ffc4cbf62d8 EFLAGS: 00000216 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 000000000043ff29
+RDX: 0000000000000003 RSI: 0000000000fff000 RDI: 0000000020000000
+RBP: 0100000000000000 R08: 00000000ffffffff R09: 0000000000000000
+R10: 0000000000000032 R11: 0000000000000216 R12: 0000000000401890
+R13: 0000000000401920 R14: 0000000000000000 R15: 0000000000000000

@@ -1,0 +1,40 @@
+RBP: 0000000000000008 R08: 0000000000000001 R09: 0000000000000034
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000030657267
+R13: 74656e2f7665642f R14: 0000000000000000 R15: 0000000000000000
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 1 PID: 3119 Comm: syzkaller228956 Not tainted 4.15.0-rc3-next-20171213+ #66
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0xe9/0x14b lib/dump_stack.c:53
+ register_lock_class+0x164/0x5d0 kernel/locking/lockdep.c:752
+ __lock_acquire+0xb4/0x1430 kernel/locking/lockdep.c:3314
+ lock_acquire+0xbf/0x220 kernel/locking/lockdep.c:3914
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:135 [inline]
+ _raw_spin_lock_bh+0x31/0x40 kernel/locking/spinlock.c:168
+ spin_lock_bh include/linux/spinlock.h:315 [inline]
+ ptr_ring_consume_bh include/linux/ptr_ring.h:349 [inline]
+ skb_array_consume_bh include/linux/skb_array.h:136 [inline]
+ pfifo_fast_reset+0x9a/0x1b0 net/sched/sch_generic.c:662
+ qdisc_destroy+0x94/0x210 net/sched/sch_generic.c:896
+ qdisc_create_dflt+0xa6/0xb0 net/sched/sch_generic.c:840
+ mq_init+0x105/0x150 net/sched/sch_mq.c:61
+ qdisc_create_dflt+0x60/0xb0 net/sched/sch_generic.c:837
+ attach_default_qdiscs net/sched/sch_generic.c:972 [inline]
+ dev_activate+0x363/0x3b0 net/sched/sch_generic.c:1011
+ __dev_open+0x119/0x180 net/core/dev.c:1389
+ __dev_change_flags+0x218/0x270 net/core/dev.c:6836
+ dev_change_flags+0x30/0x70 net/core/dev.c:6905
+ dev_ifsioc+0x3c2/0x520 net/core/dev_ioctl.c:257
+ dev_ioctl+0x15d/0x7a0 net/core/dev_ioctl.c:566
+ sock_do_ioctl+0x59/0x60 net/socket.c:971
+ sock_ioctl+0x211/0x320 net/socket.c:1061
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0xaf/0x840 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x4444b9
+RSP: 002b:00007ffcad5a5418

@@ -1,0 +1,71 @@
+usb 1-1: config 0 interface 213 altsetting 0 bulk endpoint 0x4 has invalid maxpacket 0
+usb 1-1: New USB device found, idVendor=2201, idProduct=012c, bcdDevice=6c.23
+usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+usb 1-1: config 0 descriptor??
+==================================================================
+BUG: KASAN: stack-out-of-bounds in string+0x1f6/0x220 lib/vsprintf.c:606
+Read of size 1 at addr ffff88809ec17260 by task kworker/0:2/533
+
+CPU: 0 PID: 533 Comm: kworker/0:2 Not tainted 5.1.0-rc4-319354-g9a33b36 #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xe8/0x16e lib/dump_stack.c:113
+ print_address_description+0x6c/0x236 mm/kasan/report.c:187
+ kasan_report.cold+0x1a/0x3c mm/kasan/report.c:317
+ string+0x1f6/0x220 lib/vsprintf.c:606
+ vsnprintf+0xa14/0x16b0 lib/vsprintf.c:2396
+ pointer+0x60b/0x910 lib/vsprintf.c:2038
+ vsnprintf+0x5a0/0x16b0 lib/vsprintf.c:2400
+ vscnprintf+0x29/0x80 lib/vsprintf.c:2499
+ vprintk_store+0x45/0x4a0 kernel/printk/printk.c:1900
+ vprintk_emit+0x210/0x5a0 kernel/printk/printk.c:1957
+ dev_vprintk_emit+0x50e/0x553 drivers/base/core.c:3185
+ dev_printk_emit+0xbf/0xf6 drivers/base/core.c:3196
+ __dev_printk+0x1ed/0x215 drivers/base/core.c:3208
+ _dev_info+0xdc/0x10e drivers/base/core.c:3254
+ vub300_probe+0x25e/0xd80 drivers/mmc/host/vub300.c:2109
+ usb_probe_interface+0x31d/0x820 drivers/usb/core/driver.c:361
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_set_configuration+0xdf7/0x1740 drivers/usb/core/message.c:2021
+ generic_probe+0xa2/0xda drivers/usb/core/generic.c:210
+ usb_probe_device+0xc0/0x150 drivers/usb/core/driver.c:266
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_new_device.cold+0x537/0xccf drivers/usb/core/hub.c:2534
+ hub_port_connect drivers/usb/core/hub.c:5089 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0x138e/0x3b00 drivers/usb/core/hub.c:5432
+ process_one_work+0x90f/0x1580 kernel/workqueue.c:2269
+ worker_thread+0x9b/0xe20 kernel/workqueue.c:2415
+ kthread+0x313/0x420 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the page:
+page:ffffea00027b05c0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0xfff00000000000()
+raw: 00fff00000000000 ffffea00027b05c8 ffffea00027b05c8 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809ec17100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88809ec17180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88809ec17200: 00 00 f1 f1 f1 f1 f1 f1 00 00 00 00 f2 f2 f2 f2
+                                                       ^
+ ffff88809ec17280: 00 00 00 00 f2 f2 f2 f2 00 00 00 00 00 00 f3 f3
+ ffff88809ec17300: f3 f3 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

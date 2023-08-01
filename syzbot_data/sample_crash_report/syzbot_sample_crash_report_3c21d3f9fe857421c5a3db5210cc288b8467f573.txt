@@ -1,0 +1,49 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/l1tf.html for details.
+==================================================================
+BUG: KASAN: vmalloc-out-of-bounds in notifier_chain_unregister kernel/notifier.c:51 [inline]
+BUG: KASAN: vmalloc-out-of-bounds in blocking_notifier_chain_unregister+0x230/0x290 kernel/notifier.c:329
+Read of size 8 at addr ffffc90003a0bbe8 by task syz-executor923/3609
+
+CPU: 1 PID: 3609 Comm: syz-executor923 Not tainted 5.19.0-syzkaller-13930-g7ebfc85e2cd7 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:317 [inline]
+ print_report.cold+0x59/0x719 mm/kasan/report.c:433
+ kasan_report+0xb1/0x1e0 mm/kasan/report.c:495
+ notifier_chain_unregister kernel/notifier.c:51 [inline]
+ blocking_notifier_chain_unregister+0x230/0x290 kernel/notifier.c:329
+ hci_unregister_suspend_notifier+0x73/0x90 net/bluetooth/hci_core.c:2760
+ hci_unregister_dev+0x16f/0x4e0 net/bluetooth/hci_core.c:2678
+ vhci_release+0x7c/0xf0 drivers/bluetooth/hci_vhci.c:568
+ __fput+0x277/0x9d0 fs/file_table.c:320
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0xad5/0x29b0 kernel/exit.c:795
+ do_group_exit+0xd2/0x2f0 kernel/exit.c:925
+ __do_sys_exit_group kernel/exit.c:936 [inline]
+ __se_sys_exit_group kernel/exit.c:934 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:934
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fcf5d7c9349
+Code: Unable to access opcode bytes at RIP 0x7fcf5d7c931f.
+RSP: 002b:00007ffe587ee788 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007fcf5d84c430 RCX: 00007fcf5d7c9349
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000001
+RBP: 0000000000000001 R08: ffffffffffffffb8 R09: 00007ffe58003933
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fcf5d84c430
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+
+Memory state around the buggy address:
+ ffffc90003a0ba80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90003a0bb00: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+>ffffc90003a0bb80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+                                                          ^
+ ffffc90003a0bc00: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90003a0bc80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+==================================================================

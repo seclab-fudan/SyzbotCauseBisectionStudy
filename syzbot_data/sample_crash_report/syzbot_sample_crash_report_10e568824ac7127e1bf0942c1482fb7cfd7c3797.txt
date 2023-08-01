@@ -1,0 +1,89 @@
+==================================================================
+BUG: KASAN: use-after-free in erspan_xmit+0x22d4/0x2430 net/ipv4/ip_gre.c:735
+Read of size 2 at addr ffff8801d890fa8b by task syzkaller099344/3658
+
+CPU: 0 PID: 3658 Comm: syzkaller099344 Not tainted 4.15.0-rc8+ #203
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load_n_noabort+0xf/0x20 mm/kasan/report.c:440
+ erspan_xmit+0x22d4/0x2430 net/ipv4/ip_gre.c:735
+ __netdev_start_xmit include/linux/netdevice.h:4053 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4062 [inline]
+ packet_direct_xmit+0x3ad/0x790 net/packet/af_packet.c:267
+ packet_snd net/packet/af_packet.c:2944 [inline]
+ packet_sendmsg+0x3aed/0x60b0 net/packet/af_packet.c:2969
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1721
+ SyS_sendto+0x40/0x50 net/socket.c:1689
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x4455b9
+RSP: 002b:00007ffdea868098 EFLAGS: 00000217 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000068 RCX: 00000000004455b9
+RDX: 0000000000000000 RSI: 0000000020003fd9 RDI: 0000000000000004
+RBP: 00000000004a7153 R08: 0000000020008000 R09: 000000000000001c
+R10: 0000000000000001 R11: 0000000000000217 R12: 00000000004026f0
+R13: 0000000000402780 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3727:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3544
+ dup_mm kernel/fork.c:1187 [inline]
+ copy_mm+0x30a/0x131b kernel/fork.c:1250
+ copy_process.part.38+0x1ee9/0x4b20 kernel/fork.c:1752
+ copy_process kernel/fork.c:1565 [inline]
+ _do_fork+0x1f7/0xfe0 kernel/fork.c:2044
+ SYSC_clone kernel/fork.c:2154 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2148
+ do_syscall_64+0x273/0x920 arch/x86/entry/common.c:285
+ return_from_SYSCALL_64+0x0/0x75
+
+Freed by task 3728:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3746
+ __mmdrop+0x242/0x3d0 kernel/fork.c:911
+ mmdrop include/linux/sched/mm.h:43 [inline]
+ __mmput kernel/fork.c:933 [inline]
+ mmput+0x537/0x6d0 kernel/fork.c:944
+ exec_mmap fs/exec.c:1039 [inline]
+ flush_old_exec+0xc8b/0x2010 fs/exec.c:1271
+ load_elf_binary+0x87b/0x4c10 fs/binfmt_elf.c:864
+ search_binary_handler+0x142/0x6b0 fs/exec.c:1638
+ exec_binprm fs/exec.c:1680 [inline]
+ do_execveat_common.isra.30+0x1754/0x23c0 fs/exec.c:1802
+ do_execve fs/exec.c:1847 [inline]
+ SYSC_execve fs/exec.c:1928 [inline]
+ SyS_execve+0x39/0x50 fs/exec.c:1923
+ do_syscall_64+0x273/0x920 arch/x86/entry/common.c:285
+ return_from_SYSCALL_64+0x0/0x75
+
+The buggy address belongs to the object at ffff8801d890f980
+ which belongs to the cache mm_struct of size 1440
+The buggy address is located 267 bytes inside of
+ 1440-byte region [ffff8801d890f980, ffff8801d890ff20)
+The buggy address belongs to the page:
+page:ffffea0007624380 count:1 mapcount:0 mapping:ffff8801d890e080 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801d890e080 0000000000000000 0000000100000005
+raw: ffffea0007629720 ffffea000763c5a0 ffff8801dae279c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d890f980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d890fa00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801d890fa80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff8801d890fb00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d890fb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

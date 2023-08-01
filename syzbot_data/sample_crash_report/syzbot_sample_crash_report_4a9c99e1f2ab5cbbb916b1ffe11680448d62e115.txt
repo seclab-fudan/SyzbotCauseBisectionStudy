@@ -1,0 +1,104 @@
+ __unfreeze_partials+0x17c/0x1a0 mm/slub.c:2637
+ qlink_free mm/kasan/quarantine.c:168 [inline]
+ qlist_free_all+0x6a/0x170 mm/kasan/quarantine.c:187
+ kasan_quarantine_reduce+0x192/0x220 mm/kasan/quarantine.c:294
+ __kasan_slab_alloc+0x66/0x90 mm/kasan/common.c:302
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook mm/slab.h:761 [inline]
+ slab_alloc_node mm/slub.c:3452 [inline]
+ slab_alloc mm/slub.c:3460 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+ kmem_cache_alloc+0x1e4/0x430 mm/slub.c:3476
+ vm_area_dup+0x7d/0x380 kernel/fork.c:466
+ __split_vma+0xae/0x5e0 mm/mmap.c:2211
+ split_vma+0xa3/0xe0 mm/mmap.c:2273
+ mprotect_fixup+0x686/0x960 mm/mprotect.c:620
+ do_mprotect_pkey+0x6fd/0xa70 mm/mprotect.c:785
+ __do_sys_mprotect mm/mprotect.c:812 [inline]
+ __se_sys_mprotect mm/mprotect.c:809 [inline]
+ __x64_sys_mprotect+0x78/0xb0 mm/mprotect.c:809
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+------------[ cut here ]------------
+kernel BUG at include/linux/memcontrol.h:455!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 5064 Comm: syz-executor280 Not tainted 6.2.0-rc5-syzkaller-00045-g948ef7bb70c4 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+RIP: 0010:folio_memcg_rcu include/linux/memcontrol.h:455 [inline]
+RIP: 0010:workingset_activation+0x4c3/0x580 mm/workingset.c:522
+Code: 48 89 ef e8 df 00 00 00 c6 05 e6 c0 a4 0c 01 0f 0b e9 0e fd ff ff e8 fc 4e c8 ff 48 c7 c6 e0 e7 57 8a 48 89 ef e8 bd 00 00 00 <0f> 0b e8 e6 4e c8 ff 0f 0b e9 19 fc ff ff e8 da 4e c8 ff 48 c7 c6
+RSP: 0018:ffffc9000391f4a0 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: ffff88801e739d40 RSI: ffffffff81b91303 RDI: 0000000000000000
+RBP: ffffea0001dd1e00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000000
+R13: ffff8880b99360e8 R14: dffffc0000000000 R15: 0000000000000003
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9e92ba1938 CR3: 0000000079e52000 CR4: 00000000003526e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ folio_mark_accessed+0x599/0x830 mm/swap.c:515
+ kvm_set_page_accessed arch/x86/kvm/../../../virt/kvm/kvm_main.c:2909 [inline]
+ kvm_set_pfn_accessed arch/x86/kvm/../../../virt/kvm/kvm_main.c:2981 [inline]
+ kvm_set_pfn_accessed+0x23f/0x2b0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2975
+ handle_changed_spte_acc_track arch/x86/kvm/mmu/tdp_mmu.c:355 [inline]
+ handle_changed_spte_acc_track+0x1bc/0x290 arch/x86/kvm/mmu/tdp_mmu.c:347
+ handle_changed_spte arch/x86/kvm/mmu/tdp_mmu.c:626 [inline]
+ handle_removed_pt arch/x86/kvm/mmu/tdp_mmu.c:510 [inline]
+ __handle_changed_spte+0xd2b/0x1960 arch/x86/kvm/mmu/tdp_mmu.c:617
+ handle_changed_spte arch/x86/kvm/mmu/tdp_mmu.c:624 [inline]
+ handle_removed_pt arch/x86/kvm/mmu/tdp_mmu.c:510 [inline]
+ __handle_changed_spte+0xd1c/0x1960 arch/x86/kvm/mmu/tdp_mmu.c:617
+ __tdp_mmu_set_spte+0x229/0x9d0 arch/x86/kvm/mmu/tdp_mmu.c:749
+ _tdp_mmu_set_spte arch/x86/kvm/mmu/tdp_mmu.c:765 [inline]
+ tdp_mmu_set_spte arch/x86/kvm/mmu/tdp_mmu.c:774 [inline]
+ __tdp_mmu_zap_root+0x7e7/0x860 arch/x86/kvm/mmu/tdp_mmu.c:880
+ tdp_mmu_zap_root+0x12e/0x330 arch/x86/kvm/mmu/tdp_mmu.c:916
+ kvm_tdp_mmu_zap_all+0x158/0x1b0 arch/x86/kvm/mmu/tdp_mmu.c:1020
+ kvm_mmu_zap_all+0x280/0x2d0 arch/x86/kvm/mmu/mmu.c:6557
+ kvm_flush_shadow_all arch/x86/kvm/../../../virt/kvm/kvm_main.c:383 [inline]
+ kvm_mmu_notifier_release+0x6a/0xd0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:895
+ mn_hlist_release mm/mmu_notifier.c:319 [inline]
+ __mmu_notifier_release+0x1bb/0x630 mm/mmu_notifier.c:357
+ mmu_notifier_release include/linux/mmu_notifier.h:415 [inline]
+ exit_mmap+0x66d/0x7b0 mm/mmap.c:3072
+ __mmput+0x128/0x4c0 kernel/fork.c:1207
+ mmput+0x60/0x70 kernel/fork.c:1229
+ exit_mm kernel/exit.c:563 [inline]
+ do_exit+0x9ac/0x2950 kernel/exit.c:854
+ do_group_exit+0xd4/0x2a0 kernel/exit.c:1012
+ __do_sys_exit_group kernel/exit.c:1023 [inline]
+ __se_sys_exit_group kernel/exit.c:1021 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:1021
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f9e92b65079
+Code: Unable to access opcode bytes at 0x7f9e92b6504f.
+RSP: 002b:00007ffdc6972728 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007f9e92bd23f0 RCX: 00007f9e92b65079
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffffffffffc0 R09: 0000000034363035
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f9e92bd23f0
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:folio_memcg_rcu include/linux/memcontrol.h:455 [inline]
+RIP: 0010:workingset_activation+0x4c3/0x580 mm/workingset.c:522
+Code: 48 89 ef e8 df 00 00 00 c6 05 e6 c0 a4 0c 01 0f 0b e9 0e fd ff ff e8 fc 4e c8 ff 48 c7 c6 e0 e7 57 8a 48 89 ef e8 bd 00 00 00 <0f> 0b e8 e6 4e c8 ff 0f 0b e9 19 fc ff ff e8 da 4e c8 ff 48 c7 c6
+RSP: 0018:ffffc9000391f4a0 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: ffff88801e739d40 RSI: ffffffff81b91303 RDI: 0000000000000000
+RBP: ffffea0001dd1e00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000000
+R13: ffff8880b99360e8 R14: dffffc0000000000 R15: 0000000000000003
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9e92ba1938 CR3: 0000000079e52000 CR4: 00000000003526e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

@@ -1,0 +1,49 @@
+R13: 00000000004023a0 R14: 0000000000000000 R15: 0000000000000000
+Subscriber rejected, no memory
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 3085 Comm: syzkaller064164 Not tainted 4.15.0-rc1+ #137
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: 00000000c24413a5 task.stack: 000000005e8160b5
+RIP: 0010:__lock_acquire+0xd55/0x47f0 kernel/locking/lockdep.c:3378
+RSP: 0018:ffff8801cb5474a8 EFLAGS: 00010002
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000004 RSI: 0000000000000000 RDI: ffffffff85ecb400
+RBP: ffff8801cb547830 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: ffffffff87489d60 R12: ffff8801cd2980c0
+R13: 0000000000000000 R14: 0000000000000001 R15: 0000000000000020
+FS:  00000000014ee880(0000) GS:ffff8801db400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffee2426e40 CR3: 00000001cb85a000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:4004
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:135 [inline]
+ _raw_spin_lock_bh+0x31/0x40 kernel/locking/spinlock.c:175
+ spin_lock_bh include/linux/spinlock.h:320 [inline]
+ tipc_subscrb_subscrp_delete+0x8f/0x470 net/tipc/subscr.c:201
+ tipc_subscrb_delete net/tipc/subscr.c:238 [inline]
+ tipc_subscrb_release_cb+0x17/0x30 net/tipc/subscr.c:316
+ tipc_close_conn+0x171/0x270 net/tipc/server.c:204
+ tipc_topsrv_kern_subscr+0x724/0x810 net/tipc/server.c:514
+ tipc_group_create+0x702/0x9c0 net/tipc/group.c:184
+ tipc_sk_join net/tipc/socket.c:2747 [inline]
+ tipc_setsockopt+0x249/0xc10 net/tipc/socket.c:2861
+ SYSC_setsockopt net/socket.c:1851 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1830
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x444dd9
+RSP: 002b:00007fffe5997f78 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 0000000000444dd9
+RDX: 0000000000000087 RSI: 000000000000010f RDI: 0000000000000004
+RBP: 0000000000000006 R08: 000000000000001c R09: 0000006f00000034
+R10: 0000000020265000 R11: 0000000000000246 R12: 0000000000402310
+R13: 00000000004023a0 R14: 0000000000000000 R15: 0000000000000000
+Code: e9 03 f3 48 ab 48 81 c4 60 03 00 00 44 89 f8 5b 41 5c 41 5d 41 5e 41 5f 5d c3 4c 89 fa 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 <80> 3c 02 00 0f 85 cf 38 00 00 49 81 3f 00 58 8b 86 41 be 00 00 
+RIP: __lock_acquire+0xd55/0x47f0 kernel/locking/lockdep.c:3378 RSP: ffff8801cb5474a8
+---[ end trace 1d79d73eb824586d ]---

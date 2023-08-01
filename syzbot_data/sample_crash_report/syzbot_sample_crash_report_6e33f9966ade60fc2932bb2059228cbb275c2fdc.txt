@@ -1,0 +1,93 @@
+==================================================================
+BUG: KASAN: use-after-free in _aead_recvmsg crypto/algif_aead.c:297 [inline]
+BUG: KASAN: use-after-free in aead_recvmsg+0x1827/0x1bc0 crypto/algif_aead.c:329
+Write of size 4 at addr ffff8801c12ae3b4 by task syzkaller070698/4201
+
+CPU: 0 PID: 4201 Comm: syzkaller070698 Not tainted 4.15.0-rc1+ #205
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_store4_noabort+0x17/0x20 mm/kasan/report.c:434
+ _aead_recvmsg crypto/algif_aead.c:297 [inline]
+ aead_recvmsg+0x1827/0x1bc0 crypto/algif_aead.c:329
+ sock_recvmsg_nosec net/socket.c:805 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:812
+ sock_read_iter+0x361/0x560 net/socket.c:889
+ call_read_iter include/linux/fs.h:1766 [inline]
+ aio_read+0x2b0/0x3a0 fs/aio.c:1501
+ io_submit_one fs/aio.c:1611 [inline]
+ do_io_submit+0xf99/0x14f0 fs/aio.c:1682
+ SYSC_io_submit fs/aio.c:1707 [inline]
+ SyS_io_submit+0x27/0x30 fs/aio.c:1704
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x445429
+RSP: 002b:00007ffd3e7ad908 EFLAGS: 00000213 ORIG_RAX: 00000000000000d1
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000445429
+RDX: 0000000020738000 RSI: 0000000000000001 RDI: 00007fac97dfb000
+RBP: 000000000000924f R08: 0000000000000000 R09: 0000000000000006
+R10: 0000000000000000 R11: 0000000000000213 R12: 0000000000000000
+R13: 0000000000402620 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4201:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc mm/slab.c:3711 [inline]
+ __kmalloc+0x162/0x760 mm/slab.c:3720
+ kmalloc include/linux/slab.h:504 [inline]
+ sock_kmalloc+0x112/0x190 net/core/sock.c:1979
+ af_alg_alloc_areq+0x74/0x2f0 crypto/af_alg.c:1095
+ _aead_recvmsg crypto/algif_aead.c:152 [inline]
+ aead_recvmsg+0x443/0x1bc0 crypto/algif_aead.c:329
+ sock_recvmsg_nosec net/socket.c:805 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:812
+ sock_read_iter+0x361/0x560 net/socket.c:889
+ call_read_iter include/linux/fs.h:1766 [inline]
+ aio_read+0x2b0/0x3a0 fs/aio.c:1501
+ io_submit_one fs/aio.c:1611 [inline]
+ do_io_submit+0xf99/0x14f0 fs/aio.c:1682
+ SYSC_io_submit fs/aio.c:1707 [inline]
+ SyS_io_submit+0x27/0x30 fs/aio.c:1704
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 17:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3491 [inline]
+ kfree+0xca/0x250 mm/slab.c:3806
+ __sock_kfree_s net/core/sock.c:2000 [inline]
+ sock_kfree_s+0x29/0x60 net/core/sock.c:2006
+ af_alg_free_resources+0x6b/0x80 crypto/af_alg.c:1031
+ af_alg_async_cb+0xbc/0x160 crypto/af_alg.c:1054
+ aead_request_complete include/crypto/internal/aead.h:75 [inline]
+ pcrypt_aead_serial+0x75/0xa0 crypto/pcrypt.c:123
+ padata_serial_worker+0x476/0x750 kernel/padata.c:348
+ process_one_work+0xbfd/0x1be0 kernel/workqueue.c:2112
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2246
+ kthread+0x37a/0x440 kernel/kthread.c:238
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:441
+
+The buggy address belongs to the object at ffff8801c12ae0c0
+ which belongs to the cache kmalloc-2048 of size 2048
+The buggy address is located 756 bytes inside of
+ 2048-byte region [ffff8801c12ae0c0, ffff8801c12ae8c0)
+The buggy address belongs to the page:
+page:00000000be9d3a3a count:1 mapcount:0 mapping:000000001fc03083 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801c12ae0c0 0000000000000000 0000000100000003
+raw: ffffea000704d3a0 ffffea0007033920 ffff8801db000c40 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c12ae280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c12ae300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801c12ae380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff8801c12ae400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c12ae480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

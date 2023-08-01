@@ -1,0 +1,70 @@
+BUG: kernel NULL pointer dereference, address: 0000000000000000
+#PF: supervisor instruction fetch in kernel mode
+#PF: error_code(0x0010) - not-present page
+PGD 86246067 P4D 86246067 PUD 86247067 PMD 0 
+Oops: 0010 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 5 Comm: kworker/0:0 Not tainted 5.2.0-rc2+ #36
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events rt6_probe_deferred
+RIP: 0010:0x0
+Code: Bad RIP value.
+RSP: 0018:ffff8880ae809bc8 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff888098208838 RCX: ffffffff861b59cb
+RDX: 1ffff1101304110c RSI: ffffffff861b59d5 RDI: ffff8880a0b00780
+RBP: ffff8880ae809bf8 R08: ffff8880a987c140 R09: 0000000000000005
+R10: ffffed1015d06bdf R11: ffff8880ae835efb R12: ffff8880a0b00780
+R13: 0000000000000000 R14: ffff8880a0b007d8 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffffffffd6 CR3: 0000000086245000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ dst_input include/net/dst.h:439 [inline]
+ ip6_rcv_finish+0x1de/0x310 net/ipv6/ip6_input.c:80
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ipv6_rcv+0x10e/0x420 net/ipv6/ip6_input.c:276
+ __netif_receive_skb_one_core+0x113/0x1a0 net/core/dev.c:4985
+ __netif_receive_skb+0x2c/0x1d0 net/core/dev.c:5099
+ process_backlog+0x206/0x750 net/core/dev.c:5910
+ napi_poll net/core/dev.c:6333 [inline]
+ net_rx_action+0x4f5/0x1070 net/core/dev.c:6399
+ __do_softirq+0x25c/0x94c kernel/softirq.c:293
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1040
+ </IRQ>
+ do_softirq.part.0+0x11a/0x170 kernel/softirq.c:338
+ do_softirq kernel/softirq.c:330 [inline]
+ __local_bh_enable_ip+0x211/0x270 kernel/softirq.c:190
+ local_bh_enable include/linux/bottom_half.h:32 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:684 [inline]
+ ip6_finish_output2+0x10a0/0x2550 net/ipv6/ip6_output.c:121
+ ip6_finish_output+0x56d/0xc20 net/ipv6/ip6_output.c:154
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0x235/0x7f0 net/ipv6/ip6_output.c:171
+ dst_output include/net/dst.h:433 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ndisc_send_skb+0xf29/0x14a0 net/ipv6/ndisc.c:508
+ ndisc_send_ns+0x3a9/0x850 net/ipv6/ndisc.c:650
+ rt6_probe_deferred+0xe3/0x1a0 net/ipv6/route.c:543
+ process_one_work+0x989/0x1790 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x354/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+CR2: 0000000000000000
+---[ end trace 2f6d2a9471ac9e82 ]---
+RIP: 0010:0x0
+Code: Bad RIP value.
+RSP: 0018:ffff8880ae809bc8 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff888098208838 RCX: ffffffff861b59cb
+RDX: 1ffff1101304110c RSI: ffffffff861b59d5 RDI: ffff8880a0b00780
+RBP: ffff8880ae809bf8 R08: ffff8880a987c140 R09: 0000000000000005
+R10: ffffed1015d06bdf R11: ffff8880ae835efb R12: ffff8880a0b00780
+R13: 0000000000000000 R14: ffff8880a0b007d8 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffffffffd6 CR3: 0000000086245000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

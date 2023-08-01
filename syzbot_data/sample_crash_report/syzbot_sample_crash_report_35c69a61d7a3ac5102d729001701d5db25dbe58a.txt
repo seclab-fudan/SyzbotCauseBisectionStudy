@@ -1,0 +1,39 @@
+�k���?��)�=�{���|o<�H��x���5mK�e'�6��HGӳ#]lT
+��Gp�M��,Y�-'��(�#���[CC�9�7�9�+$Vc,[�F����.��VuJ~���� "���z0�5e-����Ol<��S�@b��X�����'�Y�i��9��AT*�
+&L��"܏�?j*���u}l�k�l2�@�+ҧ3�+�=��r&�г��4o�a���4�>8���Gc��RB�i�%Tױ�9�k�
+-���R{;w��6��W��Q�"m���B��T�����A~<R�^Y�^�>}�̿9$��4�Uy�ncW����4�$@��3��]��m'�Q;k�e�vw}�γ��)��b��w�L��o��wE�`����=�AB�a����X>��1�R�3�(cH]��sV�����E��@	��]]��ޱ��x2�K}Sw�u�'�d�^�|T(���iLm���&�j�%�g�|L"~��\����P4�����a$e.�����/㠣Ȏ~����iS&o��X6ia����O�Lۊ��Yx�^EC{��AJ�CU��\ "���qo���t.}WS'
+==================================================================
+BUG: KASAN: global-out-of-bounds in record_print_text+0x33f/0x380 kernel/printk/printk.c:1401
+Write of size 1 at addr ffffffff8f08d01e by task kauditd/35
+
+CPU: 1 PID: 35 Comm: kauditd Not tainted 5.11.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ print_address_description.constprop.0.cold+0x5/0x2c6 mm/kasan/report.c:230
+ __kasan_report mm/kasan/report.c:396 [inline]
+ kasan_report.cold+0x79/0xd5 mm/kasan/report.c:413
+ record_print_text+0x33f/0x380 kernel/printk/printk.c:1401
+ console_unlock+0x318/0xbb0 kernel/printk/printk.c:2555
+ vprintk_emit+0x189/0x490 kernel/printk/printk.c:2092
+ vprintk_func+0x8d/0x1e0 kernel/printk/printk_safe.c:393
+ printk+0xba/0xed kernel/printk/printk.c:2140
+ kauditd_printk_skb kernel/audit.c:538 [inline]
+ kauditd_hold_skb.cold+0x41/0x50 kernel/audit.c:571
+ kauditd_send_queue+0x19d/0x210 kernel/audit.c:734
+ kauditd_thread+0x7f0/0xb80 kernel/audit.c:860
+ kthread+0x3b1/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+The buggy address belongs to the variable:
+ console_waiter+0x3e/0x40
+
+Memory state around the buggy address:
+ ffffffff8f08cf00: f9 f9 f9 f9 00 00 f9 f9 f9 f9 f9 f9 01 f9 f9 f9
+ ffffffff8f08cf80: f9 f9 f9 f9 00 f9 f9 f9 f9 f9 f9 f9 01 f9 f9 f9
+>ffffffff8f08d000: f9 f9 f9 f9 00 f9 f9 f9 f9 f9 f9 f9 04 f9 f9 f9
+                            ^
+ ffffffff8f08d080: f9 f9 f9 f9 00 00 00 00 00 00 00 00 00 00 f9 f9
+ ffffffff8f08d100: f9 f9 f9 f9 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

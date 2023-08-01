@@ -1,0 +1,93 @@
+INFO: task syz-executor866:8254 blocked for more than 143 seconds.
+      Not tainted 5.9.0-rc6-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor866 state:D stack:28360 pid: 8254 ppid:  6863 flags:0x00000004
+Call Trace:
+ context_switch kernel/sched/core.c:3778 [inline]
+ __schedule+0xec9/0x2280 kernel/sched/core.c:4527
+ schedule+0xd0/0x2a0 kernel/sched/core.c:4602
+ __lock_sock+0x13d/0x260 net/core/sock.c:2504
+ lock_sock_nested+0xf1/0x110 net/core/sock.c:3043
+ lock_sock include/net/sock.h:1581 [inline]
+ mptcp_close+0x8d/0xc60 net/mptcp/protocol.c:1914
+ inet_release+0x12e/0x280 net/ipv4/af_inet.c:431
+ __sock_release+0xcd/0x280 net/socket.c:596
+ sock_close+0x18/0x20 net/socket.c:1277
+ __fput+0x285/0x920 fs/file_table.c:281
+ task_work_run+0xdd/0x190 kernel/task_work.c:141
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:165 [inline]
+ exit_to_user_mode_prepare+0x1e1/0x200 kernel/entry/common.c:192
+ syscall_exit_to_user_mode+0x7e/0x2e0 kernel/entry/common.c:267
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x408b21
+Code: Bad RIP value.
+RSP: 002b:00007ffdbc18ca30 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000408b21
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 0000000000077cf6 R08: 00000001bb1414ac R09: 00000001bb1414ac
+R10: 00007ffdbc18ca50 R11: 0000000000000293 R12: 00000000006dfc50
+R13: 0000000000000008 R14: 00000000006dfc5c R15: 0000000000000064
+
+Showing all locks held in the system:
+2 locks held by kworker/u4:5/185:
+1 lock held by khungtaskd/1169:
+ #0: ffffffff8a068440 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:5852
+1 lock held by khugepaged/1180:
+ #0: ffffffff8a134ba8 (lock#5){+.+.}-{3:3}, at: lru_add_drain_all+0x59/0x6c0 mm/swap.c:780
+1 lock held by in:imklog/6567:
+ #0: ffff8880a8bfb0f0 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:930
+3 locks held by kworker/1:4/8115:
+3 locks held by kworker/0:4/8128:
+1 lock held by syz-executor866/8254:
+ #0: ffff888085123750 (&sb->s_type->i_mutex_key#13){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:779 [inline]
+ #0: ffff888085123750 (&sb->s_type->i_mutex_key#13){+.+.}-{3:3}, at: __sock_release+0x86/0x280 net/socket.c:595
+5 locks held by syz-executor866/21909:
+2 locks held by syz-executor866/21912:
+2 locks held by syz-executor866/21914:
+ #0: ffff8880ae435e98 (&rq->lock){-.-.}-{2:2}, at: rq_lock kernel/sched/sched.h:1292 [inline]
+ #0: ffff8880ae435e98 (&rq->lock){-.-.}-{2:2}, at: __schedule+0x287/0x2280 kernel/sched/core.c:4445
+ #1: ffff8880ae420ec8 (&per_cpu_ptr(group->pcpu, cpu)->seq){-.-.}-{0:0}, at: psi_task_switch+0x305/0x440 kernel/sched/psi.c:833
+2 locks held by syz-executor866/21926:
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 1169 Comm: khungtaskd Not tainted 5.9.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x70/0xb1 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x1b3/0x223 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:209 [inline]
+ watchdog+0xd7d/0x1000 kernel/hung_task.c:295
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 8128 Comm: kworker/0:4 Not tainted 5.9.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events mptcp_worker
+RIP: 0010:__sanitizer_cov_trace_pc+0x30/0x60 kernel/kcov.c:197
+Code: fe 01 00 65 8b 05 c0 76 8b 7e a9 00 01 ff 00 48 8b 34 24 74 0f f6 c4 01 74 35 8b 82 4c 14 00 00 85 c0 74 2b 8b 82 28 14 00 00 <83> f8 02 75 20 48 8b 8a 30 14 00 00 8b 92 2c 14 00 00 48 8b 01 48
+RSP: 0018:ffffc9000a1179f0 EFLAGS: 00000246
+RAX: 0000000000000000 RBX: ffff8880a9009540 RCX: ffff8880a9009544
+RDX: ffff8880a62b8000 RSI: ffffffff88324abf RDI: ffff8880899e0000
+RBP: ffff8880899e08e0 R08: 0000000000000001 R09: ffffffff8d10ca67
+R10: fffffbfff1a2194c R11: 0000000000000000 R12: ffff8880a9009500
+R13: ffff8880a2a30e80 R14: dffffc0000000000 R15: ffff8880899e0000
+FS:  0000000000000000(0000) GS:ffff8880ae400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020200000 CR3: 00000000a7015000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __mptcp_move_skbs_from_subflow+0xef/0x22f0 net/mptcp/protocol.c:463
+ __mptcp_move_skbs+0x20b/0x510 net/mptcp/protocol.c:1465
+ mptcp_worker+0x19f/0x15b0 net/mptcp/protocol.c:1721
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294

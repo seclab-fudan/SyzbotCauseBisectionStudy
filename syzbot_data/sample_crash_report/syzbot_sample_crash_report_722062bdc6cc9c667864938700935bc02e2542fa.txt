@@ -1,0 +1,151 @@
+Bluetooth: MGMT ver 1.22
+==================================================================
+BUG: KASAN: use-after-free in __list_del_entry_valid+0xde/0x110 lib/list_debug.c:46
+Read of size 8 at addr ffff8880261de088 by task syz-executor114/3637
+
+CPU: 0 PID: 3637 Comm: syz-executor114 Not tainted 6.0.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:317 [inline]
+ print_report.cold+0x2ba/0x719 mm/kasan/report.c:433
+ kasan_report+0xb1/0x1e0 mm/kasan/report.c:495
+ __list_del_entry_valid+0xde/0x110 lib/list_debug.c:46
+ __list_del_entry include/linux/list.h:134 [inline]
+ list_del include/linux/list.h:148 [inline]
+ mgmt_pending_remove+0x1a/0x160 net/bluetooth/mgmt_util.c:314
+ remove_adv_monitor+0x1b9/0x1c0 net/bluetooth/mgmt.c:5057
+ hci_mgmt_cmd net/bluetooth/hci_sock.c:1619 [inline]
+ hci_sock_sendmsg+0x1dee/0x2490 net/bluetooth/hci_sock.c:1739
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:734
+ sock_write_iter+0x291/0x3d0 net/socket.c:1108
+ call_write_iter include/linux/fs.h:2187 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x9e9/0xdd0 fs/read_write.c:578
+ ksys_write+0x1e8/0x250 fs/read_write.c:631
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7ff474058bf9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 01 16 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe9e8d0558 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007ff474058bf9
+RDX: 0000000000000008 RSI: 0000000020000080 RDI: 0000000000000004
+RBP: 00007ffe9e8d0580 R08: 0000000000000001 R09: 00007ffe9e8d0590
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
+R13: 0000000000000072 R14: 00007ffe9e8d05a0 R15: 0000000000000000
+ </TASK>
+
+Allocated by task 3637:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:437 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:516 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:475 [inline]
+ __kasan_kmalloc+0xa9/0xd0 mm/kasan/common.c:525
+ kmalloc include/linux/slab.h:600 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ mgmt_pending_new+0x57/0x290 net/bluetooth/mgmt_util.c:269
+ mgmt_pending_add+0x34/0x160 net/bluetooth/mgmt_util.c:296
+ remove_adv_monitor+0x120/0x1c0 net/bluetooth/mgmt.c:5040
+ hci_mgmt_cmd net/bluetooth/hci_sock.c:1619 [inline]
+ hci_sock_sendmsg+0x1dee/0x2490 net/bluetooth/hci_sock.c:1739
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:734
+ sock_write_iter+0x291/0x3d0 net/socket.c:1108
+ call_write_iter include/linux/fs.h:2187 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x9e9/0xdd0 fs/read_write.c:578
+ ksys_write+0x1e8/0x250 fs/read_write.c:631
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 3637:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:367 [inline]
+ ____kasan_slab_free+0x166/0x1c0 mm/kasan/common.c:329
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ slab_free_hook mm/slub.c:1754 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1780
+ slab_free mm/slub.c:3534 [inline]
+ kfree+0xe2/0x580 mm/slub.c:4562
+ remove_adv_monitor+0x18b/0x1c0 net/bluetooth/mgmt.c:5050
+ hci_mgmt_cmd net/bluetooth/hci_sock.c:1619 [inline]
+ hci_sock_sendmsg+0x1dee/0x2490 net/bluetooth/hci_sock.c:1739
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:734
+ sock_write_iter+0x291/0x3d0 net/socket.c:1108
+ call_write_iter include/linux/fs.h:2187 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x9e9/0xdd0 fs/read_write.c:578
+ ksys_write+0x1e8/0x250 fs/read_write.c:631
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff8880261de080
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 8 bytes inside of
+ 96-byte region [ffff8880261de080, ffff8880261de0e0)
+
+The buggy address belongs to the physical page:
+page:ffffea0000987780 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x261de
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea00005b69c0 dead000000000004 ffff888011841780
+raw: 0000000000000000 0000000080200020 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 2970, tgid 2970 (udevd), ts 11531596738, free_ts 11167952196
+ prep_new_page mm/page_alloc.c:2532 [inline]
+ get_page_from_freelist+0x109b/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages+0x1c7/0x510 mm/page_alloc.c:5515
+ alloc_pages+0x1a6/0x270 mm/mempolicy.c:2270
+ alloc_slab_page mm/slub.c:1824 [inline]
+ allocate_slab+0x27e/0x3d0 mm/slub.c:1969
+ new_slab mm/slub.c:2029 [inline]
+ ___slab_alloc+0x7f1/0xe10 mm/slub.c:3031
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3118
+ slab_alloc_node mm/slub.c:3209 [inline]
+ slab_alloc mm/slub.c:3251 [inline]
+ __kmalloc+0x32b/0x340 mm/slub.c:4420
+ kmalloc include/linux/slab.h:605 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ ext4_htree_store_dirent+0x89/0x5f0 fs/ext4/dir.c:474
+ htree_dirblock_to_tree+0x734/0xcd0 fs/ext4/namei.c:1120
+ ext4_htree_fill_tree+0x323/0xc30 fs/ext4/namei.c:1199
+ ext4_dx_readdir fs/ext4/dir.c:597 [inline]
+ ext4_readdir+0x1dfe/0x3870 fs/ext4/dir.c:142
+ iterate_dir+0x56a/0x6f0 fs/readdir.c:65
+ __do_sys_getdents64 fs/readdir.c:369 [inline]
+ __se_sys_getdents64 fs/readdir.c:354 [inline]
+ __x64_sys_getdents64+0x13a/0x2c0 fs/readdir.c:354
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1449 [inline]
+ free_pcp_prepare+0x5e4/0xd20 mm/page_alloc.c:1499
+ free_unref_page_prepare mm/page_alloc.c:3380 [inline]
+ free_unref_page+0x19/0x4d0 mm/page_alloc.c:3476
+ __vunmap+0x85d/0xd30 mm/vmalloc.c:2696
+ free_work+0x58/0x70 mm/vmalloc.c:97
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Memory state around the buggy address:
+ ffff8880261ddf80: fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8880261de000: 00 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc
+>ffff8880261de080: fa fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+                      ^
+ ffff8880261de100: fa fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff8880261de180: 00 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc
+==================================================================

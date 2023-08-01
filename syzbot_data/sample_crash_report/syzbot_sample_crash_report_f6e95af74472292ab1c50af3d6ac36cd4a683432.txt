@@ -1,0 +1,55 @@
+==================================================================
+BUG: KCSAN: data-race in tcp_send_challenge_ack / tcp_send_challenge_ack
+
+read to 0xffffffff8713bbb0 of 4 bytes by interrupt on cpu 1:
+ tcp_send_challenge_ack+0x116/0x200 net/ipv4/tcp_input.c:3632
+ tcp_validate_incoming+0x7c9/0xdd0 net/ipv4/tcp_input.c:5778
+ tcp_rcv_state_process+0x33d/0x1010 net/ipv4/tcp_input.c:6507
+ tcp_v4_do_rcv+0x434/0x5a0 net/ipv4/tcp_ipv4.c:1684
+ tcp_v4_rcv+0x17c8/0x1a30 net/ipv4/tcp_ipv4.c:2078
+ ip_protocol_deliver_rcu+0x23f/0x490 net/ipv4/ip_input.c:205
+ ip_local_deliver_finish+0x126/0x160 net/ipv4/ip_input.c:233
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ip_local_deliver+0x100/0x1b0 net/ipv4/ip_input.c:254
+ dst_input include/net/dst.h:461 [inline]
+ ip_rcv_finish net/ipv4/ip_input.c:444 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ip_rcv+0x1b1/0x260 net/ipv4/ip_input.c:564
+ __netif_receive_skb_one_core net/core/dev.c:5485 [inline]
+ __netif_receive_skb+0x8b/0x1b0 net/core/dev.c:5599
+ process_backlog+0x23f/0x3b0 net/core/dev.c:5927
+ __napi_poll+0x65/0x390 net/core/dev.c:6511
+ napi_poll net/core/dev.c:6578 [inline]
+ net_rx_action+0x37e/0x730 net/core/dev.c:6689
+ __do_softirq+0x158/0x2e3 kernel/softirq.c:571
+ run_ksoftirqd+0x1f/0x30 kernel/softirq.c:934
+ smpboot_thread_fn+0x308/0x4a0 kernel/smpboot.c:164
+ kthread+0x1a9/0x1e0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+
+write to 0xffffffff8713bbb0 of 4 bytes by task 30061 on cpu 0:
+ tcp_send_challenge_ack+0x15c/0x200 net/ipv4/tcp_input.c:3636
+ tcp_validate_incoming+0x7c9/0xdd0 net/ipv4/tcp_input.c:5778
+ tcp_rcv_state_process+0x33d/0x1010 net/ipv4/tcp_input.c:6507
+ tcp_v4_do_rcv+0x434/0x5a0 net/ipv4/tcp_ipv4.c:1684
+ sk_backlog_rcv include/net/sock.h:1100 [inline]
+ __release_sock+0xa7/0x220 net/core/sock.c:2852
+ release_sock+0x40/0x110 net/core/sock.c:3408
+ inet_wait_for_connect net/ipv4/af_inet.c:593 [inline]
+ __inet_stream_connect+0x3e4/0x6d0 net/ipv4/af_inet.c:685
+ inet_stream_connect+0x44/0x70 net/ipv4/af_inet.c:724
+ __sys_connect_file net/socket.c:1976 [inline]
+ __sys_connect+0x197/0x1b0 net/socket.c:1993
+ __do_sys_connect net/socket.c:2003 [inline]
+ __se_sys_connect net/socket.c:2000 [inline]
+ __x64_sys_connect+0x3d/0x50 net/socket.c:2000
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+value changed: 0x028f6873 -> 0x028f687a
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 30061 Comm: syz-executor.4 Not tainted 6.0.0-rc3-syzkaller-00007-gdcf8e5633e2e-dirty #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+==================================================================

@@ -1,0 +1,59 @@
+==================================================================
+BUG: KASAN: use-after-free in raw_write_seqcount_begin include/linux/seqlock.h:228 [inline]
+BUG: KASAN: use-after-free in write_seqcount_begin_nested include/linux/seqlock.h:376 [inline]
+BUG: KASAN: use-after-free in write_seqcount_begin include/linux/seqlock.h:382 [inline]
+BUG: KASAN: use-after-free in psi_group_change kernel/sched/psi.c:689 [inline]
+BUG: KASAN: use-after-free in psi_task_change+0x89b/0x9d0 kernel/sched/psi.c:780
+Read of size 4 at addr ffff888039cd9460 by task syz-executor.3/9140
+
+CPU: 1 PID: 9140 Comm: syz-executor.3 Not tainted 5.3.0-rc1+ #83
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0xd4/0x306 mm/kasan/report.c:351
+ __kasan_report.cold+0x1b/0x36 mm/kasan/report.c:482
+ kasan_report+0x12/0x17 mm/kasan/common.c:612
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:131
+ raw_write_seqcount_begin include/linux/seqlock.h:228 [inline]
+ write_seqcount_begin_nested include/linux/seqlock.h:376 [inline]
+ write_seqcount_begin include/linux/seqlock.h:382 [inline]
+ psi_group_change kernel/sched/psi.c:689 [inline]
+ psi_task_change+0x89b/0x9d0 kernel/sched/psi.c:780
+ psi_dequeue kernel/sched/stats.h:100 [inline]
+ dequeue_task kernel/sched/core.c:1191 [inline]
+ deactivate_task+0x2f3/0x420 kernel/sched/core.c:1215
+ __schedule+0xecc/0x1580 kernel/sched/core.c:3844
+ schedule+0xa8/0x270 kernel/sched/core.c:3944
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ do_nanosleep+0x201/0x6a0 kernel/time/hrtimer.c:1679
+ hrtimer_nanosleep+0x2a6/0x570 kernel/time/hrtimer.c:1733
+ __do_sys_nanosleep kernel/time/hrtimer.c:1767 [inline]
+ __se_sys_nanosleep kernel/time/hrtimer.c:1754 [inline]
+ __x64_sys_nanosleep+0x1a6/0x220 kernel/time/hrtimer.c:1754
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457cd0
+Code: c0 5b 5d c3 66 0f 1f 44 00 00 8b 04 24 48 83 c4 18 5b 5d c3 66 0f 1f 44 00 00 83 3d 81 ea 61 00 00 75 14 b8 23 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 24 d3 fb ff c3 48 83 ec 08 e8 ea 46 00 00
+RSP: 002b:00007fff3ad23fa8 EFLAGS: 00000246 ORIG_RAX: 0000000000000023
+RAX: ffffffffffffffda RBX: 000000000001555c RCX: 0000000000457cd0
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007fff3ad23fb0
+RBP: 0000000000000038 R08: 0000000000000001 R09: 00005555557ca940
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000008
+R13: 00007fff3ad24000 R14: 0000000000015503 R15: 00007fff3ad24010
+
+The buggy address belongs to the page:
+page:ffffea0000e73640 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x1fffc0000000000()
+raw: 01fffc0000000000 ffffea0000e73648 ffffea0000e73648 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888039cd9300: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888039cd9380: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff888039cd9400: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                                       ^
+ ffff888039cd9480: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888039cd9500: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

@@ -1,0 +1,86 @@
+audit: type=1400 audit(1521077309.305:6): avc:  denied  { map } for  pid=4216 comm="bash" path="/bin/bash" dev="sda1" ino=1457 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:file_t:s0 tclass=file permissive=1
+audit: type=1400 audit(1521077327.053:7): avc:  denied  { map } for  pid=4233 comm="syzkaller942099" path="/root/syzkaller942099266" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: use-after-free in ucma_close+0x2d7/0x2f0 drivers/infiniband/core/ucma.c:1693
+Read of size 8 at addr ffff8801d2f52c40 by task syzkaller942099/4233
+
+CPU: 1 PID: 4233 Comm: syzkaller942099 Not tainted 4.16.0-rc5+ #353
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ ucma_close+0x2d7/0x2f0 drivers/infiniband/core/ucma.c:1693
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43e918
+RSP: 002b:00007ffc3b4b31b8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043e918
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004be2c0 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 00000000004002c8 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006cc160 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4233:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ kmem_cache_alloc_trace+0x136/0x740 mm/slab.c:3607
+ kmalloc include/linux/slab.h:512 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ ucma_alloc_ctx+0xce/0x610 drivers/infiniband/core/ucma.c:188
+ ucma_create_id+0x205/0x620 drivers/infiniband/core/ucma.c:473
+ ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1633
+ __vfs_write+0xef/0x970 fs/read_write.c:480
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 4233:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3485 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3800
+ ucma_create_id+0x45b/0x620 drivers/infiniband/core/ucma.c:500
+ ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1633
+ __vfs_write+0xef/0x970 fs/read_write.c:480
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+The buggy address belongs to the object at ffff8801d2f52bc0
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 128 bytes inside of
+ 256-byte region [ffff8801d2f52bc0, ffff8801d2f52cc0)
+The buggy address belongs to the page:
+page:ffffea00074bd480 count:1 mapcount:0 mapping:ffff8801d2f52080 index:0xffff8801d2f52d00
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d2f52080 ffff8801d2f52d00 000000010000000b
+raw: ffffea0006c300a0 ffffea000737fee0 ffff8801dac007c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d2f52b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fc
+ ffff8801d2f52b80: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>ffff8801d2f52c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                           ^
+ ffff8801d2f52c80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801d2f52d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

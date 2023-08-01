@@ -1,0 +1,74 @@
+BUG: unable to handle page fault for address: fffffbc0bd3d4e00
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 23ffe4067 P4D 23ffe4067 PUD 13fe26067 PMD 13fe25067 PTE 0
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 5326 Comm: syz-executor.0 Not tainted 6.1.0-rc5-next-20221115-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:get_desc+0x128/0x460 arch/x86/lib/insn-eval.c:660
+Code: de 02 00 00 83 e0 07 38 c2 0f 9e c1 84 d2 0f 95 c0 84 c1 0f 85 c9 02 00 00 48 ba 00 00 00 00 00 fc ff df 48 89 d8 48 c1 e8 03 <0f> b6 0c 10 48 8d 43 07 48 89 c6 48 c1 ee 03 0f b6 14 16 48 89 de
+RSP: 0018:ffffc90003f1fd08 EFLAGS: 00010a06
+RAX: 1fffffc0bd3d4e00 RBX: fffffe05e9ea7000 RCX: 0000000000000001
+RDX: dffffc0000000000 RSI: 0000000000000001 RDI: 0000000000000006
+RBP: ffffc90003f1fdc0 R08: 0000000000000006 R09: 000000000000007f
+R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff920007e3fa1
+R13: dffffc0000000000 R14: 0000000000000000 R15: 000000000000007f
+FS:  00007f99f3277700(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffbc0bd3d4e00 CR3: 000000002a056000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ insn_get_seg_base arch/x86/lib/insn-eval.c:725 [inline]
+ insn_get_effective_ip+0x18b/0x200 arch/x86/lib/insn-eval.c:1476
+ fixup_iopl_exception+0xd0/0x220 arch/x86/kernel/traps.c:627
+ __exc_general_protection arch/x86/kernel/traps.c:752 [inline]
+ exc_general_protection+0x17a/0x220 arch/x86/kernel/traps.c:728
+ asm_exc_general_protection+0x26/0x30 arch/x86/include/asm/idtentry.h:564
+RIP: 0003:0x7f99f25abf8c
+Code: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 bf 5a f2 99 7f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 <00> 00 00 00 48 00 00 f2 99 7f 00 00 ff ff ff ff ff ff ff ff 01 00
+RSP: 0003:00007f99f25abf80 EFLAGS: 00010f46
+RAX: 0000000028fee6d8 RBX: 0000000000000000 RCX: 00007f99f25abf88
+RDX: 0000000000000046 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 00007f99f25abf80
+R10: 0000000000000000 R11: ffffffff00000b82 R12: 00007f99f25abfb0
+R13: 00007f99f2562040 R14: 0000000000000046 R15: 00000000290109e2
+ </TASK>
+Modules linked in:
+CR2: fffffbc0bd3d4e00
+---[ end trace 0000000000000000 ]---
+RIP: 0010:get_desc+0x128/0x460 arch/x86/lib/insn-eval.c:660
+Code: de 02 00 00 83 e0 07 38 c2 0f 9e c1 84 d2 0f 95 c0 84 c1 0f 85 c9 02 00 00 48 ba 00 00 00 00 00 fc ff df 48 89 d8 48 c1 e8 03 <0f> b6 0c 10 48 8d 43 07 48 89 c6 48 c1 ee 03 0f b6 14 16 48 89 de
+RSP: 0018:ffffc90003f1fd08 EFLAGS: 00010a06
+RAX: 1fffffc0bd3d4e00 RBX: fffffe05e9ea7000 RCX: 0000000000000001
+RDX: dffffc0000000000 RSI: 0000000000000001 RDI: 0000000000000006
+RBP: ffffc90003f1fdc0 R08: 0000000000000006 R09: 000000000000007f
+R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff920007e3fa1
+R13: dffffc0000000000 R14: 0000000000000000 R15: 000000000000007f
+FS:  00007f99f3277700(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffbc0bd3d4e00 CR3: 000000002a056000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	de 02                	fiadds (%rdx)
+   2:	00 00                	add    %al,(%rax)
+   4:	83 e0 07             	and    $0x7,%eax
+   7:	38 c2                	cmp    %al,%dl
+   9:	0f 9e c1             	setle  %cl
+   c:	84 d2                	test   %dl,%dl
+   e:	0f 95 c0             	setne  %al
+  11:	84 c1                	test   %al,%cl
+  13:	0f 85 c9 02 00 00    	jne    0x2e2
+  19:	48 ba 00 00 00 00 00 	movabs $0xdffffc0000000000,%rdx
+  20:	fc ff df
+  23:	48 89 d8             	mov    %rbx,%rax
+  26:	48 c1 e8 03          	shr    $0x3,%rax
+* 2a:	0f b6 0c 10          	movzbl (%rax,%rdx,1),%ecx <-- trapping instruction
+  2e:	48 8d 43 07          	lea    0x7(%rbx),%rax
+  32:	48 89 c6             	mov    %rax,%rsi
+  35:	48 c1 ee 03          	shr    $0x3,%rsi
+  39:	0f b6 14 16          	movzbl (%rsi,%rdx,1),%edx
+  3d:	48 89 de             	mov    %rbx,%rsi

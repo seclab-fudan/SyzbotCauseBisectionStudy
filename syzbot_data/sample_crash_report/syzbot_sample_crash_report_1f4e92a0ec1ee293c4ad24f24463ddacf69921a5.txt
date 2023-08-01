@@ -1,0 +1,80 @@
+scsi 0:0:1:0: Direct-Access     Google   PersistentDisk   1    PQ: 0 ANSI: 6
+BUG: unable to handle page fault for address: ffffdc0000000000
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 11826067 P4D 11826067 PUD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 35 Comm: kworker/u4:2 Not tainted 5.19.0-syzkaller-14276-gaea23e7c464b #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Workqueue: events_unbound async_run_entry_fn
+RIP: 0010:blk_mq_get_tag+0x858/0xc00 block/blk-mq-tag.c:144
+Code: 5c 41 5d 41 5e 41 5f c3 e8 65 ce 96 fd 48 8b 04 24 48 8d 78 04 4c 8d 68 10 48 89 fa 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 2d
+RSP: 0018:ffffc90000ac74f0 EFLAGS: 00010217
+RAX: dffffc0000000000 RBX: ffffc90000ac7760 RCX: 0000000000000000
+RDX: 1fffe00000000000 RSI: ffffffff83e5388b RDI: ffff000000000004
+RBP: 0000000000000000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000000 R11: 000000000008c07c R12: ffff88801fd07000
+R13: ffff000000000010 R14: ffffc90000ac7760 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffdc0000000000 CR3: 000000000bc8e000 CR4: 0000000000350ee0
+Call Trace:
+ <TASK>
+ __blk_mq_alloc_requests+0x699/0xed0 block/blk-mq.c:495
+ blk_mq_alloc_request+0x116/0x210 block/blk-mq.c:529
+ scsi_alloc_request drivers/scsi/scsi_lib.c:1126 [inline]
+ __scsi_execute+0x81/0x5d0 drivers/scsi/scsi_lib.c:212
+ scsi_execute_req include/scsi/scsi_device.h:479 [inline]
+ scsi_probe_lun drivers/scsi/scsi_scan.c:685 [inline]
+ scsi_probe_and_add_lun+0x521/0x3660 drivers/scsi/scsi_scan.c:1199
+ __scsi_scan_target+0x21f/0xdb0 drivers/scsi/scsi_scan.c:1673
+ scsi_scan_channel drivers/scsi/scsi_scan.c:1761 [inline]
+ scsi_scan_channel+0x148/0x1e0 drivers/scsi/scsi_scan.c:1737
+ scsi_scan_host_selected+0x2df/0x3b0 drivers/scsi/scsi_scan.c:1790
+ do_scsi_scan_host+0x1e8/0x260 drivers/scsi/scsi_scan.c:1929
+ do_scan_async+0x3e/0x500 drivers/scsi/scsi_scan.c:1939
+ async_run_entry_fn+0x98/0x530 kernel/async.c:127
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+CR2: ffffdc0000000000
+---[ end trace 0000000000000000 ]---
+RIP: 0010:blk_mq_get_tag+0x858/0xc00 block/blk-mq-tag.c:144
+Code: 5c 41 5d 41 5e 41 5f c3 e8 65 ce 96 fd 48 8b 04 24 48 8d 78 04 4c 8d 68 10 48 89 fa 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 2d
+RSP: 0018:ffffc90000ac74f0 EFLAGS: 00010217
+RAX: dffffc0000000000 RBX: ffffc90000ac7760 RCX: 0000000000000000
+RDX: 1fffe00000000000 RSI: ffffffff83e5388b RDI: ffff000000000004
+RBP: 0000000000000000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000000 R11: 000000000008c07c R12: ffff88801fd07000
+R13: ffff000000000010 R14: ffffc90000ac7760 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffdc0000000000 CR3: 000000000bc8e000 CR4: 0000000000350ee0
+----------------
+Code disassembly (best guess):
+   0:	5c                   	pop    %rsp
+   1:	41 5d                	pop    %r13
+   3:	41 5e                	pop    %r14
+   5:	41 5f                	pop    %r15
+   7:	c3                   	retq
+   8:	e8 65 ce 96 fd       	callq  0xfd96ce72
+   d:	48 8b 04 24          	mov    (%rsp),%rax
+  11:	48 8d 78 04          	lea    0x4(%rax),%rdi
+  15:	4c 8d 68 10          	lea    0x10(%rax),%r13
+  19:	48 89 fa             	mov    %rdi,%rdx
+  1c:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  23:	fc ff df
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	0f b6 14 02          	movzbl (%rdx,%rax,1),%edx <-- trapping instruction
+  2e:	48 89 f8             	mov    %rdi,%rax
+  31:	83 e0 07             	and    $0x7,%eax
+  34:	83 c0 03             	add    $0x3,%eax
+  37:	38 d0                	cmp    %dl,%al
+  39:	7c 08                	jl     0x43
+  3b:	84 d2                	test   %dl,%dl
+  3d:	0f                   	.byte 0xf
+  3e:	85                   	.byte 0x85
+  3f:	2d                   	.byte 0x2d

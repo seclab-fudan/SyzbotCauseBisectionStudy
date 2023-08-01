@@ -1,0 +1,50 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_write include/linux/instrumented.h:86 [inline]
+BUG: KASAN: null-ptr-deref in clear_bit include/asm-generic/bitops/instrumented-atomic.h:41 [inline]
+BUG: KASAN: null-ptr-deref in kcm_tx_work+0xff/0x160 net/kcm/kcmsock.c:742
+Write of size 8 at addr 0000000000000008 by task kworker/u4:1/11
+
+CPU: 0 PID: 11 Comm: kworker/u4:1 Not tainted 5.19.0-rc3-syzkaller-00038-gca1fdab7fd27 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: kkcmd kcm_tx_work
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_report mm/kasan/report.c:432 [inline]
+ kasan_report.cold+0x61/0x1c6 mm/kasan/report.c:491
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_write include/linux/instrumented.h:86 [inline]
+ clear_bit include/asm-generic/bitops/instrumented-atomic.h:41 [inline]
+ kcm_tx_work+0xff/0x160 net/kcm/kcmsock.c:742
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 11 Comm: kworker/u4:1 Not tainted 5.19.0-rc3-syzkaller-00038-gca1fdab7fd27 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: kkcmd kcm_tx_work
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ panic+0x2d7/0x64a kernel/panic.c:274
+ end_report.part.0+0x3f/0x7c mm/kasan/report.c:168
+ end_report include/trace/events/error_report.h:69 [inline]
+ kasan_report.cold+0x93/0x1c6 mm/kasan/report.c:493
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_write include/linux/instrumented.h:86 [inline]
+ clear_bit include/asm-generic/bitops/instrumented-atomic.h:41 [inline]
+ kcm_tx_work+0xff/0x160 net/kcm/kcmsock.c:742
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

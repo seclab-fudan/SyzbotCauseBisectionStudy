@@ -1,0 +1,36 @@
+usb 1-1: Direct firmware load for libertas/usb8388_v9.bin failed with error -2
+usb 1-1: Direct firmware load for libertas/usb8388_v5.bin failed with error -2
+usb 1-1: Direct firmware load for libertas/usb8388.bin failed with error -2
+usb 1-1: Direct firmware load for usb8388.bin failed with error -2
+==================================================================
+BUG: KASAN: global-out-of-bounds in load_next_firmware_from_table+0x267/0x2d0 drivers/net/wireless/marvell/libertas/firmware.c:99
+Read of size 8 at addr ffffffff8608e138 by task kworker/0:2/102
+
+CPU: 0 PID: 102 Comm: kworker/0:2 Not tainted 5.3.0-rc5+ #28
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events request_firmware_work_func
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description+0x6a/0x32c mm/kasan/report.c:351
+ __kasan_report.cold+0x1a/0x33 mm/kasan/report.c:482
+ kasan_report+0xe/0x12 mm/kasan/common.c:612
+ load_next_firmware_from_table+0x267/0x2d0 drivers/net/wireless/marvell/libertas/firmware.c:99
+ helper_firmware_cb+0xdc/0x100 drivers/net/wireless/marvell/libertas/firmware.c:70
+ request_firmware_work_func+0x126/0x242 drivers/base/firmware_loader/main.c:975
+ process_one_work+0x92b/0x1530 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the variable:
+ fw_table+0x98/0x5c0
+
+Memory state around the buggy address:
+ ffffffff8608e000: fa fa fa fa 00 04 fa fa fa fa fa fa 00 00 05 fa
+ ffffffff8608e080: fa fa fa fa 00 00 00 00 00 00 00 00 00 00 00 00
+>ffffffff8608e100: 00 00 00 00 00 00 fa fa fa fa fa fa 00 00 00 00
+                                        ^
+ ffffffff8608e180: 00 00 00 01 fa fa fa fa 00 00 00 00 02 fa fa fa
+ ffffffff8608e200: fa fa fa fa 00 03 fa fa fa fa fa fa 00 00 00 00
+==================================================================

@@ -1,0 +1,159 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in fib6_nh_get_excptn_bucket net/ipv6/route.c:1604 [inline]
+BUG: KASAN: slab-out-of-bounds in fib6_nh_flush_exceptions+0xbd/0x360 net/ipv6/route.c:1732
+Read of size 8 at addr ffff888017228df8 by task ksoftirqd/0/13
+
+CPU: 0 PID: 13 Comm: ksoftirqd/0 Not tainted 5.13.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x202/0x31e lib/dump_stack.c:120
+ print_address_description+0x5f/0x3b0 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report+0x15c/0x200 mm/kasan/report.c:436
+ fib6_nh_get_excptn_bucket net/ipv6/route.c:1604 [inline]
+ fib6_nh_flush_exceptions+0xbd/0x360 net/ipv6/route.c:1732
+ fib6_nh_release+0x9a/0x430 net/ipv6/route.c:3533
+ fib6_info_destroy_rcu+0xcb/0x1c0 net/ipv6/ip6_fib.c:174
+ rcu_do_batch kernel/rcu/tree.c:2558 [inline]
+ rcu_core+0x906/0x14b0 kernel/rcu/tree.c:2793
+ __do_softirq+0x372/0x7a6 kernel/softirq.c:559
+ run_ksoftirqd+0xa2/0x100 kernel/softirq.c:921
+ smpboot_thread_fn+0x618/0xa50 kernel/smpboot.c:165
+ kthread+0x39a/0x3c0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Allocated by task 22184:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:428 [inline]
+ ____kasan_kmalloc+0xc4/0xf0 mm/kasan/common.c:507
+ kasan_kmalloc include/linux/kasan.h:246 [inline]
+ __kmalloc+0xb4/0x390 mm/slub.c:4058
+ kmalloc include/linux/slab.h:561 [inline]
+ kzalloc include/linux/slab.h:686 [inline]
+ fib6_info_alloc+0x2c/0xd0 net/ipv6/ip6_fib.c:154
+ ip6_route_info_create+0x55d/0x1a10 net/ipv6/route.c:3635
+ ip6_route_add+0x22/0x120 net/ipv6/route.c:3725
+ inet6_rtm_newroute+0x2cd/0x2260 net/ipv6/route.c:5349
+ rtnetlink_rcv_msg+0xb34/0xe70 net/core/rtnetlink.c:5562
+ netlink_rcv_skb+0x1f0/0x460 net/netlink/af_netlink.c:2502
+ netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+ netlink_unicast+0x7de/0x9b0 net/netlink/af_netlink.c:1338
+ netlink_sendmsg+0xaa6/0xe90 net/netlink/af_netlink.c:1927
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg net/socket.c:674 [inline]
+ ____sys_sendmsg+0x5a2/0x900 net/socket.c:2350
+ ___sys_sendmsg net/socket.c:2404 [inline]
+ __sys_sendmsg+0x319/0x400 net/socket.c:2433
+ do_syscall_64+0x3f/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Last potentially related work creation:
+ kasan_save_stack+0x27/0x50 mm/kasan/common.c:38
+ kasan_record_aux_stack+0xee/0x120 mm/kasan/generic.c:345
+ __call_rcu kernel/rcu/tree.c:3038 [inline]
+ call_rcu+0x1a0/0xa20 kernel/rcu/tree.c:3113
+ fib6_info_release include/net/ip6_fib.h:337 [inline]
+ ip6_route_info_create+0x10c4/0x1a10 net/ipv6/route.c:3715
+ ip6_route_add+0x22/0x120 net/ipv6/route.c:3725
+ inet6_rtm_newroute+0x2cd/0x2260 net/ipv6/route.c:5349
+ rtnetlink_rcv_msg+0xb34/0xe70 net/core/rtnetlink.c:5562
+ netlink_rcv_skb+0x1f0/0x460 net/netlink/af_netlink.c:2502
+ netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+ netlink_unicast+0x7de/0x9b0 net/netlink/af_netlink.c:1338
+ netlink_sendmsg+0xaa6/0xe90 net/netlink/af_netlink.c:1927
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg net/socket.c:674 [inline]
+ ____sys_sendmsg+0x5a2/0x900 net/socket.c:2350
+ ___sys_sendmsg net/socket.c:2404 [inline]
+ __sys_sendmsg+0x319/0x400 net/socket.c:2433
+ do_syscall_64+0x3f/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x27/0x50 mm/kasan/common.c:38
+ kasan_record_aux_stack+0xee/0x120 mm/kasan/generic.c:345
+ insert_work+0x54/0x400 kernel/workqueue.c:1331
+ __queue_work+0x90e/0xc40 kernel/workqueue.c:1497
+ queue_work_on+0x111/0x200 kernel/workqueue.c:1524
+ queue_work include/linux/workqueue.h:507 [inline]
+ call_usermodehelper_exec+0x283/0x470 kernel/umh.c:435
+ kobject_uevent_env+0x133d/0x1700 lib/kobject_uevent.c:618
+ device_del+0xa0b/0xc10 drivers/base/core.c:3517
+ device_unregister drivers/base/core.c:3540 [inline]
+ device_destroy+0xb0/0x180 drivers/base/core.c:4086
+ tty_unregister_device+0x70/0x170 drivers/tty/tty_io.c:3332
+ gsmld_detach_gsm drivers/tty/n_gsm.c:2420 [inline]
+ gsmld_close+0xa0/0x1e0 drivers/tty/n_gsm.c:2486
+ tty_ldisc_kill drivers/tty/tty_ldisc.c:644 [inline]
+ tty_ldisc_hangup+0x432/0x650 drivers/tty/tty_ldisc.c:764
+ __tty_hangup+0x4d4/0x750 drivers/tty/tty_io.c:639
+ tty_release+0x30c/0xef0 drivers/tty/tty_io.c:1778
+ __fput+0x352/0x7b0 fs/file_table.c:280
+ task_work_run+0x146/0x1c0 kernel/task_work.c:164
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:174 [inline]
+ exit_to_user_mode_prepare+0x10b/0x200 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x26/0x70 kernel/entry/common.c:301
+ do_syscall_64+0x4b/0xb0 arch/x86/entry/common.c:57
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff888017228d00
+ which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 56 bytes to the right of
+ 192-byte region [ffff888017228d00, ffff888017228dc0)
+The buggy address belongs to the page:
+page:ffffea00005c8a00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x17228
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea00005c2080 0000000b00000009 ffff888011841a00
+raw: 0000000000000000 0000000080100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 1, ts 2646666124, free_ts 2643274552
+ prep_new_page mm/page_alloc.c:2358 [inline]
+ get_page_from_freelist+0x779/0xa20 mm/page_alloc.c:3994
+ __alloc_pages+0x26c/0x5f0 mm/page_alloc.c:5200
+ alloc_page_interleave+0x22/0x1b0 mm/mempolicy.c:2147
+ alloc_slab_page mm/slub.c:1644 [inline]
+ allocate_slab+0xf1/0x5b0 mm/slub.c:1784
+ new_slab mm/slub.c:1847 [inline]
+ new_slab_objects mm/slub.c:2593 [inline]
+ ___slab_alloc+0x1cf/0x350 mm/slub.c:2756
+ __slab_alloc mm/slub.c:2796 [inline]
+ slab_alloc_node mm/slub.c:2878 [inline]
+ slab_alloc mm/slub.c:2920 [inline]
+ __kmalloc_track_caller+0x2eb/0x390 mm/slub.c:4564
+ __do_krealloc mm/slab_common.c:1175 [inline]
+ krealloc+0x5c/0xf0 mm/slab_common.c:1208
+ add_sysfs_param+0xc8/0x7f0 kernel/params.c:633
+ kernel_add_sysfs_param+0xb0/0x126 kernel/params.c:794
+ param_sysfs_builtin+0x145/0x1b9 kernel/params.c:833
+ param_sysfs_init+0x68/0x6c kernel/params.c:952
+ do_one_initcall+0x1a7/0x400 init/main.c:1249
+ do_initcall_level+0x14a/0x1f5 init/main.c:1322
+ do_initcalls+0x4b/0x8c init/main.c:1338
+ kernel_init_freeable+0x3a8/0x50f init/main.c:1560
+ kernel_init+0xd/0x290 init/main.c:1447
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1298 [inline]
+ free_pcp_prepare+0x3ea/0x420 mm/page_alloc.c:1342
+ free_unref_page_prepare mm/page_alloc.c:3250 [inline]
+ free_unref_page+0x7b/0x280 mm/page_alloc.c:3298
+ __vunmap+0x926/0xa60 mm/vmalloc.c:2566
+ free_work+0x66/0x90 mm/vmalloc.c:80
+ process_one_work+0x833/0x10c0 kernel/workqueue.c:2275
+ worker_thread+0xac1/0x1300 kernel/workqueue.c:2421
+ kthread+0x39a/0x3c0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Memory state around the buggy address:
+ ffff888017228c80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff888017228d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff888017228d80: 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc fc
+                                                                ^
+ ffff888017228e00: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888017228e80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================

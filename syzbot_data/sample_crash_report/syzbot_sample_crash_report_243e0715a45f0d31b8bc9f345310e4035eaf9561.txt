@@ -1,0 +1,77 @@
+F2FS-fs (loop0): Can't find valid F2FS filesystem in 2th superblock
+F2FS-fs (loop0): invalid crc_offset: 0
+F2FS-fs (loop0): Disable nat_bits due to incorrect cp_ver (13274671252798256465, 0)
+F2FS-fs (loop0): Try to recover 2th superblock, ret: 0
+F2FS-fs (loop0): Mounted with checkpoint version = 15213551
+============================================
+WARNING: possible recursive locking detected
+5.17.0-rc2-next-20220202-syzkaller #0 Not tainted
+--------------------------------------------
+syz-executor750/3590 is trying to acquire lock:
+ffff88807d0f4390 (&sem->internal_rwsem#2){++++}-{3:3}, at: f2fs_down_write fs/f2fs/f2fs.h:2156 [inline]
+ffff88807d0f4390 (&sem->internal_rwsem#2){++++}-{3:3}, at: f2fs_write_checkpoint+0x535/0x5c90 fs/f2fs/checkpoint.c:1616
+
+but task is already holding lock:
+ffff88807d0f5398 (&sem->internal_rwsem#2){++++}-{3:3}, at: f2fs_down_write fs/f2fs/f2fs.h:2156 [inline]
+ffff88807d0f5398 (&sem->internal_rwsem#2){++++}-{3:3}, at: f2fs_issue_checkpoint+0x149/0x480 fs/f2fs/checkpoint.c:1835
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&sem->internal_rwsem#2);
+  lock(&sem->internal_rwsem#2);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+2 locks held by syz-executor750/3590:
+ #0: ffff88801d7c40e0 (&type->s_umount_key#46){+.+.}-{3:3}, at: deactivate_super+0xa5/0xd0 fs/super.c:362
+ #1: ffff88807d0f5398 (&sem->internal_rwsem#2){++++}-{3:3}, at: f2fs_down_write fs/f2fs/f2fs.h:2156 [inline]
+ #1: ffff88807d0f5398 (&sem->internal_rwsem#2){++++}-{3:3}, at: f2fs_issue_checkpoint+0x149/0x480 fs/f2fs/checkpoint.c:1835
+
+stack backtrace:
+CPU: 0 PID: 3590 Comm: syz-executor750 Not tainted 5.17.0-rc2-next-20220202-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_deadlock_bug kernel/locking/lockdep.c:2956 [inline]
+ check_deadlock kernel/locking/lockdep.c:2999 [inline]
+ validate_chain kernel/locking/lockdep.c:3788 [inline]
+ __lock_acquire.cold+0x149/0x3ab kernel/locking/lockdep.c:5027
+ lock_acquire kernel/locking/lockdep.c:5639 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5604
+ down_write+0x90/0x150 kernel/locking/rwsem.c:1514
+ f2fs_down_write fs/f2fs/f2fs.h:2156 [inline]
+ f2fs_write_checkpoint+0x535/0x5c90 fs/f2fs/checkpoint.c:1616
+ __write_checkpoint_sync fs/f2fs/checkpoint.c:1746 [inline]
+ f2fs_issue_checkpoint+0x156/0x480 fs/f2fs/checkpoint.c:1843
+ f2fs_sync_fs+0x20f/0x420 fs/f2fs/super.c:1644
+ sync_filesystem.part.0+0x13c/0x1d0 fs/sync.c:66
+ sync_filesystem+0x8b/0xc0 fs/sync.c:43
+ generic_shutdown_super+0x70/0x400 fs/super.c:445
+ kill_block_super+0x97/0xf0 fs/super.c:1394
+ kill_f2fs_super+0x2b3/0x3c0 fs/f2fs/super.c:4523
+ deactivate_locked_super+0x94/0x160 fs/super.c:332
+ deactivate_super+0xad/0xd0 fs/super.c:363
+ cleanup_mnt+0x3a2/0x540 fs/namespace.c:1159
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ exit_task_work include/linux/task_work.h:32 [inline]
+ do_exit+0xb29/0x2b10 kernel/exit.c:806
+ do_group_exit+0xd2/0x2f0 kernel/exit.c:935
+ __do_sys_exit_group kernel/exit.c:946 [inline]
+ __se_sys_exit_group kernel/exit.c:944 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:944
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f62db64d949
+Code: Unable to access opcode bytes at RIP 0x7f62db64d91f.
+RSP: 002b:00007ffe5daa3ef8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007f62db6c3330 RCX: 00007f62db64d949
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000001
+RBP: 0000000000000001 R08: ffffffffffffffc0 R09: 0000000000000000

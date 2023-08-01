@@ -1,0 +1,31 @@
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 0 PID: 2684 at lib/refcount.c:28 refcount_warn_saturate+0x15b/0x1a0 lib/refcount.c:28
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 2684 Comm: kworker/0:2 Not tainted 5.8.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events do_enable_set
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1f0/0x31e lib/dump_stack.c:118
+ panic+0x264/0x7a0 kernel/panic.c:231
+ __warn+0x227/0x250 kernel/panic.c:600
+ report_bug+0x1b1/0x2e0 lib/bug.c:198
+ handle_bug+0x42/0x80 arch/x86/kernel/traps.c:235
+ exc_invalid_op+0x16/0x40 arch/x86/kernel/traps.c:255
+ asm_exc_invalid_op+0x12/0x20 arch/x86/include/asm/idtentry.h:536
+RIP: 0010:refcount_warn_saturate+0x15b/0x1a0 lib/refcount.c:28
+Code: c7 8a db 14 89 31 c0 e8 a3 89 a9 fd 0f 0b eb 85 e8 ba e3 d7 fd c6 05 ea 7b ec 05 01 48 c7 c7 b6 db 14 89 31 c0 e8 85 89 a9 fd <0f> 0b e9 64 ff ff ff e8 99 e3 d7 fd c6 05 ca 7b ec 05 01 48 c7 c7
+RSP: 0018:ffffc90008767c48 EFLAGS: 00010246
+RAX: 622f7b4761e9f100 RBX: 0000000000000003 RCX: ffff88809ef70540
+RDX: 0000000000000000 RSI: 0000000080000000 RDI: 0000000000000000
+RBP: 0000000000000003 R08: ffffffff815dffc9 R09: ffffed1015d062c0
+R10: ffffed1015d062c0 R11: 0000000000000000 R12: dffffc0000000000
+R13: ffff88809eeb3e18 R14: dffffc0000000000 R15: ffff8880ae8350c0
+ do_enable_set+0x66e/0x900 net/bluetooth/6lowpan.c:1083
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2269
+ worker_thread+0xaa4/0x1460 kernel/workqueue.c:2415
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

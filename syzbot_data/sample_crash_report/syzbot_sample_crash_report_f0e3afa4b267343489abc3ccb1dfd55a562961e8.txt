@@ -1,0 +1,35 @@
+==================================================================
+BUG: KASAN: vmalloc-out-of-bounds in memcpy include/linux/fortify-string.h:191 [inline]
+BUG: KASAN: vmalloc-out-of-bounds in tpg_fill_plane_pattern drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:2545 [inline]
+BUG: KASAN: vmalloc-out-of-bounds in tpg_fill_plane_buffer+0x1325/0x38e0 drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:2626
+Write of size 128 at addr ffffc9000dbe2fe0 by task vivid-001-vid-c/14838
+
+CPU: 0 PID: 14838 Comm: vivid-001-vid-c Not tainted 5.14.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ print_address_description.constprop.0.cold+0xf/0x309 mm/kasan/report.c:256
+ __kasan_report mm/kasan/report.c:442 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:459
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ memcpy+0x39/0x60 mm/kasan/shadow.c:66
+ memcpy include/linux/fortify-string.h:191 [inline]
+ tpg_fill_plane_pattern drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:2545 [inline]
+ tpg_fill_plane_buffer+0x1325/0x38e0 drivers/media/common/v4l2-tpg/v4l2-tpg-core.c:2626
+ vivid_fillbuff+0x1ac1/0x3f00 drivers/media/test-drivers/vivid/vivid-kthread-cap.c:469
+ vivid_thread_vid_cap_tick+0x88b/0x2360 drivers/media/test-drivers/vivid/vivid-kthread-cap.c:729
+ vivid_thread_vid_cap+0x5d2/0xaf0 drivers/media/test-drivers/vivid/vivid-kthread-cap.c:868
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+
+Memory state around the buggy address:
+ ffffc9000dbe2f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffc9000dbe2f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffffc9000dbe3000: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+                   ^
+ ffffc9000dbe3080: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc9000dbe3100: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+==================================================================

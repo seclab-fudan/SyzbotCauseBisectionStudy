@@ -1,0 +1,47 @@
+=====================================================
+BUG: KMSAN: kernel-infoleak in instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+BUG: KMSAN: kernel-infoleak in _copy_to_user+0x1c9/0x270 lib/usercopy.c:33
+ instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+ _copy_to_user+0x1c9/0x270 lib/usercopy.c:33
+ copy_to_user include/linux/uaccess.h:209 [inline]
+ v4l2_compat_put_array_args+0x155a/0x1670 drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1152
+ video_usercopy+0x2332/0x2870 drivers/media/v4l2-core/v4l2-ioctl.c:3343
+ video_ioctl2+0x9f/0xb0 drivers/media/v4l2-core/v4l2-ioctl.c:3373
+ v4l2_ioctl+0x263/0x290 drivers/media/v4l2-core/v4l2-dev.c:364
+ v4l2_compat_ioctl32+0x384/0x410 drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1251
+ __do_compat_sys_ioctl fs/ioctl.c:972 [inline]
+ __se_compat_sys_ioctl+0x876/0x1150 fs/ioctl.c:914
+ __ia32_compat_sys_ioctl+0xd9/0x110 fs/ioctl.c:914
+ do_syscall_32_irqs_on arch/x86/entry/common.c:114 [inline]
+ __do_fast_syscall_32+0x96/0xf0 arch/x86/entry/common.c:180
+ do_fast_syscall_32+0x34/0x70 arch/x86/entry/common.c:205
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:248
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:737 [inline]
+ slab_alloc_node mm/slub.c:3247 [inline]
+ __kmalloc_node+0xe03/0x14f0 mm/slub.c:4486
+ kmalloc_node include/linux/slab.h:604 [inline]
+ kvmalloc_node+0x1b6/0x3a0 mm/util.c:580
+ kvmalloc include/linux/slab.h:732 [inline]
+ video_usercopy+0x1660/0x2870 drivers/media/v4l2-core/v4l2-ioctl.c:3307
+ video_ioctl2+0x9f/0xb0 drivers/media/v4l2-core/v4l2-ioctl.c:3373
+ v4l2_ioctl+0x263/0x290 drivers/media/v4l2-core/v4l2-dev.c:364
+ v4l2_compat_ioctl32+0x384/0x410 drivers/media/v4l2-core/v4l2-compat-ioctl32.c:1251
+ __do_compat_sys_ioctl fs/ioctl.c:972 [inline]
+ __se_compat_sys_ioctl+0x876/0x1150 fs/ioctl.c:914
+ __ia32_compat_sys_ioctl+0xd9/0x110 fs/ioctl.c:914
+ do_syscall_32_irqs_on arch/x86/entry/common.c:114 [inline]
+ __do_fast_syscall_32+0x96/0xf0 arch/x86/entry/common.c:180
+ do_fast_syscall_32+0x34/0x70 arch/x86/entry/common.c:205
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:248
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+
+Bytes 0-7 of 16 are uninitialized
+Memory access of size 16 starts at ffff888018d45558
+Data copied to user address 0000000020000214
+
+CPU: 0 PID: 7268 Comm: syz-executor.2 Tainted: G        W         5.17.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=====================================================

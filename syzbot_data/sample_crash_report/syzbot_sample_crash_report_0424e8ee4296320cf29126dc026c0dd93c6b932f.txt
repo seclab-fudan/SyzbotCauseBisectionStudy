@@ -1,0 +1,212 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.2.0-rc4-syzkaller-00041-gc1649ec55708 #0 Not tainted
+------------------------------------------------------
+syz-executor.2/11953 is trying to acquire lock:
+ffff88804423c990 (jbd2_handle){++++}-{0:0}, at: start_this_handle+0xfb4/0x14a0 fs/jbd2/transaction.c:461
+
+but task is already holding lock:
+ffffffff8c8ceda0 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:4747 [inline]
+ffffffff8c8ceda0 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4772 [inline]
+ffffffff8c8ceda0 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_slowpath.constprop.0+0x808/0x23d0 mm/page_alloc.c:5178
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (fs_reclaim){+.+.}-{0:0}:
+       __fs_reclaim_acquire mm/page_alloc.c:4674 [inline]
+       fs_reclaim_acquire+0x11d/0x160 mm/page_alloc.c:4688
+       might_alloc include/linux/sched/mm.h:271 [inline]
+       slab_pre_alloc_hook mm/slab.h:720 [inline]
+       slab_alloc_node mm/slab.c:3245 [inline]
+       __kmem_cache_alloc_node+0x3b/0x510 mm/slab.c:3544
+       __do_kmalloc_node mm/slab_common.c:967 [inline]
+       __kmalloc_node+0x4d/0xd0 mm/slab_common.c:975
+       kmalloc_node include/linux/slab.h:610 [inline]
+       kvmalloc_node+0x76/0x1a0 mm/util.c:581
+       kvmalloc include/linux/slab.h:737 [inline]
+       ext4_xattr_inode_cache_find fs/ext4/xattr.c:1484 [inline]
+       ext4_xattr_inode_lookup_create fs/ext4/xattr.c:1527 [inline]
+       ext4_xattr_set_entry+0x1d92/0x3a00 fs/ext4/xattr.c:1669
+       ext4_xattr_block_set+0xcd3/0x3000 fs/ext4/xattr.c:1975
+       ext4_xattr_set_handle+0xd8a/0x1510 fs/ext4/xattr.c:2390
+       ext4_xattr_set+0x144/0x360 fs/ext4/xattr.c:2492
+       __vfs_setxattr+0x173/0x1e0 fs/xattr.c:202
+       __vfs_setxattr_noperm+0x129/0x5f0 fs/xattr.c:236
+       __vfs_setxattr_locked+0x1d3/0x260 fs/xattr.c:297
+       vfs_setxattr+0x143/0x340 fs/xattr.c:323
+       do_setxattr+0x151/0x190 fs/xattr.c:608
+       setxattr+0x146/0x160 fs/xattr.c:631
+       path_setxattr+0x197/0x1c0 fs/xattr.c:650
+       __do_sys_setxattr fs/xattr.c:666 [inline]
+       __se_sys_setxattr fs/xattr.c:662 [inline]
+       __x64_sys_setxattr+0xc4/0x160 fs/xattr.c:662
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #1 (&ei->xattr_sem){++++}-{3:3}:
+       down_write+0x94/0x220 kernel/locking/rwsem.c:1562
+       ext4_write_lock_xattr fs/ext4/xattr.h:155 [inline]
+       ext4_xattr_set_handle+0x160/0x1510 fs/ext4/xattr.c:2305
+       ext4_initxattrs+0xb9/0x120 fs/ext4/xattr_security.c:44
+       security_inode_init_security+0x1c8/0x370 security/security.c:1147
+       __ext4_new_inode+0x3b05/0x57d0 fs/ext4/ialloc.c:1324
+       ext4_create+0x2da/0x4e0 fs/ext4/namei.c:2809
+       lookup_open.isra.0+0xee7/0x1270 fs/namei.c:3413
+       open_last_lookups fs/namei.c:3481 [inline]
+       path_openat+0x975/0x2a50 fs/namei.c:3711
+       do_filp_open+0x1ba/0x410 fs/namei.c:3741
+       do_sys_openat2+0x16d/0x4c0 fs/open.c:1310
+       do_sys_open fs/open.c:1326 [inline]
+       __do_sys_openat fs/open.c:1342 [inline]
+       __se_sys_openat fs/open.c:1337 [inline]
+       __x64_sys_openat+0x143/0x1f0 fs/open.c:1337
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (jbd2_handle){++++}-{0:0}:
+       check_prev_add kernel/locking/lockdep.c:3097 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+       validate_chain kernel/locking/lockdep.c:3831 [inline]
+       __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5055
+       lock_acquire kernel/locking/lockdep.c:5668 [inline]
+       lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+       start_this_handle+0xfe7/0x14a0 fs/jbd2/transaction.c:463
+       jbd2__journal_start+0x39d/0x9b0 fs/jbd2/transaction.c:520
+       __ext4_journal_start_sb+0x6e9/0x860 fs/ext4/ext4_jbd2.c:111
+       __ext4_journal_start fs/ext4/ext4_jbd2.h:326 [inline]
+       ext4_dirty_inode+0xa5/0x130 fs/ext4/inode.c:6107
+       __mark_inode_dirty+0x247/0x11e0 fs/fs-writeback.c:2419
+       mark_inode_dirty_sync include/linux/fs.h:2470 [inline]
+       iput.part.0+0x57/0x880 fs/inode.c:1770
+       iput+0x5c/0x80 fs/inode.c:1763
+       dentry_unlink_inode+0x2b1/0x460 fs/dcache.c:401
+       __dentry_kill+0x3c0/0x640 fs/dcache.c:607
+       shrink_dentry_list+0x240/0x800 fs/dcache.c:1201
+       prune_dcache_sb+0xeb/0x150 fs/dcache.c:1282
+       super_cache_scan+0x33a/0x590 fs/super.c:104
+       do_shrink_slab+0x464/0xce0 mm/vmscan.c:843
+       shrink_slab+0x175/0x660 mm/vmscan.c:1003
+       shrink_node_memcgs mm/vmscan.c:6140 [inline]
+       shrink_node+0x95d/0x1f40 mm/vmscan.c:6169
+       shrink_zones mm/vmscan.c:6407 [inline]
+       do_try_to_free_pages+0x3b4/0x17a0 mm/vmscan.c:6469
+       try_to_free_pages+0x2e5/0x960 mm/vmscan.c:6704
+       __perform_reclaim mm/page_alloc.c:4750 [inline]
+       __alloc_pages_direct_reclaim mm/page_alloc.c:4772 [inline]
+       __alloc_pages_slowpath.constprop.0+0x8b6/0x23d0 mm/page_alloc.c:5178
+       __alloc_pages+0x4aa/0x5b0 mm/page_alloc.c:5562
+       __folio_alloc+0x16/0x40 mm/page_alloc.c:5581
+       vma_alloc_folio+0x155/0x870 mm/mempolicy.c:2247
+       shmem_alloc_folio+0xfe/0x1d0 mm/shmem.c:1569
+       shmem_alloc_and_acct_folio+0x15e/0x5d0 mm/shmem.c:1593
+       shmem_get_folio_gfp+0xb2e/0x1a30 mm/shmem.c:1920
+       shmem_get_folio mm/shmem.c:2051 [inline]
+       shmem_write_begin+0x14a/0x380 mm/shmem.c:2543
+       generic_perform_write+0x256/0x570 mm/filemap.c:3772
+       __generic_file_write_iter+0x2ae/0x500 mm/filemap.c:3900
+       generic_file_write_iter+0xe3/0x350 mm/filemap.c:3932
+       call_write_iter include/linux/fs.h:2189 [inline]
+       new_sync_write fs/read_write.c:491 [inline]
+       vfs_write+0x9ed/0xdd0 fs/read_write.c:584
+       ksys_write+0x12b/0x250 fs/read_write.c:637
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+other info that might help us debug this:
+
+Chain exists of:
+  jbd2_handle --> &ei->xattr_sem --> fs_reclaim
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(fs_reclaim);
+                               lock(&ei->xattr_sem);
+                               lock(fs_reclaim);
+  lock(jbd2_handle);
+
+ *** DEADLOCK ***
+
+5 locks held by syz-executor.2/11953:
+ #0: ffff8880400c6460 (sb_writers#6){.+.+}-{0:0}, at: ksys_write+0x12b/0x250 fs/read_write.c:637
+ #1: ffff88802a0a0288 (&sb->s_type->i_mutex_key#12){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #1: ffff88802a0a0288 (&sb->s_type->i_mutex_key#12){+.+.}-{3:3}, at: generic_file_write_iter+0x92/0x350 mm/filemap.c:3929
+ #2: ffffffff8c8ceda0 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:4747 [inline]
+ #2: ffffffff8c8ceda0 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4772 [inline]
+ #2: ffffffff8c8ceda0 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_slowpath.constprop.0+0x808/0x23d0 mm/page_alloc.c:5178
+ #3: ffffffff8c88c990 (shrinker_rwsem){++++}-{3:3}, at: shrink_slab+0xc7/0x660 mm/vmscan.c:993
+ #4: ffff8880444820e0 (&type->s_umount_key#50){++++}-{3:3}, at: trylock_super fs/super.c:415 [inline]
+ #4: ffff8880444820e0 (&type->s_umount_key#50){++++}-{3:3}, at: super_cache_scan+0x70/0x590 fs/super.c:79
+
+stack backtrace:
+CPU: 0 PID: 11953 Comm: syz-executor.2 Not tainted 6.2.0-rc4-syzkaller-00041-gc1649ec55708 #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2177
+ check_prev_add kernel/locking/lockdep.c:3097 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain kernel/locking/lockdep.c:3831 [inline]
+ __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5055
+ lock_acquire kernel/locking/lockdep.c:5668 [inline]
+ lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+ start_this_handle+0xfe7/0x14a0 fs/jbd2/transaction.c:463
+ jbd2__journal_start+0x39d/0x9b0 fs/jbd2/transaction.c:520
+ __ext4_journal_start_sb+0x6e9/0x860 fs/ext4/ext4_jbd2.c:111
+ __ext4_journal_start fs/ext4/ext4_jbd2.h:326 [inline]
+ ext4_dirty_inode+0xa5/0x130 fs/ext4/inode.c:6107
+ __mark_inode_dirty+0x247/0x11e0 fs/fs-writeback.c:2419
+ mark_inode_dirty_sync include/linux/fs.h:2470 [inline]
+ iput.part.0+0x57/0x880 fs/inode.c:1770
+ iput+0x5c/0x80 fs/inode.c:1763
+ dentry_unlink_inode+0x2b1/0x460 fs/dcache.c:401
+ __dentry_kill+0x3c0/0x640 fs/dcache.c:607
+ shrink_dentry_list+0x240/0x800 fs/dcache.c:1201
+ prune_dcache_sb+0xeb/0x150 fs/dcache.c:1282
+ super_cache_scan+0x33a/0x590 fs/super.c:104
+ do_shrink_slab+0x464/0xce0 mm/vmscan.c:843
+ shrink_slab+0x175/0x660 mm/vmscan.c:1003
+ shrink_node_memcgs mm/vmscan.c:6140 [inline]
+ shrink_node+0x95d/0x1f40 mm/vmscan.c:6169
+ shrink_zones mm/vmscan.c:6407 [inline]
+ do_try_to_free_pages+0x3b4/0x17a0 mm/vmscan.c:6469
+ try_to_free_pages+0x2e5/0x960 mm/vmscan.c:6704
+ __perform_reclaim mm/page_alloc.c:4750 [inline]
+ __alloc_pages_direct_reclaim mm/page_alloc.c:4772 [inline]
+ __alloc_pages_slowpath.constprop.0+0x8b6/0x23d0 mm/page_alloc.c:5178
+ __alloc_pages+0x4aa/0x5b0 mm/page_alloc.c:5562
+ __folio_alloc+0x16/0x40 mm/page_alloc.c:5581
+ vma_alloc_folio+0x155/0x870 mm/mempolicy.c:2247
+ shmem_alloc_folio+0xfe/0x1d0 mm/shmem.c:1569
+ shmem_alloc_and_acct_folio+0x15e/0x5d0 mm/shmem.c:1593
+ shmem_get_folio_gfp+0xb2e/0x1a30 mm/shmem.c:1920
+ shmem_get_folio mm/shmem.c:2051 [inline]
+ shmem_write_begin+0x14a/0x380 mm/shmem.c:2543
+ generic_perform_write+0x256/0x570 mm/filemap.c:3772
+ __generic_file_write_iter+0x2ae/0x500 mm/filemap.c:3900
+ generic_file_write_iter+0xe3/0x350 mm/filemap.c:3932
+ call_write_iter include/linux/fs.h:2189 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x9ed/0xdd0 fs/read_write.c:584
+ ksys_write+0x12b/0x250 fs/read_write.c:637
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f60d563de4f
+Code: 89 54 24 18 48 89 74 24 10 89 7c 24 08 e8 99 fd ff ff 48 8b 54 24 18 48 8b 74 24 10 41 89 c0 8b 7c 24 08 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 31 44 89 c7 48 89 44 24 08 e8 cc fd ff ff 48
+RSP: 002b:00007f60d6359f10 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f60d563de4f
+RDX: 0000000008000000 RSI: 00007f60cbdff000 RDI: 0000000000000003
+RBP: 00007f60cbdff000 R08: 0000000000000000 R09: 0000000000022099
+R10: 0000000008000000 R11: 0000000000000293 R12: 0000000000000000
+R13: 00007f60d6359fdc R14: 00007f60d6359fe0 R15: 0000000020022182
+ </TASK>

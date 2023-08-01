@@ -1,0 +1,63 @@
+=====================================================
+BUG: KMSAN: uninit-value in can_is_canxl_skb include/linux/can/skb.h:128 [inline]
+BUG: KMSAN: uninit-value in can_send+0x269/0x1100 net/can/af_can.c:205
+ can_is_canxl_skb include/linux/can/skb.h:128 [inline]
+ can_send+0x269/0x1100 net/can/af_can.c:205
+ j1939_send_one+0x40f/0x4d0 net/can/j1939/main.c:352
+ j1939_xtp_do_tx_ctl+0x69f/0x9e0 net/can/j1939/transport.c:664
+ j1939_tp_tx_ctl net/can/j1939/transport.c:672 [inline]
+ j1939_session_tx_rts net/can/j1939/transport.c:740 [inline]
+ j1939_xtp_txnext_transmiter net/can/j1939/transport.c:880 [inline]
+ j1939_tp_txtimer+0x35bb/0x4520 net/can/j1939/transport.c:1158
+ __run_hrtimer+0x298/0x910 kernel/time/hrtimer.c:1685
+ __hrtimer_run_queues kernel/time/hrtimer.c:1749 [inline]
+ hrtimer_run_softirq+0x4b0/0x870 kernel/time/hrtimer.c:1766
+ __do_softirq+0x1c5/0x7b9 kernel/softirq.c:571
+ invoke_softirq+0x8f/0x100 kernel/softirq.c:445
+ __irq_exit_rcu+0x5a/0x110 kernel/softirq.c:650
+ irq_exit_rcu+0xe/0x10 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x9a/0xc0 arch/x86/kernel/apic/apic.c:1107
+ asm_sysvec_apic_timer_interrupt+0x1b/0x20 arch/x86/include/asm/idtentry.h:649
+ __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+ _raw_spin_unlock_irqrestore+0x2f/0x50 kernel/locking/spinlock.c:194
+ unlock_hrtimer_base kernel/time/hrtimer.c:1017 [inline]
+ hrtimer_start_range_ns+0xaba/0xb50 kernel/time/hrtimer.c:1301
+ hrtimer_start include/linux/hrtimer.h:418 [inline]
+ j1939_tp_schedule_txtimer+0xbe/0x100 net/can/j1939/transport.c:697
+ j1939_sk_send_loop net/can/j1939/socket.c:1143 [inline]
+ j1939_sk_sendmsg+0x1c2c/0x25d0 net/can/j1939/socket.c:1256
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0xa8e/0xe70 net/socket.c:2482
+ ___sys_sendmsg+0x2a1/0x3f0 net/socket.c:2536
+ __sys_sendmsg net/socket.c:2565 [inline]
+ __do_sys_sendmsg net/socket.c:2574 [inline]
+ __se_sys_sendmsg net/socket.c:2572 [inline]
+ __x64_sys_sendmsg+0x367/0x540 net/socket.c:2572
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:742 [inline]
+ slab_alloc_node mm/slub.c:3398 [inline]
+ __kmem_cache_alloc_node+0x6ee/0xc90 mm/slub.c:3437
+ __do_kmalloc_node mm/slab_common.c:954 [inline]
+ __kmalloc_node_track_caller+0x117/0x3d0 mm/slab_common.c:975
+ kmalloc_reserve net/core/skbuff.c:437 [inline]
+ __alloc_skb+0x34a/0xca0 net/core/skbuff.c:509
+ alloc_skb include/linux/skbuff.h:1267 [inline]
+ j1939_tp_tx_dat_new net/can/j1939/transport.c:593 [inline]
+ j1939_xtp_do_tx_ctl+0xa3/0x9e0 net/can/j1939/transport.c:654
+ j1939_tp_tx_ctl net/can/j1939/transport.c:672 [inline]
+ j1939_session_tx_rts net/can/j1939/transport.c:740 [inline]
+ j1939_xtp_txnext_transmiter net/can/j1939/transport.c:880 [inline]
+ j1939_tp_txtimer+0x35bb/0x4520 net/can/j1939/transport.c:1158
+ __run_hrtimer+0x298/0x910 kernel/time/hrtimer.c:1685
+ __hrtimer_run_queues kernel/time/hrtimer.c:1749 [inline]
+ hrtimer_run_softirq+0x4b0/0x870 kernel/time/hrtimer.c:1766
+ __do_softirq+0x1c5/0x7b9 kernel/softirq.c:571
+
+CPU: 0 PID: 3506 Comm: syz-executor289 Not tainted 6.1.0-rc2-syzkaller-61955-g4a3e741a3d6a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/11/2022
+=====================================================

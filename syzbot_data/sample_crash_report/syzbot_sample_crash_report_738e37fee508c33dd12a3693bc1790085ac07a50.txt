@@ -1,0 +1,107 @@
+==================================================================
+BUG: KASAN: double-free in slab_free mm/slub.c:3539 [inline]
+BUG: KASAN: double-free in kfree+0xe2/0x580 mm/slub.c:4567
+
+CPU: 1 PID: 27 Comm: kworker/1:1 Not tainted 6.0.0-syzkaller-03015-g2bca25eaeba6 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Workqueue: events mptcp_worker
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:317 [inline]
+ print_report.cold+0x2ba/0x719 mm/kasan/report.c:433
+ kasan_report_invalid_free+0x81/0x190 mm/kasan/report.c:462
+ ____kasan_slab_free+0x18b/0x1c0 mm/kasan/common.c:356
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ slab_free_hook mm/slub.c:1759 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1785
+ slab_free mm/slub.c:3539 [inline]
+ kfree+0xe2/0x580 mm/slub.c:4567
+ tcp_disconnect+0x980/0x1e20 net/ipv4/tcp.c:3145
+ __mptcp_close_ssk+0x5ca/0x7e0 net/mptcp/protocol.c:2327
+ mptcp_do_fastclose net/mptcp/protocol.c:2592 [inline]
+ mptcp_worker+0x78c/0xff0 net/mptcp/protocol.c:2627
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+
+Allocated by task 3616:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:437 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:516 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:475 [inline]
+ __kasan_kmalloc+0xa9/0xd0 mm/kasan/common.c:525
+ kmalloc include/linux/slab.h:605 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ lsm_task_alloc security/security.c:615 [inline]
+ security_task_alloc+0x10b/0x250 security/security.c:1655
+ copy_process+0x23d5/0x7090 kernel/fork.c:2236
+ kernel_clone+0xe7/0xab0 kernel/fork.c:2671
+ __do_sys_clone+0xba/0x100 kernel/fork.c:2805
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff888022279300
+ which belongs to the cache kmalloc-64 of size 64
+The buggy address is located 0 bytes inside of
+ 64-byte region [ffff888022279300, ffff888022279340)
+
+The buggy address belongs to the physical page:
+page:ffffea0000889e40 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff888022279400 pfn:0x22279
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea00009d0748 ffffea0000999288 ffff888011841640
+raw: ffff888022279400 000000000020000a 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 56, tgid 56 (kworker/u4:4), ts 9348208493, free_ts 9219488695
+ prep_new_page mm/page_alloc.c:2532 [inline]
+ get_page_from_freelist+0x109b/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages+0x1c7/0x510 mm/page_alloc.c:5549
+ alloc_pages+0x1a6/0x270 mm/mempolicy.c:2270
+ alloc_slab_page mm/slub.c:1829 [inline]
+ allocate_slab+0x27e/0x3d0 mm/slub.c:1974
+ new_slab mm/slub.c:2034 [inline]
+ ___slab_alloc+0x84f/0xe80 mm/slub.c:3036
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3123
+ slab_alloc_node mm/slub.c:3214 [inline]
+ kmem_cache_alloc_node_trace+0x185/0x410 mm/slub.c:3312
+ kmalloc_node include/linux/slab.h:618 [inline]
+ kzalloc_node include/linux/slab.h:744 [inline]
+ __get_vm_area_node+0xed/0x3f0 mm/vmalloc.c:2477
+ __vmalloc_node_range+0x250/0x13a0 mm/vmalloc.c:3156
+ alloc_thread_stack_node kernel/fork.c:312 [inline]
+ dup_task_struct kernel/fork.c:977 [inline]
+ copy_process+0x156c/0x7090 kernel/fork.c:2085
+ kernel_clone+0xe7/0xab0 kernel/fork.c:2671
+ user_mode_thread+0xad/0xe0 kernel/fork.c:2740
+ call_usermodehelper_exec_work kernel/umh.c:174 [inline]
+ call_usermodehelper_exec_work+0xcc/0x180 kernel/umh.c:160
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1449 [inline]
+ free_pcp_prepare+0x5e4/0xd20 mm/page_alloc.c:1499
+ free_unref_page_prepare mm/page_alloc.c:3380 [inline]
+ free_unref_page+0x19/0x4d0 mm/page_alloc.c:3476
+ __vunmap+0x85d/0xd30 mm/vmalloc.c:2696
+ free_work+0x58/0x70 mm/vmalloc.c:97
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Memory state around the buggy address:
+ ffff888022279200: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff888022279280: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff888022279300: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                   ^
+ ffff888022279380: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff888022279400: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================

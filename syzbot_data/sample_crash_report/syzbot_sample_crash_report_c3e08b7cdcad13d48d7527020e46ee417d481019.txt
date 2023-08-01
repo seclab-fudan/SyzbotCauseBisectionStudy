@@ -1,0 +1,75 @@
+gfs2: fsid=syz:syz.0: G:  s:SH n:2/13 f:qobnN t:SH d:EX/0 a:0 v:0 r:3 m:20 p:1
+gfs2: fsid=syz:syz.0:  H: s:SH f:eEcH e:0 p:0 [(none)] init_inodes+0x125/0x510 fs/gfs2/ops_fstype.c:889
+=====================================================
+BUG: KMSAN: uninit-value in inode_go_dump+0x49d/0x4d0 fs/gfs2/glops.c:547
+ inode_go_dump+0x49d/0x4d0 fs/gfs2/glops.c:547
+ gfs2_dump_glock+0x229d/0x23e0 fs/gfs2/glock.c:2385
+ gfs2_consist_inode_i+0x19f/0x220 fs/gfs2/util.c:465
+ gfs2_dinode_in fs/gfs2/glops.c:463 [inline]
+ gfs2_inode_refresh+0x10de/0x14e0 fs/gfs2/glops.c:483
+ inode_go_instantiate+0x6e/0xc0 fs/gfs2/glops.c:502
+ gfs2_instantiate+0x26f/0x4b0 fs/gfs2/glock.c:454
+ gfs2_glock_holder_ready fs/gfs2/glock.c:1319 [inline]
+ gfs2_glock_wait+0x2a4/0x3e0 fs/gfs2/glock.c:1339
+ gfs2_glock_nq+0x207e/0x2eb0 fs/gfs2/glock.c:1587
+ gfs2_glock_nq_init fs/gfs2/glock.h:261 [inline]
+ init_journal+0x11f2/0x3910 fs/gfs2/ops_fstype.c:794
+ init_inodes+0x125/0x510 fs/gfs2/ops_fstype.c:889
+ gfs2_fill_super+0x3d55/0x45e0 fs/gfs2/ops_fstype.c:1253
+ get_tree_bdev+0x890/0xd10 fs/super.c:1294
+ gfs2_get_tree+0x5c/0x340 fs/gfs2/ops_fstype.c:1338
+ vfs_get_tree+0xa5/0x500 fs/super.c:1501
+ do_new_mount+0x69a/0x1580 fs/namespace.c:3042
+ path_mount+0x725/0x1ee0 fs/namespace.c:3372
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount+0x734/0x840 fs/namespace.c:3571
+ __ia32_sys_mount+0xe3/0x150 fs/namespace.c:3571
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Uninit was created at:
+ __alloc_pages+0x9f6/0xe90 mm/page_alloc.c:5614
+ alloc_pages+0xab0/0xd80 mm/mempolicy.c:2283
+ alloc_slab_page mm/slub.c:1851 [inline]
+ allocate_slab mm/slub.c:1998 [inline]
+ new_slab+0x425/0x15f0 mm/slub.c:2051
+ ___slab_alloc+0x109c/0x32d0 mm/slub.c:3193
+ __slab_alloc mm/slub.c:3292 [inline]
+ __slab_alloc_node mm/slub.c:3345 [inline]
+ slab_alloc_node mm/slub.c:3442 [inline]
+ slab_alloc mm/slub.c:3460 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+ kmem_cache_alloc_lru+0x5fb/0xa50 mm/slub.c:3483
+ alloc_inode_sb include/linux/fs.h:2686 [inline]
+ gfs2_alloc_inode+0x66/0x210 fs/gfs2/super.c:1459
+ alloc_inode+0x83/0x440 fs/inode.c:260
+ iget5_locked+0xa9/0x210 fs/inode.c:1242
+ gfs2_inode_lookup+0xcb/0x1590 fs/gfs2/inode.c:124
+ gfs2_dir_search+0x2d3/0x420 fs/gfs2/dir.c:1664
+ gfs2_lookupi+0x6e6/0x9d0 fs/gfs2/inode.c:332
+ gfs2_jindex_hold fs/gfs2/ops_fstype.c:609 [inline]
+ init_journal+0x70e/0x3910 fs/gfs2/ops_fstype.c:753
+ init_inodes+0x125/0x510 fs/gfs2/ops_fstype.c:889
+ gfs2_fill_super+0x3d55/0x45e0 fs/gfs2/ops_fstype.c:1253
+ get_tree_bdev+0x890/0xd10 fs/super.c:1294
+ gfs2_get_tree+0x5c/0x340 fs/gfs2/ops_fstype.c:1338
+ vfs_get_tree+0xa5/0x500 fs/super.c:1501
+ do_new_mount+0x69a/0x1580 fs/namespace.c:3042
+ path_mount+0x725/0x1ee0 fs/namespace.c:3372
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount+0x734/0x840 fs/namespace.c:3571
+ __ia32_sys_mount+0xe3/0x150 fs/namespace.c:3571
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+CPU: 0 PID: 12293 Comm: syz-executor.4 Not tainted 6.3.0-rc3-syzkaller-g90ea0df61c98 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+=====================================================

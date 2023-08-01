@@ -1,0 +1,1047 @@
+BUG: KASAN: invalid-access in tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+Read of size 1 at addr f8ff00007b6e2000 by task sh/3098
+Pointer tag: [f8], memory tag: [f0]
+
+CPU: 0 PID: 3098 Comm: sh Not tainted 5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+Call trace:
+ dump_backtrace+0x0/0x1b0 arch/arm64/kernel/stacktrace.c:112
+ show_stack+0x18/0x70 arch/arm64/kernel/stacktrace.c:191
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0xd0/0x12c lib/dump_stack.c:120
+ print_address_description+0x70/0x29c mm/kasan/report.c:232
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report+0x134/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+
+Allocated by task 2846403498:
+------------[ cut here ]------------
+slab index 831406 out of bounds (205) for stack id adacafae
+WARNING: CPU: 0 PID: 3098 at lib/stackdepot.c:236 stack_depot_fetch+0x68/0x84 lib/stackdepot.c:236
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Not tainted 5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : stack_depot_fetch+0x68/0x84 lib/stackdepot.c:236
+lr : stack_depot_fetch+0x68/0x84 lib/stackdepot.c:236
+sp : ffff800015fe3860
+x29: ffff800015fe3860 x28: ffff8000127e0308 
+x27: 0000000000000000 x26: 0000000000000000 
+x25: 0000000000000028 x24: f7ff000003001200 
+x23: 00000000000000f8 x22: ffff800011d21d70 
+x21: 00ff00007b6e2000 x20: ffff00007b6e2000 
+x19: ffff00007b6e2080 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: ffffffffffffffff 
+x13: 00000000000002e5 x12: ffff800015fe3510 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ stack_depot_fetch+0x68/0x84 lib/stackdepot.c:236
+ print_stack mm/kasan/report.c:116 [inline]
+ print_track+0x34/0x64 mm/kasan/report.c:124
+ describe_object_stacks mm/kasan/report.c:178 [inline]
+ describe_object mm/kasan/report.c:208 [inline]
+ print_address_description+0x14c/0x29c mm/kasan/report.c:239
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report+0x134/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d3806 ]---
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 3098 at kernel/stacktrace.c:28 stack_trace_print+0x30/0x80 kernel/stacktrace.c:33
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : stack_trace_print+0x30/0x80 kernel/stacktrace.c:28
+lr : print_stack mm/kasan/report.c:117 [inline]
+lr : print_track+0x44/0x64 mm/kasan/report.c:124
+sp : ffff800015fe3870
+x29: ffff800015fe3870 x28: ffff8000127e0308 
+x27: 0000000000000000 x26: 0000000000000000 
+x25: 0000000000000028 x24: f7ff000003001200 
+x23: 00000000000000f8 x22: ffff800011d21d70 
+x21: 00ff00007b6e2000 x20: ffff00007b6e2000 
+x19: ffff00007b6e2080 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: ffffffffffffffff 
+x13: 00000000000002e5 x12: ffff800015fe3510 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : 0000000000000000 
+Call trace:
+ stack_trace_print+0x30/0x80 kernel/stacktrace.c:33
+ describe_object_stacks mm/kasan/report.c:178 [inline]
+ describe_object mm/kasan/report.c:208 [inline]
+ print_address_description+0x14c/0x29c mm/kasan/report.c:239
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report+0x134/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d3807 ]---
+
+Freed by task 2846403498:
+------------[ cut here ]------------
+slab index 831406 out of bounds (205) for stack id adacafae
+WARNING: CPU: 0 PID: 3098 at lib/stackdepot.c:236 stack_depot_fetch+0x68/0x84 lib/stackdepot.c:236
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : stack_depot_fetch+0x68/0x84 lib/stackdepot.c:236
+lr : stack_depot_fetch+0x68/0x84 lib/stackdepot.c:236
+sp : ffff800015fe3860
+x29: ffff800015fe3860 x28: ffff8000127e0308 
+x27: 0000000000000000 x26: 0000000000000000 
+x25: 0000000000000028 x24: f7ff000003001200 
+x23: 00000000000000f8 x22: ffff800011d21d70 
+x21: 00ff00007b6e2000 x20: ffff00007b6e2000 
+x19: ffff00007b6e2088 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: ffffffffffffffff 
+x13: 000000000000034b x12: ffff800015fe3510 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ stack_depot_fetch+0x68/0x84 lib/stackdepot.c:236
+ print_stack mm/kasan/report.c:116 [inline]
+ print_track+0x34/0x64 mm/kasan/report.c:124
+ describe_object_stacks mm/kasan/report.c:184 [inline]
+ describe_object mm/kasan/report.c:208 [inline]
+ print_address_description+0x174/0x29c mm/kasan/report.c:239
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report+0x134/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d3808 ]---
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 3098 at kernel/stacktrace.c:28 stack_trace_print+0x30/0x80 kernel/stacktrace.c:33
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : stack_trace_print+0x30/0x80 kernel/stacktrace.c:28
+lr : print_stack mm/kasan/report.c:117 [inline]
+lr : print_track+0x44/0x64 mm/kasan/report.c:124
+sp : ffff800015fe3870
+x29: ffff800015fe3870 x28: ffff8000127e0308 
+x27: 0000000000000000 x26: 0000000000000000 
+x25: 0000000000000028 x24: f7ff000003001200 
+x23: 00000000000000f8 x22: ffff800011d21d70 
+x21: 00ff00007b6e2000 x20: ffff00007b6e2000 
+x19: ffff00007b6e2088 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: ffffffffffffffff 
+x13: 000000000000034b x12: ffff800015fe3510 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : 0000000000000000 
+Call trace:
+ stack_trace_print+0x30/0x80 kernel/stacktrace.c:33
+ describe_object_stacks mm/kasan/report.c:184 [inline]
+ describe_object mm/kasan/report.c:208 [inline]
+ print_address_description+0x174/0x29c mm/kasan/report.c:239
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report+0x134/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d3809 ]---
+
+The buggy address belongs to the object at 00ff00007b6e2000
+ which belongs to the cache kmalloc-128 of size 128
+The buggy address is located -128 bytes to the right of
+ 128-byte region [00ff00007b6e2000, 00ff00007b6e2080)
+The buggy address belongs to the page:
+page:000000002b0b1bf3 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0xbb6e2
+flags: 0x1ffc00000001200(slab|reserved)
+raw: 01ffc00000001200 dead000000000100 dead000000000122 f7ff000003001200
+raw: 0000000000000000 0000000080010001 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 00000000000003ba x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d380a ]---
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 00000000000003f1 x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d380b ]---
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 0000000000000428 x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d380c ]---
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 000000000000045f x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d380d ]---
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 0000000000000496 x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d380e ]---
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 00000000000004cd x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d380f ]---
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 0000000000000504 x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d3810 ]---
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 000000000000053b x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d3811 ]---
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 0000000000000572 x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d3812 ]---
+------------[ cut here ]------------
+Ignoring spurious kernel translation fault at virtual address ffff00007b6e1e00
+WARNING: CPU: 0 PID: 3098 at arch/arm64/mm/fault.c:373 __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+Modules linked in:
+CPU: 0 PID: 3098 Comm: sh Tainted: G        W         5.12.0-rc4-syzkaller-00004-g84196390620a #0
+Hardware name: linux,dummy-virt (DT)
+pstate: 60400089 (nZCv daIf +PAN -UAO -TCO BTYPE=--)
+pc : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+lr : __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+sp : ffff800015fe3640
+x29: ffff800015fe3640 x28: f6ff000005963d00 
+x27: 0000000000000000 x26: ffff800011d21ca0 
+x25: 0000000000000028 x24: ffff800011d017b8 
+x23: 0000000060400089 x22: ffff00007b6e1e00 
+x21: 0000000000000025 x20: ffff800015fe3710 
+x19: 0000000096000007 x18: 00000000fffffffb 
+x17: 0000000000000000 x16: 0000000000000000 
+x15: 0000000000000020 x14: 6c656e72656b2073 
+x13: 00000000000005a9 x12: ffff800015fe32f0 
+x11: ffff80001279be70 x10: 00000000ffffe000 
+x9 : ffff80001279be70 x8 : ffff8000126ebe70 
+x7 : ffff80001279be70 x6 : 0000000000000000 
+x5 : ffff00007fbb6948 x4 : 0000000000015ff5 
+x3 : 0000000000000001 x2 : 0000000000000000 
+x1 : 0000000000000000 x0 : f6ff000005963d00 
+Call trace:
+ __do_kernel_fault+0x16c/0x1dc arch/arm64/mm/fault.c:373
+ do_bad_area arch/arm64/mm/fault.c:474 [inline]
+ do_translation_fault+0x58/0xc0 arch/arm64/mm/fault.c:674
+ do_mem_abort+0x44/0xbc arch/arm64/mm/fault.c:805
+ el1_abort+0x40/0x6c arch/arm64/kernel/entry-common.c:167
+ el1_sync_handler+0xac/0xd0 arch/arm64/kernel/entry-common.c:259
+ el1_sync+0x70/0x100 arch/arm64/kernel/entry.S:656
+ kasan_metadata_fetch_row+0x18/0x40 mm/kasan/report_hw_tags.c:32
+ __kasan_report mm/kasan/report.c:401 [inline]
+ kasan_report+0x144/0x380 mm/kasan/report.c:416
+ __kasan_check_byte+0x60/0x70 mm/kasan/common.c:580
+ kasan_check_byte include/linux/kasan.h:265 [inline]
+ ksize+0x90/0xcc mm/slab_common.c:1250
+ tomoyo_memory_ok+0x1c/0xb0 security/tomoyo/memory.c:50
+ tomoyo_commit_ok+0x30/0x94 security/tomoyo/memory.c:78
+ tomoyo_update_domain+0xb8/0x200 security/tomoyo/domain.c:139
+ tomoyo_write_env security/tomoyo/environ.c:105 [inline]
+ tomoyo_write_misc+0xa0/0x130 security/tomoyo/environ.c:121
+ tomoyo_write_domain2+0x6c/0xc0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0x4a8/0x640 security/tomoyo/common.c:2103
+ tomoyo_audit_env_log security/tomoyo/environ.c:36 [inline]
+ tomoyo_env_perm+0xac/0xdc security/tomoyo/environ.c:63
+ tomoyo_environ security/tomoyo/domain.c:672 [inline]
+ tomoyo_find_next_domain+0x5e0/0x8d0 security/tomoyo/domain.c:879
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x7c/0xb4 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x2c/0x50 security/security.c:842
+ search_binary_handler fs/exec.c:1708 [inline]
+ exec_binprm fs/exec.c:1761 [inline]
+ bprm_execve fs/exec.c:1830 [inline]
+ bprm_execve+0x1c4/0x55c fs/exec.c:1792
+ do_execveat_common+0x178/0x1d0 fs/exec.c:1919
+ do_execve fs/exec.c:1987 [inline]
+ __do_sys_execve fs/exec.c:2063 [inline]
+ __se_sys_execve fs/exec.c:2058 [inline]
+ __arm64_sys_execve+0x40/0x54 fs/exec.c:2058
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:49 [inline]
+ el0_svc_common.constprop.0+0x60/0x120 arch/arm64/kernel/syscall.c:129
+ do_el0_svc+0x74/0x90 arch/arm64/kernel/syscall.c:168
+ el0_svc+0x2c/0x54 arch/arm64/kernel/entry-common.c:416
+ el0_sync_handler+0x1a4/0x1b0 arch/arm64/kernel/entry-common.c:432
+ el0_sync+0x18c/0x1c0 arch/arm64/kernel/entry.S:699
+---[ end trace 313b390e4b5d3813 ]---

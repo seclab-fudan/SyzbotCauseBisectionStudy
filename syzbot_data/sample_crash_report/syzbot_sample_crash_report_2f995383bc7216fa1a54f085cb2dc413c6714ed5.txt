@@ -1,0 +1,450 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): vcan0: link becomes ready
+net_ratelimit: 28 callbacks suppressed
+A link change request failed with some changes committed already. Interface caif0 may have been left with an inconsistent configuration, please check.
+IPv6: ADDRCONF(NETDEV_CHANGE): bridge0: link becomes ready
+======================================================
+WARNING: possible circular locking dependency detected
+5.0.0-rc1+ #15 Not tainted
+------------------------------------------------------
+syz-executor0/5266 is trying to acquire lock:
+00000000da7e5142 (&pgdat->kswapd_wait){....}, at: __wake_up_common_lock+0x19b/0x390 kernel/sched/wait.c:120
+
+but task is already holding lock:
+00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: spin_lock include/linux/spinlock.h:329 [inline]
+00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: rmqueue_bulk mm/page_alloc.c:2548 [inline]
+00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: __rmqueue_pcplist mm/page_alloc.c:3021 [inline]
+00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: rmqueue_pcplist mm/page_alloc.c:3050 [inline]
+00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: rmqueue mm/page_alloc.c:3072 [inline]
+00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: get_page_from_freelist+0x1ab1/0x5190 mm/page_alloc.c:3491
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #4 (&(&zone->lock)->rlock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       rmqueue mm/page_alloc.c:3082 [inline]
+       get_page_from_freelist+0x13d0/0x5190 mm/page_alloc.c:3491
+       __alloc_pages_nodemask+0x4fd/0xdc0 mm/page_alloc.c:4529
+       alloc_pages_current+0x107/0x210 mm/mempolicy.c:2106
+       alloc_pages include/linux/gfp.h:509 [inline]
+       depot_save_stack+0x3da/0x460 lib/stackdepot.c:260
+       save_stack+0xa9/0xd0 mm/kasan/common.c:79
+       set_track mm/kasan/common.c:85 [inline]
+       kasan_kmalloc mm/kasan/common.c:482 [inline]
+       kasan_kmalloc+0xcf/0xe0 mm/kasan/common.c:455
+       kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:397
+       slab_post_alloc_hook mm/slab.h:444 [inline]
+       slab_alloc mm/slab.c:3379 [inline]
+       kmem_cache_alloc+0x11a/0x710 mm/slab.c:3539
+       kmem_cache_zalloc include/linux/slab.h:730 [inline]
+       fill_pool lib/debugobjects.c:134 [inline]
+       __debug_object_init+0xb1d/0x12d0 lib/debugobjects.c:379
+       debug_object_init lib/debugobjects.c:431 [inline]
+       debug_object_activate+0x348/0x550 lib/debugobjects.c:512
+       debug_timer_activate kernel/time/timer.c:708 [inline]
+       debug_activate kernel/time/timer.c:763 [inline]
+       __mod_timer kernel/time/timer.c:1040 [inline]
+       mod_timer+0x4e7/0x1430 kernel/time/timer.c:1101
+       key_schedule_gc+0xf3/0x120 security/keys/gc.c:69
+       key_reject_and_link+0x365/0x710 security/keys/key.c:596
+       key_negate_and_link include/linux/key-type.h:197 [inline]
+       complete_request_key+0xe3/0x120 security/keys/request_key.c:38
+       call_sbin_request_key+0xb3b/0x10f0 security/keys/request_key.c:194
+       construct_key security/keys/request_key.c:235 [inline]
+       construct_key_and_link security/keys/request_key.c:484 [inline]
+       request_key_and_link+0x1295/0x1890 security/keys/request_key.c:593
+       __do_sys_request_key security/keys/keyctl.c:212 [inline]
+       __se_sys_request_key security/keys/keyctl.c:157 [inline]
+       __x64_sys_request_key+0x284/0x430 security/keys/keyctl.c:157
+       do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #3 (&base->lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       lock_timer_base+0xb7/0x2a0 kernel/time/timer.c:937
+       __mod_timer kernel/time/timer.c:1009 [inline]
+       mod_timer kernel/time/timer.c:1101 [inline]
+       add_timer+0x884/0x1470 kernel/time/timer.c:1137
+       __queue_delayed_work+0x253/0x390 kernel/workqueue.c:1533
+       queue_delayed_work_on+0x19a/0x200 kernel/workqueue.c:1558
+       queue_delayed_work include/linux/workqueue.h:527 [inline]
+       schedule_delayed_work include/linux/workqueue.h:628 [inline]
+       psi_group_change kernel/sched/psi.c:485 [inline]
+       psi_task_change+0x3ea/0x590 kernel/sched/psi.c:534
+       psi_enqueue kernel/sched/stats.h:82 [inline]
+       enqueue_task kernel/sched/core.c:727 [inline]
+       activate_task+0x1f8/0x470 kernel/sched/core.c:751
+       wake_up_new_task+0x50c/0xd30 kernel/sched/core.c:2423
+       _do_fork+0x2a5/0x1170 kernel/fork.c:2251
+       kernel_thread+0x34/0x40 kernel/fork.c:2285
+       rest_init+0x28/0x37b init/main.c:408
+       arch_call_rest_init+0xe/0x1b
+       start_kernel+0x882/0x8bd init/main.c:740
+       x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:470
+       x86_64_start_kernel+0x77/0x7b arch/x86/kernel/head64.c:451
+       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+
+-> #2 (&rq->lock){-.-.}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:144
+       rq_lock kernel/sched/sched.h:1149 [inline]
+       task_fork_fair+0xb5/0x7a0 kernel/sched/fair.c:10058
+       sched_fork+0x437/0xb90 kernel/sched/core.c:2359
+       copy_process+0x1f95/0x8710 kernel/fork.c:1886
+       _do_fork+0x1a9/0x1170 kernel/fork.c:2226
+       kernel_thread+0x34/0x40 kernel/fork.c:2285
+       rest_init+0x28/0x37b init/main.c:408
+       arch_call_rest_init+0xe/0x1b
+       start_kernel+0x882/0x8bd init/main.c:740
+       x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:470
+       x86_64_start_kernel+0x77/0x7b arch/x86/kernel/head64.c:451
+       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+
+-> #1 (&p->pi_lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       try_to_wake_up+0xb9/0x1480 kernel/sched/core.c:1965
+       default_wake_function+0x30/0x50 kernel/sched/core.c:3710
+       autoremove_wake_function+0x79/0x360 kernel/sched/wait.c:375
+       __wake_up_common+0x1d3/0x7d0 kernel/sched/wait.c:92
+       __wake_up_common_lock+0x1c6/0x390 kernel/sched/wait.c:121
+       __wake_up+0xe/0x10 kernel/sched/wait.c:145
+       wakeup_kswapd+0x5ba/0x8f0 mm/vmscan.c:3982
+       wake_all_kswapds+0x14d/0x300 mm/page_alloc.c:3975
+       __alloc_pages_slowpath+0x1ecf/0x2cc0 mm/page_alloc.c:4246
+       __alloc_pages_nodemask+0xa37/0xdc0 mm/page_alloc.c:4549
+       alloc_pages_current+0x107/0x210 mm/mempolicy.c:2106
+       alloc_pages include/linux/gfp.h:509 [inline]
+       __vmalloc_area_node mm/vmalloc.c:1690 [inline]
+       __vmalloc_node_range+0x5cf/0x910 mm/vmalloc.c:1750
+       __vmalloc_node mm/vmalloc.c:1795 [inline]
+       vmalloc_user+0x71/0x160 mm/vmalloc.c:1865
+       vb2_vmalloc_alloc+0x134/0x3a0 drivers/media/common/videobuf2/videobuf2-vmalloc.c:48
+       __vb2_buf_mem_alloc drivers/media/common/videobuf2/videobuf2-core.c:210 [inline]
+       __vb2_queue_alloc+0x5a6/0xf40 drivers/media/common/videobuf2/videobuf2-core.c:365
+       vb2_core_reqbufs+0x8cf/0xf10 drivers/media/common/videobuf2/videobuf2-core.c:733
+       vb2_ioctl_reqbufs+0x2c2/0x450 drivers/media/common/videobuf2/videobuf2-v4l2.c:892
+       v4l_reqbufs drivers/media/v4l2-core/v4l2-ioctl.c:1918 [inline]
+       v4l_reqbufs+0xad/0xe0 drivers/media/v4l2-core/v4l2-ioctl.c:1907
+       __video_do_ioctl+0x805/0xd80 drivers/media/v4l2-core/v4l2-ioctl.c:2858
+       video_usercopy+0x460/0x16b0 drivers/media/v4l2-core/v4l2-ioctl.c:3040
+       video_ioctl2+0x2d/0x35 drivers/media/v4l2-core/v4l2-ioctl.c:3084
+       v4l2_ioctl+0x156/0x1b0 drivers/media/v4l2-core/v4l2-dev.c:364
+       vfs_ioctl fs/ioctl.c:46 [inline]
+       file_ioctl fs/ioctl.c:509 [inline]
+       do_vfs_ioctl+0x107b/0x17d0 fs/ioctl.c:696
+       ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+       __do_sys_ioctl fs/ioctl.c:720 [inline]
+       __se_sys_ioctl fs/ioctl.c:718 [inline]
+       __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+       do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&pgdat->kswapd_wait){....}:
+       lock_acquire+0x1db/0x570 kernel/locking/lockdep.c:3841
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       __wake_up_common_lock+0x19b/0x390 kernel/sched/wait.c:120
+       __wake_up+0xe/0x10 kernel/sched/wait.c:145
+       wakeup_kswapd+0x5ba/0x8f0 mm/vmscan.c:3982
+       steal_suitable_fallback+0x50d/0x7c0 mm/page_alloc.c:2217
+       __rmqueue_fallback mm/page_alloc.c:2502 [inline]
+       __rmqueue mm/page_alloc.c:2528 [inline]
+       rmqueue_bulk mm/page_alloc.c:2550 [inline]
+       __rmqueue_pcplist mm/page_alloc.c:3021 [inline]
+       rmqueue_pcplist mm/page_alloc.c:3050 [inline]
+       rmqueue mm/page_alloc.c:3072 [inline]
+       get_page_from_freelist+0x2f53/0x5190 mm/page_alloc.c:3491
+       __alloc_pages_nodemask+0x4fd/0xdc0 mm/page_alloc.c:4529
+       alloc_pages_current+0x107/0x210 mm/mempolicy.c:2106
+       alloc_pages include/linux/gfp.h:509 [inline]
+       __vmalloc_area_node mm/vmalloc.c:1690 [inline]
+       __vmalloc_node_range+0x5cf/0x910 mm/vmalloc.c:1750
+       __vmalloc_node mm/vmalloc.c:1795 [inline]
+       vmalloc_user+0x71/0x160 mm/vmalloc.c:1865
+       vb2_vmalloc_alloc+0x134/0x3a0 drivers/media/common/videobuf2/videobuf2-vmalloc.c:48
+       __vb2_buf_mem_alloc drivers/media/common/videobuf2/videobuf2-core.c:210 [inline]
+       __vb2_queue_alloc+0x5a6/0xf40 drivers/media/common/videobuf2/videobuf2-core.c:365
+       vb2_core_reqbufs+0x8cf/0xf10 drivers/media/common/videobuf2/videobuf2-core.c:733
+       vb2_ioctl_reqbufs+0x2c2/0x450 drivers/media/common/videobuf2/videobuf2-v4l2.c:892
+       v4l_reqbufs drivers/media/v4l2-core/v4l2-ioctl.c:1918 [inline]
+       v4l_reqbufs+0xad/0xe0 drivers/media/v4l2-core/v4l2-ioctl.c:1907
+       __video_do_ioctl+0x805/0xd80 drivers/media/v4l2-core/v4l2-ioctl.c:2858
+       video_usercopy+0x460/0x16b0 drivers/media/v4l2-core/v4l2-ioctl.c:3040
+       video_ioctl2+0x2d/0x35 drivers/media/v4l2-core/v4l2-ioctl.c:3084
+       v4l2_ioctl+0x156/0x1b0 drivers/media/v4l2-core/v4l2-dev.c:364
+       vfs_ioctl fs/ioctl.c:46 [inline]
+       file_ioctl fs/ioctl.c:509 [inline]
+       do_vfs_ioctl+0x107b/0x17d0 fs/ioctl.c:696
+       ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+       __do_sys_ioctl fs/ioctl.c:720 [inline]
+       __se_sys_ioctl fs/ioctl.c:718 [inline]
+       __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+       do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+  &pgdat->kswapd_wait --> &base->lock --> &(&zone->lock)->rlock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&(&zone->lock)->rlock);
+                               lock(&base->lock);
+                               lock(&(&zone->lock)->rlock);
+  lock(&pgdat->kswapd_wait);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor0/5266:
+ #0: 00000000fdd702ba (&dev->mutex#3){+.+.}, at: __video_do_ioctl+0x3b1/0xd80 drivers/media/v4l2-core/v4l2-ioctl.c:2826
+ #1: 00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: spin_lock include/linux/spinlock.h:329 [inline]
+ #1: 00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: rmqueue_bulk mm/page_alloc.c:2548 [inline]
+ #1: 00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: __rmqueue_pcplist mm/page_alloc.c:3021 [inline]
+ #1: 00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: rmqueue_pcplist mm/page_alloc.c:3050 [inline]
+ #1: 00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: rmqueue mm/page_alloc.c:3072 [inline]
+ #1: 00000000e0c5e054 (&(&zone->lock)->rlock){-.-.}, at: get_page_from_freelist+0x1ab1/0x5190 mm/page_alloc.c:3491
+
+stack backtrace:
+CPU: 1 PID: 5266 Comm: syz-executor0 Not tainted 5.0.0-rc1+ #15
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_circular_bug.isra.0.cold+0x1cc/0x28f kernel/locking/lockdep.c:1224
+ check_prev_add kernel/locking/lockdep.c:1866 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1979 [inline]
+ validate_chain kernel/locking/lockdep.c:2350 [inline]
+ __lock_acquire+0x3014/0x4a30 kernel/locking/lockdep.c:3338
+ lock_acquire+0x1db/0x570 kernel/locking/lockdep.c:3841
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+ __wake_up_common_lock+0x19b/0x390 kernel/sched/wait.c:120
+ __wake_up+0xe/0x10 kernel/sched/wait.c:145
+ wakeup_kswapd+0x5ba/0x8f0 mm/vmscan.c:3982
+ steal_suitable_fallback+0x50d/0x7c0 mm/page_alloc.c:2217
+ __rmqueue_fallback mm/page_alloc.c:2502 [inline]
+ __rmqueue mm/page_alloc.c:2528 [inline]
+ rmqueue_bulk mm/page_alloc.c:2550 [inline]
+ __rmqueue_pcplist mm/page_alloc.c:3021 [inline]
+ rmqueue_pcplist mm/page_alloc.c:3050 [inline]
+ rmqueue mm/page_alloc.c:3072 [inline]
+ get_page_from_freelist+0x2f53/0x5190 mm/page_alloc.c:3491
+ __alloc_pages_nodemask+0x4fd/0xdc0 mm/page_alloc.c:4529
+ alloc_pages_current+0x107/0x210 mm/mempolicy.c:2106
+ alloc_pages include/linux/gfp.h:509 [inline]
+ __vmalloc_area_node mm/vmalloc.c:1690 [inline]
+ __vmalloc_node_range+0x5cf/0x910 mm/vmalloc.c:1750
+ __vmalloc_node mm/vmalloc.c:1795 [inline]
+ vmalloc_user+0x71/0x160 mm/vmalloc.c:1865
+ vb2_vmalloc_alloc+0x134/0x3a0 drivers/media/common/videobuf2/videobuf2-vmalloc.c:48
+ __vb2_buf_mem_alloc drivers/media/common/videobuf2/videobuf2-core.c:210 [inline]
+ __vb2_queue_alloc+0x5a6/0xf40 drivers/media/common/videobuf2/videobuf2-core.c:365
+ vb2_core_reqbufs+0x8cf/0xf10 drivers/media/common/videobuf2/videobuf2-core.c:733
+ vb2_ioctl_reqbufs+0x2c2/0x450 drivers/media/common/videobuf2/videobuf2-v4l2.c:892
+ v4l_reqbufs drivers/media/v4l2-core/v4l2-ioctl.c:1918 [inline]
+ v4l_reqbufs+0xad/0xe0 drivers/media/v4l2-core/v4l2-ioctl.c:1907
+ __video_do_ioctl+0x805/0xd80 drivers/media/v4l2-core/v4l2-ioctl.c:2858
+ video_usercopy+0x460/0x16b0 drivers/media/v4l2-core/v4l2-ioctl.c:3040
+ video_ioctl2+0x2d/0x35 drivers/media/v4l2-core/v4l2-ioctl.c:3084
+ v4l2_ioctl+0x156/0x1b0 drivers/media/v4l2-core/v4l2-dev.c:364
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0x107b/0x17d0 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457ec9
+Code: 6d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 3b b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f3fde2c5c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457ec9
+RDX: 0000000020000000 RSI: 00000000c0145608 RDI: 0000000000000005
+RBP: 000000000073bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f3fde2c66d4
+R13: 00000000004c2d12 R14: 00000000004d53e0 R15: 00000000ffffffff
+kobject: 'loop0' (000000003c5392ad): kobject_uevent_env
+kobject: 'loop0' (000000003c5392ad): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'tun0' (00000000108c6a92): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'loop4' (00000000a714fca2): kobject_uevent_env
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'loop4' (00000000a714fca2): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'tun0' (00000000108c6a92): kobject_uevent_env
+kobject: 'tun0' (00000000108c6a92): fill_kobj_path: path = '/devices/virtual/net/tun0'
+kobject: 'loop1' (00000000a414821b): kobject_uevent_env
+kobject: 'queues' (00000000430933ef): kobject_add_internal: parent: 'tun0', set: '<NULL>'
+kobject: 'queues' (00000000430933ef): kobject_uevent_env
+kobject: 'loop1' (00000000a414821b): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'queues' (00000000430933ef): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'rx-0' (00000000e8778986): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'loop3' (0000000007b7b77e): kobject_uevent_env
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'rx-0' (00000000e8778986): kobject_uevent_env
+kobject: 'loop3' (0000000007b7b77e): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'rx-0' (00000000e8778986): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/rx-0'
+kobject: 'tx-0' (000000000c51a3f9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'loop3' (0000000007b7b77e): kobject_uevent_env
+kobject: 'loop3' (0000000007b7b77e): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'tx-0' (000000000c51a3f9): kobject_uevent_env
+kobject: 'tx-0' (000000000c51a3f9): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/tx-0'
+kobject: 'loop4' (00000000a714fca2): kobject_uevent_env
+kobject: 'loop4' (00000000a714fca2): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop1' (00000000a414821b): kobject_uevent_env
+kobject: 'loop1' (00000000a414821b): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop4' (00000000a714fca2): kobject_uevent_env
+IPv6: ADDRCONF(NETDEV_CHANGE): vcan0: link becomes ready
+kobject: 'loop4' (00000000a714fca2): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop1' (00000000a414821b): kobject_uevent_env
+kobject: 'loop1' (00000000a414821b): fill_kobj_path: path = '/devices/virtual/block/loop1'
+chnl_net:chnl_net_open(): err: Unable to register and open device, Err:-19
+kobject: 'loop2' (00000000ceca5d23): kobject_uevent_env
+kobject: 'loop2' (00000000ceca5d23): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop4' (00000000a714fca2): kobject_uevent_env
+kobject: 'loop4' (00000000a714fca2): fill_kobj_path: path = '/devices/virtual/block/loop4'
+caif:caif_disconnect_client(): nothing to disconnect
+chnl_net:chnl_flowctrl_cb(): NET flowctrl func called flow: CLOSE/DEINIT
+chnl_net:chnl_net_open(): state disconnected
+A link change request failed with some changes committed already. Interface caif0 may have been left with an inconsistent configuration, please check.
+kobject: 'rx-0' (00000000e8778986): kobject_cleanup, parent 00000000430933ef
+kobject: 'rx-0' (00000000e8778986): auto cleanup 'remove' event
+kobject: 'rx-0' (00000000e8778986): kobject_uevent_env
+kobject: 'rx-0' (00000000e8778986): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/rx-0'
+kobject: 'rx-0' (00000000e8778986): auto cleanup kobject_del
+kobject: 'rx-0' (00000000e8778986): calling ktype release
+kobject: 'rx-0': free name
+kobject: 'tx-0' (000000000c51a3f9): kobject_cleanup, parent 00000000430933ef
+kobject: 'tx-0' (000000000c51a3f9): auto cleanup 'remove' event
+kobject: 'tx-0' (000000000c51a3f9): kobject_uevent_env
+kobject: 'tx-0' (000000000c51a3f9): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/tx-0'
+kobject: 'tx-0' (000000000c51a3f9): auto cleanup kobject_del
+kobject: 'tx-0' (000000000c51a3f9): calling ktype release
+kobject: 'tx-0': free name
+kobject: 'queues' (00000000430933ef): kobject_cleanup, parent           (null)
+kobject: 'queues' (00000000430933ef): calling ktype release
+kobject: 'queues' (00000000430933ef): kset_release
+kobject: 'queues': free name
+kobject: 'tun0' (00000000108c6a92): kobject_uevent_env
+kobject: 'tun0' (00000000108c6a92): fill_kobj_path: path = '/devices/virtual/net/tun0'
+kobject: 'tun0' (00000000108c6a92): kobject_cleanup, parent           (null)
+kobject: 'tun0' (00000000108c6a92): calling ktype release
+kobject: 'tun0': free name
+kobject: 'loop5' (00000000dc20e8f8): kobject_uevent_env
+kobject: 'loop5' (00000000dc20e8f8): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop3' (0000000007b7b77e): kobject_uevent_env
+kobject: 'loop3' (0000000007b7b77e): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop0' (000000003c5392ad): kobject_uevent_env
+kobject: 'loop0' (000000003c5392ad): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'tun0' (00000000c5252856): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'tun0' (00000000c5252856): kobject_uevent_env
+kobject: 'tun0' (00000000c5252856): fill_kobj_path: path = '/devices/virtual/net/tun0'
+kobject: 'queues' (000000007c6a2f45): kobject_add_internal: parent: 'tun0', set: '<NULL>'
+kobject: 'queues' (000000007c6a2f45): kobject_uevent_env
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'loop1' (00000000a414821b): kobject_uevent_env
+kobject: 'queues' (000000007c6a2f45): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'loop1' (00000000a414821b): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'rx-0' (00000000fe2c52cb): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'rx-0' (00000000fe2c52cb): kobject_uevent_env
+kobject: 'rx-0' (00000000fe2c52cb): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/rx-0'
+kobject: 'tx-0' (00000000043c0e2b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'loop1' (00000000a414821b): kobject_uevent_env
+kobject: 'tx-0' (00000000043c0e2b): kobject_uevent_env
+kobject: 'loop1' (00000000a414821b): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'tx-0' (00000000043c0e2b): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/tx-0'
+IPv6: ADDRCONF(NETDEV_CHANGE): vcan0: link becomes ready
+chnl_net:chnl_net_open(): err: Unable to register and open device, Err:-19
+caif:caif_disconnect_client(): nothing to disconnect
+kobject: 'loop2' (00000000ceca5d23): kobject_uevent_env
+kobject: 'loop2' (00000000ceca5d23): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop1' (00000000a414821b): kobject_uevent_env
+chnl_net:chnl_flowctrl_cb(): NET flowctrl func called flow: CLOSE/DEINIT
+kobject: 'loop1' (00000000a414821b): fill_kobj_path: path = '/devices/virtual/block/loop1'
+chnl_net:chnl_net_open(): state disconnected
+A link change request failed with some changes committed already. Interface caif0 may have been left with an inconsistent configuration, please check.
+kobject: 'loop2' (00000000ceca5d23): kobject_uevent_env
+kobject: 'loop2' (00000000ceca5d23): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'rx-0' (00000000fe2c52cb): kobject_cleanup, parent 000000007c6a2f45
+kobject: 'rx-0' (00000000fe2c52cb): auto cleanup 'remove' event
+kobject: 'rx-0' (00000000fe2c52cb): kobject_uevent_env
+kobject: 'rx-0' (00000000fe2c52cb): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/rx-0'
+kobject: 'rx-0' (00000000fe2c52cb): auto cleanup kobject_del
+kobject: 'rx-0' (00000000fe2c52cb): calling ktype release
+kobject: 'rx-0': free name
+kobject: 'tx-0' (00000000043c0e2b): kobject_cleanup, parent 000000007c6a2f45
+kobject: 'tx-0' (00000000043c0e2b): auto cleanup 'remove' event
+kobject: 'tx-0' (00000000043c0e2b): kobject_uevent_env
+kobject: 'tx-0' (00000000043c0e2b): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/tx-0'
+kobject: 'loop2' (00000000ceca5d23): kobject_uevent_env
+kobject: 'tx-0' (00000000043c0e2b): auto cleanup kobject_del
+kobject: 'loop2' (00000000ceca5d23): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'tx-0' (00000000043c0e2b): calling ktype release
+kobject: 'loop1' (00000000a414821b): kobject_uevent_env
+kobject: 'loop1' (00000000a414821b): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'tx-0': free name
+kobject: 'queues' (000000007c6a2f45): kobject_cleanup, parent           (null)
+kobject: 'queues' (000000007c6a2f45): calling ktype release
+kobject: 'queues' (000000007c6a2f45): kset_release
+kobject: 'queues': free name
+kobject: 'tun0' (00000000c5252856): kobject_uevent_env
+kobject: 'tun0' (00000000c5252856): fill_kobj_path: path = '/devices/virtual/net/tun0'
+kobject: 'tun0' (00000000c5252856): kobject_cleanup, parent           (null)
+kobject: 'tun0' (00000000c5252856): calling ktype release
+kobject: 'tun0': free name
+kobject: 'loop5' (00000000dc20e8f8): kobject_uevent_env
+kobject: 'loop5' (00000000dc20e8f8): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop0' (000000003c5392ad): kobject_uevent_env
+kobject: 'loop0' (000000003c5392ad): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop3' (0000000007b7b77e): kobject_uevent_env
+kobject: 'loop3' (0000000007b7b77e): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop2' (00000000ceca5d23): kobject_uevent_env
+kobject: 'loop2' (00000000ceca5d23): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop0' (000000003c5392ad): kobject_uevent_env
+kobject: 'loop0' (000000003c5392ad): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop1' (00000000a414821b): kobject_uevent_env
+kobject: 'loop1' (00000000a414821b): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop4' (00000000a714fca2): kobject_uevent_env
+kobject: 'loop4' (00000000a714fca2): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'tun0' (00000000838bace4): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'loop0' (000000003c5392ad): kobject_uevent_env
+kobject: 'tun0' (00000000838bace4): kobject_uevent_env
+kobject: 'loop0' (000000003c5392ad): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'tun0' (00000000838bace4): fill_kobj_path: path = '/devices/virtual/net/tun0'
+kobject: 'loop1' (00000000a414821b): kobject_uevent_env
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'loop1' (00000000a414821b): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'queues' (000000002f7ae620): kobject_add_internal: parent: 'tun0', set: '<NULL>'
+kobject: 'queues' (000000002f7ae620): kobject_uevent_env
+kobject: 'queues' (000000002f7ae620): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'kvm' (0000000011d76fd6): kobject_uevent_env
+kobject: 'rx-0' (00000000f9427fd4): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (00000000f9427fd4): kobject_uevent_env
+kobject: 'kvm' (0000000011d76fd6): fill_kobj_path: path = '/devices/virtual/misc/kvm'
+kobject: 'rx-0' (00000000f9427fd4): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/rx-0'
+kobject: 'tx-0' (00000000d51ec532): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (00000000d51ec532): kobject_uevent_env
+kobject: 'tx-0' (00000000d51ec532): fill_kobj_path: path = '/devices/virtual/net/tun0/queues/tx-0'

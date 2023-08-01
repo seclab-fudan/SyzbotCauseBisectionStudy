@@ -1,0 +1,409 @@
+------------[ cut here ]------------
+refcount_t: addition on 0; use-after-free.
+WARNING: CPU: 1 PID: 3140 at lib/refcount.c:25 refcount_warn_saturate+0x180/0x1c8 lib/refcount.c:25
+Modules linked in:
+CPU: 1 PID: 3140 Comm: syz-executor379 Not tainted 6.0.0-rc3-syzkaller-16800-g85413d1e802e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : refcount_warn_saturate+0x180/0x1c8 lib/refcount.c:25
+lr : refcount_warn_saturate+0x180/0x1c8 lib/refcount.c:25
+sp : ffff800012993ae0
+x29: ffff800012993ae0 x28: 00000000002e0003 x27: 000000000000005f
+x26: ffff0000ca6324e0 x25: 0000000000000000 x24: ffff0000ca51c000
+x23: ffff80000b1ef30c x22: 0000000000000000 x21: ffff0000ca51bf40
+x20: 0000000000000002 x19: ffff80000d937000 x18: 00000000000000c0
+x17: ffff80000dd7a698 x16: ffff80000dbb8658 x15: ffff0000cee4cf80
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000cee4cf80
+x11: ff808000081c39d0 x10: 0000000000000000 x9 : 540cb56992f5df00
+x8 : 540cb56992f5df00 x7 : ffff800008197c80 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000000 x0 : 000000000000002a
+Call trace:
+ refcount_warn_saturate+0x180/0x1c8 lib/refcount.c:25
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ sock_hold include/net/sock.h:774 [inline]
+ nr_release+0x218/0x254 net/netrom/af_netrom.c:520
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0x50/0xf0 net/socket.c:1365
+ __fput+0x198/0x3bc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x208 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbb8 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb30 kernel/signal.c:2857
+ do_signal+0x128/0x424 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1d0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:625
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:642
+ el0t_64_sync+0x18c/0x190
+irq event stamp: 6136
+hardirqs last  enabled at (6135): [<ffff8000081c1c3c>] __up_console_sem+0xb0/0xfc kernel/printk/printk.c:264
+hardirqs last disabled at (6136): [<ffff80000c000f0c>] el1_dbg+0x24/0x5c arch/arm64/kernel/entry-common.c:395
+softirqs last  enabled at (6066): [<ffff80000b1f1e24>] spin_unlock_bh include/linux/spinlock.h:394 [inline]
+softirqs last  enabled at (6066): [<ffff80000b1f1e24>] release_sock+0xf4/0x108 net/core/sock.c:3419
+softirqs last disabled at (6064): [<ffff80000b1f1d5c>] spin_lock_bh include/linux/spinlock.h:354 [inline]
+softirqs last disabled at (6064): [<ffff80000b1f1d5c>] release_sock+0x2c/0x108 net/core/sock.c:3406
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: nr_t1timer_expiry+0x0/0x1d0 net/netrom/nr_timer.c:46
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_print_object lib/debugobjects.c:502 [inline]
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+Modules linked in:
+CPU: 1 PID: 3140 Comm: syz-executor379 Tainted: G        W          6.0.0-rc3-syzkaller-16800-g85413d1e802e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : debug_print_object lib/debugobjects.c:502 [inline]
+pc : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+lr : debug_print_object lib/debugobjects.c:502 [inline]
+lr : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+sp : ffff800012993a10
+x29: ffff800012993a10 x28: 00000000002e0003 x27: 000000000000005f
+x26: ffff0000ca6324e0 x25: 0000000000000000 x24: ffff0000ca51c000
+x23: ffff80000f04ef00 x22: ffff80000d37c000 x21: ffff80000f115000
+x20: ffff80000c04f5b8 x19: ffff0000cfda4d60 x18: 00000000000000c0
+x17: 203a657079742074 x16: ffff80000dbb8658 x15: ffff0000cee4cf80
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000cee4cf80
+x11: ff808000081c39d0 x10: 0000000000000000 x9 : 540cb56992f5df00
+x8 : 540cb56992f5df00 x7 : ffff800008197c80 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0001fefddcd0 x1 : 0000000100000000 x0 : 000000000000006c
+Call trace:
+ debug_print_object lib/debugobjects.c:502 [inline]
+ debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+ debug_timer_assert_init kernel/time/timer.c:792 [inline]
+ debug_assert_init kernel/time/timer.c:837 [inline]
+ del_timer+0x34/0x1a8 kernel/time/timer.c:1257
+ sk_stop_timer+0x24/0xa4 net/core/sock.c:3294
+ nr_stop_t1timer+0x24/0x34 net/netrom/nr_timer.c:84
+ nr_disconnect+0x24/0xc0 net/netrom/nr_subr.c:261
+ nr_release+0x178/0x254 net/netrom/af_netrom.c:529
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0x50/0xf0 net/socket.c:1365
+ __fput+0x198/0x3bc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x208 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbb8 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb30 kernel/signal.c:2857
+ do_signal+0x128/0x424 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1d0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:625
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:642
+ el0t_64_sync+0x18c/0x190
+irq event stamp: 6220
+hardirqs last  enabled at (6219): [<ffff8000081c1c3c>] __up_console_sem+0xb0/0xfc kernel/printk/printk.c:264
+hardirqs last disabled at (6220): [<ffff80000c000f0c>] el1_dbg+0x24/0x5c arch/arm64/kernel/entry-common.c:395
+softirqs last  enabled at (6196): [<ffff80000b1fc1e4>] spin_unlock_bh include/linux/spinlock.h:394 [inline]
+softirqs last  enabled at (6196): [<ffff80000b1fc1e4>] lock_sock_nested+0xc0/0xd8 net/core/sock.c:3400
+softirqs last disabled at (6194): [<ffff80000b1fc1ac>] spin_lock_bh include/linux/spinlock.h:354 [inline]
+softirqs last disabled at (6194): [<ffff80000b1fc1ac>] lock_sock_nested+0x88/0xd8 net/core/sock.c:3396
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: arch_atomic_fetch_sub_release arch/arm64/include/asm/atomic.h:51 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: atomic_fetch_sub_release include/linux/atomic/atomic-instrumented.h:177 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: __refcount_sub_and_test include/linux/refcount.h:272 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: sock_put include/net/sock.h:1961 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: nr_t2timer_expiry+0x0/0xf4 net/netrom/nr_timer.c:246
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_print_object lib/debugobjects.c:502 [inline]
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+Modules linked in:
+CPU: 1 PID: 3140 Comm: syz-executor379 Tainted: G        W          6.0.0-rc3-syzkaller-16800-g85413d1e802e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : debug_print_object lib/debugobjects.c:502 [inline]
+pc : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+lr : debug_print_object lib/debugobjects.c:502 [inline]
+lr : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+sp : ffff800012993a10
+x29: ffff800012993a10 x28: 00000000002e0003 x27: 000000000000005f
+x26: ffff0000ca6324e0 x25: 0000000000000000 x24: ffff0000ca51c000
+x23: ffff80000f04ef00 x22: ffff80000d37c000 x21: ffff80000f115000
+x20: ffff80000c04f5b8 x19: ffff0000cfda4db0 x18: 00000000000000c0
+x17: 203a657079742074 x16: ffff80000dbb8658 x15: ffff0000cee4cf80
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000cee4cf80
+x11: ff808000081c39d0 x10: 0000000000000000 x9 : 540cb56992f5df00
+x8 : 540cb56992f5df00 x7 : ffff800008197c80 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000000 x0 : 000000000000006b
+Call trace:
+ debug_print_object lib/debugobjects.c:502 [inline]
+ debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+ debug_timer_assert_init kernel/time/timer.c:792 [inline]
+ debug_assert_init kernel/time/timer.c:837 [inline]
+ del_timer+0x34/0x1a8 kernel/time/timer.c:1257
+ sk_stop_timer+0x24/0xa4 net/core/sock.c:3294
+ nr_stop_t2timer+0x24/0x34 net/netrom/nr_timer.c:89
+ nr_disconnect+0x2c/0xc0 net/netrom/nr_subr.c:262
+ nr_release+0x178/0x254 net/netrom/af_netrom.c:529
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0x50/0xf0 net/socket.c:1365
+ __fput+0x198/0x3bc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x208 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbb8 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb30 kernel/signal.c:2857
+ do_signal+0x128/0x424 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1d0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:625
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:642
+ el0t_64_sync+0x18c/0x190
+irq event stamp: 6378
+hardirqs last  enabled at (6377): [<ffff8000081c1c3c>] __up_console_sem+0xb0/0xfc kernel/printk/printk.c:264
+hardirqs last disabled at (6378): [<ffff80000c000f0c>] el1_dbg+0x24/0x5c arch/arm64/kernel/entry-common.c:395
+softirqs last  enabled at (6372): [<ffff8000080102e4>] _stext+0x2e4/0x37c
+softirqs last disabled at (6357): [<ffff800008104658>] do_softirq_own_stack include/asm-generic/softirq_stack.h:10 [inline]
+softirqs last disabled at (6357): [<ffff800008104658>] invoke_softirq+0x70/0xbc kernel/softirq.c:452
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: arch_atomic_fetch_sub_release arch/arm64/include/asm/atomic.h:51 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: atomic_fetch_sub_release include/linux/atomic/atomic-instrumented.h:177 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: __refcount_sub_and_test include/linux/refcount.h:272 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: sock_put include/net/sock.h:1961 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: nr_t4timer_expiry+0x0/0xd0 net/netrom/nr_timer.c:162
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_print_object lib/debugobjects.c:502 [inline]
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+Modules linked in:
+CPU: 1 PID: 3140 Comm: syz-executor379 Tainted: G        W          6.0.0-rc3-syzkaller-16800-g85413d1e802e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : debug_print_object lib/debugobjects.c:502 [inline]
+pc : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+lr : debug_print_object lib/debugobjects.c:502 [inline]
+lr : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+sp : ffff800012993a10
+x29: ffff800012993a10 x28: 00000000002e0003 x27: 000000000000005f
+x26: ffff0000ca6324e0 x25: 0000000000000000 x24: ffff0000ca51c000
+x23: ffff80000f04ef00 x22: ffff80000d37c000 x21: ffff80000f115000
+x20: ffff80000c04f5b8 x19: ffff0000cfda4e00 x18: 00000000000000c0
+x17: 203a657079742074 x16: ffff80000dbb8658 x15: ffff0000cee4cf80
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000cee4cf80
+x11: ff808000081c39d0 x10: 0000000000000000 x9 : 540cb56992f5df00
+x8 : 540cb56992f5df00 x7 : ffff800008197c80 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0001fefddcd0 x1 : 0000000100000000 x0 : 000000000000006b
+Call trace:
+ debug_print_object lib/debugobjects.c:502 [inline]
+ debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+ debug_timer_assert_init kernel/time/timer.c:792 [inline]
+ debug_assert_init kernel/time/timer.c:837 [inline]
+ del_timer+0x34/0x1a8 kernel/time/timer.c:1257
+ sk_stop_timer+0x24/0xa4 net/core/sock.c:3294
+ nr_stop_t4timer+0x24/0x34 net/netrom/nr_timer.c:94
+ nr_disconnect+0x34/0xc0 net/netrom/nr_subr.c:263
+ nr_release+0x178/0x254 net/netrom/af_netrom.c:529
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0x50/0xf0 net/socket.c:1365
+ __fput+0x198/0x3bc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x208 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbb8 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb30 kernel/signal.c:2857
+ do_signal+0x128/0x424 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1d0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:625
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:642
+ el0t_64_sync+0x18c/0x190
+irq event stamp: 6478
+hardirqs last  enabled at (6477): [<ffff8000081c1c3c>] __up_console_sem+0xb0/0xfc kernel/printk/printk.c:264
+hardirqs last disabled at (6478): [<ffff80000c000f0c>] el1_dbg+0x24/0x5c arch/arm64/kernel/entry-common.c:395
+softirqs last  enabled at (6452): [<ffff8000080102e4>] _stext+0x2e4/0x37c
+softirqs last disabled at (6381): [<ffff800008104658>] do_softirq_own_stack include/asm-generic/softirq_stack.h:10 [inline]
+softirqs last disabled at (6381): [<ffff800008104658>] invoke_softirq+0x70/0xbc kernel/softirq.c:452
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: arch_atomic_fetch_sub_release arch/arm64/include/asm/atomic.h:51 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: atomic_fetch_sub_release include/linux/atomic/atomic-instrumented.h:177 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: __refcount_sub_and_test include/linux/refcount.h:272 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: sock_put include/net/sock.h:1961 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: nr_idletimer_expiry+0x0/0x184 net/netrom/nr_timer.c:173
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_print_object lib/debugobjects.c:502 [inline]
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+Modules linked in:
+CPU: 1 PID: 3140 Comm: syz-executor379 Tainted: G        W          6.0.0-rc3-syzkaller-16800-g85413d1e802e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : debug_print_object lib/debugobjects.c:502 [inline]
+pc : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+lr : debug_print_object lib/debugobjects.c:502 [inline]
+lr : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+sp : ffff800012993a10
+x29: ffff800012993a10 x28: 00000000002e0003 x27: 000000000000005f
+x26: ffff0000ca6324e0 x25: 0000000000000000 x24: ffff0000ca51c000
+x23: ffff80000f04ef00 x22: ffff80000d37c000 x21: ffff80000f115000
+x20: ffff80000c04f5b8 x19: ffff0000cfda4e50 x18: 00000000000000c0
+x17: 203a657079742074 x16: ffff80000dbb8658 x15: ffff0000cee4cf80
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000cee4cf80
+x11: ff808000081c39d0 x10: 0000000000000000 x9 : 540cb56992f5df00
+x8 : 540cb56992f5df00 x7 : ffff800008197c80 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0001fefddcd0 x1 : 0000000100000000 x0 : 000000000000006e
+Call trace:
+ debug_print_object lib/debugobjects.c:502 [inline]
+ debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+ debug_timer_assert_init kernel/time/timer.c:792 [inline]
+ debug_assert_init kernel/time/timer.c:837 [inline]
+ del_timer+0x34/0x1a8 kernel/time/timer.c:1257
+ sk_stop_timer+0x24/0xa4 net/core/sock.c:3294
+ nr_stop_idletimer+0x24/0x34 net/netrom/nr_timer.c:99
+ nr_disconnect+0x3c/0xc0 net/netrom/nr_subr.c:264
+ nr_release+0x178/0x254 net/netrom/af_netrom.c:529
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0x50/0xf0 net/socket.c:1365
+ __fput+0x198/0x3bc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x208 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbb8 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb30 kernel/signal.c:2857
+ do_signal+0x128/0x424 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1d0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:625
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:642
+ el0t_64_sync+0x18c/0x190
+irq event stamp: 6674
+hardirqs last  enabled at (6673): [<ffff8000081c1c3c>] __up_console_sem+0xb0/0xfc kernel/printk/printk.c:264
+hardirqs last disabled at (6674): [<ffff80000c000f0c>] el1_dbg+0x24/0x5c arch/arm64/kernel/entry-common.c:395
+softirqs last  enabled at (6648): [<ffff8000080102e4>] _stext+0x2e4/0x37c
+softirqs last disabled at (6481): [<ffff800008104658>] do_softirq_own_stack include/asm-generic/softirq_stack.h:10 [inline]
+softirqs last disabled at (6481): [<ffff800008104658>] invoke_softirq+0x70/0xbc kernel/softirq.c:452
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: arch_atomic_fetch_sub_release arch/arm64/include/asm/atomic.h:51 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: atomic_fetch_sub_release include/linux/atomic/atomic-instrumented.h:177 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: __refcount_sub_and_test include/linux/refcount.h:272 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: sock_put include/net/sock.h:1961 [inline]
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint: nr_heartbeat_expiry+0x0/0x1e4 net/netrom/nr_timer.c:202
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_print_object lib/debugobjects.c:502 [inline]
+WARNING: CPU: 1 PID: 3140 at lib/debugobjects.c:505 debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+Modules linked in:
+CPU: 1 PID: 3140 Comm: syz-executor379 Tainted: G        W          6.0.0-rc3-syzkaller-16800-g85413d1e802e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : debug_print_object lib/debugobjects.c:502 [inline]
+pc : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+lr : debug_print_object lib/debugobjects.c:502 [inline]
+lr : debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+sp : ffff800012993a00
+x29: ffff800012993a00 x28: 00000000002e0003 x27: 000000000000005f
+x26: ffff0000ca6324e0 x25: 0000000000000000 x24: ffff0000ca51c000
+x23: ffff80000f04ef00 x22: ffff80000d37c000 x21: ffff80000f115000
+x20: ffff80000c04f5b8 x19: ffff0000cfda4af8 x18: 00000000000000c0
+x17: 203a657079742074 x16: ffff80000dbb8658 x15: ffff0000cee4cf80
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000cee4cf80
+x11: ff808000081c39d0 x10: 0000000000000000 x9 : 540cb56992f5df00
+x8 : 540cb56992f5df00 x7 : ffff800008197c80 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0001fefddcd0 x1 : 0000000100000000 x0 : 000000000000006e
+Call trace:
+ debug_print_object lib/debugobjects.c:502 [inline]
+ debug_object_assert_init+0x144/0x198 lib/debugobjects.c:892
+ debug_timer_assert_init kernel/time/timer.c:792 [inline]
+ debug_assert_init kernel/time/timer.c:837 [inline]
+ del_timer+0x34/0x1a8 kernel/time/timer.c:1257
+ sk_stop_timer+0x24/0xa4 net/core/sock.c:3294
+ nr_stop_heartbeat+0x24/0x34 net/netrom/nr_timer.c:104
+ nr_destroy_socket+0xb4/0x278 net/netrom/af_netrom.c:263
+ nr_release+0x180/0x254 net/netrom/af_netrom.c:530
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0x50/0xf0 net/socket.c:1365
+ __fput+0x198/0x3bc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x208 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbb8 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb30 kernel/signal.c:2857
+ do_signal+0x128/0x424 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1d0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:625
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:642
+ el0t_64_sync+0x18c/0x190
+irq event stamp: 6798
+hardirqs last  enabled at (6797): [<ffff8000081c1c3c>] __up_console_sem+0xb0/0xfc kernel/printk/printk.c:264
+hardirqs last disabled at (6798): [<ffff80000c000f0c>] el1_dbg+0x24/0x5c arch/arm64/kernel/entry-common.c:395
+softirqs last  enabled at (6772): [<ffff80000b912d3c>] spin_unlock_bh include/linux/spinlock.h:394 [inline]
+softirqs last  enabled at (6772): [<ffff80000b912d3c>] nr_remove_socket net/netrom/af_netrom.c:95 [inline]
+softirqs last  enabled at (6772): [<ffff80000b912d3c>] nr_destroy_socket+0xac/0x278 net/netrom/af_netrom.c:261
+softirqs last disabled at (6770): [<ffff80000b912cb8>] spin_lock_bh include/linux/spinlock.h:354 [inline]
+softirqs last disabled at (6770): [<ffff80000b912cb8>] nr_remove_socket net/netrom/af_netrom.c:93 [inline]
+softirqs last disabled at (6770): [<ffff80000b912cb8>] nr_destroy_socket+0x28/0x278 net/netrom/af_netrom.c:261
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 1 PID: 3140 at lib/refcount.c:28 refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+Modules linked in:
+CPU: 1 PID: 3140 Comm: syz-executor379 Tainted: G        W          6.0.0-rc3-syzkaller-16800-g85413d1e802e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+lr : refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+sp : ffff800012993ae0
+x29: ffff800012993ae0 x28: 00000000002e0003 x27: 000000000000005f
+x26: ffff0000ca6324e0 x25: 0000000000000000 x24: ffff0000ca51c000
+x23: ffff80000b1ef30c x22: 0000000000000000 x21: 00000000c0000000
+x20: 0000000000000003 x19: ffff80000d937000 x18: 00000000000000c0
+x17: 203a657079742074 x16: ffff80000dbb8658 x15: ffff0000cee4cf80
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000cee4cf80
+x11: ff808000081c39d0 x10: 0000000000000000 x9 : 540cb56992f5df00
+x8 : 540cb56992f5df00 x7 : ffff800008197c80 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000000 x0 : 0000000000000026
+Call trace:
+ refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+ __refcount_sub_and_test include/linux/refcount.h:283 [inline]
+ __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ sock_put include/net/sock.h:1961 [inline]
+ nr_release+0x22c/0x254 net/netrom/af_netrom.c:554
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0x50/0xf0 net/socket.c:1365
+ __fput+0x198/0x3bc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x208 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbb8 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb30 kernel/signal.c:2857
+ do_signal+0x128/0x424 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1d0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:625
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:642
+ el0t_64_sync+0x18c/0x190
+irq event stamp: 6848
+hardirqs last  enabled at (6847): [<ffff8000081c1c3c>] __up_console_sem+0xb0/0xfc kernel/printk/printk.c:264
+hardirqs last disabled at (6848): [<ffff80000c000f0c>] el1_dbg+0x24/0x5c arch/arm64/kernel/entry-common.c:395
+softirqs last  enabled at (6826): [<ffff80000b1f1e24>] spin_unlock_bh include/linux/spinlock.h:394 [inline]
+softirqs last  enabled at (6826): [<ffff80000b1f1e24>] release_sock+0xf4/0x108 net/core/sock.c:3419
+softirqs last disabled at (6824): [<ffff80000b1f1d5c>] spin_lock_bh include/linux/spinlock.h:354 [inline]
+softirqs last disabled at (6824): [<ffff80000b1f1d5c>] release_sock+0x2c/0x108 net/core/sock.c:3406
+---[ end trace 0000000000000000 ]---

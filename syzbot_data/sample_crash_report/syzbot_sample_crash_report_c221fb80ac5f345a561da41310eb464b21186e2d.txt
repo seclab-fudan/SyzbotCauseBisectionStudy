@@ -1,0 +1,91 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	0-....: (10500 ticks this GP) idle=072/1/0x4000000000000000 softirq=36396/36396 fqs=5221 
+	(t=10502 jiffies g=60829 q=2242)
+NMI backtrace for cpu 0
+CPU: 0 PID: 18114 Comm: syz-executor.3 Not tainted 5.8.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x70/0xb1 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x1b3/0x223 lib/nmi_backtrace.c:62
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x194/0x1cf kernel/rcu/tree_stall.h:320
+ print_cpu_stall kernel/rcu/tree_stall.h:553 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:627 [inline]
+ rcu_pending kernel/rcu/tree.c:3489 [inline]
+ rcu_sched_clock_irq.cold+0x5b3/0xccc kernel/rcu/tree.c:2504
+ update_process_times+0x25/0x60 kernel/time/timer.c:1726
+ tick_sched_handle+0x9b/0x180 kernel/time/tick-sched.c:176
+ tick_sched_timer+0x108/0x290 kernel/time/tick-sched.c:1320
+ __run_hrtimer kernel/time/hrtimer.c:1520 [inline]
+ __hrtimer_run_queues+0x1d5/0xfc0 kernel/time/hrtimer.c:1584
+ hrtimer_interrupt+0x32a/0x930 kernel/time/hrtimer.c:1646
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1080 [inline]
+ __sysvec_apic_timer_interrupt+0x142/0x5e0 arch/x86/kernel/apic/apic.c:1097
+ asm_call_on_stack+0xf/0x20 arch/x86/entry/entry_64.S:711
+ </IRQ>
+ __run_on_irqstack arch/x86/include/asm/irq_stack.h:22 [inline]
+ run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:48 [inline]
+ sysvec_apic_timer_interrupt+0xe0/0x120 arch/x86/kernel/apic/apic.c:1091
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:587
+RIP: 0010:__sanitizer_cov_trace_const_cmp8+0x0/0x20 kernel/kcov.c:291
+Code: 66 2e 0f 1f 84 00 00 00 00 00 48 8b 0c 24 89 f2 89 fe bf 05 00 00 00 e9 ae fe ff ff 0f 1f 40 00 66 2e 0f 1f 84 00 00 00 00 00 <48> 8b 0c 24 48 89 f2 48 89 fe bf 07 00 00 00 e9 8c fe ff ff 66 90
+RSP: 0018:ffffc900043e70d0 EFLAGS: 00000246
+RAX: 0000000000040000 RBX: ffffc900043e7420 RCX: ffffc9000f741000
+RDX: 0000000000040000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000001 R09: ffff88804f1f6c67
+R10: 0000000000000000 R11: 0000000000000001 R12: ffffc900043e7220
+R13: dffffc0000000000 R14: 0000000000000398 R15: 0000000000000010
+ __output_copy kernel/events/internal.h:178 [inline]
+ perf_output_read_group kernel/events/core.c:6699 [inline]
+ perf_output_read+0xe22/0x1260 kernel/events/core.c:6732
+ perf_output_sample+0x102c/0x1c60 kernel/events/core.c:6779
+ __perf_event_output kernel/events/core.c:7160 [inline]
+ perf_event_output_forward+0x12f/0x270 kernel/events/core.c:7174
+ __perf_event_overflow+0x13c/0x370 kernel/events/core.c:8746
+ perf_swevent_overflow kernel/events/core.c:8822 [inline]
+ perf_swevent_event+0x347/0x550 kernel/events/core.c:8850
+ do_perf_sw_event kernel/events/core.c:8963 [inline]
+ ___perf_sw_event+0x304/0x550 kernel/events/core.c:8994
+ __perf_sw_event+0x58/0x120 kernel/events/core.c:9006
+ perf_sw_event include/linux/perf_event.h:1158 [inline]
+ do_user_addr_fault+0x82a/0xd00 arch/x86/mm/fault.c:1332
+ handle_page_fault arch/x86/mm/fault.c:1365 [inline]
+ exc_page_fault+0xab/0x170 arch/x86/mm/fault.c:1418
+ asm_exc_page_fault+0x1e/0x30 arch/x86/include/asm/idtentry.h:544
+RIP: 0010:copy_user_enhanced_fast_string+0xe/0x30 arch/x86/lib/copy_user_64.S:205
+Code: 89 d1 c1 e9 03 83 e2 07 f3 48 a5 89 d1 f3 a4 31 c0 0f 1f 00 c3 0f 1f 80 00 00 00 00 0f 1f 00 83 fa 40 0f 82 70 ff ff ff 89 d1 <f3> a4 31 c0 0f 1f 00 c3 66 2e 0f 1f 84 00 00 00 00 00 89 d1 f3 a4
+RSP: 0018:ffffc900043e79b8 EFLAGS: 00010206
+RAX: 0000000000000001 RBX: 0000000000008000 RCX: 0000000000004fcb
+RDX: 0000000000008000 RSI: 0000000020f58000 RDI: ffff88809207b035
+RBP: ffff888092078000 R08: 0000000000000001 R09: ffff88809207ffff
+R10: ffffed101240ffff R11: 0000000000000000 R12: 0000000020f54fcb
+R13: 0000000020f5cfcb R14: 00007ffffffff000 R15: 0000000000000000
+ copy_user_generic arch/x86/include/asm/uaccess_64.h:37 [inline]
+ raw_copy_from_user arch/x86/include/asm/uaccess_64.h:68 [inline]
+ copyin+0x107/0x140 lib/iov_iter.c:152
+ _copy_from_iter_full+0x1ff/0x890 lib/iov_iter.c:790
+ copy_from_iter_full include/linux/uio.h:156 [inline]
+ skb_do_copy_data_nocache+0x145/0x2c0 include/net/sock.h:2038
+ skb_copy_to_page_nocache include/net/sock.h:2064 [inline]
+ tcp_sendmsg_locked+0x112c/0x2d00 net/ipv4/tcp.c:1343
+ tcp_sendmsg+0x2b/0x40 net/ipv4/tcp.c:1441
+ inet_sendmsg+0x99/0xe0 net/ipv4/af_inet.c:814
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:672
+ __sys_sendto+0x21c/0x320 net/socket.c:1995
+ __do_sys_sendto net/socket.c:2007 [inline]
+ __se_sys_sendto net/socket.c:2003 [inline]
+ __x64_sys_sendto+0xdd/0x1b0 net/socket.c:2003
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x45cba9
+Code: Bad RIP value.
+RSP: 002b:00007fe631abec78 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000504780 RCX: 000000000045cba9
+RDX: ffffffffffffffef RSI: 0000000020d7cfcb RDI: 0000000000000007
+RBP: 000000000078bf00 R08: 0000000000000000 R09: 0000000000000053
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000000a99 R14: 00000000004cd6d3 R15: 00007fe631abf6d4

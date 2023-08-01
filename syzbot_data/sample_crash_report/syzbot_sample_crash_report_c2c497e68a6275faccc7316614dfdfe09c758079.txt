@@ -1,0 +1,78 @@
+Unable to handle kernel paging request at virtual address 0000000000002074
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000000156a27000
+[0000000000002074] pgd=0800000157769003, p4d=0800000157769003, pud=0800000156dcb003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 28419 Comm: syz-executor.5 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : btrfs_is_subpage+0x20/0xb8 fs/btrfs/subpage.c:68
+lr : btrfs_is_subpage+0x20/0xb8 fs/btrfs/subpage.c:67
+sp : ffff800020bcb390
+x29: ffff800020bcb390 x28: 0000000000000001 x27: dead000000000100
+x26: fffffc0004a3c208 x25: ffff0001191b4ff8 x24: ffff800020bcb8c8
+x23: 0000000000000001 x22: 05ffc00000002005 x21: 05ffc00000002005
+x20: fffffc0004a3c200 x19: 0000000000000000 x18: ffff80000db46158
+x17: ffff80000dda8198 x16: ffff80000dbe6158 x15: ffff00011656b480
+x14: 0000000000000000 x13: 00000000ffffffff x12: 0000000000040000
+x11: 000000000003ffff x10: ffff800012f2d000 x9 : ffff80000923be40
+x8 : 0000000000040000 x7 : ffff8000095d6cf4 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : fffffbffeffe3910 x3 : 00000000000a0e01
+x2 : ffff000116617400 x1 : fffffc0004a3c200 x0 : 0000000000000000
+Call trace:
+ btrfs_is_subpage+0x20/0xb8 fs/btrfs/subpage.c:67
+ wait_subpage_spinlock+0x30/0xd4 fs/btrfs/inode.c:8152
+ __btrfs_release_folio fs/btrfs/inode.c:8178 [inline]
+ btrfs_release_folio+0xc8/0x228 fs/btrfs/inode.c:8188
+ filemap_release_folio+0xc0/0x238 mm/filemap.c:3948
+ shrink_folio_list+0xdbc/0x337c mm/vmscan.c:1982
+ shrink_inactive_list+0x30c/0x54c mm/vmscan.c:2489
+ shrink_list mm/vmscan.c:2728 [inline]
+ shrink_lruvec+0x218/0x5b4 mm/vmscan.c:5923
+ shrink_node_memcgs+0x13c/0x2c4 mm/vmscan.c:6110
+ shrink_node+0xb4/0x600 mm/vmscan.c:6141
+ shrink_zones+0x1bc/0x408 mm/vmscan.c:6379
+ do_try_to_free_pages+0xd0/0x42c mm/vmscan.c:6441
+ try_to_free_mem_cgroup_pages+0x174/0x244 mm/vmscan.c:6756
+ reclaim_high+0xe8/0x168 mm/memcontrol.c:2389
+ mem_cgroup_handle_over_high+0x9c/0x14c mm/memcontrol.c:2574
+ try_charge_memcg+0x50c/0x650 mm/memcontrol.c:2812
+ obj_cgroup_charge_pages mm/memcontrol.c:3095 [inline]
+ __memcg_kmem_charge_page+0x354/0x408 mm/memcontrol.c:3121
+ __alloc_pages+0x128/0x1fc mm/page_alloc.c:5575
+ __alloc_pages_node include/linux/gfp.h:237 [inline]
+ alloc_pages_node include/linux/gfp.h:260 [inline]
+ bpf_ringbuf_area_alloc kernel/bpf/ringbuf.c:130 [inline]
+ bpf_ringbuf_alloc+0xe0/0x294 kernel/bpf/ringbuf.c:167
+ ringbuf_map_alloc+0x120/0x15c kernel/bpf/ringbuf.c:207
+ find_and_alloc_map kernel/bpf/syscall.c:131 [inline]
+ map_create+0x32c/0x5c0 kernel/bpf/syscall.c:1106
+ __sys_bpf+0x260/0x5fc kernel/bpf/syscall.c:4947
+ __do_sys_bpf kernel/bpf/syscall.c:5069 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:5067 [inline]
+ __arm64_sys_bpf+0x2c/0x40 kernel/bpf/syscall.c:5067
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 910003fd aa0103f4 aa0003f3 97c1aafa (b9607675) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	910003fd 	mov	x29, sp
+   4:	aa0103f4 	mov	x20, x1
+   8:	aa0003f3 	mov	x19, x0
+   c:	97c1aafa 	bl	0xffffffffff06abf4
+* 10:	b9607675 	ldr	w21, [x19, #8308] <-- trapping instruction

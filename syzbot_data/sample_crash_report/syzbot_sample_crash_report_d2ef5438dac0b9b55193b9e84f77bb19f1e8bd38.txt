@@ -1,0 +1,276 @@
+netlink: 'syz-executor2': attribute type 1 has an invalid length.
+netlink: 'syz-executor2': attribute type 1 has an invalid length.
+bpfilter: read fail -512
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.19.0-rc3+ #218 Not tainted
+------------------------------------------------------
+syz-executor2/14983 is trying to acquire lock:
+
+but task is already holding lock:
+0000000038f1aff1 (rtnl_mutex){+.+.}, at: rtnl_lock net/core/rtnetlink.c:77 [inline]
+0000000038f1aff1 (rtnl_mutex){+.+.}, at: rtnetlink_rcv_msg+0x40e/0xc20 net/core/rtnetlink.c:4721
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (rtnl_mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+       __mutex_lock+0x166/0x1710 kernel/locking/mutex.c:1073
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1088
+       rtnl_lock+0x17/0x20 net/core/rtnetlink.c:77
+       bond_netdev_notify drivers/net/bonding/bond_main.c:1310 [inline]
+       bond_netdev_notify_work+0x44/0xd0 drivers/net/bonding/bond_main.c:1320
+       process_one_work+0xc90/0x1b90 kernel/workqueue.c:2153
+       worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+       kthread+0x35a/0x420 kernel/kthread.c:246
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:413
+
+-> #1 ((work_completion)(&(&nnw->work)->work)){+.+.}:
+       process_one_work+0xc0a/0x1b90 kernel/workqueue.c:2129
+       worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+       kthread+0x35a/0x420 kernel/kthread.c:246
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:413
+
+-> #0 ((wq_completion)bond_dev->name){+.+.}:
+       lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3901
+       flush_workqueue+0x30a/0x1e10 kernel/workqueue.c:2655
+       drain_workqueue+0x2a9/0x640 kernel/workqueue.c:2820
+       destroy_workqueue+0xc6/0x9c0 kernel/workqueue.c:4155
+       __alloc_workqueue_key+0xed8/0x1170 kernel/workqueue.c:4138
+       bond_init+0x274/0x970 drivers/net/bonding/bond_main.c:4734
+       register_netdevice+0x332/0x10f0 net/core/dev.c:8410
+       bond_newlink+0x49/0xa0 drivers/net/bonding/bond_netlink.c:453
+       rtnl_newlink+0xec6/0x1d40 net/core/rtnetlink.c:3112
+       rtnetlink_rcv_msg+0x46a/0xc20 net/core/rtnetlink.c:4724
+       netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2447
+       rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4742
+       netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+       netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
+       netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1901
+       sock_sendmsg_nosec net/socket.c:621 [inline]
+       sock_sendmsg+0xd5/0x120 net/socket.c:631
+       ___sys_sendmsg+0x7fd/0x930 net/socket.c:2114
+       __sys_sendmsg+0x11d/0x280 net/socket.c:2152
+       __do_sys_sendmsg net/socket.c:2161 [inline]
+       __se_sys_sendmsg net/socket.c:2159 [inline]
+       __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2159
+       do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+  (wq_completion)bond_dev->name --> (work_completion)(&(&nnw->work)->work) --> rtnl_mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(rtnl_mutex);
+                               lock((work_completion)(&(&nnw->work)->work));
+                               lock(rtnl_mutex);
+  lock((wq_completion)bond_dev->name);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor2/14983:
+ #0: 0000000038f1aff1 (rtnl_mutex){+.+.}, at: rtnl_lock net/core/rtnetlink.c:77 [inline]
+ #0: 0000000038f1aff1 (rtnl_mutex){+.+.}, at: rtnetlink_rcv_msg+0x40e/0xc20 net/core/rtnetlink.c:4721
+
+stack backtrace:
+CPU: 0 PID: 14983 Comm: syz-executor2 Not tainted 4.19.0-rc3+ #218
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+ print_circular_bug.isra.33.cold.54+0x1bd/0x27d kernel/locking/lockdep.c:1222
+ check_prev_add kernel/locking/lockdep.c:1862 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1975 [inline]
+ validate_chain kernel/locking/lockdep.c:2416 [inline]
+ __lock_acquire+0x33e4/0x4ec0 kernel/locking/lockdep.c:3412
+ lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3901
+ flush_workqueue+0x30a/0x1e10 kernel/workqueue.c:2655
+ drain_workqueue+0x2a9/0x640 kernel/workqueue.c:2820
+ destroy_workqueue+0xc6/0x9c0 kernel/workqueue.c:4155
+ __alloc_workqueue_key+0xed8/0x1170 kernel/workqueue.c:4138
+ bond_init+0x274/0x970 drivers/net/bonding/bond_main.c:4734
+ register_netdevice+0x332/0x10f0 net/core/dev.c:8410
+ bond_newlink+0x49/0xa0 drivers/net/bonding/bond_netlink.c:453
+ rtnl_newlink+0xec6/0x1d40 net/core/rtnetlink.c:3112
+ rtnetlink_rcv_msg+0x46a/0xc20 net/core/rtnetlink.c:4724
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2447
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4742
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2114
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2152
+ __do_sys_sendmsg net/socket.c:2161 [inline]
+ __se_sys_sendmsg net/socket.c:2159 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2159
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4572d9
+Code: fd b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f21b4dcdc78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f21b4dce6d4 RCX: 00000000004572d9
+RDX: 0000000000000000 RSI: 0000000020000180 RDI: 0000000000000005
+RBP: 00000000009300a0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000004d4f38 R14: 00000000004c942e R15: 0000000000000000
+kobject: 'loop4' (0000000053be03ff): kobject_uevent_env
+kobject: 'loop4' (0000000053be03ff): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop0' (000000002a2b68cc): kobject_uevent_env
+kobject: 'loop0' (000000002a2b68cc): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop1' (00000000c470621a): kobject_uevent_env
+kobject: 'loop1' (00000000c470621a): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop2' (000000002f4fbf7f): kobject_uevent_env
+kobject: 'loop2' (000000002f4fbf7f): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop3' (00000000d091a00b): kobject_uevent_env
+kobject: 'loop3' (00000000d091a00b): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop5' (00000000a349da5e): kobject_uevent_env
+kobject: 'loop5' (00000000a349da5e): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'rx-0' (000000007098c45a): kobject_cleanup, parent 00000000a8c4575f
+kobject: 'rx-0' (000000007098c45a): auto cleanup 'remove' event
+kobject: 'rx-0' (000000007098c45a): kobject_uevent_env
+kobject: 'rx-0' (000000007098c45a): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/rx-0'
+kobject: 'rx-0' (000000007098c45a): auto cleanup kobject_del
+kobject: 'rx-0' (000000007098c45a): calling ktype release
+kobject: 'rx-0': free name
+kobject: 'tx-0' (00000000ac318d03): kobject_cleanup, parent 00000000a8c4575f
+kobject: 'tx-0' (00000000ac318d03): auto cleanup 'remove' event
+kobject: 'tx-0' (00000000ac318d03): kobject_uevent_env
+kobject: 'tx-0' (00000000ac318d03): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/tx-0'
+kobject: 'tx-0' (00000000ac318d03): auto cleanup kobject_del
+kobject: 'tx-0' (00000000ac318d03): calling ktype release
+kobject: 'tx-0': free name
+kobject: 'queues' (00000000a8c4575f): kobject_cleanup, parent           (null)
+kobject: 'queues' (00000000a8c4575f): calling ktype release
+kobject: 'queues' (00000000a8c4575f): kset_release
+kobject: 'queues': free name
+kobject: 'syz_tun' (000000005bfb8f17): kobject_uevent_env
+kobject: 'syz_tun' (000000005bfb8f17): fill_kobj_path: path = '/devices/virtual/net/syz_tun'
+kobject: 'rx-0' (000000003b97417a): kobject_cleanup, parent 00000000ee31b60d
+kobject: 'rx-0' (000000003b97417a): auto cleanup 'remove' event
+kobject: 'rx-0' (000000003b97417a): kobject_uevent_env
+kobject: 'rx-0' (000000003b97417a): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/rx-0'
+kobject: 'rx-0' (000000003b97417a): auto cleanup kobject_del
+kobject: 'rx-0' (000000003b97417a): calling ktype release
+kobject: 'rx-0': free name
+kobject: 'tx-0' (00000000fa965753): kobject_cleanup, parent 00000000ee31b60d
+kobject: 'tx-0' (00000000fa965753): auto cleanup 'remove' event
+kobject: 'tx-0' (00000000fa965753): kobject_uevent_env
+kobject: 'tx-0' (00000000fa965753): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/tx-0'
+kobject: 'tx-0' (00000000fa965753): auto cleanup kobject_del
+kobject: 'tx-0' (00000000fa965753): calling ktype release
+kobject: 'tx-0': free name
+kobject: 'queues' (00000000ee31b60d): kobject_cleanup, parent           (null)
+kobject: 'queues' (00000000ee31b60d): calling ktype release
+kobject: 'queues' (00000000ee31b60d): kset_release
+kobject: 'queues': free name
+kobject: 'syz_tun' (00000000d43437b8): kobject_uevent_env
+kobject: 'syz_tun' (00000000d43437b8): fill_kobj_path: path = '/devices/virtual/net/syz_tun'
+kobject: 'rx-0' (00000000d8bf929d): kobject_cleanup, parent 00000000a3f2dcad
+kobject: 'rx-0' (00000000d8bf929d): auto cleanup 'remove' event
+kobject: 'rx-0' (00000000d8bf929d): kobject_uevent_env
+kobject: 'rx-0' (00000000d8bf929d): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/rx-0'
+kobject: 'rx-0' (00000000d8bf929d): auto cleanup kobject_del
+kobject: 'rx-0' (00000000d8bf929d): calling ktype release
+kobject: 'rx-0': free name
+kobject: 'tx-0' (000000004e557c98): kobject_cleanup, parent 00000000a3f2dcad
+kobject: 'tx-0' (000000004e557c98): auto cleanup 'remove' event
+kobject: 'tx-0' (000000004e557c98): kobject_uevent_env
+kobject: 'tx-0' (000000004e557c98): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/tx-0'
+kobject: 'tx-0' (000000004e557c98): auto cleanup kobject_del
+kobject: 'tx-0' (000000004e557c98): calling ktype release
+kobject: 'tx-0': free name
+kobject: 'queues' (00000000a3f2dcad): kobject_cleanup, parent           (null)
+kobject: 'queues' (00000000a3f2dcad): calling ktype release
+kobject: 'queues' (00000000a3f2dcad): kset_release
+kobject: 'queues': free name
+kobject: 'syz_tun' (000000009298208d): kobject_uevent_env
+kobject: 'syz_tun' (000000009298208d): fill_kobj_path: path = '/devices/virtual/net/syz_tun'
+kobject: 'rx-0' (0000000062b1f2d4): kobject_cleanup, parent 0000000085c8adcb
+kobject: 'rx-0' (0000000062b1f2d4): auto cleanup 'remove' event
+kobject: 'rx-0' (0000000062b1f2d4): kobject_uevent_env
+kobject: 'rx-0' (0000000062b1f2d4): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/rx-0'
+kobject: 'rx-0' (0000000062b1f2d4): auto cleanup kobject_del
+kobject: 'rx-0' (0000000062b1f2d4): calling ktype release
+kobject: 'rx-0': free name
+kobject: 'tx-0' (00000000770b4c99): kobject_cleanup, parent 0000000085c8adcb
+kobject: 'tx-0' (00000000770b4c99): auto cleanup 'remove' event
+kobject: 'tx-0' (00000000770b4c99): kobject_uevent_env
+kobject: 'tx-0' (00000000770b4c99): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/tx-0'
+kobject: 'tx-0' (00000000770b4c99): auto cleanup kobject_del
+kobject: 'tx-0' (00000000770b4c99): calling ktype release
+kobject: 'tx-0': free name
+kobject: 'queues' (0000000085c8adcb): kobject_cleanup, parent           (null)
+kobject: 'queues' (0000000085c8adcb): calling ktype release
+kobject: 'queues' (0000000085c8adcb): kset_release
+kobject: 'queues': free name
+kobject: 'syz_tun' (0000000019722819): kobject_uevent_env
+kobject: 'syz_tun' (0000000019722819): fill_kobj_path: path = '/devices/virtual/net/syz_tun'
+kobject: 'rx-0' (0000000044696298): kobject_cleanup, parent 00000000eeb7329b
+kobject: 'rx-0' (0000000044696298): auto cleanup 'remove' event
+kobject: 'rx-0' (0000000044696298): kobject_uevent_env
+kobject: 'rx-0' (0000000044696298): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/rx-0'
+kobject: 'rx-0' (0000000044696298): auto cleanup kobject_del
+kobject: 'rx-0' (0000000044696298): calling ktype release
+kobject: 'rx-0': free name
+kobject: 'tx-0' (0000000011b8ea92): kobject_cleanup, parent 00000000eeb7329b
+kobject: 'tx-0' (0000000011b8ea92): auto cleanup 'remove' event
+kobject: 'tx-0' (0000000011b8ea92): kobject_uevent_env
+kobject: 'tx-0' (0000000011b8ea92): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/tx-0'
+kobject: 'tx-0' (0000000011b8ea92): auto cleanup kobject_del
+kobject: 'tx-0' (0000000011b8ea92): calling ktype release
+kobject: 'tx-0': free name
+kobject: 'queues' (00000000eeb7329b): kobject_cleanup, parent           (null)
+kobject: 'queues' (00000000eeb7329b): calling ktype release
+kobject: 'queues' (00000000eeb7329b): kset_release
+kobject: 'queues': free name
+kobject: 'syz_tun' (00000000c9427dab): kobject_uevent_env
+kobject: 'syz_tun' (00000000c9427dab): fill_kobj_path: path = '/devices/virtual/net/syz_tun'
+kobject: 'rx-0' (00000000ff4e7b7f): kobject_cleanup, parent 00000000972610d9
+kobject: 'rx-0' (00000000ff4e7b7f): auto cleanup 'remove' event
+kobject: 'rx-0' (00000000ff4e7b7f): kobject_uevent_env
+kobject: 'rx-0' (00000000ff4e7b7f): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/rx-0'
+kobject: 'rx-0' (00000000ff4e7b7f): auto cleanup kobject_del
+kobject: 'rx-0' (00000000ff4e7b7f): calling ktype release
+kobject: 'rx-0': free name
+kobject: 'tx-0' (000000003fd448d2): kobject_cleanup, parent 00000000972610d9
+kobject: 'tx-0' (000000003fd448d2): auto cleanup 'remove' event
+kobject: 'tx-0' (000000003fd448d2): kobject_uevent_env
+kobject: 'tx-0' (000000003fd448d2): fill_kobj_path: path = '/devices/virtual/net/syz_tun/queues/tx-0'
+kobject: 'tx-0' (000000003fd448d2): auto cleanup kobject_del
+kobject: 'tx-0' (000000003fd448d2): calling ktype release
+kobject: 'tx-0': free name
+kobject: 'queues' (00000000972610d9): kobject_cleanup, parent           (null)
+kobject: 'queues' (00000000972610d9): calling ktype release
+kobject: 'queues' (00000000972610d9): kset_release
+kobject: 'queues': free name
+kobject: 'syz_tun' (000000007bc0a3ad): kobject_uevent_env
+kobject: 'syz_tun' (000000007bc0a3ad): fill_kobj_path: path = '/devices/virtual/net/syz_tun'
+kobject: 'syz_tun' (000000005bfb8f17): kobject_cleanup, parent           (null)
+kobject: 'syz_tun' (00000000d43437b8): kobject_cleanup, parent           (null)
+kobject: 'syz_tun' (000000009298208d): kobject_cleanup, parent           (null)
+kobject: 'syz_tun' (00000000d43437b8): calling ktype release
+kobject: 'syz_tun' (0000000019722819): kobject_cleanup, parent           (null)
+kobject: 'syz_tun': free name
+kobject: 'syz_tun' (00000000c9427dab): kobject_cleanup, parent           (null)
+kobject: 'syz_tun' (000000005bfb8f17): calling ktype release
+kobject: 'syz_tun' (000000009298208d): calling ktype release
+kobject: 'syz_tun' (00000000c9427dab): calling ktype release
+kobject: 'syz_tun' (000000007bc0a3ad): kobject_cleanup, parent           (null)
+kobject: 'syz_tun' (0000000019722819): calling ktype release
+kobject: 'syz_tun': free name
+kobject: 'syz_tun': free name
+kobject: 'syz_tun': free name
+kobject: 'syz_tun' (000000007bc0a3ad): calling ktype release
+kobject: 'syz_tun': free name
+kobject: 'syz_tun': free name

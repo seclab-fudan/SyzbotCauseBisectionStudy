@@ -1,0 +1,108 @@
+loop0: detected capacity change from 0 to 14901
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ciCompare fs/jfs/jfs_dtree.c:3393 [inline]
+BUG: KASAN: slab-out-of-bounds in dtSearch+0x1d8c/0x2000 fs/jfs/jfs_dtree.c:639
+Read of size 1 at addr ffff888076a2f9f4 by task syz-executor202/5092
+
+CPU: 1 PID: 5092 Comm: syz-executor202 Not tainted 6.2.0-syzkaller-02299-g4a7d37e824f5 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x15e/0x45d mm/kasan/report.c:417
+ kasan_report+0xbf/0x200 mm/kasan/report.c:517
+ ciCompare fs/jfs/jfs_dtree.c:3393 [inline]
+ dtSearch+0x1d8c/0x2000 fs/jfs/jfs_dtree.c:639
+ jfs_lookup+0x180/0x2f0 fs/jfs/namei.c:1454
+ lookup_open.isra.0+0x944/0x1400 fs/namei.c:3394
+ open_last_lookups fs/namei.c:3484 [inline]
+ path_openat+0x975/0x2750 fs/namei.c:3712
+ do_filp_open+0x1ba/0x410 fs/namei.c:3742
+ do_sys_openat2+0x16d/0x4c0 fs/open.c:1312
+ do_sys_open fs/open.c:1328 [inline]
+ __do_sys_open fs/open.c:1336 [inline]
+ __se_sys_open fs/open.c:1332 [inline]
+ __x64_sys_open+0x11d/0x1c0 fs/open.c:1332
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f31b2b1c9d9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 11 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffeea427138 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 000000000000b123 RCX: 00007f31b2b1c9d9
+RDX: 0000000000000000 RSI: 000000000014da42 RDI: 00000000200000c0
+RBP: 0000000000000000 R08: 000000000000234a R09: 00007ffeea427160
+R10: 00007ffeea427000 R11: 0000000000000246 R12: 00007ffeea42715c
+R13: 00007ffeea427190 R14: 00007ffeea427170 R15: 000000000000000f
+ </TASK>
+
+The buggy address belongs to the object at ffff888076a2ee58
+ which belongs to the cache ext4_inode_cache of size 2440
+The buggy address is located 532 bytes to the right of
+ 2440-byte region [ffff888076a2ee58, ffff888076a2f7e0)
+
+The buggy address belongs to the physical page:
+page:ffffea0001da8a00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x76a28
+head:ffffea0001da8a00 order:3 compound_mapcount:0 subpages_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffff8881452313c0 dead000000000122 0000000000000000
+raw: 0000000000000000 00000000800c000c 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Reclaimable, gfp_mask 0xd2050(__GFP_IO|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC|__GFP_RECLAIMABLE), pid 5092, tgid 5092 (syz-executor202), ts 46170212699, free_ts 9680871349
+ prep_new_page mm/page_alloc.c:2531 [inline]
+ get_page_from_freelist+0x119c/0x2d00 mm/page_alloc.c:4283
+ __alloc_pages+0x1cb/0x5c0 mm/page_alloc.c:5549
+ alloc_pages+0x1aa/0x270 mm/mempolicy.c:2287
+ alloc_slab_page mm/slub.c:1851 [inline]
+ allocate_slab+0x25f/0x350 mm/slub.c:1998
+ new_slab mm/slub.c:2051 [inline]
+ ___slab_alloc+0xa91/0x1400 mm/slub.c:3193
+ __slab_alloc.constprop.0+0x56/0xa0 mm/slub.c:3292
+ __slab_alloc_node mm/slub.c:3345 [inline]
+ slab_alloc_node mm/slub.c:3442 [inline]
+ slab_alloc mm/slub.c:3460 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+ kmem_cache_alloc_lru+0x436/0x580 mm/slub.c:3483
+ alloc_inode_sb include/linux/fs.h:2684 [inline]
+ ext4_alloc_inode+0x28/0x680 fs/ext4/super.c:1321
+ alloc_inode+0x61/0x230 fs/inode.c:260
+ new_inode_pseudo fs/inode.c:1019 [inline]
+ new_inode+0x2b/0x280 fs/inode.c:1047
+ __ext4_new_inode+0x38c/0x5890 fs/ext4/ialloc.c:959
+ ext4_symlink+0x5ac/0xa00 fs/ext4/namei.c:3373
+ vfs_symlink fs/namei.c:4398 [inline]
+ vfs_symlink+0x10c/0x2c0 fs/namei.c:4382
+ do_symlinkat+0x262/0x2e0 fs/namei.c:4424
+ __do_sys_symlink fs/namei.c:4445 [inline]
+ __se_sys_symlink fs/namei.c:4443 [inline]
+ __x64_sys_symlink+0x79/0x90 fs/namei.c:4443
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1446 [inline]
+ free_pcp_prepare+0x66a/0xc30 mm/page_alloc.c:1496
+ free_unref_page_prepare mm/page_alloc.c:3369 [inline]
+ free_unref_page+0x1d/0x490 mm/page_alloc.c:3464
+ free_contig_range+0xb5/0x180 mm/page_alloc.c:9488
+ destroy_args+0xa8/0x64c mm/debug_vm_pgtable.c:998
+ debug_vm_pgtable+0x28de/0x296f mm/debug_vm_pgtable.c:1318
+ do_one_initcall+0x141/0x7d0 init/main.c:1306
+ do_initcall_level init/main.c:1379 [inline]
+ do_initcalls init/main.c:1395 [inline]
+ do_basic_setup init/main.c:1414 [inline]
+ kernel_init_freeable+0x6f9/0x782 init/main.c:1634
+ kernel_init+0x1e/0x1d0 init/main.c:1522
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+Memory state around the buggy address:
+ ffff888076a2f880: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888076a2f900: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888076a2f980: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                                             ^
+ ffff888076a2fa00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888076a2fa80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

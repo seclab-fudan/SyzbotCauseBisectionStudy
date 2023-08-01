@@ -1,0 +1,53 @@
+snd_usb_toneport 1-1:9.108: read request failed (error -110)
+snd_usb_toneport 1-1:9.108: read request failed (error -110)
+snd_usb_toneport 1-1:9.108: write request failed (error -110)
+usb 1-1: send failed (error -110)
+usb 1-1: send failed (error -110)
+snd_usb_toneport 1-1:9.108: Line 6 POD Studio UX1 now attached
+==================================================================
+BUG: KASAN: null-ptr-deref in memset include/linux/string.h:344 [inline]
+BUG: KASAN: null-ptr-deref in submit_audio_out_urb+0x919/0x1780 sound/usb/line6/playback.c:246
+Write of size 20 at addr 0000000000000010 by task kworker/1:0/17
+
+CPU: 1 PID: 17 Comm: kworker/1:0 Not tainted 5.2.0-rc1+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events toneport_start_pcm
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ __kasan_report.cold+0x5/0x32 mm/kasan/report.c:321
+ kasan_report+0xe/0x20 mm/kasan/common.c:614
+ memset+0x20/0x40 mm/kasan/common.c:107
+ memset include/linux/string.h:344 [inline]
+ submit_audio_out_urb+0x919/0x1780 sound/usb/line6/playback.c:246
+ line6_submit_audio_out_all_urbs+0xc9/0x120 sound/usb/line6/playback.c:295
+ line6_stream_start+0x156/0x1f0 sound/usb/line6/pcm.c:199
+ line6_pcm_acquire+0x134/0x210 sound/usb/line6/pcm.c:322
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x30b/0x410 kernel/kthread.c:254
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 17 Comm: kworker/1:0 Tainted: G    B             5.2.0-rc1+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events toneport_start_pcm
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ panic+0x292/0x6c9 kernel/panic.c:218
+ end_report+0x43/0x49 mm/kasan/report.c:95
+ __kasan_report.cold+0xd/0x32 mm/kasan/report.c:324
+ kasan_report+0xe/0x20 mm/kasan/common.c:614
+ memset+0x20/0x40 mm/kasan/common.c:107
+ memset include/linux/string.h:344 [inline]
+ submit_audio_out_urb+0x919/0x1780 sound/usb/line6/playback.c:246
+ line6_submit_audio_out_all_urbs+0xc9/0x120 sound/usb/line6/playback.c:295
+ line6_stream_start+0x156/0x1f0 sound/usb/line6/pcm.c:199
+ line6_pcm_acquire+0x134/0x210 sound/usb/line6/pcm.c:322
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x30b/0x410 kernel/kthread.c:254
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,126 @@
+
+============================================
+WARNING: possible recursive locking detected
+4.15.0-rc7+ #260 Not tainted
+--------------------------------------------
+syzkaller218108/3657 is trying to acquire lock:
+ (_xmit_ETHER#2){+.-.}, at: [<000000005c439601>] spin_lock include/linux/spinlock.h:310 [inline]
+ (_xmit_ETHER#2){+.-.}, at: [<000000005c439601>] __netif_tx_lock include/linux/netdevice.h:3537 [inline]
+ (_xmit_ETHER#2){+.-.}, at: [<000000005c439601>] sch_direct_xmit+0x280/0x6d0 net/sched/sch_generic.c:185
+
+but task is already holding lock:
+ (_xmit_ETHER#2){+.-.}, at: [<000000005c439601>] spin_lock include/linux/spinlock.h:310 [inline]
+ (_xmit_ETHER#2){+.-.}, at: [<000000005c439601>] __netif_tx_lock include/linux/netdevice.h:3537 [inline]
+ (_xmit_ETHER#2){+.-.}, at: [<000000005c439601>] sch_direct_xmit+0x280/0x6d0 net/sched/sch_generic.c:185
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(_xmit_ETHER#2);
+  lock(_xmit_ETHER#2);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+10 locks held by syzkaller218108/3657:
+ #0:  (&tfile->napi_mutex){+.+.}, at: [<00000000129cc53a>] tun_get_user+0xe5a/0x3710 drivers/net/tun.c:1636
+ #1:  (rcu_read_lock){....}, at: [<000000007677140a>] arch_static_branch arch/x86/include/asm/jump_label.h:36 [inline]
+ #1:  (rcu_read_lock){....}, at: [<000000007677140a>] static_key_false include/linux/jump_label.h:142 [inline]
+ #1:  (rcu_read_lock){....}, at: [<000000007677140a>] netif_receive_skb_internal+0xa2/0x670 net/core/dev.c:4585
+ #2:  (k-slock-AF_INET){+...}, at: [<0000000095e11f1b>] spin_trylock include/linux/spinlock.h:320 [inline]
+ #2:  (k-slock-AF_INET){+...}, at: [<0000000095e11f1b>] icmp_xmit_lock net/ipv4/icmp.c:219 [inline]
+ #2:  (k-slock-AF_INET){+...}, at: [<0000000095e11f1b>] icmp_send+0x75e/0x19d0 net/ipv4/icmp.c:668
+ #3:  (rcu_read_lock_bh){....}, at: [<0000000016d9d0cb>] lwtunnel_xmit_redirect include/net/lwtunnel.h:92 [inline]
+ #3:  (rcu_read_lock_bh){....}, at: [<0000000016d9d0cb>] ip_finish_output2+0x2b6/0x1500 net/ipv4/ip_output.c:213
+ #4:  (rcu_read_lock_bh){....}, at: [<000000007d2deb0a>] __dev_queue_xmit+0x294/0x2920 net/core/dev.c:3434
+ #5:  (dev->qdisc_running_key ?: &qdisc_running_key){+...}, at: [<00000000d2573a7c>] dev_queue_xmit+0x17/0x20 net/core/dev.c:3533
+ #6:  (_xmit_ETHER#2){+.-.}, at: [<000000005c439601>] spin_lock include/linux/spinlock.h:310 [inline]
+ #6:  (_xmit_ETHER#2){+.-.}, at: [<000000005c439601>] __netif_tx_lock include/linux/netdevice.h:3537 [inline]
+ #6:  (_xmit_ETHER#2){+.-.}, at: [<000000005c439601>] sch_direct_xmit+0x280/0x6d0 net/sched/sch_generic.c:185
+ #7:  (rcu_read_lock_bh){....}, at: [<0000000016d9d0cb>] lwtunnel_xmit_redirect include/net/lwtunnel.h:92 [inline]
+ #7:  (rcu_read_lock_bh){....}, at: [<0000000016d9d0cb>] ip_finish_output2+0x2b6/0x1500 net/ipv4/ip_output.c:213
+ #8:  (rcu_read_lock_bh){....}, at: [<000000007d2deb0a>] __dev_queue_xmit+0x294/0x2920 net/core/dev.c:3434
+ #9:  (dev->qdisc_running_key ?: &qdisc_running_key){+...}, at: [<00000000d2573a7c>] dev_queue_xmit+0x17/0x20 net/core/dev.c:3533
+
+stack backtrace:
+CPU: 0 PID: 3657 Comm: syzkaller218108 Not tainted 4.15.0-rc7+ #260
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_deadlock_bug kernel/locking/lockdep.c:1756 [inline]
+ check_deadlock kernel/locking/lockdep.c:1800 [inline]
+ validate_chain kernel/locking/lockdep.c:2396 [inline]
+ __lock_acquire+0xe8f/0x3e00 kernel/locking/lockdep.c:3426
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:144
+ spin_lock include/linux/spinlock.h:310 [inline]
+ __netif_tx_lock include/linux/netdevice.h:3537 [inline]
+ sch_direct_xmit+0x280/0x6d0 net/sched/sch_generic.c:185
+ __dev_xmit_skb net/core/dev.c:3201 [inline]
+ __dev_queue_xmit+0x1ce2/0x2920 net/core/dev.c:3468
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3533
+ neigh_resolve_output+0x5e2/0xa00 net/core/neighbour.c:1350
+ neigh_output include/net/neighbour.h:482 [inline]
+ ip_finish_output2+0x8d2/0x1500 net/ipv4/ip_output.c:229
+ ip_finish_output+0x864/0xd10 net/ipv4/ip_output.c:317
+ NF_HOOK_COND include/linux/netfilter.h:239 [inline]
+ ip_mc_output+0x277/0x1360 net/ipv4/ip_output.c:390
+ dst_output include/net/dst.h:460 [inline]
+ ip_local_out+0x95/0x160 net/ipv4/ip_output.c:124
+ iptunnel_xmit+0x556/0x810 net/ipv4/ip_tunnel_core.c:91
+ ip_tunnel_xmit+0x1780/0x3650 net/ipv4/ip_tunnel.c:786
+ __gre_xmit+0x546/0x8b0 net/ipv4/ip_gre.c:436
+ erspan_xmit+0x409/0x13b0 net/ipv4/ip_gre.c:742
+ __netdev_start_xmit include/linux/netdevice.h:4042 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4051 [inline]
+ xmit_one net/core/dev.c:3003 [inline]
+ dev_hard_start_xmit+0x24e/0xac0 net/core/dev.c:3019
+ sch_direct_xmit+0x31d/0x6d0 net/sched/sch_generic.c:187
+ __dev_xmit_skb net/core/dev.c:3201 [inline]
+ __dev_queue_xmit+0x1ce2/0x2920 net/core/dev.c:3468
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3533
+ neigh_resolve_output+0x5e2/0xa00 net/core/neighbour.c:1350
+ neigh_output include/net/neighbour.h:482 [inline]
+ ip_finish_output2+0x8d2/0x1500 net/ipv4/ip_output.c:229
+ ip_finish_output+0x864/0xd10 net/ipv4/ip_output.c:317
+ NF_HOOK_COND include/linux/netfilter.h:239 [inline]
+ ip_mc_output+0x277/0x1360 net/ipv4/ip_output.c:390
+ dst_output include/net/dst.h:460 [inline]
+ ip_local_out+0x95/0x160 net/ipv4/ip_output.c:124
+ ip_send_skb+0x3c/0xc0 net/ipv4/ip_output.c:1414
+ ip_push_pending_frames+0x64/0x80 net/ipv4/ip_output.c:1434
+ icmp_push_reply+0x395/0x4f0 net/ipv4/icmp.c:394
+ icmp_send+0x1148/0x19d0 net/ipv4/icmp.c:741
+ ip_options_compile+0xc21/0x1a50 net/ipv4/ip_options.c:472
+ ip_rcv_options net/ipv4/ip_input.c:284 [inline]
+ ip_rcv_finish+0x80f/0x1e30 net/ipv4/ip_input.c:365
+ NF_HOOK include/linux/netfilter.h:250 [inline]
+ ip_rcv+0xc5a/0x1840 net/ipv4/ip_input.c:493
+ __netif_receive_skb_core+0x1a41/0x3460 net/core/dev.c:4473
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4538
+ netif_receive_skb_internal+0x10b/0x670 net/core/dev.c:4611
+ napi_frags_finish net/core/dev.c:5052 [inline]
+ napi_gro_frags+0x58a/0xaf0 net/core/dev.c:5125
+ tun_get_user+0x262e/0x3710 drivers/net/tun.c:1757
+ tun_chr_write_iter+0xb9/0x160 drivers/net/tun.c:1800
+ call_write_iter include/linux/fs.h:1772 [inline]
+ do_iter_readv_writev+0x525/0x7f0 fs/read_write.c:653
+ do_iter_write+0x154/0x540 fs/read_write.c:932
+ vfs_writev+0x18a/0x340 fs/read_write.c:977
+ do_writev+0xfc/0x2a0 fs/read_write.c:1012
+ SYSC_writev fs/read_write.c:1085 [inline]
+ SyS_writev+0x27/0x30 fs/read_write.c:1082
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x444f50
+RSP: 002b:00007ffc71764ad8 EFLAGS: 00000246 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 00000000004a6852 RCX: 0000000000444f50
+RDX: 0000000000000001 RSI: 00007ffc71764b10 RDI: 0000000000000003
+RBP: 00007ffc71764c08 R08: 0000000000000023 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffc71764c08
+R13: 0000000000402520 R14: 0000000000000000 R15: 0000000000000000
+syzkaller218108 (3657) used greatest stack depth: 11920 b

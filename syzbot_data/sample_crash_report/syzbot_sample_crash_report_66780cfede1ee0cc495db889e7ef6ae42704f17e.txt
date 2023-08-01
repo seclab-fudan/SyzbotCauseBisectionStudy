@@ -1,0 +1,116 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in __write_once_size include/linux/compiler.h:220 [inline]
+BUG: KASAN: slab-out-of-bounds in __hlist_del include/linux/list.h:702 [inline]
+BUG: KASAN: slab-out-of-bounds in hlist_del_init include/linux/list.h:717 [inline]
+BUG: KASAN: slab-out-of-bounds in __xfrm_policy_unlink+0x977/0xa00 net/xfrm/xfrm_policy.c:2213
+Write of size 8 at addr ffff88806ef65a68 by task syz-executor1/9328
+
+CPU: 1 PID: 9328 Comm: syz-executor1 Not tainted 5.0.0-rc3+ #37
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_store8_noabort+0x17/0x20 mm/kasan/generic_report.c:140
+ __write_once_size include/linux/compiler.h:220 [inline]
+ __hlist_del include/linux/list.h:702 [inline]
+ hlist_del_init include/linux/list.h:717 [inline]
+ __xfrm_policy_unlink+0x977/0xa00 net/xfrm/xfrm_policy.c:2213
+ xfrm_policy_flush+0x331/0x460 net/xfrm/xfrm_policy.c:1789
+ pfkey_spdflush+0xaf/0x3c0 net/key/af_key.c:2785
+ pfkey_process+0x6d2/0x810 net/key/af_key.c:2844
+ pfkey_sendmsg+0x5bb/0xfc0 net/key/af_key.c:3683
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x7ec/0x910 net/socket.c:2116
+ __sys_sendmsg+0x112/0x270 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x458089
+Code: 6d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 3b b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f56cc971c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000458089
+RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 000000000073bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f56cc9726d4
+R13: 00000000004c5600 R14: 00000000004d9340 R15: 00000000ffffffff
+
+Allocated by task 5623:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_kmalloc mm/kasan/common.c:496 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:469
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:504
+ __do_kmalloc mm/slab.c:3711 [inline]
+ __kmalloc+0x15c/0x740 mm/slab.c:3720
+ kmalloc include/linux/slab.h:550 [inline]
+ kzalloc include/linux/slab.h:740 [inline]
+ __register_sysctl_table+0xc7/0xff0 fs/proc/proc_sysctl.c:1306
+ register_net_sysctl+0x29/0x30 net/sysctl_net.c:120
+ neigh_sysctl_register+0x3a5/0x730 net/core/neighbour.c:3664
+ addrconf_sysctl_register+0xbb/0x1e0 net/ipv6/addrconf.c:6792
+ ipv6_add_dev net/ipv6/addrconf.c:446 [inline]
+ ipv6_add_dev+0xb34/0x12c0 net/ipv6/addrconf.c:366
+ addrconf_notify+0xa12/0x25c0 net/ipv6/addrconf.c:3452
+ notifier_call_chain+0x179/0x380 kernel/notifier.c:93
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2e/0x40 kernel/notifier.c:401
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1739
+ call_netdevice_notifiers_extack net/core/dev.c:1751 [inline]
+ call_netdevice_notifiers net/core/dev.c:1765 [inline]
+ register_netdevice+0xae0/0x10b0 net/core/dev.c:8658
+ register_netdev+0x30/0x50 net/core/dev.c:8744
+ vti6_init_net+0x664/0xa10 net/ipv6/ip6_vti.c:1126
+ ops_init+0x109/0x5d0 net/core/net_namespace.c:129
+ setup_net+0x326/0x8c0 net/core/net_namespace.c:314
+ copy_net_ns+0x2ae/0x4b0 net/core/net_namespace.c:437
+ create_new_namespaces+0x4ce/0x930 kernel/nsproxy.c:107
+ unshare_nsproxy_namespaces+0xc2/0x200 kernel/nsproxy.c:206
+ ksys_unshare+0x6d7/0xfb0 kernel/fork.c:2550
+ __do_sys_unshare kernel/fork.c:2618 [inline]
+ __se_sys_unshare kernel/fork.c:2616 [inline]
+ __x64_sys_unshare+0x31/0x40 kernel/fork.c:2616
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+kobject: 'rx-0' (00000000cb3aad32): kobject_add_internal: parent: 'queues', set: 'queues'
+
+Freed by task 9:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:458
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:466
+ __cache_free mm/slab.c:3487 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3806
+ in6_dev_finish_destroy_rcu+0x8a/0xb0 net/ipv6/addrconf_core.c:209
+kobject: 'rx-0' (00000000cb3aad32): kobject_uevent_env
+ __rcu_reclaim kernel/rcu/rcu.h:240 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2452 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2773 [inline]
+ rcu_process_callbacks+0xc4a/0x1680 kernel/rcu/tree.c:2754
+ __do_softirq+0x30b/0xb11 kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff88806ef656c0
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 936 bytes inside of
+ 1024-byte region [ffff88806ef656c0, ffff88806ef65ac0)
+kobject: 'rx-0' (00000000cb3aad32): fill_kobj_path: path = '/devices/virtual/net/bcsf0/queues/rx-0'
+The buggy address belongs to the page:
+page:ffffea0001bbd900 count:1 mapcount:0 mapping:ffff88812c3f0ac0 index:0xffff88806ef65b40 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea000261c808 ffffea0002562888 ffff88812c3f0ac0
+raw: ffff88806ef65b40 ffff88806ef64040 0000000100000004 0000000000000000
+kobject: 'tx-0' (000000008b0a54de): kobject_add_internal: parent: 'queues', set: 'queues'
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88806ef65900: 00 00 fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88806ef65980: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88806ef65a00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                                          ^
+ ffff88806ef65a80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88806ef65b00: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+==================================================================

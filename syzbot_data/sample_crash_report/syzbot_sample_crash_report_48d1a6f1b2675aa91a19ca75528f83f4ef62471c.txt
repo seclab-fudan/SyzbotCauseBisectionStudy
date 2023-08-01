@@ -1,0 +1,178 @@
+vcan0: j1939_xtp_rx_dat_one: 0xffff88802e7ecc00: Data of RX-looped back packet (00 ff ff ff ff ff ff) doesn't match TX data (00 00 00 00 00 00 00)!
+==================================================================
+BUG: KASAN: use-after-free in j1939_xtp_rx_dat_one+0xfc8/0x1030 net/can/j1939/transport.c:1849
+Read of size 1 at addr ffff88807585e54e by task ksoftirqd/1/19
+
+CPU: 1 PID: 19 Comm: ksoftirqd/1 Not tainted 5.13.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ print_address_description.constprop.0.cold+0x6c/0x309 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:436
+ j1939_xtp_rx_dat_one+0xfc8/0x1030 net/can/j1939/transport.c:1849
+ j1939_xtp_rx_dat net/can/j1939/transport.c:1901 [inline]
+ j1939_tp_recv+0x544/0xb40 net/can/j1939/transport.c:2083
+ j1939_can_recv+0x6d7/0x930 net/can/j1939/main.c:101
+ deliver net/can/af_can.c:574 [inline]
+ can_rcv_filter+0x5d4/0x8d0 net/can/af_can.c:608
+ can_receive+0x31d/0x580 net/can/af_can.c:665
+ can_rcv+0x120/0x1c0 net/can/af_can.c:696
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5486
+ __netif_receive_skb+0x24/0x1b0 net/core/dev.c:5600
+ process_backlog+0x2a5/0x6c0 net/core/dev.c:6464
+ __napi_poll+0xaf/0x440 net/core/dev.c:7019
+ napi_poll net/core/dev.c:7086 [inline]
+ net_rx_action+0x801/0xb40 net/core/dev.c:7173
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ run_ksoftirqd kernel/softirq.c:920 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:912
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Allocated by task 32199:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ __kasan_slab_alloc+0x84/0xa0 mm/kasan/common.c:467
+ kasan_slab_alloc include/linux/kasan.h:253 [inline]
+ slab_post_alloc_hook mm/slab.h:512 [inline]
+ slab_alloc_node mm/slub.c:2981 [inline]
+ kmem_cache_alloc_node+0x266/0x3e0 mm/slub.c:3017
+ __alloc_skb+0x20b/0x340 net/core/skbuff.c:414
+ alloc_skb include/linux/skbuff.h:1112 [inline]
+ alloc_skb_with_frags+0x93/0x620 net/core/skbuff.c:6004
+ sock_alloc_send_pskb+0x793/0x920 net/core/sock.c:2400
+ j1939_sk_alloc_skb net/can/j1939/socket.c:861 [inline]
+ j1939_sk_send_loop net/can/j1939/socket.c:1043 [inline]
+ j1939_sk_sendmsg+0x6eb/0x13e0 net/can/j1939/socket.c:1178
+ sock_sendmsg_nosec net/socket.c:702 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:722
+ sock_no_sendpage+0xf3/0x130 net/core/sock.c:2898
+ kernel_sendpage.part.0+0x1a0/0x340 net/socket.c:3666
+ kernel_sendpage net/socket.c:3663 [inline]
+ sock_sendpage+0xe5/0x140 net/socket.c:995
+ pipe_to_sendpage+0x2ad/0x380 fs/splice.c:364
+ splice_from_pipe_feed fs/splice.c:418 [inline]
+ __splice_from_pipe+0x43e/0x8a0 fs/splice.c:562
+ splice_from_pipe fs/splice.c:597 [inline]
+ generic_splice_sendpage+0xd4/0x140 fs/splice.c:746
+ do_splice_from fs/splice.c:767 [inline]
+ direct_splice_actor+0x110/0x180 fs/splice.c:936
+ splice_direct_to_actor+0x34b/0x8c0 fs/splice.c:891
+ do_splice_direct+0x1b3/0x280 fs/splice.c:979
+ do_sendfile+0x9f0/0x1120 fs/read_write.c:1260
+ __do_sys_sendfile64 fs/read_write.c:1325 [inline]
+ __se_sys_sendfile64 fs/read_write.c:1311 [inline]
+ __x64_sys_sendfile64+0x1cc/0x210 fs/read_write.c:1311
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 13:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:360
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free mm/kasan/common.c:328 [inline]
+ __kasan_slab_free+0xfb/0x130 mm/kasan/common.c:374
+ kasan_slab_free include/linux/kasan.h:229 [inline]
+ slab_free_hook mm/slub.c:1650 [inline]
+ slab_free_freelist_hook+0xdf/0x240 mm/slub.c:1675
+ slab_free mm/slub.c:3235 [inline]
+ kmem_cache_free+0x8e/0x5a0 mm/slub.c:3251
+ kfree_skbmem+0xef/0x1b0 net/core/skbuff.c:688
+ __kfree_skb net/core/skbuff.c:745 [inline]
+ kfree_skb net/core/skbuff.c:762 [inline]
+ kfree_skb+0x140/0x3f0 net/core/skbuff.c:756
+ j1939_session_skb_drop_old net/can/j1939/transport.c:336 [inline]
+ j1939_xtp_rx_cts_one net/can/j1939/transport.c:1418 [inline]
+ j1939_xtp_rx_cts+0xbd6/0x1170 net/can/j1939/transport.c:1457
+ j1939_tp_cmd_recv net/can/j1939/transport.c:2027 [inline]
+ j1939_tp_recv+0x8be/0xb40 net/can/j1939/transport.c:2093
+ j1939_can_recv+0x6d7/0x930 net/can/j1939/main.c:101
+ deliver net/can/af_can.c:574 [inline]
+ can_rcv_filter+0x5d4/0x8d0 net/can/af_can.c:608
+ can_receive+0x31d/0x580 net/can/af_can.c:665
+ can_rcv+0x120/0x1c0 net/can/af_can.c:696
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5486
+ __netif_receive_skb+0x24/0x1b0 net/core/dev.c:5600
+ process_backlog+0x2a5/0x6c0 net/core/dev.c:6464
+ __napi_poll+0xaf/0x440 net/core/dev.c:7019
+ napi_poll net/core/dev.c:7086 [inline]
+ net_rx_action+0x801/0xb40 net/core/dev.c:7173
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+
+The buggy address belongs to the object at ffff88807585e500
+ which belongs to the cache skbuff_head_cache of size 232
+The buggy address is located 78 bytes inside of
+ 232-byte region [ffff88807585e500, ffff88807585e5e8)
+The buggy address belongs to the page:
+page:ffffea0001d61780 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x7585e
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 0000000000000000 0000000a00000001 ffff888015da6140
+raw: 0000000000000000 00000000000c000c 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12a20(GFP_ATOMIC|__GFP_NOWARN|__GFP_NORETRY), pid 13, ts 584971419545, free_ts 578522630447
+ prep_new_page mm/page_alloc.c:2433 [inline]
+ get_page_from_freelist+0xa72/0x2f80 mm/page_alloc.c:4166
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5374
+ alloc_pages+0x18c/0x2a0 mm/mempolicy.c:2244
+ alloc_slab_page mm/slub.c:1713 [inline]
+ allocate_slab+0x32b/0x4c0 mm/slub.c:1853
+ new_slab mm/slub.c:1916 [inline]
+ new_slab_objects mm/slub.c:2662 [inline]
+ ___slab_alloc+0x4ba/0x820 mm/slub.c:2825
+ __slab_alloc.constprop.0+0xa7/0xf0 mm/slub.c:2865
+ slab_alloc_node mm/slub.c:2947 [inline]
+ slab_alloc mm/slub.c:2989 [inline]
+ kmem_cache_alloc+0x372/0x3a0 mm/slub.c:2994
+ skb_clone+0x170/0x3c0 net/core/skbuff.c:1504
+ can_send+0x622/0x9a0 net/can/af_can.c:261
+ j1939_send_one+0x288/0x340 net/can/j1939/main.c:338
+ j1939_tp_tx_dat net/can/j1939/transport.c:631 [inline]
+ j1939_session_tx_dat net/can/j1939/transport.c:822 [inline]
+ j1939_xtp_txnext_transmiter net/can/j1939/transport.c:884 [inline]
+ j1939_tp_txtimer+0x83c/0x27c0 net/can/j1939/transport.c:1140
+ __run_hrtimer kernel/time/hrtimer.c:1537 [inline]
+ __hrtimer_run_queues+0x609/0xe50 kernel/time/hrtimer.c:1601
+ hrtimer_run_softirq+0x17b/0x360 kernel/time/hrtimer.c:1618
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ run_ksoftirqd kernel/softirq.c:920 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:912
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1343 [inline]
+ free_pcp_prepare+0x2c5/0x780 mm/page_alloc.c:1394
+ free_unref_page_prepare mm/page_alloc.c:3329 [inline]
+ free_unref_page_list+0x1a1/0x1050 mm/page_alloc.c:3445
+ release_pages+0x824/0x20b0 mm/swap.c:972
+ tlb_batch_pages_flush mm/mmu_gather.c:49 [inline]
+ tlb_flush_mmu_free mm/mmu_gather.c:242 [inline]
+ tlb_flush_mmu mm/mmu_gather.c:249 [inline]
+ tlb_finish_mmu+0x165/0x8c0 mm/mmu_gather.c:340
+ exit_mmap+0x1ea/0x620 mm/mmap.c:3203
+ __mmput+0x122/0x470 kernel/fork.c:1101
+ mmput+0x58/0x60 kernel/fork.c:1122
+ exit_mm kernel/exit.c:501 [inline]
+ do_exit+0xae2/0x2a60 kernel/exit.c:812
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ __do_sys_exit_group kernel/exit.c:933 [inline]
+ __se_sys_exit_group kernel/exit.c:931 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:931
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Memory state around the buggy address:
+ ffff88807585e400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88807585e480: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
+>ffff88807585e500: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                              ^
+ ffff88807585e580: fb fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc
+ ffff88807585e600: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+==================================================================

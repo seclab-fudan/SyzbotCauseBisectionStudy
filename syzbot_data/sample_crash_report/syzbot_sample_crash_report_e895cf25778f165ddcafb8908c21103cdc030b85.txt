@@ -1,0 +1,460 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in __d_lookup_rcu+0x8c9/0xaa0 fs/dcache.c:2211
+Read of size 8 at addr ffff880198d04640 by task syz-executor1/9617
+
+CPU: 1 PID: 9617 Comm: syz-executor1 Not tainted 4.18.0-rc3+ #58
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __d_lookup_rcu+0x8c9/0xaa0 fs/dcache.c:2211
+ lookup_fast+0x13e/0x12a0 fs/namei.c:1530
+ walk_component+0x13d/0x2630 fs/namei.c:1765
+ lookup_last fs/namei.c:2237 [inline]
+ path_lookupat.isra.45+0x202/0xbf0 fs/namei.c:2287
+ filename_lookup+0x264/0x510 fs/namei.c:2321
+ user_path_at_empty+0x40/0x50 fs/namei.c:2584
+ user_path_at include/linux/namei.h:57 [inline]
+ ksys_chdir+0xc0/0x230 fs/open.c:450
+ __do_sys_chdir fs/open.c:472 [inline]
+ __se_sys_chdir fs/open.c:470 [inline]
+ __x64_sys_chdir+0x31/0x40 fs/open.c:470
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4550c7
+Code: 44 00 00 b8 21 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 fd c3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 b8 50 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 dd c3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007fff19be4828 EFLAGS: 00000217 ORIG_RAX: 0000000000000050
+RAX: ffffffffffffffda RBX: 0000000000000013 RCX: 00000000004550c7
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007fff19be5500
+RBP: 0000000000000013 R08: 0000000000000000 R09: 0000000000ecb940
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000000000
+R13: 0000000000000000 R14: 00007fff19be4ed0 R15: 00000000007034c0
+
+Allocated by task 4479:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ __d_alloc+0xc8/0xd50 fs/dcache.c:1616
+ d_alloc+0x96/0x380 fs/dcache.c:1700
+ __lookup_hash+0xd9/0x190 fs/namei.c:1501
+ filename_create+0x1e5/0x5b0 fs/namei.c:3646
+ user_path_create fs/namei.c:3703 [inline]
+ do_mkdirat+0xda/0x310 fs/namei.c:3842
+ __do_sys_mkdir fs/namei.c:3866 [inline]
+ __se_sys_mkdir fs/namei.c:3864 [inline]
+ __x64_sys_mkdir+0x5c/0x80 fs/namei.c:3864
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 8350:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+ __d_free+0x20/0x30 fs/dcache.c:257
+ __rcu_reclaim kernel/rcu/rcu.h:178 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2558 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2818 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2785 [inline]
+ rcu_process_callbacks+0xed5/0x1850 kernel/rcu/tree.c:2802
+ __do_softirq+0x2e8/0xb17 kernel/softirq.c:288
+
+The buggy address belongs to the object at ffff880198d04600
+ which belongs to the cache dentry(129:syz1) of size 288
+The buggy address is located 64 bytes inside of
+ 288-byte region [ffff880198d04600, ffff880198d04720)
+The buggy address belongs to the page:
+page:ffffea0006634100 count:1 mapcount:0 mapping:ffff8801d797d180 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0006633a08 ffffea0006634808 ffff8801d797d180
+raw: 0000000000000000 ffff880198d04080 000000010000000b ffff8801ae142c40
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff8801ae142c40
+
+Memory state around the buggy address:
+ ffff880198d04500: f2 f2 f2 f2 f2 f8 f2 f2 f2 f2 f2 f2 f2 00 f2 f2
+ ffff880198d04580: f2 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff880198d04600: 00 00 00 00 00 00 f1 f1 f1 f1 00 f2 f2 f2 f2 f2
+                                           ^
+ ffff880198d04680: f2 f2 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2
+ ffff880198d04700: f2 f2 f8 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 00 00
+==================================================================
+BUG: unable to handle kernel paging request at ffff8801ad86f6d4
+PGD b4e2067 P4D b4e2067 PUD 1b75db063 PMD 195320063 PTE ffff8801b3a8d5c0
+Oops: 0002 [#1] SMP KASAN
+CPU: 1 PID: 9617 Comm: syz-executor1 Tainted: G    B             4.18.0-rc3+ #58
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:atomic_inc include/asm-generic/atomic-instrumented.h:102 [inline]
+RIP: 0010:ip6_dst_alloc+0x80/0xa0 net/ipv6/route.c:358
+Code: 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 2c 4d 8b a4 24 b8 0c 00 00 be 04 00 00 00 49 8d 7c 24 14 e8 c0 85 1c fb <f0> 41 ff 44 24 14 e8 25 6c de fa 48 89 d8 5b 41 5c 41 5d 5d c3 e8 
+RSP: 0018:ffff8801daf07420 EFLAGS: 00010246
+RAX: ffffed0035b0dedb RBX: ffff8801c7c4b500 RCX: ffffffff869d9fa0
+RDX: 0000000000000001 RSI: 0000000000000004 RDI: ffff8801ad86f6d4
+RBP: ffff8801daf07438 R08: ffffed0035b0dedb R09: ffffed0035b0deda
+R10: ffffed0035b0deda R11: ffff8801ad86f6d7 R12: ffff8801ad86f6c0
+R13: 0000000000000000 R14: ffff8801daf075d8 R15: ffff8801a34180c0
+FS:  0000000000ecb940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff8801ad86f6d4 CR3: 000000019da9b000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ icmp6_dst_alloc+0x245/0x750 net/ipv6/route.c:2668
+ ndisc_send_skb+0x10a0/0x1570 net/ipv6/ndisc.c:471
+ ndisc_send_rs+0x134/0x6e0 net/ipv6/ndisc.c:685
+ addrconf_rs_timer+0x314/0x690 net/ipv6/addrconf.c:3818
+ call_timer_fn+0x242/0x970 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0x7a6/0xc70 kernel/time/timer.c:1666
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x2e8/0xb17 kernel/softirq.c:288
+ invoke_softirq kernel/softirq.c:368 [inline]
+ irq_exit+0x1d1/0x200 kernel/softirq.c:408
+ exiting_irq arch/x86/include/asm/apic.h:527 [inline]
+ smp_apic_timer_interrupt+0x186/0x730 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+Code: 68 b0 f1 88 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 21 48 83 3d 9e 94 5a 01 00 74 0e 48 89 df 57 9d <0f> 1f 44 00 00 eb bb 0f 0b 0f 0b e8 9f 19 23 fa eb 97 e8 98 19 23 
+RSP: 0018:ffff8801a8d874b0 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: 0000000000000282 RCX: ffffffff81601b77
+RDX: 1ffffffff11e360d RSI: 0000000000000004 RDI: 0000000000000282
+RBP: ffff8801a8d874c0 R08: fffffbfff12053b1 R09: fffffbfff12053b0
+R10: fffffbfff12053b0 R11: ffffffff89029d83 R12: ffffffff89029d80
+R13: 0000000000000000 R14: ffffffff81cb95e9 R15: ffff880198d04640
+ spin_unlock_irqrestore include/linux/spinlock.h:365 [inline]
+ kasan_end_report+0x32/0x4f mm/kasan/report.c:178
+ kasan_report_error mm/kasan/report.c:359 [inline]
+ kasan_report.cold.7+0x76/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __d_lookup_rcu+0x8c9/0xaa0 fs/dcache.c:2211
+ lookup_fast+0x13e/0x12a0 fs/namei.c:1530
+ walk_component+0x13d/0x2630 fs/namei.c:1765
+ lookup_last fs/namei.c:2237 [inline]
+ path_lookupat.isra.45+0x202/0xbf0 fs/namei.c:2287
+ filename_lookup+0x264/0x510 fs/namei.c:2321
+ user_path_at_empty+0x40/0x50 fs/namei.c:2584
+ user_path_at include/linux/namei.h:57 [inline]
+ ksys_chdir+0xc0/0x230 fs/open.c:450
+ __do_sys_chdir fs/open.c:472 [inline]
+ __se_sys_chdir fs/open.c:470 [inline]
+ __x64_sys_chdir+0x31/0x40 fs/open.c:470
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4550c7
+Code: 44 00 00 b8 21 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 fd c3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 b8 50 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 dd c3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007fff19be4828 EFLAGS: 00000217 ORIG_RAX: 0000000000000050
+RAX: ffffffffffffffda RBX: 0000000000000013 RCX: 00000000004550c7
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007fff19be5500
+RBP: 0000000000000013 R08: 0000000000000000 R09: 0000000000ecb940
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000000000
+R13: 0000000000000000 R14: 00007fff19be4ed0 R15: 00000000007034c0
+Modules linked in:
+Dumping ftrace buffer:
+---------------------------------
+syz-exec-8304    1...2 68194847us : 0: }D
+syz-exec-8304    1...2 68194855us : 0: }D
+syz-exec-8304    1...2 68194858us : 0: }D
+syz-exec-8304    1...2 68194861us : 0: }D
+syz-exec-8304    1...2 68194863us : 0: }D
+syz-exec-8304    1...2 68194866us : 0: }D
+syz-exec-8304    1...2 68194869us : 0: }D
+syz-exec-8304    1...2 68194871us : 0: }D
+syz-exec-8304    1...2 68194874us : 0: }D
+syz-exec-8304    1...2 68194877us : 0: }D
+syz-exec-8304    1...2 68194879us : 0: }D
+syz-exec-8304    1...2 68194881us : 0: }D
+syz-exec-8304    1...2 68194884us : 0: }D
+syz-exec-8304    1...2 68194887us : 0: }D
+syz-exec-8304    1...2 68194889us : 0: }D
+syz-exec-8304    1...2 68194892us : 0: }D
+syz-exec-8304    1...2 68194894us : 0: }D
+syz-exec-8304    1...2 68194896us : 0: }D
+syz-exec-8304    1...2 68194899us : 0: }D
+syz-exec-8304    1...2 68194901us : 0: }D
+syz-exec-8304    1...2 68194904us : 0: }D
+syz-exec-8304    1...2 68194907us : 0: }D
+syz-exec-8304    1...2 68194910us : 0: }D
+syz-exec-8304    1...2 68194912us : 0: }D
+syz-exec-8304    1...2 68194915us : 0: }D
+syz-exec-8304    1...2 68194917us : 0: }D
+syz-exec-8304    1...2 68194920us : 0: }D
+syz-exec-8304    1...2 68194922us : 0: }D
+syz-exec-8304    1...2 68194925us : 0: }D
+syz-exec-8304    1...2 68194927us : 0: }D
+syz-exec-8304    1...2 68194929us : 0: }D
+syz-exec-8304    1...2 68194931us : 0: }D
+syz-exec-8304    1...2 68194933us : 0: }D
+syz-exec-8304    1...2 68194935us : 0: }D
+syz-exec-8304    1...2 68194937us : 0: }D
+syz-exec-8304    1...2 68194939us : 0: }D
+syz-exec-8304    1...2 68194941us : 0: }D
+syz-exec-8304    1...2 68194944us : 0: }D
+syz-exec-8304    1...2 68194946us : 0: }D
+syz-exec-8304    1...2 68194948us : 0: }D
+syz-exec-8304    1...2 68194950us : 0: }D
+syz-exec-8304    1...2 68194953us : 0: }D
+syz-exec-8304    1...2 68194955us : 0: }D
+syz-exec-8304    1...2 68194957us : 0: }D
+syz-exec-8304    1...2 68194960us : 0: }D
+syz-exec-8304    1...2 68194962us : 0: }D
+syz-exec-8304    1...2 68194964us : 0: }D
+syz-exec-8304    1...2 68194966us : 0: }D
+syz-exec-8304    1...2 68194968us : 0: }D
+syz-exec-8304    1...2 68194971us : 0: }D
+syz-exec-8304    1...2 68194973us : 0: }D
+syz-exec-8304    1...2 68194976us : 0: }D
+syz-exec-8304    1...2 68194978us : 0: }D
+syz-exec-8304    1...2 68194980us : 0: }D
+syz-exec-8304    1...2 68194983us : 0: }D
+syz-exec-8304    1...2 68194985us : 0: }D
+syz-exec-8304    1...2 68194988us : 0: }D
+syz-exec-8304    1...2 68194990us : 0: }D
+syz-exec-8304    1...2 68194992us : 0: }D
+syz-exec-8304    1...2 68194995us : 0: }D
+syz-exec-8304    1...2 68194997us : 0: }D
+syz-exec-8304    1...2 68195000us : 0: }D
+syz-exec-8304    1...2 68195002us : 0: }D
+syz-exec-8304    1...2 68195004us : 0: }D
+syz-exec-8304    1...2 68195006us : 0: }D
+syz-exec-8304    1...2 68195008us : 0: }D
+syz-exec-8304    1...2 68195011us : 0: }D
+syz-exec-8304    1...2 68195013us : 0: }D
+syz-exec-8304    1...2 68195016us : 0: }D
+syz-exec-8304    1...2 68195018us : 0: }D
+syz-exec-8304    1...2 68195021us : 0: }D
+syz-exec-8304    1...2 68195023us : 0: }D
+syz-exec-8304    1...2 68195026us : 0: }D
+syz-exec-8304    1...2 68195028us : 0: }D
+syz-exec-8304    1...2 68195031us : 0: }D
+syz-exec-8304    1...2 68195033us : 0: }D
+syz-exec-8304    1...2 68195036us : 0: }D
+syz-exec-8304    1...2 68195038us : 0: }D
+syz-exec-8304    1...2 68195040us : 0: }D
+syz-exec-8304    1...2 68195043us : 0: }D
+syz-exec-8304    1...2 68195045us : 0: }D
+syz-exec-8304    1...2 68195048us : 0: }D
+syz-exec-8304    1...2 68195050us : 0: }D
+syz-exec-8304    1...2 68195053us : 0: }D
+syz-exec-8304    1...2 68195055us : 0: }D
+syz-exec-8304    1...2 68195058us : 0: }D
+syz-exec-8304    1...2 68195060us : 0: }D
+syz-exec-8304    1...2 68195062us : 0: }D
+syz-exec-8304    1...2 68195065us : 0: }D
+syz-exec-8304    1...2 68195067us : 0: }D
+syz-exec-8304    1...2 68195069us : 0: }D
+syz-exec-8304    1...2 68195071us : 0: }D
+syz-exec-8304    1...2 68195074us : 0: }D
+syz-exec-8304    1...2 68195076us : 0: }D
+syz-exec-8304    1...2 68195078us : 0: }D
+syz-exec-8304    1...2 68195081us : 0: }D
+syz-exec-8304    1...2 68195083us : 0: }D
+syz-exec-8304    1...2 68195085us : 0: }D
+syz-exec-8304    1...2 68195087us : 0: }D
+syz-exec-8304    1...2 68195090us : 0: }D
+syz-exec-8304    1...2 68195092us : 0: }D
+syz-exec-8304    1...2 68195103us : 0: }D
+syz-exec-8304    1...2 68195106us : 0: }D
+syz-exec-8304    1...2 68195108us : 0: }D
+syz-exec-8304    1...2 68195110us : 0: }D
+syz-exec-8304    1...2 68195112us : 0: }D
+syz-exec-8304    1...2 68195115us : 0: }D
+syz-exec-8304    1...2 68195117us : 0: }D
+syz-exec-8304    1...2 68195119us : 0: }D
+syz-exec-8304    1...2 68195122us : 0: }D
+syz-exec-8304    1...2 68195125us : 0: }D
+syz-exec-8304    1...2 68195127us : 0: }D
+syz-exec-8304    1...2 68195129us : 0: }D
+syz-exec-8304    1...2 68195132us : 0: }D
+syz-exec-8304    1...2 68195134us : 0: }D
+syz-exec-8304    1...2 68195137us : 0: }D
+syz-exec-8304    1...2 68195139us : 0: }D
+syz-exec-8304    1...2 68195142us : 0: }D
+syz-exec-8304    1...2 68195145us : 0: }D
+syz-exec-8304    1...2 68195147us : 0: }D
+syz-exec-8304    1...2 68195150us : 0: }D
+syz-exec-8304    1...2 68195153us : 0: }D
+syz-exec-8304    1...2 68195155us : 0: }D
+syz-exec-8304    1...2 68195157us : 0: }D
+syz-exec-8304    1...2 68195161us : 0: }D
+syz-exec-8304    1...2 68195163us : 0: }D
+syz-exec-8304    1...2 68195165us : 0: }D
+syz-exec-8304    1...2 68195167us : 0: }D
+syz-exec-8304    1...2 68195170us : 0: }D
+syz-exec-8304    1...2 68195172us : 0: }D
+syz-exec-8304    1...2 68195174us : 0: }D
+syz-exec-8304    1...2 68195177us : 0: }D
+syz-exec-8304    1...2 68195179us : 0: }D
+syz-exec-8304    1...2 68195181us : 0: }D
+syz-exec-8304    1...2 68195183us : 0: }D
+syz-exec-8304    1...2 68195186us : 0: }D
+syz-exec-8304    1...2 68195188us : 0: }D
+syz-exec-8304    1...2 68195190us : 0: }D
+syz-exec-8304    1...2 68195193us : 0: }D
+syz-exec-8304    1...2 68195195us : 0: }D
+syz-exec-8304    1...2 68195198us : 0: }D
+syz-exec-8304    1...2 68195200us : 0: }D
+syz-exec-8304    1...2 68195202us : 0: }D
+syz-exec-8304    1...2 68195205us : 0: }D
+syz-exec-8304    1...2 68195207us : 0: }D
+syz-exec-8304    1...2 68195209us : 0: }D
+syz-exec-8304    1...2 68195211us : 0: }D
+syz-exec-8304    1...2 68195214us : 0: }D
+syz-exec-8304    1...2 68195216us : 0: }D
+syz-exec-8304    1...2 68195218us : 0: }D
+syz-exec-8304    1...2 68195221us : 0: }D
+syz-exec-8304    1...2 68195224us : 0: }D
+syz-exec-8304    1...2 68195226us : 0: }D
+syz-exec-8304    1...2 68195228us : 0: }D
+syz-exec-8304    1...2 68195230us : 0: }D
+syz-exec-8304    1...2 68195233us : 0: }D
+syz-exec-8304    1...2 68195235us : 0: }D
+syz-exec-8304    1...2 68195237us : 0: }D
+syz-exec-8304    1...2 68195240us : 0: }D
+syz-exec-8304    1...2 68195243us : 0: }D
+syz-exec-8304    1...2 68195245us : 0: }D
+syz-exec-8304    1...2 68195247us : 0: }D
+syz-exec-8304    1...2 68195250us : 0: }D
+syz-exec-8304    1...2 68195252us : 0: }D
+syz-exec-8304    1...2 68195255us : 0: }D
+syz-exec-8304    1...2 68195257us : 0: }D
+syz-exec-8304    1...2 68195259us : 0: }D
+syz-exec-8304    1...2 68195262us : 0: }D
+syz-exec-8304    1...2 68195264us : 0: }D
+syz-exec-8304    1...2 68195269us : 0: }D
+syz-exec-8304    1...2 68195272us : 0: }D
+syz-exec-8304    1...2 68195275us : 0: }D
+syz-exec-8304    1...2 68195277us : 0: }D
+syz-exec-8304    1...2 68195279us : 0: }D
+syz-exec-8304    1...2 68195282us : 0: }D
+syz-exec-8304    1...2 68195284us : 0: }D
+syz-exec-8304    1...2 68195287us : 0: }D
+syz-exec-8304    1...2 68195289us : 0: }D
+syz-exec-8304    1...2 68195291us : 0: }D
+syz-exec-8304    1...2 68195294us : 0: }D
+syz-exec-8304    1...2 68195296us : 0: }D
+syz-exec-8304    1...2 68195298us : 0: }D
+syz-exec-8304    1...2 68195301us : 0: }D
+syz-exec-8304    1...2 68195303us : 0: }D
+syz-exec-8304    1...2 68195306us : 0: }D
+syz-exec-8304    1...2 68195308us : 0: }D
+syz-exec-8304    1...2 68195311us : 0: }D
+syz-exec-8304    1...2 68195313us : 0: }D
+syz-exec-8304    1...2 68195315us : 0: }D
+syz-exec-8304    1...2 68195318us : 0: }D
+syz-exec-8304    1...2 68195320us : 0: }D
+syz-exec-8304    1...2 68195323us : 0: }D
+syz-exec-8304    1...2 68195325us : 0: }D
+syz-exec-8304    1...2 68195327us : 0: }D
+syz-exec-8304    1...2 68195329us : 0: }D
+syz-exec-8304    1...2 68195332us : 0: }D
+PANIC: double fault, error_code: 0x0
+syz-exec-8304    1...2 68195334us : 0: }D
+CPU: 0 PID: 9592 Comm: syz-executor3 Tainted: G    B             4.18.0-rc3+ #58
+syz-exec-8304    1...2 68195336us : 0: }D
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__lock_acquire+0x2e/0x5020 kernel/locking/lockdep.c:3294
+syz-exec-8304    1...2 68195339us : 0: }D
+Code: 41 
+syz-exec-8304    1...2 68195341us : 0: }D
+57 41 
+syz-exec-8304    1...2 68195343us : 0: }D
+89 
+syz-exec-8304    1...2 68195345us : 0: }D
+cf 41 
+syz-exec-8304    1...2 68195348us : 0: }D
+56 41 
+syz-exec-8304    1...2 68195350us : 0: }D
+55 49 
+syz-exec-8304    1...2 68195352us : 0: }D
+89 
+syz-exec-8304    1...2 68195355us : 0: }D
+fd 41 
+syz-exec-8304    1...2 68195357us : 0: }D
+54 45 
+syz-exec-8304    1...2 68195359us : 0: }D
+89 cc 
+syz-exec-8304    1...2 68195362us : 0: }D
+53 65 
+syz-exec-8304    1...2 68195364us : 0: }D
+4c 8b 
+syz-exec-8304    1...2 68195366us : 0: }D
+34 25 
+syz-exec-8304    1...2 68195368us : 0: }D
+40 ee 
+syz-exec-8304    1...2 68195371us : 0: }D
+01 
+syz-exec-8304    1...2 68195373us : 0: }D
+00 
+syz-exec-8304    1...2 68195375us : 0: }D
+48 83 
+syz-exec-8304    1...2 68195378us : 0: }D
+e4 f0 
+syz-exec-8304    1...2 68195380us : 0: }D
+48 81 
+syz-exec-8304    1...2 68195382us : 0: }D
+ec 60 
+syz-exec-8304    1...2 68195385us : 0: }D
+03 
+syz-exec-8304    1...2 68195387us : 0: }D
+00 00 
+syz-exec-8304    1...2 68195389us : 0: }D
+48 8b 
+syz-exec-8304    1...2 68195392us : 0: }D
+45 10 
+syz-exec-8304    1...2 68195394us : 0: }D
+<89> 94 
+syz-exec-8304    1...2 68195396us : 0: }D
+24 80 
+syz-exec-8304    1...2 68195398us : 0: }D
+00 00 
+syz-exec-8304    1...2 68195401us : 0: }D
+00 48 
+syz-exec-8304    1...2 68195403us : 0: }D
+ba 00 
+syz-exec-8304    1...2 68195405us : 0: }D
+00 00 
+syz-exec-8304    1...2 68195408us : 0: }D
+00 00 
+syz-exec-8304    1...2 68195410us : 0: }D
+fc ff 
+syz-exec-8304    1...2 68195412us : 0: }D
+df 48 
+syz-exec-8304    1...2 68195415us : 0: }D
+89 84 
+syz-exec-8304    1...2 68195417us : 0: }D
+24 98 
+syz-exec-8304    1...2 68195420us : 0: }D
+RSP: 0018:ffff8800fffffda0 EFLAGS: 00010086
+syz-exec-8304    1...2 68195422us : 0: }D
+syz-exec-8304    1...2 68195425us : 0: }D
+RAX: 0000000000000000 RBX: 1ffff10020000031 RCX: 0000000000000002
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff88f92620
+syz-exec-8304    1...2 68195427us : 0: }D
+RBP: ffff880100000130 R08: 0000000000000000 R09: 0000000000000000
+R10: ffff880199d57be0 R11: ffff88019ead4d7b R12: 0000000000000000
+syz-exec-8304    1...2 68195429us : 0: }D
+R13: ffffffff88f92620 R14: ffff88019ead4600 R15: 0000000000000002
+syz-exec-8304    1...2 68195431us : 0: }D
+FS:  0000000001065940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+syz-exec-8304    1...2 68195434us : 0: }D
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff8800fffffd98 CR3: 00000001b6305000 CR4: 00000000001406f0
+syz-exec-8304    1...2 68195436us : 0: }D
+DR0: 0000000020000000 DR1: 0000000000000000 DR2: 0000000000000000
+syz-exec-8304    1...2 68195438us : 0: }D
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+syz-exec-8304    1...2 68195441us : 0: }D
+Call Trace:
+syz-exec-8304    1...2 68195443us : 0: }D

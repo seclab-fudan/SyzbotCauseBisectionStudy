@@ -1,0 +1,25 @@
+==================================================================
+BUG: KCSAN: data-race in __se_sys_perf_event_open / find_get_context
+
+write to 0xffff888237c2d520 of 4 bytes by task 4144 on cpu 0:
+ find_get_context+0x310/0x5c0 kernel/events/core.c:4612
+ __do_sys_perf_event_open kernel/events/core.c:12085 [inline]
+ __se_sys_perf_event_open+0x85e/0x2740 kernel/events/core.c:11921
+ __x64_sys_perf_event_open+0x63/0x70 kernel/events/core.c:11921
+ do_syscall_64+0x4a/0x90 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+read to 0xffff888237c2d520 of 4 bytes by task 4145 on cpu 1:
+ perf_unpin_context kernel/events/core.c:1520 [inline]
+ __do_sys_perf_event_open kernel/events/core.c:12316 [inline]
+ __se_sys_perf_event_open+0x1be2/0x2740 kernel/events/core.c:11921
+ __x64_sys_perf_event_open+0x63/0x70 kernel/events/core.c:11921
+ do_syscall_64+0x4a/0x90 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+value changed: 0x00000001 -> 0x00000002
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 4145 Comm: syz-executor.4 Not tainted 5.13.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

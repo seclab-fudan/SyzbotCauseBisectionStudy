@@ -1,0 +1,37 @@
+BUG: spinlock already unlocked on CPU#0, syz-executor217/1716
+ lock: 0xffff8881cfeb5210, .magic: dead4ead, .owner: syz-executor217/1716, .owner_cpu: 0
+CPU: 0 PID: 1716 Comm: syz-executor217 Not tainted 5.4.0-rc6+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ spin_bug kernel/locking/spinlock_debug.c:75 [inline]
+ debug_spin_unlock kernel/locking/spinlock_debug.c:98 [inline]
+ do_raw_spin_unlock+0x163/0x220 kernel/locking/spinlock_debug.c:138
+ __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:159 [inline]
+ _raw_spin_unlock_irqrestore+0x23/0x50 kernel/locking/spinlock.c:191
+ spin_unlock_irqrestore include/linux/spinlock.h:393 [inline]
+ input_set_keycode+0x125/0x320 drivers/input/input.c:958
+ evdev_handle_set_keycode_v2+0xc4/0x120 drivers/input/evdev.c:882
+ evdev_do_ioctl drivers/input/evdev.c:1150 [inline]
+ evdev_ioctl_handler+0xd49/0x19f0 drivers/input/evdev.c:1284
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd2d/0x1330 fs/ioctl.c:696
+ ksys_ioctl+0x9b/0xc0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:718
+ do_syscall_64+0xb7/0x580 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x444ca9
+Code: e8 bc af 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b d8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffc61f97448 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000444ca9
+RDX: 0000000020000140 RSI: 0000000040284504 RDI: 0000000000000004
+RBP: 00000000006cf018 R08: 090b000000008300 R09: 00000000004002e0
+R10: 000000000000000f R11: 0000000000000246 R12: 0000000000402950
+R13: 00000000004029e0 R14: 0000000000000000 R15: 0000000000000000
+------------[ cut here ]------------
+pvqspinlock: lock 0xffff8881cfeb5210 has corrupted value 0x0!
+WARNING: CPU: 0 PID: 1716 at kernel/locking/qspinlock_paravirt.h:498 __pv_queued_spin_unlock_slowpath+0x1c0/0x220 kernel/locking/qspinlock_paravirt.h:498

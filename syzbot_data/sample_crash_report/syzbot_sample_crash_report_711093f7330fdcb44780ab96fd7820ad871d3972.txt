@@ -1,0 +1,64 @@
+Unable to handle kernel paging request at virtual address 0030303030303070
+Mem abort info:
+  ESR = 0x0000000096000004
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000004
+  CM = 0, WnR = 0
+[0030303030303070] address between user and kernel address ranges
+Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 3118 Comm: syz-executor.1 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __kmem_cache_alloc_node+0x17c/0x350 mm/slub.c:3437
+lr : slab_pre_alloc_hook mm/slab.h:712 [inline]
+lr : slab_alloc_node mm/slub.c:3318 [inline]
+lr : __kmem_cache_alloc_node+0x80/0x350 mm/slub.c:3437
+sp : ffff800010ff38e0
+x29: ffff800010ff38f0 x28: ffff0000cb14cec0 x27: ffff00010a33200c
+x26: 0000000000000001 x25: 00000000ffffffff x24: ffff8000087a7010
+x23: 0000000000000033 x22: 3030303030303030 x21: 0000000000000000
+x20: 0000000000000dc0 x19: ffff0000c0001200 x18: 0000000067c04b24
+x17: 00000000f35b7102 x16: ffff80000dbe6158 x15: ffff0000cb14cec0
+x14: 0000000000000010 x13: 0000000000000000 x12: ffff0000cb14cec0
+x11: 0000000000000001 x10: 0000000000000000 x9 : 0000000000000040
+x8 : 00000000008c2d71 x7 : ffff8000084c07a4 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 00000000008c2d79
+x2 : 0000000000000000 x1 : 0000000000000080 x0 : fffffc00045fa0c0
+Call trace:
+ next_tid mm/slub.c:2349 [inline]
+ slab_alloc_node mm/slub.c:3382 [inline]
+ __kmem_cache_alloc_node+0x17c/0x350 mm/slub.c:3437
+ __do_kmalloc_node mm/slab_common.c:954 [inline]
+ __kmalloc+0xb4/0x140 mm/slab_common.c:968
+ kmalloc include/linux/slab.h:558 [inline]
+ kzalloc include/linux/slab.h:689 [inline]
+ ext4_htree_store_dirent+0x4c/0x1a8 fs/ext4/dir.c:474
+ htree_dirblock_to_tree+0x374/0x510 fs/ext4/namei.c:1125
+ ext4_htree_fill_tree+0x2a0/0x698 fs/ext4/namei.c:1204
+ ext4_dx_readdir+0x58c/0x8c0 fs/ext4/dir.c:597
+ ext4_readdir+0x17c/0xba4 fs/ext4/dir.c:142
+ iterate_dir+0x114/0x28c
+ __do_sys_getdents64 fs/readdir.c:369 [inline]
+ __se_sys_getdents64 fs/readdir.c:354 [inline]
+ __arm64_sys_getdents64+0x80/0x204 fs/readdir.c:354
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 54000ee1 34000eeb b9402a69 91002103 (f8696ada) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	54000ee1 	b.ne	0x1dc  // b.any
+   4:	34000eeb 	cbz	w11, 0x1e0
+   8:	b9402a69 	ldr	w9, [x19, #40]
+   c:	91002103 	add	x3, x8, #0x8
+* 10:	f8696ada 	ldr	x26, [x22, x9] <-- trapping instruction

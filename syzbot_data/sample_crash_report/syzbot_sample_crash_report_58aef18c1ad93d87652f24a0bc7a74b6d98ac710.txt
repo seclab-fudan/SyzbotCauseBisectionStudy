@@ -1,0 +1,135 @@
+INFO: task kworker/0:4:16624 blocked for more than 143 seconds.
+      Not tainted 6.3.0-rc7-syzkaller-00043-gaf67688dca57 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:kworker/0:4     state:D stack:24928 pid:16624 ppid:2      flags:0x00004000
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5307 [inline]
+ __schedule+0xc91/0x5770 kernel/sched/core.c:6625
+ schedule+0xde/0x1a0 kernel/sched/core.c:6701
+ usb_kill_urb.part.0+0x19a/0x220 drivers/usb/core/urb.c:728
+ usb_kill_urb+0x83/0xa0 drivers/usb/core/urb.c:717
+ usb_start_wait_urb+0x24a/0x4b0 drivers/usb/core/message.c:64
+ usb_internal_control_msg drivers/usb/core/message.c:102 [inline]
+ usb_control_msg+0x320/0x4a0 drivers/usb/core/message.c:153
+ hub_port_init+0x14f3/0x3900 drivers/usb/core/hub.c:4874
+ hub_port_connect drivers/usb/core/hub.c:5336 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5551 [inline]
+ port_event drivers/usb/core/hub.c:5711 [inline]
+ hub_event+0x2b89/0x4e40 drivers/usb/core/hub.c:5793
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/12:
+ #0: ffffffff8c794a70 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+1 lock held by rcu_tasks_trace/13:
+ #0: ffffffff8c794770 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+1 lock held by khungtaskd/28:
+ #0: ffffffff8c7955c0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x55/0x340 kernel/locking/lockdep.c:6495
+2 locks held by getty/4755:
+ #0: ffff88814c290098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x26/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc900015a02f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xef4/0x13e0 drivers/tty/n_tty.c:2177
+1 lock held by syz-fuzzer/8953:
+1 lock held by syz-fuzzer/8954:
+5 locks held by kworker/0:4/16624:
+ #0: ffff888017cac538 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888017cac538 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888017cac538 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888017cac538 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:639 [inline]
+ #0: ffff888017cac538 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:666 [inline]
+ #0: ffff888017cac538 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: process_one_work+0x87a/0x15c0 kernel/workqueue.c:2361
+ #1: ffffc9000c5dfda8 ((work_completion)(&hub->events)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x15c0 kernel/workqueue.c:2365
+ #2: ffff888147997190 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:832 [inline]
+ #2: ffff888147997190 (&dev->mutex){....}-{3:3}, at: hub_event+0x1c0/0x4e40 drivers/usb/core/hub.c:5739
+ #3: ffff88802206a4f8 (&port_dev->status_lock){+.+.}-{3:3}, at: usb_lock_port drivers/usb/core/hub.c:3147 [inline]
+ #3: ffff88802206a4f8 (&port_dev->status_lock){+.+.}-{3:3}, at: hub_port_connect drivers/usb/core/hub.c:5303 [inline]
+ #3: ffff88802206a4f8 (&port_dev->status_lock){+.+.}-{3:3}, at: hub_port_connect_change drivers/usb/core/hub.c:5551 [inline]
+ #3: ffff88802206a4f8 (&port_dev->status_lock){+.+.}-{3:3}, at: port_event drivers/usb/core/hub.c:5711 [inline]
+ #3: ffff88802206a4f8 (&port_dev->status_lock){+.+.}-{3:3}, at: hub_event+0x278e/0x4e40 drivers/usb/core/hub.c:5793
+ #4: ffff888021d90068 (hcd->address0_mutex){+.+.}-{3:3}, at: hub_port_connect drivers/usb/core/hub.c:5304 [inline]
+ #4: ffff888021d90068 (hcd->address0_mutex){+.+.}-{3:3}, at: hub_port_connect_change drivers/usb/core/hub.c:5551 [inline]
+ #4: ffff888021d90068 (hcd->address0_mutex){+.+.}-{3:3}, at: port_event drivers/usb/core/hub.c:5711 [inline]
+ #4: ffff888021d90068 (hcd->address0_mutex){+.+.}-{3:3}, at: hub_event+0x27c3/0x4e40 drivers/usb/core/hub.c:5793
+2 locks held by kworker/u4:5/19853:
+ #0: ffff888012479138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888012479138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888012479138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888012479138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:639 [inline]
+ #0: ffff888012479138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:666 [inline]
+ #0: ffff888012479138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: process_one_work+0x87a/0x15c0 kernel/workqueue.c:2361
+ #1: ffffc900061e7da8 ((work_completion)(&sub_info->work)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x15c0 kernel/workqueue.c:2365
+5 locks held by kworker/u4:10/2449:
+1 lock held by syz-executor.0/29924:
+ #0: ffffffff8c7a0780 (rcu_state.barrier_mutex){+.+.}-{3:3}, at: rcu_barrier+0x48/0x6a0 kernel/rcu/tree.c:3956
+5 locks held by syz-executor.3/29940:
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 28 Comm: khungtaskd Not tainted 6.3.0-rc7-syzkaller-00043-gaf67688dca57 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ nmi_cpu_backtrace+0x29c/0x350 lib/nmi_backtrace.c:113
+ nmi_trigger_cpumask_backtrace+0x2a4/0x300 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:222 [inline]
+ watchdog+0xe16/0x1090 kernel/hung_task.c:379
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 2449 Comm: kworker/u4:10 Not tainted 6.3.0-rc7-syzkaller-00043-gaf67688dca57 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+Workqueue: bat_events batadv_purge_orig
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/irqflags.h:134 [inline]
+RIP: 0010:seqcount_lockdep_reader_access include/linux/seqlock.h:104 [inline]
+RIP: 0010:ktime_get_update_offsets_now+0xbf/0x5c0 kernel/time/timekeeping.c:2317
+Code: f1 ff 58 e8 63 d7 0f 00 9c 5d 81 e5 00 02 00 00 31 ff 48 89 ee e8 c1 d3 0f 00 48 85 ed 0f 85 83 04 00 00 e8 43 d7 0f 00 31 ff <48> 89 de e8 a9 d3 0f 00 48 85 db 74 06 e8 2f d7 0f 00 fb e8 29 d7
+RSP: 0018:ffffc90000007eb8 EFLAGS: 00000046
+RAX: 0000000080010202 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888052ba3a80 RSI: ffffffff8173141d RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000046
+R13: ffff8880b982b84c R14: 0000000000000000 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c00edd5868 CR3: 000000000c571000 CR4: 00000000003526f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 000000000000003b DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ hrtimer_update_base kernel/time/hrtimer.c:631 [inline]
+ hrtimer_interrupt+0x146/0x7b0 kernel/time/hrtimer.c:1793
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1096 [inline]
+ __sysvec_apic_timer_interrupt+0x14a/0x430 arch/x86/kernel/apic/apic.c:1113
+ sysvec_apic_timer_interrupt+0x92/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
+RIP: 0010:lock_acquire+0x1f3/0x520 kernel/locking/lockdep.c:5637
+Code: d8 9d 7e 83 f8 01 0f 85 b9 02 00 00 9c 58 f6 c4 02 0f 85 a4 02 00 00 48 83 7c 24 08 00 74 01 fb 48 b8 00 00 00 00 00 fc ff df <48> 01 c3 48 c7 03 00 00 00 00 48 c7 43 08 00 00 00 00 48 8b 84 24
+RSP: 0018:ffffc90015a8faf0 EFLAGS: 00000206
+RAX: dffffc0000000000 RBX: 1ffff92002b51f60 RCX: ffffffff8164582c
+RDX: 1ffff1100a574896 RSI: 0000000000000201 RDI: 0000000000000000
+RBP: 0000000000000001 R08: 0000000000000000 R09: ffffffff914d2c5f
+R10: fffffbfff229a58b R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff8880411e8218 R15: 0000000000000000
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+ _raw_spin_lock_bh+0x33/0x40 kernel/locking/spinlock.c:178
+ spin_lock_bh include/linux/spinlock.h:355 [inline]
+ batadv_purge_orig_ref+0x17a/0x1590 net/batman-adv/originator.c:1243
+ batadv_purge_orig+0x1b/0x60 net/batman-adv/originator.c:1272
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>

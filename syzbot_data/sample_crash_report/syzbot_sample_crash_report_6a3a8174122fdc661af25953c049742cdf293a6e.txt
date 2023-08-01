@@ -1,0 +1,84 @@
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+rcu: 	Tasks blocked on level-0 rcu_node (CPUs 0-1):
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 8859 at kernel/sched/core.c:3013 rq_unlock kernel/sched/sched.h:1326 [inline]
+WARNING: CPU: 1 PID: 8859 at kernel/sched/core.c:3013 try_invoke_on_locked_down_task+0x21d/0x2f0 kernel/sched/core.c:3019
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 8859 Comm: syz-executor153 Not tainted 5.9.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ panic+0x382/0x7fb kernel/panic.c:231
+ __warn.cold+0x20/0x4b kernel/panic.c:600
+ report_bug+0x1bd/0x210 lib/bug.c:198
+ handle_bug+0x38/0x90 arch/x86/kernel/traps.c:234
+ exc_invalid_op+0x14/0x40 arch/x86/kernel/traps.c:254
+ asm_exc_invalid_op+0x12/0x20 arch/x86/include/asm/idtentry.h:536
+RIP: 0010:try_invoke_on_locked_down_task+0x21d/0x2f0 kernel/sched/core.c:3013
+Code: 45 31 f6 49 39 c0 74 3a 8b 74 24 38 49 8d 78 18 4c 89 04 24 e8 a4 e7 08 00 4c 8b 04 24 4c 89 c7 e8 28 9b d6 06 e9 20 ff ff ff <0f> 0b e9 7d fe ff ff 4c 89 ee 48 89 ef 41 ff d4 41 89 c6 e9 08 ff
+RSP: 0018:ffffc90000da8be0 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: 1ffff920001b517e RCX: 0000000000000001
+RDX: 0000000000000000 RSI: ffffffff8162da10 RDI: ffff888094966040
+RBP: ffff888094966040 R08: 0000000000000033 R09: ffffffff8a05ae03
+R10: 0000000000000635 R11: 0000000000000001 R12: ffffffff8162da10
+R13: ffffc90000da8d08 R14: ffff888094966040 R15: 0000000000000000
+ rcu_print_task_stall kernel/rcu/tree_stall.h:267 [inline]
+ print_other_cpu_stall kernel/rcu/tree_stall.h:475 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:634 [inline]
+ rcu_pending kernel/rcu/tree.c:3639 [inline]
+ rcu_sched_clock_irq.cold+0x97e/0xdfd kernel/rcu/tree.c:2521
+ update_process_times+0x25/0xa0 kernel/time/timer.c:1710
+ tick_sched_handle+0x9b/0x180 kernel/time/tick-sched.c:176
+ tick_sched_timer+0x1d1/0x2a0 kernel/time/tick-sched.c:1328
+ __run_hrtimer kernel/time/hrtimer.c:1524 [inline]
+ __hrtimer_run_queues+0x1d5/0xfc0 kernel/time/hrtimer.c:1588
+ hrtimer_interrupt+0x334/0x940 kernel/time/hrtimer.c:1650
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1080 [inline]
+ __sysvec_apic_timer_interrupt+0x147/0x5f0 arch/x86/kernel/apic/apic.c:1097
+ asm_call_irq_on_stack+0xf/0x20
+ </IRQ>
+ __run_sysvec_on_irqstack arch/x86/include/asm/irq_stack.h:37 [inline]
+ run_sysvec_on_irqstack_cond arch/x86/include/asm/irq_stack.h:89 [inline]
+ sysvec_apic_timer_interrupt+0xb2/0xf0 arch/x86/kernel/apic/apic.c:1091
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:581
+RIP: 0010:arch_atomic_read arch/x86/include/asm/atomic.h:29 [inline]
+RIP: 0010:arch_atomic_fetch_add_unless include/linux/atomic-arch-fallback.h:1088 [inline]
+RIP: 0010:arch_atomic_add_unless include/linux/atomic-arch-fallback.h:1113 [inline]
+RIP: 0010:arch_atomic_inc_not_zero include/linux/atomic-arch-fallback.h:1129 [inline]
+RIP: 0010:atomic_inc_not_zero include/asm-generic/atomic-instrumented.h:799 [inline]
+RIP: 0010:afs_lookup_cell_rcu+0x524/0x720 fs/afs/cell.c:97
+Code: 98 fe 49 8d 8c 24 a8 00 00 00 be 04 00 00 00 48 89 cd 48 89 cf 48 89 4c 24 30 e8 d7 ff d8 fe 48 89 e8 48 c1 e8 03 0f b6 14 18 <48> 89 e8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 b5 01 00 00 41
+RSP: 0018:ffffc900038179b8 EFLAGS: 00000a02
+RAX: 1ffff1101207ef15 RBX: dffffc0000000000 RCX: ffffffff82dde729
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffff8880903f78a8
+RBP: ffff8880903f78a8 R08: 0000000000000001 R09: ffff8880903f78ab
+R10: ffffed101207ef15 R11: 0000000000000000 R12: ffff8880903f7800
+R13: ffff8880903f7a08 R14: 0000000000000000 R15: ffff8880903f7a10
+ afs_lookup_cell+0x2ee/0x1440 fs/afs/cell.c:249
+ afs_parse_source fs/afs/super.c:290 [inline]
+ afs_parse_param+0x404/0x8c0 fs/afs/super.c:326
+ vfs_parse_fs_param fs/fs_context.c:117 [inline]
+ vfs_parse_fs_param+0x203/0x550 fs/fs_context.c:98
+ vfs_parse_fs_string+0xe6/0x150 fs/fs_context.c:161
+ generic_parse_monolithic+0x16f/0x1f0 fs/fs_context.c:201
+ do_new_mount fs/namespace.c:2871 [inline]
+ path_mount+0x133f/0x20a0 fs/namespace.c:3192
+ do_mount fs/namespace.c:3205 [inline]
+ __do_sys_mount fs/namespace.c:3413 [inline]
+ __se_sys_mount fs/namespace.c:3390 [inline]
+ __x64_sys_mount+0x27f/0x300 fs/namespace.c:3390
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x447b2a
+Code: b8 08 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 ed a2 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 ca a2 fb ff c3 66 0f 1f 84 00 00 00 00 00
+RSP: 002b:00007ffdc34dfcc8 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007ffdc34dfd10 RCX: 0000000000447b2a
+RDX: 0000000020000000 RSI: 0000000020000040 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 00007ffdc34dfd10 R09: 0000000000000004
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000402280
+R13: 0000000000402310 R14: 0000000000000000 R15: 0000000000000000
+Shutting down cpus with NMI
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

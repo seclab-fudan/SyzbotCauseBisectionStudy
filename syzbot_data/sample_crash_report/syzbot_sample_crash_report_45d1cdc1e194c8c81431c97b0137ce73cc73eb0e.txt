@@ -1,0 +1,253 @@
+8021q: adding VLAN 0 to HW filter on device batadv0
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 7924 Comm: syz-executor928 Not tainted 4.20.0+ #9
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:rb_set_parent_color include/linux/rbtree_augmented.h:131 [inline]
+RIP: 0010:____rb_erase_color lib/rbtree.c:271 [inline]
+RIP: 0010:rb_erase_cached+0x7e2/0x3590 lib/rbtree.c:480
+Code: 89 a7 a0 fb ff ff 80 3c 1f 00 0f 85 5a 22 00 00 48 c1 ea 03 48 89 c7 4d 89 66 10 48 c1 ef 03 c6 04 1a f8 4c 89 e2 48 83 ca 01 <80> 3c 1f 00 0f 85 89 22 00 00 48 89 10 4c 89 e2 48 c1 ea 03 80 3c
+RSP: 0018:ffff8880914a7090 EFLAGS: 00010082
+RAX: 0000000400000001 RBX: dffffc0000000000 RCX: 1ffff11012294e1a
+RDX: ffff8880a61222d9 RSI: ffffed1012294e46 RDI: 0000000080000000
+RBP: ffff8880914a75f8 R08: ffff8880a61222e0 R09: ffff8880a94642e8
+R10: 000000000000005b R11: 0000000000000000 R12: ffff8880a61222d8
+R13: ffff8880ae62cef0 R14: ffff8880a94642d8 R15: ffff8880914a75d0
+FS:  0000000000000000(0000) GS:ffff8880ae600000(0063) knlGS:0000000009d83840
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 00000000080a78d0 CR3: 00000000952b3000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __dequeue_entity kernel/sched/fair.c:562 [inline]
+ set_next_entity+0x2cc/0xb00 kernel/sched/fair.c:4070
+ pick_next_task_fair+0xe1b/0x1c20 kernel/sched/fair.c:6980
+ pick_next_task kernel/sched/core.c:3318 [inline]
+ __schedule+0x4b8/0x1e90 kernel/sched/core.c:3446
+ schedule+0xfe/0x350 kernel/sched/core.c:3516
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ do_nanosleep+0x208/0x750 kernel/time/hrtimer.c:1679
+ hrtimer_nanosleep+0x2e4/0x640 kernel/time/hrtimer.c:1733
+ __do_compat_sys_nanosleep kernel/time/hrtimer.c:1787 [inline]
+ __se_compat_sys_nanosleep kernel/time/hrtimer.c:1774 [inline]
+ __ia32_compat_sys_nanosleep+0x1e7/0x280 kernel/time/hrtimer.c:1774
+ do_syscall_32_irqs_on arch/x86/entry/common.c:326 [inline]
+ do_fast_syscall_32+0x333/0xf98 arch/x86/entry/common.c:397
+ entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7fed869
+Code: 85 d2 74 02 89 0a 5b 5d c3 8b 04 24 c3 8b 14 24 c3 8b 3c 24 c3 90 90 90 90 90 90 90 90 90 90 90 90 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000fff9cb8c EFLAGS: 00000246 ORIG_RAX: 00000000000000a2
+RAX: ffffffffffffffda RBX: 00000000fff9cbb8 RCX: 0000000000000000
+RDX: 000000000000004a RSI: 000000000000004a RDI: 00000000fff9cc18
+RBP: 00000000fff9cdd8 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.20.0+ #9 Not tainted
+------------------------------------------------------
+syz-executor928/7924 is trying to acquire lock:
+00000000c9165a76 ((console_sem).lock){-...}, at: down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+
+but task is already holding lock:
+00000000d1a32443 (&rq->lock){-.-.}, at: rq_lock kernel/sched/sched.h:1149 [inline]
+00000000d1a32443 (&rq->lock){-.-.}, at: __schedule+0x21e/0x1e90 kernel/sched/core.c:3410
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&rq->lock){-.-.}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:144
+       rq_lock kernel/sched/sched.h:1149 [inline]
+       task_fork_fair+0xb5/0x7a0 kernel/sched/fair.c:10058
+       sched_fork+0x437/0xb90 kernel/sched/core.c:2359
+       copy_process+0x1ff6/0x8730 kernel/fork.c:1893
+       _do_fork+0x1a9/0x1170 kernel/fork.c:2222
+       kernel_thread+0x34/0x40 kernel/fork.c:2281
+       rest_init+0x28/0x37b init/main.c:409
+       arch_call_rest_init+0xe/0x1b
+       start_kernel+0x882/0x8bd init/main.c:741
+       x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:470
+       x86_64_start_kernel+0x77/0x7b arch/x86/kernel/head64.c:451
+       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+
+-> #1 (&p->pi_lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       try_to_wake_up+0xb9/0x1480 kernel/sched/core.c:1965
+       wake_up_process+0x10/0x20 kernel/sched/core.c:2129
+       __up.isra.0+0x1c0/0x2a0 kernel/locking/semaphore.c:262
+       up+0x13e/0x1c0 kernel/locking/semaphore.c:187
+       __up_console_sem+0xb7/0x1c0 kernel/printk/printk.c:236
+       console_unlock+0x778/0x11e0 kernel/printk/printk.c:2426
+       vprintk_emit+0x370/0x960 kernel/printk/printk.c:1931
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1958
+       vprintk_func+0x7e/0x189 kernel/printk/printk_safe.c:398
+       printk+0xba/0xed kernel/printk/printk.c:1991
+       check_stack_usage kernel/exit.c:755 [inline]
+       do_exit.cold+0x57/0x16a kernel/exit.c:916
+       do_group_exit+0x177/0x430 kernel/exit.c:970
+       __do_sys_exit_group kernel/exit.c:981 [inline]
+       __se_sys_exit_group kernel/exit.c:979 [inline]
+       __x64_sys_exit_group+0x44/0x50 kernel/exit.c:979
+       do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 ((console_sem).lock){-...}:
+       lock_acquire+0x1db/0x570 kernel/locking/lockdep.c:3841
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+       __down_trylock_console_sem+0xa8/0x210 kernel/printk/printk.c:219
+       console_trylock+0x15/0xa0 kernel/printk/printk.c:2242
+       console_trylock_spinning kernel/printk/printk.c:1662 [inline]
+       vprintk_emit+0x351/0x960 kernel/printk/printk.c:1930
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1958
+       vprintk_func+0x7e/0x189 kernel/printk/printk_safe.c:398
+       printk+0xba/0xed kernel/printk/printk.c:1991
+       kasan_die_handler arch/x86/mm/kasan_init_64.c:252 [inline]
+       kasan_die_handler.cold+0x11/0x23 arch/x86/mm/kasan_init_64.c:247
+       notifier_call_chain+0x179/0x380 kernel/notifier.c:93
+       __atomic_notifier_call_chain kernel/notifier.c:183 [inline]
+       atomic_notifier_call_chain+0x96/0x190 kernel/notifier.c:193
+       notify_die+0x1b2/0x270 kernel/notifier.c:549
+       do_general_protection+0x13d/0x300 arch/x86/kernel/traps.c:557
+       general_protection+0x1e/0x30 arch/x86/entry/entry_64.S:1142
+       rb_set_parent_color include/linux/rbtree_augmented.h:131 [inline]
+       ____rb_erase_color lib/rbtree.c:271 [inline]
+       rb_erase_cached+0x7e2/0x3590 lib/rbtree.c:480
+       __dequeue_entity kernel/sched/fair.c:562 [inline]
+       set_next_entity+0x2cc/0xb00 kernel/sched/fair.c:4070
+       pick_next_task_fair+0xe1b/0x1c20 kernel/sched/fair.c:6980
+       pick_next_task kernel/sched/core.c:3318 [inline]
+       __schedule+0x4b8/0x1e90 kernel/sched/core.c:3446
+       schedule+0xfe/0x350 kernel/sched/core.c:3516
+       freezable_schedule include/linux/freezer.h:172 [inline]
+       do_nanosleep+0x208/0x750 kernel/time/hrtimer.c:1679
+       hrtimer_nanosleep+0x2e4/0x640 kernel/time/hrtimer.c:1733
+       __do_compat_sys_nanosleep kernel/time/hrtimer.c:1787 [inline]
+       __se_compat_sys_nanosleep kernel/time/hrtimer.c:1774 [inline]
+       __ia32_compat_sys_nanosleep+0x1e7/0x280 kernel/time/hrtimer.c:1774
+       do_syscall_32_irqs_on arch/x86/entry/common.c:326 [inline]
+       do_fast_syscall_32+0x333/0xf98 arch/x86/entry/common.c:397
+       entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+
+other info that might help us debug this:
+
+Chain exists of:
+  (console_sem).lock --> &p->pi_lock --> &rq->lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&rq->lock);
+                               lock(&p->pi_lock);
+                               lock(&rq->lock);
+  lock((console_sem).lock);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor928/7924:
+ #0: 00000000d1a32443 (&rq->lock){-.-.}, at: rq_lock kernel/sched/sched.h:1149 [inline]
+ #0: 00000000d1a32443 (&rq->lock){-.-.}, at: __schedule+0x21e/0x1e90 kernel/sched/core.c:3410
+ #1: 00000000ff6af055 (rcu_read_lock){....}, at: atomic_notifier_call_chain+0x0/0x190 kernel/notifier.c:329
+
+stack backtrace:
+CPU: 0 PID: 7924 Comm: syz-executor928 Not tainted 4.20.0+ #9
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_circular_bug.isra.0.cold+0x1cc/0x28f kernel/locking/lockdep.c:1224
+ check_prev_add kernel/locking/lockdep.c:1866 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1979 [inline]
+ validate_chain kernel/locking/lockdep.c:2350 [inline]
+ __lock_acquire+0x3014/0x4a30 kernel/locking/lockdep.c:3338
+ lock_acquire+0x1db/0x570 kernel/locking/lockdep.c:3841
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+ down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+ __down_trylock_console_sem+0xa8/0x210 kernel/printk/printk.c:219
+ console_trylock+0x15/0xa0 kernel/printk/printk.c:2242
+ console_trylock_spinning kernel/printk/printk.c:1662 [inline]
+ vprintk_emit+0x351/0x960 kernel/printk/printk.c:1930
+ vprintk_default+0x28/0x30 kernel/printk/printk.c:1958
+ vprintk_func+0x7e/0x189 kernel/printk/printk_safe.c:398
+ printk+0xba/0xed kernel/printk/printk.c:1991
+ kasan_die_handler arch/x86/mm/kasan_init_64.c:252 [inline]
+ kasan_die_handler.cold+0x11/0x23 arch/x86/mm/kasan_init_64.c:247
+ notifier_call_chain+0x179/0x380 kernel/notifier.c:93
+ __atomic_notifier_call_chain kernel/notifier.c:183 [inline]
+ atomic_notifier_call_chain+0x96/0x190 kernel/notifier.c:193
+ notify_die+0x1b2/0x270 kernel/notifier.c:549
+ do_general_protection+0x13d/0x300 arch/x86/kernel/traps.c:557
+ general_protection+0x1e/0x30 arch/x86/entry/entry_64.S:1142
+RIP: 0010:rb_set_parent_color include/linux/rbtree_augmented.h:131 [inline]
+RIP: 0010:____rb_erase_color lib/rbtree.c:271 [inline]
+RIP: 0010:rb_erase_cached+0x7e2/0x3590 lib/rbtree.c:480
+Code: 89 a7 a0 fb ff ff 80 3c 1f 00 0f 85 5a 22 00 00 48 c1 ea 03 48 89 c7 4d 89 66 10 48 c1 ef 03 c6 04 1a f8 4c 89 e2 48 83 ca 01 <80> 3c 1f 00 0f 85 89 22 00 00 48 89 10 4c 89 e2 48 c1 ea 03 80 3c
+RSP: 0018:ffff8880914a7090 EFLAGS: 00010082
+RAX: 0000000400000001 RBX: dffffc0000000000 RCX: 1ffff11012294e1a
+RDX: ffff8880a61222d9 RSI: ffffed1012294e46 RDI: 0000000080000000
+RBP: ffff8880914a75f8 R08: ffff8880a61222e0 R09: ffff8880a94642e8
+R10: 000000000000005b R11: 0000000000000000 R12: ffff8880a61222d8
+R13: ffff8880ae62cef0 R14: ffff8880a94642d8 R15: ffff8880914a75d0
+ __dequeue_entity kernel/sched/fair.c:562 [inline]
+ set_next_entity+0x2cc/0xb00 kernel/sched/fair.c:4070
+ pick_next_task_fair+0xe1b/0x1c20 kernel/sched/fair.c:6980
+ pick_next_task kernel/sched/core.c:3318 [inline]
+ __schedule+0x4b8/0x1e90 kernel/sched/core.c:3446
+ schedule+0xfe/0x350 kernel/sched/core.c:3516
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ do_nanosleep+0x208/0x750 kernel/time/hrtimer.c:1679
+ hrtimer_nanosleep+0x2e4/0x640 kernel/time/hrtimer.c:1733
+ __do_compat_sys_nanosleep kernel/time/hrtimer.c:1787 [inline]
+ __se_compat_sys_nanosleep kernel/time/hrtimer.c:1774 [inline]
+ __ia32_compat_sys_nanosleep+0x1e7/0x280 kernel/time/hrtimer.c:1774
+ do_syscall_32_irqs_on arch/x86/entry/common.c:326 [inline]
+ do_fast_syscall_32+0x333/0xf98 arch/x86/entry/common.c:397
+Lost 10 message(s)!
+---[ end trace 8cfc0b81e87f9ebc ]---
+general protection fault: 0000 [#2] PREEMPT SMP KASAN
+CPU: 1 PID: 4 Comm:  Tainted: G      D           4.20.0+ #9
+RIP: 0010:rb_set_parent_color include/linux/rbtree_augmented.h:131 [inline]
+RIP: 0010:____rb_erase_color lib/rbtree.c:271 [inline]
+RIP: 0010:rb_erase_cached+0x7e2/0x3590 lib/rbtree.c:480
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Code: 89 a7 a0 fb ff ff 80 3c 1f 00 0f 85 5a 22 00 00 48 c1 ea 03 48 89 c7 4d 89 66 10 48 c1 ef 03 c6 04 1a f8 4c 89 e2 48 83 ca 01 <80> 3c 1f 00 0f 85 89 22 00 00 48 89 10 4c 89 e2 48 c1 ea 03 80 3c
+RIP: 0010:lookup_object lib/debugobjects.c:156 [inline]
+RIP: 0010:debug_object_deactivate lib/debugobjects.c:542 [inline]
+RIP: 0010:debug_object_deactivate+0x16c/0x4b0 lib/debugobjects.c:529
+RSP: 0018:ffff8880914a7090 EFLAGS: 00010082
+Code: c1 ea 03 42 80 3c 2a 00 0f 85 49 02 00 00 4d 8b 24 24 4d 85 e4 0f 84 d1 00 00 00 49 8d 7c 24 18 83 c3 01 48 89 fa 48 c1 ea 03 <42> 80 3c 2a 00 0f 85 fa 01 00 00 49 3b 4c 24 18 75 c0 49 8d 7c 24
+RAX: 0000000400000001 RBX: dffffc0000000000 RCX: 1ffff11012294e1a
+RSP: 0018:ffff8880ae707b80 EFLAGS: 00010806
+RDX: ffff8880a61222d9 RSI: ffffed1012294e46 RDI: 0000000080000000
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: ffff8880ae726620
+RBP: ffff8880914a75f8 R08: ffff8880a61222e0 R09: ffff8880a94642e8
+RDX: 1f8000000000170c RSI: 0000000000000008 RDI: fc0000000000b860
+R10: 000000000000005b R11: 0000000000000000 R12: ffff8880a61222d8
+RBP: ffff8880ae707c70 R08: 1ffff11015ce0f5c R09: ffffffff899b1220
+R13: ffff8880ae62cef0 R14: ffff8880a94642d8 R15: ffff8880914a75d0
+R10: 0000000000000086 R11: 0000000000000003 R12: fc0000000000b848
+R13: dffffc0000000000 R14: 1ffff11015ce0f74 R15: ffffffff8b6af3a8
+FS:  0000000000000000(0000) GS:ffff8880ae600000(0063) knlGS:0000000009d83840
+FS:  0000000000000000(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000080a78d0 CR3: 000000008cd76000 CR4: 00000000001406e0
+CR2: 00000000080a78d0 CR3: 00000000952b3000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:

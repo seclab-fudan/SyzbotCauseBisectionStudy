@@ -1,0 +1,55 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in memcpy include/linux/string.h:344 [inline]
+BUG: KASAN: stack-out-of-bounds in __nla_put+0x37/0x40 lib/nlattr.c:569
+Read of size 255 at addr ffff8801bbc078b0 by task syzkaller692142/3658
+
+CPU: 1 PID: 3658 Comm: syzkaller692142 Not tainted 4.15.0-rc8+ #268
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x23/0x50 mm/kasan/kasan.c:302
+ memcpy include/linux/string.h:344 [inline]
+ __nla_put+0x37/0x40 lib/nlattr.c:569
+ nla_put+0xf5/0x130 lib/nlattr.c:627
+ netlink_ack+0x78a/0xa10 net/netlink/af_netlink.c:2371
+ netlink_rcv_skb+0x2d1/0x400 net/netlink/af_netlink.c:2415
+ sock_diag_rcv+0x2a/0x40 net/core/sock_diag.c:274
+ netlink_unicast_kernel net/netlink/af_netlink.c:1275 [inline]
+ netlink_unicast+0x4ee/0x700 net/netlink/af_netlink.c:1301
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1864
+ sock_sendmsg_nosec net/socket.c:638 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:648
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2028
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2062
+ SYSC_sendmsg net/socket.c:2073 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2069
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x43fdc9
+RSP: 002b:00007ffe5ad2e038 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fdc9
+RDX: 0000000000000000 RSI: 000000002058efc8 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000004 R11: 0000000000000217 R12: 00000000004016f0
+R13: 0000000000401780 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0006ef01c0 count:0 mapcount:0 mapping:          (null) index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: 0000000000000000 0000000100000001 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bbc07780: 00 00 00 00 00 00 00 00 f1 f1 f1 f1 04 f2 f2 f2
+ ffff8801bbc07800: f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801bbc07880: f1 f1 f1 f1 00 00 00 00 00 f2 f2 f2 00 00 00 00
+                                              ^
+ ffff8801bbc07900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801bbc07980: 00 f1 f1 f1 f1 00 f2 f2 f2 f3 f3 f3 f3 00 00 00
+==================================================================

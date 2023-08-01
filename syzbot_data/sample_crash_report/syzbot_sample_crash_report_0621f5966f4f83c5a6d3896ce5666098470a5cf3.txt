@@ -1,0 +1,202 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.3.0-rc3-syzkaller-00005-g7d31677bb7b1 #0 Not tainted
+------------------------------------------------------
+kworker/3:0/31 is trying to acquire lock:
+ffff88802cbbba98 (&pool->lock){-.-.}-{2:2}, at: __queue_work+0x367/0x1120 kernel/workqueue.c:1481
+
+but task is already holding lock:
+ffff88802469b528 (&tty->write_wait){-.-.}-{2:2}, at: __wake_up_common_lock+0xb8/0x140 kernel/sched/wait.c:137
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #4 (&tty->write_wait){-.-.}-{2:2}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x3d/0x60 kernel/locking/spinlock.c:162
+       __wake_up_common_lock+0xb8/0x140 kernel/sched/wait.c:137
+       tty_port_default_wakeup+0x2a/0x40 drivers/tty/tty_port.c:71
+       serial8250_tx_chars+0x53e/0xdf0 drivers/tty/serial/8250/8250_port.c:1865
+       __start_tx drivers/tty/serial/8250/8250_port.c:1582 [inline]
+       serial8250_start_tx+0x6d5/0x850 drivers/tty/serial/8250/8250_port.c:1688
+       __uart_start.isra.0+0x16b/0x1b0 drivers/tty/serial/serial_core.c:141
+       uart_write+0x2ff/0x570 drivers/tty/serial/serial_core.c:601
+       process_output_block drivers/tty/n_tty.c:586 [inline]
+       n_tty_write+0x4ce/0xfd0 drivers/tty/n_tty.c:2350
+       do_tty_write drivers/tty/tty_io.c:1018 [inline]
+       file_tty_write.constprop.0+0x453/0x9c0 drivers/tty/tty_io.c:1089
+       redirected_tty_write+0xa5/0xc0 drivers/tty/tty_io.c:1110
+       call_write_iter include/linux/fs.h:1851 [inline]
+       new_sync_write fs/read_write.c:491 [inline]
+       vfs_write+0x9ed/0xe10 fs/read_write.c:584
+       ksys_write+0x12b/0x250 fs/read_write.c:637
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #3 (&port_lock_key){-.-.}-{2:2}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x3d/0x60 kernel/locking/spinlock.c:162
+       serial8250_console_write+0x4ba/0x1010 drivers/tty/serial/8250/8250_port.c:3401
+       console_emit_next_record kernel/printk/printk.c:2886 [inline]
+       console_flush_all+0x49c/0xcc0 kernel/printk/printk.c:2942
+       console_unlock+0xb8/0x1f0 kernel/printk/printk.c:3016
+       vprintk_emit+0x1bd/0x600 kernel/printk/printk.c:2316
+       vprintk+0x84/0xa0 kernel/printk/printk_safe.c:50
+       _printk+0xbf/0xf0 kernel/printk/printk.c:2337
+       register_console+0x7ef/0x10e0 kernel/printk/printk.c:3467
+       univ8250_console_init+0x38/0x50 drivers/tty/serial/8250/8250_core.c:688
+       console_init+0xba/0x5c0 kernel/printk/printk.c:3610
+       start_kernel+0x273/0x4d0 init/main.c:1077
+       secondary_startup_64_no_verify+0xce/0xdb
+
+-> #2 (console_owner){....}-{0:0}:
+       console_lock_spinning_enable kernel/printk/printk.c:1867 [inline]
+       console_emit_next_record kernel/printk/printk.c:2880 [inline]
+       console_flush_all+0x472/0xcc0 kernel/printk/printk.c:2942
+       console_unlock+0xb8/0x1f0 kernel/printk/printk.c:3016
+       vprintk_emit+0x1bd/0x600 kernel/printk/printk.c:2316
+       vprintk+0x84/0xa0 kernel/printk/printk_safe.c:50
+       _printk+0xbf/0xf0 kernel/printk/printk.c:2337
+       build_zonelists+0x357/0x560 mm/page_alloc.c:6542
+       __build_all_zonelists+0x122/0x180 mm/page_alloc.c:6655
+       build_all_zonelists_init+0x1c/0x190 mm/page_alloc.c:6680
+       build_all_zonelists+0x4a/0x150 mm/page_alloc.c:6713
+       start_kernel+0xb7/0x4d0 init/main.c:971
+       secondary_startup_64_no_verify+0xce/0xdb
+
+-> #1 (zonelist_update_seq.seqcount){...-}-{0:0}:
+       seqcount_lockdep_reader_access include/linux/seqlock.h:102 [inline]
+       read_seqbegin include/linux/seqlock.h:836 [inline]
+       zonelist_iter_begin mm/page_alloc.c:4764 [inline]
+       __alloc_pages_slowpath.constprop.0+0x15a/0x2170 mm/page_alloc.c:5085
+       __alloc_pages+0x408/0x4a0 mm/page_alloc.c:5604
+       __alloc_pages_node include/linux/gfp.h:237 [inline]
+       kmem_getpages mm/slab.c:1360 [inline]
+       cache_grow_begin+0x9b/0x3b0 mm/slab.c:2570
+       cache_alloc_refill+0x27f/0x380 mm/slab.c:2943
+       ____cache_alloc mm/slab.c:3019 [inline]
+       ____cache_alloc mm/slab.c:3002 [inline]
+       __do_cache_alloc mm/slab.c:3202 [inline]
+       slab_alloc_node mm/slab.c:3250 [inline]
+       slab_alloc mm/slab.c:3266 [inline]
+       __kmem_cache_alloc_lru mm/slab.c:3443 [inline]
+       kmem_cache_alloc+0x397/0x3f0 mm/slab.c:3452
+       kmem_cache_zalloc include/linux/slab.h:710 [inline]
+       fill_pool+0x264/0x5c0 lib/debugobjects.c:168
+       __debug_object_init+0x77/0xf10 lib/debugobjects.c:569
+       debug_object_init lib/debugobjects.c:624 [inline]
+       debug_object_activate+0x330/0x3e0 lib/debugobjects.c:710
+       debug_work_activate kernel/workqueue.c:513 [inline]
+       __queue_work+0x614/0x1120 kernel/workqueue.c:1523
+       queue_work_on+0xf2/0x110 kernel/workqueue.c:1552
+       queue_work include/linux/workqueue.h:504 [inline]
+       schedule_work include/linux/workqueue.h:565 [inline]
+       wireless_send_event+0x6d9/0xc70 net/wireless/wext-core.c:635
+       __cfg80211_ibss_joined+0x3d2/0x4a0 net/wireless/ibss.c:55
+       cfg80211_process_wdev_events+0x41a/0x630 net/wireless/util.c:1053
+       cfg80211_process_rdev_events+0x9f/0x130 net/wireless/util.c:1081
+       cfg80211_event_work+0x2b/0x40 net/wireless/core.c:328
+       process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+       worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+       kthread+0x2e8/0x3a0 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+-> #0 (&pool->lock){-.-.}-{2:2}:
+       check_prev_add kernel/locking/lockdep.c:3098 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+       validate_chain kernel/locking/lockdep.c:3832 [inline]
+       __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+       lock_acquire kernel/locking/lockdep.c:5669 [inline]
+       lock_acquire+0x1af/0x520 kernel/locking/lockdep.c:5634
+       __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+       _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+       __queue_work+0x367/0x1120 kernel/workqueue.c:1481
+       queue_work_on+0xf2/0x110 kernel/workqueue.c:1552
+       queue_work include/linux/workqueue.h:504 [inline]
+       schedule_work include/linux/workqueue.h:565 [inline]
+       p9_pollwake+0xc1/0x1d0 net/9p/trans_fd.c:539
+       __wake_up_common+0x147/0x650 kernel/sched/wait.c:107
+       __wake_up_common_lock+0xd4/0x140 kernel/sched/wait.c:138
+       tty_write_unlock drivers/tty/tty_io.c:939 [inline]
+       do_tty_write drivers/tty/tty_io.c:1043 [inline]
+       file_tty_write.constprop.0+0x505/0x9c0 drivers/tty/tty_io.c:1089
+       __kernel_write_iter+0x262/0x7a0 fs/read_write.c:517
+       __kernel_write fs/read_write.c:537 [inline]
+       kernel_write fs/read_write.c:558 [inline]
+       kernel_write+0x1c1/0x670 fs/read_write.c:548
+       p9_fd_write net/9p/trans_fd.c:433 [inline]
+       p9_write_work+0x25a/0xc60 net/9p/trans_fd.c:484
+       process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+       worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+       kthread+0x2e8/0x3a0 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+other info that might help us debug this:
+
+Chain exists of:
+  &pool->lock --> &port_lock_key --> &tty->write_wait
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&tty->write_wait);
+                               lock(&port_lock_key);
+                               lock(&tty->write_wait);
+  lock(&pool->lock);
+
+ *** DEADLOCK ***
+
+5 locks held by kworker/3:0/31:
+ #0: ffff888012469d38 ((wq_completion)events){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888012469d38 ((wq_completion)events){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888012469d38 ((wq_completion)events){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888012469d38 ((wq_completion)events){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:639 [inline]
+ #0: ffff888012469d38 ((wq_completion)events){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:666 [inline]
+ #0: ffff888012469d38 ((wq_completion)events){+.+.}-{0:0}, at: process_one_work+0x87a/0x15c0 kernel/workqueue.c:2361
+ #1: ffffc9000065fda8 ((work_completion)(&m->wq)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x15c0 kernel/workqueue.c:2365
+ #2: ffff88802469b098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x26/0x80 drivers/tty/tty_ldisc.c:244
+ #3: ffff88802469b528 (&tty->write_wait){-.-.}-{2:2}, at: __wake_up_common_lock+0xb8/0x140 kernel/sched/wait.c:137
+ #4: ffffffff8c792700 (rcu_read_lock){....}-{1:2}, at: __queue_work+0xca/0x1120 kernel/workqueue.c:1444
+
+stack backtrace:
+CPU: 3 PID: 31 Comm: kworker/3:0 Not tainted 6.3.0-rc3-syzkaller-00005-g7d31677bb7b1 #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Workqueue: events p9_write_work
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2178
+ check_prev_add kernel/locking/lockdep.c:3098 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+ validate_chain kernel/locking/lockdep.c:3832 [inline]
+ __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+ lock_acquire kernel/locking/lockdep.c:5669 [inline]
+ lock_acquire+0x1af/0x520 kernel/locking/lockdep.c:5634
+ __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+ _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+ __queue_work+0x367/0x1120 kernel/workqueue.c:1481
+ queue_work_on+0xf2/0x110 kernel/workqueue.c:1552
+ queue_work include/linux/workqueue.h:504 [inline]
+ schedule_work include/linux/workqueue.h:565 [inline]
+ p9_pollwake+0xc1/0x1d0 net/9p/trans_fd.c:539
+ __wake_up_common+0x147/0x650 kernel/sched/wait.c:107
+ __wake_up_common_lock+0xd4/0x140 kernel/sched/wait.c:138
+ tty_write_unlock drivers/tty/tty_io.c:939 [inline]
+ do_tty_write drivers/tty/tty_io.c:1043 [inline]
+ file_tty_write.constprop.0+0x505/0x9c0 drivers/tty/tty_io.c:1089
+ __kernel_write_iter+0x262/0x7a0 fs/read_write.c:517
+ __kernel_write fs/read_write.c:537 [inline]
+ kernel_write fs/read_write.c:558 [inline]
+ kernel_write+0x1c1/0x670 fs/read_write.c:548
+ p9_fd_write net/9p/trans_fd.c:433 [inline]
+ p9_write_work+0x25a/0xc60 net/9p/trans_fd.c:484
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>

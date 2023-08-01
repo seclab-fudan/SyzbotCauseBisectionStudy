@@ -1,0 +1,79 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	0-....: (10499 ticks this GP) idle=082/1/0x4000000000000004 softirq=13429/13429 fqs=5241 
+	(t=10500 jiffies g=14877 q=43)
+NMI backtrace for cpu 0
+CPU: 0 PID: 12248 Comm: syz-executor578 Not tainted 5.3.0-next-20190920 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold+0x70/0xb2 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x23b/0x28b lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x183/0x1cf kernel/rcu/tree_stall.h:254
+ print_cpu_stall kernel/rcu/tree_stall.h:455 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:529 [inline]
+ rcu_pending kernel/rcu/tree.c:2795 [inline]
+ rcu_sched_clock_irq.cold+0x4fd/0xc12 kernel/rcu/tree.c:2244
+ update_process_times+0x2d/0x70 kernel/time/timer.c:1724
+ tick_sched_handle+0xa2/0x190 kernel/time/tick-sched.c:167
+ tick_sched_timer+0x53/0x140 kernel/time/tick-sched.c:1299
+ __run_hrtimer kernel/time/hrtimer.c:1514 [inline]
+ __hrtimer_run_queues+0x364/0xe40 kernel/time/hrtimer.c:1576
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1638
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1110 [inline]
+ smp_apic_timer_interrupt+0x160/0x610 arch/x86/kernel/apic/apic.c:1135
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+RIP: 0010:arch_local_save_flags arch/x86/include/asm/paravirt.h:751 [inline]
+RIP: 0010:arch_local_irq_save arch/x86/include/asm/paravirt.h:773 [inline]
+RIP: 0010:lock_acquire+0x9b/0x410 kernel/locking/lockdep.c:4482
+Code: f3 88 48 ba 00 00 00 00 00 fc ff df 48 c1 e8 03 80 3c 10 00 0f 85 2e 03 00 00 48 83 3d 75 fe 99 07 00 0f 84 bb 02 00 00 9c 58 <0f> 1f 44 00 00 48 ba 00 00 00 00 00 fc ff df 48 89 45 c8 48 c7 c0
+RSP: 0018:ffff8880ae809c00 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000286 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: dffffc0000000000 RSI: 0000000000000000 RDI: ffff8880a2ad4e9c
+RBP: ffff8880ae809c48 R08: 0000000000000001 R09: 0000000000000000
+R10: ffffed1015d06aec R11: ffff8880ae835763 R12: ffff88809b71b100
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:151
+ spin_lock include/linux/spinlock.h:338 [inline]
+ pie_timer+0x9e/0x830 net/sched/sch_pie.c:449
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1771 [inline]
+ __run_timers kernel/time/timer.c:1738 [inline]
+ run_timer_softirq+0x6c0/0x17f0 kernel/time/timer.c:1784
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:756 [inline]
+RIP: 0010:generic_exec_single+0x33a/0x4c0 kernel/smp.c:155
+Code: 00 fc ff df 48 c1 e8 03 80 3c 10 00 0f 85 68 01 00 00 48 83 3d c6 43 8b 07 00 0f 84 e0 00 00 00 e8 1b 0c 0b 00 48 89 df 57 9d <0f> 1f 44 00 00 45 31 ed e9 39 fe ff ff e8 04 0c 0b 00 0f 0b e9 23
+RSP: 0018:ffff88807a8efa60 EFLAGS: 00000293 ORIG_RAX: ffffffffffffff13
+RAX: ffff8880a2ad4600 RBX: 0000000000000293 RCX: 0000000000000006
+RDX: 0000000000000000 RSI: ffffffff8167c9a5 RDI: 0000000000000293
+RBP: ffff88807a8efa90 R08: 1ffffffff14ee141 R09: fffffbfff14ee142
+R10: fffffbfff14ee141 R11: ffffffff8a770a0f R12: 0000000000000200
+R13: ffff88807a8efae0 R14: ffff88807a8efbc0 R15: ffffffff8188ee80
+ smp_call_function_single+0x17c/0x480 kernel/smp.c:308
+ task_function_call+0xe9/0x180 kernel/events/core.c:114
+ perf_install_in_context+0x266/0x410 kernel/events/core.c:2712
+ __do_sys_perf_event_open+0x1c65/0x2da0 kernel/events/core.c:11255
+ __se_sys_perf_event_open kernel/events/core.c:10871 [inline]
+ __x64_sys_perf_event_open+0xbe/0x150 kernel/events/core.c:10871
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x446d09
+Code: e8 bc b4 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 ab 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fcf90022db8 EFLAGS: 00000246 ORIG_RAX: 000000000000012a
+RAX: ffffffffffffffda RBX: 00000000006dbc48 RCX: 0000000000446d09
+RDX: 00000000ffffffff RSI: 0000000000000000 RDI: 000000002001d000
+RBP: 00000000006dbc40 R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000ffffffff R11: 0000000000000246 R12: 00000000006dbc4c
+R13: 00007ffda80b3fdf R14: 00007fcf900239c0 R15: 0000000000000000

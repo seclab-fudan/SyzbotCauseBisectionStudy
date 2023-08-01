@@ -1,0 +1,178 @@
+INFO: task syz-executor234:6579 blocked for more than 143 seconds.
+      Not tainted 5.15.0-rc2-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor234 state:D stack:23416 pid: 6579 ppid:  6574 flags:0x00000000
+Call Trace:
+ context_switch kernel/sched/core.c:4940 [inline]
+ __schedule+0x940/0x26f0 kernel/sched/core.c:6287
+ schedule+0xd3/0x270 kernel/sched/core.c:6366
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6425
+ __mutex_lock_common kernel/locking/mutex.c:669 [inline]
+ __mutex_lock+0xa34/0x12f0 kernel/locking/mutex.c:729
+ rtnl_lock net/core/rtnetlink.c:72 [inline]
+ rtnetlink_rcv_msg+0x3be/0xb80 net/core/rtnetlink.c:5569
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2504
+ netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1340
+ netlink_sendmsg+0x86d/0xdb0 net/netlink/af_netlink.c:1929
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:724
+ __sys_sendto+0x21c/0x320 net/socket.c:2036
+ __do_sys_sendto net/socket.c:2048 [inline]
+ __se_sys_sendto net/socket.c:2044 [inline]
+ __x64_sys_sendto+0xdd/0x1b0 net/socket.c:2044
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f1f2d85a4e6
+RSP: 002b:00007f1f2da47738 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 00007f1f2da49080 RCX: 00007f1f2d85a4e6
+RDX: 000000000000002c RSI: 00007f1f2da490d0 RDI: 0000000000000003
+RBP: 0000000000000001 R08: 00007f1f2da47754 R09: 000000000000000c
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f1f2da490d0 R14: 0000000000000003 R15: 0000000000000000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/26:
+ #0: ffffffff8b97fea0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6446
+1 lock held by khugepaged/32:
+ #0: ffffffff8ba62f08 (lock#5){+.+.}-{3:3}, at: __lru_add_drain_all+0x65/0x760 mm/swap.c:769
+3 locks held by kworker/1:1/39:
+1 lock held by in:imklog/6256:
+ #0: ffff888073019770 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:990
+3 locks held by syz-executor234/6578:
+ #0: ffffffff8d0e3b68 (rtnl_mutex){+.+.}-{3:3}, at: rtnl_lock net/core/rtnetlink.c:72 [inline]
+ #0: ffffffff8d0e3b68 (rtnl_mutex){+.+.}-{3:3}, at: rtnetlink_rcv_msg+0x3be/0xb80 net/core/rtnetlink.c:5569
+ #1: ffff8880751a12d0 (&wg->device_update_lock){+.+.}-{3:3}, at: wg_open+0x1fc/0x4a0 drivers/net/wireguard/device.c:48
+ #2: ffffffff8b989228 (rcu_state.exp_mutex){+.+.}-{3:3}, at: exp_funnel_lock kernel/rcu/tree_exp.h:322 [inline]
+ #2: ffffffff8b989228 (rcu_state.exp_mutex){+.+.}-{3:3}, at: synchronize_rcu_expedited+0x2d5/0x620 kernel/rcu/tree_exp.h:837
+1 lock held by syz-executor234/6579:
+ #0: ffffffff8d0e3b68 (rtnl_mutex){+.+.}-{3:3}, at: rtnl_lock net/core/rtnetlink.c:72 [inline]
+ #0: ffffffff8d0e3b68 (rtnl_mutex){+.+.}-{3:3}, at: rtnetlink_rcv_msg+0x3be/0xb80 net/core/rtnetlink.c:5569
+1 lock held by syz-executor234/6581:
+ #0: 
+ffffffff8d0e3b68 (rtnl_mutex){+.+.}-{3:3}, at: rtnl_lock net/core/rtnetlink.c:72 [inline]
+ffffffff8d0e3b68 (rtnl_mutex){+.+.}-{3:3}, at: rtnetlink_rcv_msg+0x3be/0xb80 net/core/rtnetlink.c:5569
+3 locks held by syz-executor234/6582:
+3 locks held by kworker/0:0/6736:
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1198 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:634 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:661 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: process_one_work+0x8a3/0x16b0 kernel/workqueue.c:2268
+ #1: ffffc9000315fdb0 ((work_completion)(&(&ifa->dad_work)->work)){+.+.}-{0:0}, at: process_one_work+0x8d7/0x16b0 kernel/workqueue.c:2272
+ #2: ffffffff8d0e3b68 (rtnl_mutex){+.+.}-{3:3}, at: addrconf_dad_work+0xa3/0x1340 net/ipv6/addrconf.c:4047
+3 locks held by kworker/1:2/8461:
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1198 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:634 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:661 [inline]
+ #0: ffff8881476af538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: process_one_work+0x8a3/0x16b0 kernel/workqueue.c:2268
+ #1: ffffc9000ccffdb0 ((work_completion)(&(&ifa->dad_work)->work)){+.+.}-{0:0}, at: process_one_work+0x8d7/0x16b0 kernel/workqueue.c:2272
+ #2: ffffffff8d0e3b68 (rtnl_mutex){+.+.}-{3:3}, at: addrconf_dad_work+0xa3/0x1340 net/ipv6/addrconf.c:4047
+3 locks held by kworker/1:5/8485:
+ #0: ffff888010c64d38 ((wq_completion)events){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888010c64d38 ((wq_completion)events){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888010c64d38 ((wq_completion)events){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1198 [inline]
+ #0: ffff888010c64d38 ((wq_completion)events){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:634 [inline]
+ #0: ffff888010c64d38 ((wq_completion)events){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:661 [inline]
+ #0: ffff888010c64d38 ((wq_completion)events){+.+.}-{0:0}, at: process_one_work+0x8a3/0x16b0 kernel/workqueue.c:2268
+ #1: ffffc9000cd5fdb0 ((linkwatch_work).work){+.+.}-{0:0}, at: process_one_work+0x8d7/0x16b0 kernel/workqueue.c:2272
+ #2: ffffffff8d0e3b68 (rtnl_mutex){+.+.}-{3:3}, at: linkwatch_event+0xb/0x60 net/core/link_watch.c:251
+3 locks held by kworker/0:5/8497:
+1 lock held by syz-executor234/17013:
+ #0: ffffffff8b989228 (rcu_state.exp_mutex){+.+.}-{3:3}, at: exp_funnel_lock kernel/rcu/tree_exp.h:322 [inline]
+ #0: ffffffff8b989228 (rcu_state.exp_mutex){+.+.}-{3:3}, at: synchronize_rcu_expedited+0x2d5/0x620 kernel/rcu/tree_exp.h:837
+1 lock held by systemd-journal/17202:
+5 locks held by kworker/u4:8/27076:
+ #0: ffff8880b9c31a58 (&rq->__lock){-.-.}-{2:2}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8880b9c31a58 (&rq->__lock){-.-.}-{2:2}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff8880b9c31a58 (&rq->__lock){-.-.}-{2:2}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1198 [inline]
+ #0: ffff8880b9c31a58 (&rq->__lock){-.-.}-{2:2}, at: set_work_data kernel/workqueue.c:634 [inline]
+ #0: ffff8880b9c31a58 (&rq->__lock){-.-.}-{2:2}, at: set_work_pool_and_clear_pending kernel/workqueue.c:661 [inline]
+ #0: ffff8880b9c31a58 (&rq->__lock){-.-.}-{2:2}, at: process_one_work+0x8a3/0x16b0 kernel/workqueue.c:2268
+ #1: ffffc90009c77db0 ((work_completion)(&(&bat_priv->nc.work)->work)){+.+.}-{0:0}, at: process_one_work+0x8d7/0x16b0 kernel/workqueue.c:2272
+ #2: ffff8880b9d20258 (&base->lock){..-.}-{2:2}, at: __mod_timer+0x60c/0xe30 kernel/time/timer.c:1043
+ #3: ffffffff8b9c96f8 (cgroup_rstat_lock){....}-{2:2}, at: cgroup_rstat_flush_irqsafe+0x17/0x40 kernel/cgroup/rstat.c:217
+ #4: ffff8880b9d22ef8 (per_cpu_ptr(&cgroup_rstat_cpu_lock, cpu)){..-.}-{2:2}, at: cgroup_rstat_flush_locked+0x146/0xdc0 kernel/cgroup/rstat.c:160
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 26 Comm: khungtaskd Not tainted 5.15.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x47/0x144 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1ae/0x220 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:210 [inline]
+ watchdog+0xc1d/0xf50 kernel/hung_task.c:295
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 31664 Comm: syz-executor234 Not tainted 5.15.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:rcu_lockdep_current_cpu_online kernel/rcu/tree.c:1169 [inline]
+RIP: 0010:rcu_lockdep_current_cpu_online+0x51/0x150 kernel/rcu/tree.c:1160
+Code: 7e e8 73 26 d3 07 48 c7 c3 c0 28 03 00 83 f8 07 89 c5 0f 87 f5 00 00 00 48 8d 3c ed 80 78 33 8b 48 b8 00 00 00 00 00 fc ff df <48> 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 ad 00 00 00 48 03 1c ed 80
+RSP: 0018:ffffc900100f7b58 EFLAGS: 00000297
+RAX: dffffc0000000000 RBX: 00000000000328c0 RCX: ffffffff8161c404
+RDX: 0000000000000001 RSI: 0000000000000002 RDI: ffffffff8b337880
+RBP: 0000000000000000 R08: 0000000000000000 R09: ffff8880b9c32a0b
+R10: ffffed1017386541 R11: 0000000000000000 R12: 0000000000000001
+R13: 0000000000000000 R14: ffff8881528dcc50 R15: ffff8881528dc9e8
+FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f1f2da4f030 CR3: 000000007e53a000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ rcu_read_lock_held_common kernel/rcu/update.c:112 [inline]
+ rcu_read_lock_held_common kernel/rcu/update.c:102 [inline]
+ rcu_read_lock_sched_held+0x25/0x70 kernel/rcu/update.c:123
+ trace_lock_release include/trace/events/lock.h:58 [inline]
+ lock_release+0x522/0x720 kernel/locking/lockdep.c:5636
+ __mutex_unlock_slowpath+0x99/0x5e0 kernel/locking/mutex.c:851
+ perf_event_exit_task+0x24a/0x740 kernel/events/core.c:12720
+ do_exit+0xbbe/0x2a30 kernel/exit.c:834
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ __do_sys_exit_group kernel/exit.c:933 [inline]
+ __se_sys_exit_group kernel/exit.c:931 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:931
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f1f2d89ffa9
+Code: Unable to access opcode bytes at RIP 0x7f1f2d89ff7f.
+RSP: 002b:00007f1f2da47cd8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007f1f2d924430 RCX: 00007f1f2d89ffa9
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffffffffffb8 R09: 00007f1f2d8f01b7
+R10: 00007f1f2da47d60 R11: 0000000000000246 R12: 00007f1f2d924430
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+----------------
+Code disassembly (best guess):
+   0:	7e e8                	jle    0xffffffea
+   2:	73 26                	jae    0x2a
+   4:	d3 07                	roll   %cl,(%rdi)
+   6:	48 c7 c3 c0 28 03 00 	mov    $0x328c0,%rbx
+   d:	83 f8 07             	cmp    $0x7,%eax
+  10:	89 c5                	mov    %eax,%ebp
+  12:	0f 87 f5 00 00 00    	ja     0x10d
+  18:	48 8d 3c ed 80 78 33 	lea    -0x74cc8780(,%rbp,8),%rdi
+  1f:	8b
+  20:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  27:	fc ff df
+* 2a:	48 89 fa             	mov    %rdi,%rdx <-- trapping instruction
+  2d:	48 c1 ea 03          	shr    $0x3,%rdx
+  31:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+  35:	0f 85 ad 00 00 00    	jne    0xe8
+  3b:	48                   	rex.W
+  3c:	03                   	.byte 0x3
+  3d:	1c ed                	sbb    $0xed,%al
+  3f:	80                   	.byte 0x80

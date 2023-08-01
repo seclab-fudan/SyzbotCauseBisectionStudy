@@ -1,0 +1,45 @@
+=============================
+WARNING: suspicious RCU usage
+6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0 Not tainted
+-----------------------------
+kernel/sched/core.c:9870 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by syz-executor.5/19612:
+ #0: ffff0001428b30e0 (&type->s_umount_key#94/1){+.+.}-{3:3}, at: alloc_super+0xf8/0x430 fs/super.c:228
+
+stack backtrace:
+CPU: 0 PID: 19612 Comm: syz-executor.5 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ lockdep_rcu_suspicious+0x138/0x154 kernel/locking/lockdep.c:6597
+ __might_resched+0x6c/0x218 kernel/sched/core.c:9870
+ __might_sleep+0x48/0x78 kernel/sched/core.c:9837
+ write_inode_now+0xa4/0xdc fs/fs-writeback.c:2743
+ iput_final fs/inode.c:1734 [inline]
+ iput+0x1e4/0x324 fs/inode.c:1773
+ ntfs_fill_super+0x1254/0x14a4 fs/ntfs3/super.c:1190
+ get_tree_bdev+0x1e8/0x2a0 fs/super.c:1324
+ ntfs_fs_get_tree+0x28/0x38 fs/ntfs3/super.c:1358
+ vfs_get_tree+0x40/0x140 fs/super.c:1531
+ do_new_mount+0x1dc/0x4e4 fs/namespace.c:3040
+ path_mount+0x358/0x890 fs/namespace.c:3370
+ do_mount fs/namespace.c:3383 [inline]
+ __do_sys_mount fs/namespace.c:3591 [inline]
+ __se_sys_mount fs/namespace.c:3568 [inline]
+ __arm64_sys_mount+0x2c4/0x3c4 fs/namespace.c:3568
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584

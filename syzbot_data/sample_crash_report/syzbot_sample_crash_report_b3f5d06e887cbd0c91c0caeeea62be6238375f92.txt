@@ -1,0 +1,50 @@
+==================================================================
+BUG: KCSAN: data-race in datagram_poll / skb_queue_tail
+
+read to 0xffff88812610e0d0 of 8 bytes by task 3890 on cpu 1:
+ skb_queue_empty include/linux/skbuff.h:1494 [inline]
+ datagram_poll+0x16e/0x300 net/core/datagram.c:780
+ sock_poll+0xed/0x250 net/socket.c:1256
+ vfs_poll include/linux/poll.h:90 [inline]
+ ep_item_poll.isra.0+0x90/0x190 fs/eventpoll.c:892
+ ep_send_events_proc+0x113/0x590 fs/eventpoll.c:1749
+ ep_scan_ready_list.constprop.0+0x189/0x500 fs/eventpoll.c:704
+ ep_send_events fs/eventpoll.c:1793 [inline]
+ ep_poll+0xe3/0x900 fs/eventpoll.c:1930
+ do_epoll_wait+0x162/0x180 fs/eventpoll.c:2294
+ __do_sys_epoll_wait fs/eventpoll.c:2304 [inline]
+ __se_sys_epoll_wait fs/eventpoll.c:2301 [inline]
+ __x64_sys_epoll_wait+0x5e/0x80 fs/eventpoll.c:2301
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+write to 0xffff88812610e0d0 of 8 bytes by task 21960 on cpu 0:
+ __skb_insert include/linux/skbuff.h:1852 [inline]
+ __skb_queue_before include/linux/skbuff.h:1958 [inline]
+ __skb_queue_tail include/linux/skbuff.h:1991 [inline]
+ skb_queue_tail+0x6b/0xc0 net/core/skbuff.c:3145
+ __netlink_sendskb+0x50/0x80 net/netlink/af_netlink.c:1248
+ netlink_broadcast_deliver net/netlink/af_netlink.c:1381 [inline]
+ do_one_broadcast net/netlink/af_netlink.c:1466 [inline]
+ netlink_broadcast_filtered+0x6c3/0x800 net/netlink/af_netlink.c:1510
+ netlink_broadcast+0x43/0x60 net/netlink/af_netlink.c:1534
+ uevent_net_broadcast_untagged lib/kobject_uevent.c:330 [inline]
+ kobject_uevent_net_broadcast lib/kobject_uevent.c:408 [inline]
+ kobject_uevent_env+0x6b6/0xc00 lib/kobject_uevent.c:592
+ kvm_uevent_notify_change+0x281/0x3b0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:4171
+ kvm_dev_ioctl_create_vm arch/x86/kvm/../../../virt/kvm/kvm_main.c:3467 [inline]
+ kvm_dev_ioctl+0xac5/0xc40 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3489
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0x991/0xc60 fs/ioctl.c:696
+ ksys_ioctl+0xbd/0xe0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x4c/0x60 fs/ioctl.c:718
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 21960 Comm: syz-executor.2 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

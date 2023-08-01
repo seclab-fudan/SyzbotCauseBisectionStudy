@@ -1,0 +1,106 @@
+device lo entered promiscuous mode
+device lo left promiscuous mode
+device lo entered promiscuous mode
+device lo left promiscuous mode
+==================================================================
+BUG: KASAN: use-after-free in fib6_ifdown+0x1f8/0x220 net/ipv6/route.c:3473
+Read of size 8 at addr ffff8801bd2d2380 by task syzkaller913903/4753
+
+CPU: 0 PID: 4753 Comm: syzkaller913903 Not tainted 4.15.0-rc8+ #263
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ fib6_ifdown+0x1f8/0x220 net/ipv6/route.c:3473
+ fib6_clean_node+0x333/0x4f0 net/ipv6/ip6_fib.c:1914
+ fib6_walk_continue+0x46c/0x8a0 net/ipv6/ip6_fib.c:1840
+ fib6_walk+0x91/0xf0 net/ipv6/ip6_fib.c:1888
+ fib6_clean_tree+0x1e6/0x340 net/ipv6/ip6_fib.c:1958
+ __fib6_clean_all+0x1f4/0x3a0 net/ipv6/ip6_fib.c:1974
+ fib6_clean_all+0x27/0x30 net/ipv6/ip6_fib.c:1985
+ rt6_ifdown+0xd1/0x6a0 net/ipv6/route.c:3490
+ addrconf_ifdown+0x134/0x14d0 net/ipv6/addrconf.c:3589
+ addrconf_notify+0x5eb/0x2270 net/ipv6/addrconf.c:3514
+ notifier_call_chain+0x136/0x2c0 kernel/notifier.c:93
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2d/0x40 kernel/notifier.c:401
+ call_netdevice_notifiers_info+0x32/0x60 net/core/dev.c:1691
+ call_netdevice_notifiers net/core/dev.c:1709 [inline]
+ __dev_notify_flags+0x262/0x430 net/core/dev.c:6869
+ dev_change_flags+0xf5/0x140 net/core/dev.c:6903
+ dev_ifsioc+0x60d/0x9b0 net/core/dev_ioctl.c:257
+ dev_ioctl+0x2d7/0xfb0 net/core/dev_ioctl.c:566
+ sock_do_ioctl+0x94/0xb0 net/socket.c:973
+ sock_ioctl+0x2c2/0x440 net/socket.c:1063
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x44ab09
+RSP: 002b:00007fcfe9bd0da8 EFLAGS: 00000293 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000006dcc24 RCX: 000000000044ab09
+RDX: 00000000208a3fe0 RSI: 0000000000008914 RDI: 0000000000000125
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000293 R12: 00000000006dcc20
+R13: 0001000000000003 R14: 0100000000000000 R15: 0000000000000001
+
+Allocated by task 4759:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3544
+ dst_alloc+0x11f/0x1a0 net/core/dst.c:107
+ __ip6_dst_alloc+0x35/0x90 net/ipv6/route.c:361
+ ip6_dst_alloc+0x29/0xb0 net/ipv6/route.c:376
+ ip6_route_info_create+0x4ff/0x2d40 net/ipv6/route.c:2537
+ ip6_route_add+0xa2/0x190 net/ipv6/route.c:2774
+ ipv6_route_ioctl+0x4db/0x6b0 net/ipv6/route.c:3294
+ inet6_ioctl+0xef/0x1e0 net/ipv6/af_inet6.c:520
+ sock_do_ioctl+0x65/0xb0 net/socket.c:966
+ sock_ioctl+0x2c2/0x440 net/socket.c:1063
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 4768:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3746
+ dst_destroy+0x216/0x330 net/core/dst.c:138
+ dst_destroy_rcu+0x16/0x20 net/core/dst.c:151
+ __rcu_reclaim kernel/rcu/rcu.h:195 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2758 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:3012 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2979 [inline]
+ rcu_process_callbacks+0xd6c/0x17f0 kernel/rcu/tree.c:2996
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801bd2d2380
+ which belongs to the cache ip6_dst_cache of size 384
+The buggy address is located 0 bytes inside of
+ 384-byte region [ffff8801bd2d2380, ffff8801bd2d2500)
+The buggy address belongs to the page:
+page:ffffea0006f4b480 count:1 mapcount:0 mapping:ffff8801bd2d2000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801bd2d2000 0000000000000000 0000000100000009
+raw: ffffea000758e3a0 ffffea0006f4d320 ffff8801d3236540 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bd2d2280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bd2d2300: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8801bd2d2380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8801bd2d2400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bd2d2480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

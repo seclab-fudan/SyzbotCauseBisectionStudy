@@ -1,0 +1,78 @@
+INFO: task kworker/0:5:3131 blocked for more than 143 seconds.
+      Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:kworker/0:5     state:D stack:0     pid:3131  ppid:2      flags:0x00000008
+Workqueue: events rfkill_sync_work
+Call trace:
+ __switch_to+0x180/0x298 arch/arm64/kernel/process.c:555
+ context_switch kernel/sched/core.c:5209 [inline]
+ __schedule+0x408/0x594 kernel/sched/core.c:6521
+ schedule+0x64/0xa4 kernel/sched/core.c:6597
+ schedule_preempt_disabled+0x18/0x2c kernel/sched/core.c:6656
+ __mutex_lock_common+0x788/0xca8 kernel/locking/mutex.c:679
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x38/0x44 kernel/locking/mutex.c:799
+ device_lock include/linux/device.h:835 [inline]
+ nfc_dev_down net/nfc/core.c:143 [inline]
+ nfc_rfkill_set_block+0x3c/0x170 net/nfc/core.c:179
+ rfkill_set_block+0xb4/0x1f8 net/rfkill/core.c:345
+ rfkill_sync_work+0x64/0x80 net/rfkill/core.c:1042
+ process_one_work+0x2d8/0x504 kernel/workqueue.c:2289
+ worker_thread+0x340/0x610 kernel/workqueue.c:2436
+ kthread+0x12c/0x158 kernel/kthread.c:376
+ ret_from_fork+0x10/0x20 arch/arm64/kernel/entry.S:863
+INFO: task syz-executor137:11568 blocked for more than 143 seconds.
+      Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor137 state:D stack:0     pid:11568 ppid:3121   flags:0x00000009
+Call trace:
+ __switch_to+0x180/0x298 arch/arm64/kernel/process.c:555
+ context_switch kernel/sched/core.c:5209 [inline]
+ __schedule+0x408/0x594 kernel/sched/core.c:6521
+ schedule+0x64/0xa4 kernel/sched/core.c:6597
+ schedule_timeout+0x64/0x1b4 kernel/time/timer.c:1911
+ do_wait_for_common+0xf4/0x184 kernel/sched/completion.c:85
+ __wait_for_common kernel/sched/completion.c:106 [inline]
+ wait_for_common kernel/sched/completion.c:117 [inline]
+ wait_for_completion+0x48/0x60 kernel/sched/completion.c:138
+ __flush_work+0xd4/0x144 kernel/workqueue.c:3073
+ __cancel_work_timer+0x1c4/0x2ac kernel/workqueue.c:3160
+ cancel_work_sync+0x24/0x38 kernel/workqueue.c:3196
+ rfkill_unregister+0x4c/0xec net/rfkill/core.c:1124
+ nfc_unregister_device+0x84/0x190 net/nfc/core.c:1167
+ nci_unregister_device+0xc4/0x100 net/nfc/nci/core.c:1302
+ virtual_ncidev_close+0x70/0xb0 drivers/nfc/virtual_ncidev.c:166
+ __fput+0x198/0x3e4 fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:348
+ task_work_run+0x100/0x148 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ do_notify_resume+0x174/0x1f0 arch/arm64/kernel/signal.c:1132
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:638
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/11:
+ #0: ffff80000d4a4768 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x3c/0x450 kernel/rcu/tasks.h:507
+1 lock held by rcu_tasks_trace/12:
+ #0: ffff80000d4a4db8 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x3c/0x450 kernel/rcu/tasks.h:507
+1 lock held by khungtaskd/27:
+ #0: ffff80000d4a4640 (rcu_read_lock){....}-{1:2}, at: rcu_lock_acquire+0x4/0x48 include/linux/rcupdate.h:303
+2 locks held by getty/2760:
+ #0: ffff0000c7d8c898 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x28/0x58 drivers/tty/tty_ldisc.c:244
+ #1: ffff80000f6be2f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0x19c/0x89c drivers/tty/n_tty.c:2177
+4 locks held by kworker/0:5/3131:
+ #0: ffff0000c0010738 ((wq_completion)events){+.+.}-{0:0}, at: process_one_work+0x270/0x504 kernel/workqueue.c:2262
+ #1: ffff80000ff23d80 ((work_completion)(&rfkill->sync_work)){+.+.}-{0:0}, at: process_one_work+0x29c/0x504 kernel/workqueue.c:2264
+ #2: ffff80000d924720 (rfkill_global_mutex){+.+.}-{3:3}, at: rfkill_sync_work+0x34/0x80 net/rfkill/core.c:1040
+ #3: ffff0000cb54f900 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #3: ffff0000cb54f900 (&dev->mutex){....}-{3:3}, at: nfc_dev_down net/nfc/core.c:143 [inline]
+ #3: ffff0000cb54f900 (&dev->mutex){....}-{3:3}, at: nfc_rfkill_set_block+0x3c/0x170 net/nfc/core.c:179
+1 lock held by syz-executor137/11568:
+ #0: ffff0000cb54f900 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #0: ffff0000cb54f900 (&dev->mutex){....}-{3:3}, at: nfc_unregister_device+0x70/0x190 net/nfc/core.c:1165
+
+=============================================
+

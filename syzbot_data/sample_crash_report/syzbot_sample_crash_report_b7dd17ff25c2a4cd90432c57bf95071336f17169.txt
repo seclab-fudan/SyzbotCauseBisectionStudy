@@ -1,0 +1,107 @@
+usbvision_set_audio: can't write iopin register for audio switching
+usbvision_radio_close: Final disconnect
+==================================================================
+BUG: KASAN: use-after-free in v4l2_release+0x2f1/0x390 drivers/media/v4l2-core/v4l2-dev.c:459
+Read of size 4 at addr ffff8881c94c9110 by task v4l_id/446
+
+CPU: 0 PID: 446 Comm: v4l_id Not tainted 5.8.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xf6/0x16e lib/dump_stack.c:118
+ print_address_description.constprop.0+0x1a/0x210 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x37/0x7c mm/kasan/report.c:530
+ v4l2_release+0x2f1/0x390 drivers/media/v4l2-core/v4l2-dev.c:459
+ __fput+0x339/0x870 fs/file_table.c:281
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:123
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop arch/x86/entry/common.c:216 [inline]
+ __prepare_exit_to_usermode+0x19e/0x1a0 arch/x86/entry/common.c:246
+ do_syscall_64+0x5c/0x90 arch/x86/entry/common.c:368
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7fc272089270
+Code: Bad RIP value.
+RSP: 002b:00007ffdff64a208 EFLAGS: 00000246 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000003 RCX: 00007fc272089270
+RDX: 000000000000000a RSI: 00007fc272075760 RDI: 0000000000000003
+RBP: 00007fc2726b9698 R08: 00007fc272075760 R09: 00007fc2726b9700
+R10: 0000564d3c329f17 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffdff64a390 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 17:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc.constprop.0+0xc2/0xd0 mm/kasan/common.c:494
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ usbvision_alloc drivers/staging/media/usbvision/usbvision-video.c:1315 [inline]
+ usbvision_probe.cold+0x5c0/0x1f2a drivers/staging/media/usbvision/usbvision-video.c:1469
+ usb_probe_interface+0x315/0x7f0 drivers/usb/core/driver.c:374
+ really_probe+0x291/0xc90 drivers/base/dd.c:525
+ driver_probe_device+0x26b/0x3d0 drivers/base/dd.c:701
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:807
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x28d/0x430 drivers/base/dd.c:873
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0xb09/0x1b40 drivers/base/core.c:2680
+ usb_set_configuration+0xf05/0x18a0 drivers/usb/core/message.c:2032
+ usb_generic_driver_probe+0xba/0xf2 drivers/usb/core/generic.c:241
+ usb_probe_device+0xd9/0x250 drivers/usb/core/driver.c:272
+ really_probe+0x291/0xc90 drivers/base/dd.c:525
+ driver_probe_device+0x26b/0x3d0 drivers/base/dd.c:701
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:807
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x28d/0x430 drivers/base/dd.c:873
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0xb09/0x1b40 drivers/base/core.c:2680
+ usb_new_device.cold+0x71d/0xfd4 drivers/usb/core/hub.c:2554
+ hub_port_connect drivers/usb/core/hub.c:5208 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5348 [inline]
+ port_event drivers/usb/core/hub.c:5494 [inline]
+ hub_event+0x2361/0x4390 drivers/usb/core/hub.c:5576
+ process_one_work+0x94c/0x15f0 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0x82b/0x1120 kernel/workqueue.c:2417
+ kthread+0x392/0x470 kernel/kthread.c:291
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+Freed by task 446:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ kasan_set_free_info mm/kasan/common.c:316 [inline]
+ __kasan_slab_free+0x116/0x160 mm/kasan/common.c:455
+ slab_free_hook mm/slub.c:1474 [inline]
+ slab_free_freelist_hook+0x53/0x140 mm/slub.c:1507
+ slab_free mm/slub.c:3072 [inline]
+ kfree+0xbc/0x2c0 mm/slub.c:4052
+ usbvision_release+0x181/0x1c0 drivers/staging/media/usbvision/usbvision-video.c:1364
+ usbvision_radio_close.cold+0x2b/0x74 drivers/staging/media/usbvision/usbvision-video.c:1130
+ v4l2_release+0x2e7/0x390 drivers/media/v4l2-core/v4l2-dev.c:455
+ __fput+0x339/0x870 fs/file_table.c:281
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:123
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop arch/x86/entry/common.c:216 [inline]
+ __prepare_exit_to_usermode+0x19e/0x1a0 arch/x86/entry/common.c:246
+ do_syscall_64+0x5c/0x90 arch/x86/entry/common.c:368
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The buggy address belongs to the object at ffff8881c94c8000
+ which belongs to the cache kmalloc-8k of size 8192
+The buggy address is located 4368 bytes inside of
+ 8192-byte region [ffff8881c94c8000, ffff8881c94ca000)
+The buggy address belongs to the page:
+page:ffffea0007253200 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 head:ffffea0007253200 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0x200000000010200(slab|head)
+raw: 0200000000010200 dead000000000100 dead000000000122 ffff8881da00c500
+raw: 0000000000000000 0000000080020002 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881c94c9000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881c94c9080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881c94c9100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                         ^
+ ffff8881c94c9180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881c94c9200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,91 @@
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
+==================================================================
+BUG: KASAN: use-after-free in sctp_association_free+0x7b7/0x930 net/sctp/associola.c:332
+Read of size 8 at addr ffff8801d8006ae0 by task syzkaller914861/4202
+
+CPU: 1 PID: 4202 Comm: syzkaller914861 Not tainted 4.16.0-rc4+ #258
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ sctp_association_free+0x7b7/0x930 net/sctp/associola.c:332
+ sctp_sendmsg+0xc67/0x1a80 net/sctp/socket.c:2075
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:763
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:639
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1748
+ SyS_sendto+0x40/0x50 net/socket.c:1716
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x446d09
+RSP: 002b:00007f5dbac21da8 EFLAGS: 00000216 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 0000000000446d09
+RDX: 0000000000000001 RSI: 0000000020000340 RDI: 0000000000000003
+RBP: 00000000006e29f8 R08: 00000000204d9000 R09: 000000000000001c
+R10: 0000000000000000 R11: 0000000000000216 R12: 0000000000000000
+R13: 00007fff7b26fb1f R14: 00007f5dbac229c0 R15: 00000000006e2b60
+
+Allocated by task 4202:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ kmem_cache_alloc_trace+0x136/0x740 mm/slab.c:3607
+ kmalloc include/linux/slab.h:512 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ sctp_association_new+0x114/0x2130 net/sctp/associola.c:308
+ sctp_sendmsg_new_asoc+0x2e6/0x1000 net/sctp/socket.c:1705
+ sctp_sendmsg+0x1450/0x1a80 net/sctp/socket.c:2046
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:763
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:639
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1748
+ SyS_sendto+0x40/0x50 net/socket.c:1716
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 4202:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3485 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3800
+ sctp_association_destroy net/sctp/associola.c:434 [inline]
+ sctp_association_put+0x21c/0x2f0 net/sctp/associola.c:883
+ sctp_wait_for_sndbuf net/sctp/socket.c:8179 [inline]
+ sctp_sendmsg_to_asoc+0x1693/0x1e80 net/sctp/socket.c:1904
+ sctp_sendmsg+0xc3e/0x1a80 net/sctp/socket.c:2073
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:763
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:639
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1748
+ SyS_sendto+0x40/0x50 net/socket.c:1716
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+The buggy address belongs to the object at ffff8801d8006ac0
+ which belongs to the cache kmalloc-4096 of size 4096
+The buggy address is located 32 bytes inside of
+ 4096-byte region [ffff8801d8006ac0, ffff8801d8007ac0)
+The buggy address belongs to the page:
+page:ffffea0007600180 count:1 mapcount:0 mapping:ffff8801d8006ac0 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801d8006ac0 0000000000000000 0000000100000001
+raw: ffffea0007600120 ffffea0007606c20 ffff8801dac00dc0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d8006980: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801d8006a00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801d8006a80: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                       ^
+ ffff8801d8006b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d8006b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

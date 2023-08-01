@@ -1,0 +1,85 @@
+==================================================================
+BUG: KASAN: use-after-free in vhost_vq_meta_fetch drivers/vhost/vhost.c:702 [inline]
+BUG: KASAN: use-after-free in iotlb_access_ok+0x5c9/0x600 drivers/vhost/vhost.c:1177
+Read of size 8 at addr ffff880197df2fc0 by task vhost-8938/8941
+
+CPU: 0 PID: 8941 Comm: vhost-8938 Not tainted 4.18.0-rc7+ #174
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ vhost_vq_meta_fetch drivers/vhost/vhost.c:702 [inline]
+ iotlb_access_ok+0x5c9/0x600 drivers/vhost/vhost.c:1177
+ vq_iotlb_prefetch+0x10e/0x230 drivers/vhost/vhost.c:1214
+ handle_rx+0x247/0x1f80 drivers/vhost/net.c:799
+ handle_rx_net+0x19/0x20 drivers/vhost/net.c:934
+ vhost_worker+0x283/0x490 drivers/vhost/vhost.c:360
+ kthread+0x345/0x410 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Allocated by task 8938:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x780 mm/slab.c:3620
+ kmalloc include/linux/slab.h:513 [inline]
+ vhost_new_umem_range+0xcb/0x7c0 drivers/vhost/vhost.c:911
+ vhost_process_iotlb_msg drivers/vhost/vhost.c:1000 [inline]
+ vhost_chr_write_iter+0xe53/0x1a00 drivers/vhost/vhost.c:1043
+ vhost_net_chr_write_iter+0x59/0x70 drivers/vhost/net.c:1399
+ call_write_iter include/linux/fs.h:1793 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x6c6/0x9f0 fs/read_write.c:487
+ vfs_write+0x1f8/0x560 fs/read_write.c:549
+ ksys_write+0x101/0x260 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 8950:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ vhost_umem_free+0x944/0x14d0 drivers/vhost/vhost.c:576
+ vhost_umem_clean+0x83/0xf0 drivers/vhost/vhost.c:588
+ vhost_init_device_iotlb+0x1d7/0x290 drivers/vhost/vhost.c:1568
+ vhost_net_set_features drivers/vhost/net.c:1292 [inline]
+ vhost_net_ioctl+0xff3/0x1a80 drivers/vhost/net.c:1357
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:500 [inline]
+ do_vfs_ioctl+0x1de/0x1720 fs/ioctl.c:684
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:701
+ __do_sys_ioctl fs/ioctl.c:708 [inline]
+ __se_sys_ioctl fs/ioctl.c:706 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:706
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff880197df2f80
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 64 bytes inside of
+ 96-byte region [ffff880197df2f80, ffff880197df2fe0)
+The buggy address belongs to the page:
+page:ffffea00065f7c80 count:1 mapcount:0 mapping:ffff8801dac004c0 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0007530148 ffffea000663b888 ffff8801dac004c0
+raw: 0000000000000000 ffff880197df2000 0000000100000020 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff880197df2e80: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff880197df2f00: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+>ffff880197df2f80: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+                                           ^
+ ffff880197df3000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff880197df3080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

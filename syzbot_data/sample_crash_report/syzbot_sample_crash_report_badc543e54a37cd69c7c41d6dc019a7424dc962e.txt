@@ -1,0 +1,122 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.3.0-rc4-syzkaller-00199-g7b50567bdcad #0 Not tainted
+------------------------------------------------------
+kworker/u4:0/9 is trying to acquire lock:
+ffff888070c83280 (&rl->lock){++++}-{3:3}, at: ntfs_read_block fs/ntfs/aops.c:248 [inline]
+ffff888070c83280 (&rl->lock){++++}-{3:3}, at: ntfs_read_folio+0x14d5/0x29f0 fs/ntfs/aops.c:436
+
+but task is already holding lock:
+ffff88806eec8190 (&ni->mrec_lock){+.+.}-{3:3}, at: map_mft_record+0x4c/0x630 fs/ntfs/mft.c:154
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&ni->mrec_lock){+.+.}-{3:3}:
+       lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+       __mutex_lock_common+0x1d8/0x2530 kernel/locking/mutex.c:603
+       __mutex_lock kernel/locking/mutex.c:747 [inline]
+       mutex_lock_nested+0x1b/0x20 kernel/locking/mutex.c:799
+       map_mft_record+0x4c/0x630 fs/ntfs/mft.c:154
+       ntfs_attr_extend_allocation+0x539/0x4340 fs/ntfs/attrib.c:2002
+       ntfs_prepare_file_for_write fs/ntfs/file.c:391 [inline]
+       ntfs_file_write_iter+0x3ad/0x1a00 fs/ntfs/file.c:1915
+       call_write_iter include/linux/fs.h:1851 [inline]
+       new_sync_write fs/read_write.c:491 [inline]
+       vfs_write+0x7b2/0xbb0 fs/read_write.c:584
+       ksys_write+0x1a0/0x2c0 fs/read_write.c:637
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&rl->lock){++++}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3098 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+       validate_chain+0x166b/0x58e0 kernel/locking/lockdep.c:3832
+       __lock_acquire+0x125b/0x1f80 kernel/locking/lockdep.c:5056
+       lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+       down_read+0x3d/0x50 kernel/locking/rwsem.c:1520
+       ntfs_read_block fs/ntfs/aops.c:248 [inline]
+       ntfs_read_folio+0x14d5/0x29f0 fs/ntfs/aops.c:436
+       filemap_read_folio+0x19d/0x7a0 mm/filemap.c:2424
+       do_read_cache_folio+0x2ee/0x820 mm/filemap.c:3683
+       do_read_cache_page+0x32/0x230 mm/filemap.c:3749
+       read_mapping_page include/linux/pagemap.h:769 [inline]
+       ntfs_map_page fs/ntfs/aops.h:75 [inline]
+       ntfs_sync_mft_mirror+0x25f/0x1ae0 fs/ntfs/mft.c:480
+       write_mft_record_nolock+0x1155/0x18e0 fs/ntfs/mft.c:787
+       write_mft_record+0x149/0x310 fs/ntfs/mft.h:95
+       __ntfs_write_inode+0x703/0xbb0 fs/ntfs/inode.c:3050
+       write_inode fs/fs-writeback.c:1453 [inline]
+       __writeback_single_inode+0x69b/0xfb0 fs/fs-writeback.c:1665
+       writeback_sb_inodes+0x8ef/0x11d0 fs/fs-writeback.c:1891
+       __writeback_inodes_wb+0x11b/0x260 fs/fs-writeback.c:1962
+       wb_writeback+0x46c/0xc70 fs/fs-writeback.c:2067
+       wb_check_start_all fs/fs-writeback.c:2189 [inline]
+       wb_do_writeback fs/fs-writeback.c:2215 [inline]
+       wb_workfn+0x98f/0xff0 fs/fs-writeback.c:2248
+       process_one_work+0x8a0/0x10e0 kernel/workqueue.c:2390
+       worker_thread+0xa63/0x1210 kernel/workqueue.c:2537
+       kthread+0x270/0x300 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&ni->mrec_lock);
+                               lock(&rl->lock);
+                               lock(&ni->mrec_lock);
+  lock(&rl->lock);
+
+ *** DEADLOCK ***
+
+4 locks held by kworker/u4:0/9:
+ #0: ffff888017794138 ((wq_completion)writeback){+.+.}-{0:0}, at: process_one_work+0x77e/0x10e0 kernel/workqueue.c:2363
+ #1: ffffc900000e7d20 ((work_completion)(&(&wb->dwork)->work)){+.+.}-{0:0}, at: process_one_work+0x7c8/0x10e0 kernel/workqueue.c:2365
+ #2: ffff88807eb140e0 (&type->s_umount_key#48){++++}-{3:3}, at: trylock_super+0x1f/0xf0 fs/super.c:414
+ #3: ffff88806eec8190 (&ni->mrec_lock){+.+.}-{3:3}, at: map_mft_record+0x4c/0x630 fs/ntfs/mft.c:154
+
+stack backtrace:
+CPU: 1 PID: 9 Comm: kworker/u4:0 Not tainted 6.3.0-rc4-syzkaller-00199-g7b50567bdcad #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Workqueue: writeback wb_workfn (flush-7:0)
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ check_noncircular+0x2fe/0x3b0 kernel/locking/lockdep.c:2178
+ check_prev_add kernel/locking/lockdep.c:3098 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+ validate_chain+0x166b/0x58e0 kernel/locking/lockdep.c:3832
+ __lock_acquire+0x125b/0x1f80 kernel/locking/lockdep.c:5056
+ lock_acquire+0x1e1/0x520 kernel/locking/lockdep.c:5669
+ down_read+0x3d/0x50 kernel/locking/rwsem.c:1520
+ ntfs_read_block fs/ntfs/aops.c:248 [inline]
+ ntfs_read_folio+0x14d5/0x29f0 fs/ntfs/aops.c:436
+ filemap_read_folio+0x19d/0x7a0 mm/filemap.c:2424
+ do_read_cache_folio+0x2ee/0x820 mm/filemap.c:3683
+ do_read_cache_page+0x32/0x230 mm/filemap.c:3749
+ read_mapping_page include/linux/pagemap.h:769 [inline]
+ ntfs_map_page fs/ntfs/aops.h:75 [inline]
+ ntfs_sync_mft_mirror+0x25f/0x1ae0 fs/ntfs/mft.c:480
+ write_mft_record_nolock+0x1155/0x18e0 fs/ntfs/mft.c:787
+ write_mft_record+0x149/0x310 fs/ntfs/mft.h:95
+ __ntfs_write_inode+0x703/0xbb0 fs/ntfs/inode.c:3050
+ write_inode fs/fs-writeback.c:1453 [inline]
+ __writeback_single_inode+0x69b/0xfb0 fs/fs-writeback.c:1665
+ writeback_sb_inodes+0x8ef/0x11d0 fs/fs-writeback.c:1891
+ __writeback_inodes_wb+0x11b/0x260 fs/fs-writeback.c:1962
+ wb_writeback+0x46c/0xc70 fs/fs-writeback.c:2067
+ wb_check_start_all fs/fs-writeback.c:2189 [inline]
+ wb_do_writeback fs/fs-writeback.c:2215 [inline]
+ wb_workfn+0x98f/0xff0 fs/fs-writeback.c:2248
+ process_one_work+0x8a0/0x10e0 kernel/workqueue.c:2390
+ worker_thread+0xa63/0x1210 kernel/workqueue.c:2537
+ kthread+0x270/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>

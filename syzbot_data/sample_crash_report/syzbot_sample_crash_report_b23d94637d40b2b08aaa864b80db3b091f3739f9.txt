@@ -1,0 +1,62 @@
+=====================================================
+BUG: KMSAN: uninit-value in ipvlan_xmit_mode_l2 drivers/net/ipvlan/ipvlan_core.c:621 [inline]
+BUG: KMSAN: uninit-value in ipvlan_queue_xmit+0x1948/0x2560 drivers/net/ipvlan/ipvlan_core.c:644
+ ipvlan_xmit_mode_l2 drivers/net/ipvlan/ipvlan_core.c:621 [inline]
+ ipvlan_queue_xmit+0x1948/0x2560 drivers/net/ipvlan/ipvlan_core.c:644
+ ipvlan_start_xmit+0x57/0x260 drivers/net/ipvlan/ipvlan_main.c:220
+ __netdev_start_xmit include/linux/netdevice.h:4805 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4819 [inline]
+ __dev_direct_xmit+0x941/0xd50 net/core/dev.c:4312
+ dev_direct_xmit include/linux/netdevice.h:3007 [inline]
+ packet_direct_xmit+0x2a3/0x610 net/packet/af_packet.c:282
+ packet_snd net/packet/af_packet.c:3073 [inline]
+ packet_sendmsg+0x605b/0x78e0 net/packet/af_packet.c:3104
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x7f2/0xa60 net/socket.c:2117
+ __do_sys_sendto net/socket.c:2129 [inline]
+ __se_sys_sendto net/socket.c:2125 [inline]
+ __x64_sys_sendto+0x121/0x1c0 net/socket.c:2125
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:732 [inline]
+ slab_alloc_node mm/slub.c:3258 [inline]
+ slab_alloc mm/slub.c:3266 [inline]
+ __kmalloc_track_caller+0x7c5/0x1120 mm/slub.c:4939
+ kmemdup+0x3f/0xd0 mm/util.c:129
+ neigh_sysctl_register+0x7f/0x9d0 net/core/neighbour.c:3787
+ addrconf_sysctl_register+0x15c/0x370 net/ipv6/addrconf.c:7122
+ ipv6_add_dev+0x18de/0x1d40 net/ipv6/addrconf.c:450
+ addrconf_notify+0x8a6/0x1d30 net/ipv6/addrconf.c:3528
+ notifier_call_chain kernel/notifier.c:87 [inline]
+ raw_notifier_call_chain+0xbc/0x240 kernel/notifier.c:455
+ call_netdevice_notifiers_info net/core/dev.c:1945 [inline]
+ call_netdevice_notifiers_extack net/core/dev.c:1983 [inline]
+ call_netdevice_notifiers+0x1f6/0x2f0 net/core/dev.c:1997
+ register_netdevice+0x205d/0x2240 net/core/dev.c:10103
+ veth_newlink+0xa3a/0x1760 drivers/net/veth.c:1764
+ rtnl_newlink_create net/core/rtnetlink.c:3363 [inline]
+ __rtnl_newlink net/core/rtnetlink.c:3580 [inline]
+ rtnl_newlink+0x2cc9/0x40e0 net/core/rtnetlink.c:3593
+ rtnetlink_rcv_msg+0x16c9/0x1860 net/core/rtnetlink.c:6090
+ netlink_rcv_skb+0x3a5/0x6c0 net/netlink/af_netlink.c:2501
+ rtnetlink_rcv+0x30/0x40 net/core/rtnetlink.c:6108
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0xf3b/0x1270 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x1288/0x1440 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x7f2/0xa60 net/socket.c:2117
+ __do_sys_sendto net/socket.c:2129 [inline]
+ __se_sys_sendto net/socket.c:2125 [inline]
+ __x64_sys_sendto+0x121/0x1c0 net/socket.c:2125
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+CPU: 0 PID: 3518 Comm: syz-executor279 Not tainted 6.0.0-rc2-syzkaller-47461-gac3859c02d7f #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+=====================================================

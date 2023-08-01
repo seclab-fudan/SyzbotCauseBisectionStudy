@@ -1,0 +1,62 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 5658 Comm: syz-executor296 Not tainted 4.19.0+ #97
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:vb2_vmalloc_put_userptr+0x73/0x250 drivers/media/common/videobuf2/videobuf2-vmalloc.c:136
+Code: fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 c2 01 00 00 48 b8 00 00 00 00 00 fc ff df 49 8b 5e 08 48 8d 7b 09 48 89 fa 48 c1 ea 03 <0f> b6 04 02 48 89 fa 83 e2 07 38 d0 7f 08 84 c0 0f 85 72 01 00 00
+RSP: 0018:ffff8801b9c873a0 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 1ffffffff113e4e0
+RDX: 0000000000000001 RSI: ffffffff854de5d9 RDI: 0000000000000009
+RBP: ffff8801b9c873d0 R08: ffff8801d3520180 R09: ffffed00395c0cba
+R10: ffff8801b9c874c8 R11: ffff8801cae065d7 R12: ffffc90002571000
+R13: 0000000000000000 R14: ffff8801c8cd0680 R15: ffff8801c8cd0680
+FS:  0000000002010880(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000043e920 CR3: 000000000946a000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __vb2_buf_userptr_put drivers/media/common/videobuf2/videobuf2-core.c:258 [inline]
+ __vb2_free_mem drivers/media/common/videobuf2/videobuf2-core.c:417 [inline]
+ __vb2_queue_free+0x4b1/0xa30 drivers/media/common/videobuf2/videobuf2-core.c:458
+ vb2_core_queue_release+0x62/0x80 drivers/media/common/videobuf2/videobuf2-core.c:2231
+ vb2_queue_release drivers/media/common/videobuf2/videobuf2-v4l2.c:837 [inline]
+ _vb2_fop_release+0x1d2/0x2b0 drivers/media/common/videobuf2/videobuf2-v4l2.c:1010
+ vb2_fop_release+0x77/0xc0 drivers/media/common/videobuf2/videobuf2-v4l2.c:1024
+ vivid_fop_release+0x18e/0x440 drivers/media/platform/vivid/vivid-core.c:474
+ v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1ad6/0x26d0 kernel/exit.c:867
+ do_group_exit+0x177/0x440 kernel/exit.c:970
+ __do_sys_exit_group kernel/exit.c:981 [inline]
+ __se_sys_exit_group kernel/exit.c:979 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:979
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x442da8
+Code: Bad RIP value.
+RSP: 002b:00007ffe13adb938 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000442da8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004c2968 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d4180 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+---[ end trace b8c9b021415d499f ]---
+RIP: 0010:vb2_vmalloc_put_userptr+0x73/0x250 drivers/media/common/videobuf2/videobuf2-vmalloc.c:136
+Code: fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 c2 01 00 00 48 b8 00 00 00 00 00 fc ff df 49 8b 5e 08 48 8d 7b 09 48 89 fa 48 c1 ea 03 <0f> b6 04 02 48 89 fa 83 e2 07 38 d0 7f 08 84 c0 0f 85 72 01 00 00
+RSP: 0018:ffff8801b9c873a0 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 1ffffffff113e4e0
+RDX: 0000000000000001 RSI: ffffffff854de5d9 RDI: 0000000000000009
+RBP: ffff8801b9c873d0 R08: ffff8801d3520180 R09: ffffed00395c0cba
+R10: ffff8801b9c874c8 R11: ffff8801cae065d7 R12: ffffc90002571000
+R13: 0000000000000000 R14: ffff8801c8cd0680 R15: ffff8801c8cd0680
+FS:  0000000002010880(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000442d7e CR3: 000000000946a000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

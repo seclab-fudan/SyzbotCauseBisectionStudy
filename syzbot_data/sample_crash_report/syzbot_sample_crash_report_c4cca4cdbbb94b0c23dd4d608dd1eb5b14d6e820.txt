@@ -1,0 +1,41 @@
+------------[ cut here ]------------
+page_counter underflow: -4294967270 nr_pages=4294967295
+WARNING: CPU: 1 PID: 3674 at mm/page_counter.c:56 page_counter_cancel+0xcf/0xe0 mm/page_counter.c:56
+Modules linked in:
+CPU: 1 PID: 3674 Comm: kworker/1:6 Not tainted 5.16.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events mptcp_worker
+RIP: 0010:page_counter_cancel+0xcf/0xe0 mm/page_counter.c:56
+Code: c7 04 24 00 00 00 00 45 31 f6 eb 97 e8 5a 99 b4 ff 4c 89 ea 48 89 ee 48 c7 c7 a0 d2 b8 89 c6 05 2f d8 b9 0b 01 e8 8d 67 3d 07 <0f> 0b eb a8 4c 89 e7 e8 05 55 fb ff eb c7 0f 1f 00 41 56 41 55 49
+RSP: 0018:ffffc90002bdf918 EFLAGS: 00010082
+
+RAX: 0000000000000000 RBX: ffff88807b4b4120 RCX: 0000000000000000
+RDX: ffff88801b025700 RSI: ffffffff815f0948 RDI: fffff5200057bf15
+RBP: ffffffff0000001a R08: 0000000000000000 R09: 0000000000000001
+R10: ffffffff815ea6ee R11: 0000000000000000 R12: ffff88807b4b4120
+R13: 00000000ffffffff R14: 0000000000000000 R15: 0000000000000001
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f3abaa8a230 CR3: 000000000b88e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ page_counter_uncharge+0x2e/0x60 mm/page_counter.c:160
+ drain_stock+0xc1/0x180 mm/memcontrol.c:2166
+ refill_stock+0x139/0x2f0 mm/memcontrol.c:2218
+ __sk_mem_reduce_allocated+0x24d/0x550 net/core/sock.c:2945
+ __mptcp_rmem_reclaim net/mptcp/protocol.c:167 [inline]
+ __mptcp_mem_reclaim_partial+0x124/0x410 net/mptcp/protocol.c:975
+ mptcp_mem_reclaim_partial net/mptcp/protocol.c:982 [inline]
+ mptcp_alloc_tx_skb net/mptcp/protocol.c:1212 [inline]
+ mptcp_sendmsg_frag+0x18c6/0x2190 net/mptcp/protocol.c:1279
+ __mptcp_push_pending+0x232/0x7a0 net/mptcp/protocol.c:1545
+ mptcp_release_cb+0xfe/0x200 net/mptcp/protocol.c:2978
+ release_sock+0xb4/0x1b0 net/core/sock.c:3306
+ mptcp_worker+0x51e/0xc10 net/mptcp/protocol.c:2444
+ process_one_work+0x9b2/0x1660 kernel/workqueue.c:2298
+ worker_thread+0x65d/0x1130 kernel/workqueue.c:2445
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>

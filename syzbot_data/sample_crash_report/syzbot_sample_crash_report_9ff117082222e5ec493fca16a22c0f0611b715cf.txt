@@ -1,0 +1,63 @@
+IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+8021q: adding VLAN 0 to HW filter on device bond0
+IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ip6_dst_idev include/net/ip6_fib.h:192 [inline]
+BUG: KASAN: slab-out-of-bounds in ip6_xmit+0x1f76/0x2260 net/ipv6/ip6_output.c:264
+Read of size 8 at addr ffff8801afb31118 by task syzkaller265383/4225
+
+CPU: 0 PID: 4225 Comm: syzkaller265383 Not tainted 4.16.0-rc3+ #335
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23b/0x360 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ ip6_dst_idev include/net/ip6_fib.h:192 [inline]
+ ip6_xmit+0x1f76/0x2260 net/ipv6/ip6_output.c:264
+ inet6_csk_xmit+0x2fc/0x580 net/ipv6/inet6_connection_sock.c:139
+ l2tp_xmit_core net/l2tp/l2tp_core.c:1096 [inline]
+ l2tp_xmit_skb+0x105f/0x1410 net/l2tp/l2tp_core.c:1191
+ pppol2tp_sendmsg+0x470/0x670 net/l2tp/l2tp_ppp.c:341
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1747
+ SyS_sendto+0x40/0x50 net/socket.c:1715
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x4417b9
+RSP: 002b:00007ffe9afdbf38 EFLAGS: 00000216 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 000000000000001a RCX: 00000000004417b9
+RDX: 0000000000000000 RSI: 0000000020de7000 RDI: 0000000000000004
+RBP: 00000000004a3a6e R08: 0000000020000000 R09: 0000000000000000
+R10: c3fe68eda9554f8b R11: 0000000000000216 R12: 00007ffe9afdc010
+R13: 0000000000402540 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 0:
+(stack is not available)
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801afb31100
+ which belongs to the cache ip_dst_cache of size 168
+The buggy address is located 24 bytes inside of
+ 168-byte region [ffff8801afb31100, ffff8801afb311a8)
+The buggy address belongs to the page:
+page:ffffea0006becc40 count:1 mapcount:0 mapping:ffff8801afb31000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801afb31000 0000000000000000 0000000100000010
+raw: ffff8801d6fd2c48 ffff8801d6fd2c48 ffff8801d8342840 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801afb31000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801afb31080: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801afb31100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                            ^
+ ffff8801afb31180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801afb31200: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

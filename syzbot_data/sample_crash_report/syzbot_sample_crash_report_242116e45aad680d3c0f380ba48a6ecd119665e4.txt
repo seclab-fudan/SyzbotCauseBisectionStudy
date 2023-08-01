@@ -1,0 +1,126 @@
+==================================================================
+BUG: KASAN: use-after-free in l3mdev_master_ifindex_rcu+0x132/0x150 net/l3mdev/l3mdev.c:24
+Read of size 4 at addr ffff88808face21c by task kworker/1:56/2807
+
+CPU: 1 PID: 2807 Comm: kworker/1:56 Not tainted 5.6.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: ipv6_addrconf addrconf_dad_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x32 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:641
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:134
+ l3mdev_master_ifindex_rcu+0x132/0x150 net/l3mdev/l3mdev.c:24
+ ipv6_dev_get_saddr+0x7b8/0xc50 net/ipv6/addrconf.c:1817
+ ip6_route_get_saddr include/net/ip6_route.h:144 [inline]
+ ip6_dst_lookup_tail+0x1218/0x1f20 net/ipv6/ip6_output.c:1030
+ ip6_dst_lookup_flow+0x8c/0x1d0 net/ipv6/ip6_output.c:1153
+ geneve_get_v6_dst+0x3e1/0x880 drivers/net/geneve.c:856
+ geneve6_xmit_skb drivers/net/geneve.c:950 [inline]
+ geneve_xmit+0x2b4/0x30f0 drivers/net/geneve.c:1001
+ __netdev_start_xmit include/linux/netdevice.h:4524 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4538 [inline]
+ xmit_one net/core/dev.c:3470 [inline]
+ dev_hard_start_xmit+0x1a3/0x9b0 net/core/dev.c:3486
+ __dev_queue_xmit+0x2b05/0x35c0 net/core/dev.c:4063
+ dev_queue_xmit+0x18/0x20 net/core/dev.c:4096
+ neigh_resolve_output net/core/neighbour.c:1487 [inline]
+ neigh_resolve_output+0x5c4/0x990 net/core/neighbour.c:1467
+ neigh_output include/net/neighbour.h:510 [inline]
+ ip6_finish_output2+0x109a/0x25c0 net/ipv6/ip6_output.c:116
+ __ip6_finish_output+0x444/0xaa0 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x38/0x1f0 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x25e/0x880 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ndisc_send_skb+0xf1f/0x1490 net/ipv6/ndisc.c:505
+ ndisc_send_ns+0x3a9/0x850 net/ipv6/ndisc.c:647
+ addrconf_dad_work+0xbf3/0x11d0 net/ipv6/addrconf.c:4120
+ process_one_work+0xa05/0x17a0 kernel/workqueue.c:2264
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2410
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 10570:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:488
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:529
+ __do_kmalloc_node mm/slab.c:3616 [inline]
+ __kmalloc_node+0x4e/0x70 mm/slab.c:3623
+ kmalloc_node include/linux/slab.h:578 [inline]
+ kvmalloc_node+0x68/0x100 mm/util.c:574
+ kvmalloc include/linux/mm.h:645 [inline]
+ kvzalloc include/linux/mm.h:653 [inline]
+ alloc_netdev_mqs+0x98/0xe40 net/core/dev.c:9797
+ rtnl_create_link+0x22d/0xaf0 net/core/rtnetlink.c:3047
+ __rtnl_newlink+0xf9f/0x1790 net/core/rtnetlink.c:3309
+ rtnl_newlink+0x69/0xa0 net/core/rtnetlink.c:3377
+ rtnetlink_rcv_msg+0x45e/0xaf0 net/core/rtnetlink.c:5438
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5456
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ __sys_sendto+0x262/0x380 net/socket.c:1998
+ __do_sys_sendto net/socket.c:2010 [inline]
+ __se_sys_sendto net/socket.c:2006 [inline]
+ __x64_sys_sendto+0xe1/0x1a0 net/socket.c:2006
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 10570:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:476
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:485
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ __netdev_name_node_alt_destroy+0x1ff/0x2a0 net/core/dev.c:322
+ netdev_name_node_alt_destroy+0x57/0x80 net/core/dev.c:334
+ rtnl_alt_ifname net/core/rtnetlink.c:3518 [inline]
+ rtnl_linkprop.isra.0+0x575/0x6f0 net/core/rtnetlink.c:3567
+ rtnl_dellinkprop+0x46/0x60 net/core/rtnetlink.c:3588
+ rtnetlink_rcv_msg+0x45e/0xaf0 net/core/rtnetlink.c:5438
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5456
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2343
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2397
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
+ __do_sys_sendmsg net/socket.c:2439 [inline]
+ __se_sys_sendmsg net/socket.c:2437 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88808face000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 540 bytes inside of
+ 4096-byte region [ffff88808face000, ffff88808facf000)
+The buggy address belongs to the page:
+page:ffffea00023eb380 refcount:1 mapcount:0 mapping:ffff8880aa402000 index:0x0 compound_mapcount: 0
+flags: 0xfffe0000010200(slab|head)
+raw: 00fffe0000010200 ffffea0002406608 ffffea00023be788 ffff8880aa402000
+raw: 0000000000000000 ffff88808face000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808face100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88808face180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88808face200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff88808face280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88808face300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

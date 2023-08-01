@@ -1,0 +1,117 @@
+================================
+WARNING: inconsistent lock state
+5.2.0-rc3+ #34 Not tainted
+--------------------------------
+inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
+syz-executor.0/7508 [HC0[0]:SC1[1]:HE1:SE0] takes:
+000000001c6b3fa0 (slock-AF_AX25){+.?.}, at: spin_lock include/linux/spinlock.h:338 [inline]
+000000001c6b3fa0 (slock-AF_AX25){+.?.}, at: ax25_destroy_timer+0x53/0xc0 net/ax25/af_ax25.c:275
+{SOFTIRQ-ON-W} state was registered at:
+  lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4303
+  __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+  _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:151
+  spin_lock include/linux/spinlock.h:338 [inline]
+  ax25_rt_autobind+0x3ca/0x720 net/ax25/ax25_route.c:429
+  ax25_connect.cold+0x30/0xa4 net/ax25/af_ax25.c:1221
+  __sys_connect+0x264/0x330 net/socket.c:1834
+  __do_sys_connect net/socket.c:1845 [inline]
+  __se_sys_connect net/socket.c:1842 [inline]
+  __x64_sys_connect+0x73/0xb0 net/socket.c:1842
+  do_syscall_64+0xfd/0x680 arch/x86/entry/common.c:301
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+irq event stamp: 34709052
+hardirqs last  enabled at (34709052): [<ffffffff871f5f48>] __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:168 [inline]
+hardirqs last  enabled at (34709052): [<ffffffff871f5f48>] _raw_spin_unlock_irq+0x28/0x90 kernel/locking/spinlock.c:199
+hardirqs last disabled at (34709051): [<ffffffff871f60ba>] __raw_spin_lock_irq include/linux/spinlock_api_smp.h:126 [inline]
+hardirqs last disabled at (34709051): [<ffffffff871f60ba>] _raw_spin_lock_irq+0x3a/0x80 kernel/locking/spinlock.c:167
+softirqs last  enabled at (34708894): [<ffffffff857b6216>] spin_unlock_bh include/linux/spinlock.h:383 [inline]
+softirqs last  enabled at (34708894): [<ffffffff857b6216>] release_sock+0x156/0x1c0 net/core/sock.c:2939
+softirqs last disabled at (34709047): [<ffffffff81449010>] invoke_softirq kernel/softirq.c:374 [inline]
+softirqs last disabled at (34709047): [<ffffffff81449010>] irq_exit+0x180/0x1d0 kernel/softirq.c:414
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(slock-AF_AX25);
+  <Interrupt>
+    lock(slock-AF_AX25);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor.0/7508:
+ #0: 00000000256bfa89 (&xt[i].mutex){+.+.}, at: xt_find_table_lock+0x40/0x430 net/netfilter/x_tables.c:1210
+ #1: 00000000e3663d80 ((&ax25->dtimer)){+.-.}, at: lockdep_copy_map include/linux/lockdep.h:175 [inline]
+ #1: 00000000e3663d80 ((&ax25->dtimer)){+.-.}, at: call_timer_fn+0xe0/0x720 kernel/time/timer.c:1312
+
+stack backtrace:
+CPU: 0 PID: 7508 Comm: syz-executor.0 Not tainted 5.2.0-rc3+ #34
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_usage_bug.cold+0x393/0x4a2 kernel/locking/lockdep.c:2935
+ valid_state kernel/locking/lockdep.c:2948 [inline]
+ mark_lock_irq kernel/locking/lockdep.c:3138 [inline]
+ mark_lock+0xd46/0x1370 kernel/locking/lockdep.c:3513
+ mark_irqflags kernel/locking/lockdep.c:3391 [inline]
+ __lock_acquire+0x159f/0x5490 kernel/locking/lockdep.c:3745
+ lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4303
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:151
+ spin_lock include/linux/spinlock.h:338 [inline]
+ ax25_destroy_timer+0x53/0xc0 net/ax25/af_ax25.c:275
+ call_timer_fn+0x193/0x720 kernel/time/timer.c:1322
+ expire_timers kernel/time/timer.c:1366 [inline]
+ __run_timers kernel/time/timer.c:1685 [inline]
+ __run_timers kernel/time/timer.c:1653 [inline]
+ run_timer_softirq+0x66f/0x1740 kernel/time/timer.c:1698
+ __do_softirq+0x25c/0x94c kernel/softirq.c:293
+ invoke_softirq kernel/softirq.c:374 [inline]
+ irq_exit+0x180/0x1d0 kernel/softirq.c:414
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x13b/0x550 arch/x86/kernel/apic/apic.c:1068
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:806
+ </IRQ>
+RIP: 0010:bytes_is_nonzero mm/kasan/generic.c:92 [inline]
+RIP: 0010:memory_is_nonzero mm/kasan/generic.c:113 [inline]
+RIP: 0010:memory_is_poisoned_n mm/kasan/generic.c:135 [inline]
+RIP: 0010:memory_is_poisoned mm/kasan/generic.c:166 [inline]
+RIP: 0010:check_memory_region_inline mm/kasan/generic.c:182 [inline]
+RIP: 0010:check_memory_region+0xe1/0x190 mm/kasan/generic.c:191
+Code: 85 c0 75 5e 5b 41 5c 41 5d 5d c3 41 bd 08 00 00 00 45 29 c5 4d 89 e0 4f 8d 4c 25 00 eb 0c 49 83 c0 01 4c 89 c8 4d 39 c8 74 10 <41> 80 38 00 74 ee 4b 8d 44 25 00 4d 85 c0 75 25 49 89 d9 49 29 c1
+RSP: 0018:ffff888066fbfad8 EFLAGS: 00000293 ORIG_RAX: ffffffffffffff13
+RAX: ffffed100d4ad6c8 RBX: ffffed100d4ad6d7 RCX: ffffffff833454ba
+RDX: 0000000000000000 RSI: 00000000000000a8 RDI: ffff88806a56b610
+RBP: ffff888066fbfaf0 R08: ffffed100d4ad6c3 R09: ffffed100d4ad6c8
+R10: ffffed100d4ad6d6 R11: ffff88806a56b6b7 R12: ffffed100d4ad6c2
+R13: 0000000000000006 R14: 00007ffe5f495fb0 R15: 00007ffffffff000
+ kasan_check_read+0x11/0x20 mm/kasan/common.c:94
+ _copy_to_user+0xea/0x120 lib/usercopy.c:27
+ copy_to_user include/linux/uaccess.h:152 [inline]
+ copy_entries_to_user net/ipv6/netfilter/ip6_tables.c:855 [inline]
+ get_entries net/ipv6/netfilter/ip6_tables.c:1044 [inline]
+ do_ip6t_get_ctl+0x597/0x960 net/ipv6/netfilter/ip6_tables.c:1712
+ nf_sockopt net/netfilter/nf_sockopt.c:104 [inline]
+ nf_getsockopt+0x7a/0xd0 net/netfilter/nf_sockopt.c:122
+ ipv6_getsockopt net/ipv6/ipv6_sockglue.c:1400 [inline]
+ ipv6_getsockopt+0x205/0x280 net/ipv6/ipv6_sockglue.c:1380
+ tcp_getsockopt net/ipv4/tcp.c:3654 [inline]
+ tcp_getsockopt+0x8f/0xe0 net/ipv4/tcp.c:3648
+ sock_common_getsockopt+0x94/0xd0 net/core/sock.c:3083
+ __sys_getsockopt+0x15f/0x240 net/socket.c:2109
+ __do_sys_getsockopt net/socket.c:2120 [inline]
+ __se_sys_getsockopt net/socket.c:2117 [inline]
+ __x64_sys_getsockopt+0xbe/0x150 net/socket.c:2117
+ do_syscall_64+0xfd/0x680 arch/x86/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x45bdda
+Code: b8 34 01 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 dd 8c fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 37 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 ba 8c fb ff c3 66 0f 1f 84 00 00 00 00 00
+RSP: 002b:00007ffe5f495ce8 EFLAGS: 00000216 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 00007ffe5f495d10 RCX: 000000000045bdda
+RDX: 0000000000000041 RSI: 0000000000000029 RDI: 0000000000000003
+RBP: 0000000000711cc0 R08: 00007ffe5f495d0c R09: 0000000000004000
+R10: 00007ffe5f495e10 R11: 0000000000000216 R12: 0000000000000003
+R13: 0000000000000000 R14: 0000000000000029 R15: 00000000007101c0

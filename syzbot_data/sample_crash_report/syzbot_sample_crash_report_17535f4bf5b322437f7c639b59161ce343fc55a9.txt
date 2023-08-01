@@ -1,0 +1,48 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in atomic_read include/asm-generic/atomic-instrumented.h:21 [inline]
+BUG: KASAN: null-ptr-deref in refcount_sub_and_test_checked+0x9d/0x310 lib/refcount.c:179
+Read of size 4 at addr 0000000000000020 by task syz-executor487/6051
+
+CPU: 0 PID: 6051 Comm: syz-executor487 Not tainted 4.20.0-rc2+ #333
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ kasan_report_error mm/kasan/report.c:352 [inline]
+ kasan_report.cold.8+0x6d/0x309 mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ kasan_check_read+0x11/0x20 mm/kasan/kasan.c:272
+ atomic_read include/asm-generic/atomic-instrumented.h:21 [inline]
+ refcount_sub_and_test_checked+0x9d/0x310 lib/refcount.c:179
+ refcount_dec_and_test_checked+0x1a/0x20 lib/refcount.c:212
+ vb2_vmalloc_put+0x19/0x80 drivers/media/common/videobuf2/videobuf2-vmalloc.c:68
+ __vb2_buf_mem_free+0x112/0x210 drivers/media/common/videobuf2/videobuf2-core.c:242
+ __vb2_free_mem drivers/media/common/videobuf2/videobuf2-core.c:413 [inline]
+ __vb2_queue_free+0x830/0xa30 drivers/media/common/videobuf2/videobuf2-core.c:458
+ vb2_core_queue_release+0x62/0x80 drivers/media/common/videobuf2/videobuf2-core.c:2231
+ vb2_queue_release drivers/media/common/videobuf2/videobuf2-v4l2.c:837 [inline]
+ _vb2_fop_release+0x1d2/0x2b0 drivers/media/common/videobuf2/videobuf2-v4l2.c:1010
+ vb2_fop_release+0x77/0xc0 drivers/media/common/videobuf2/videobuf2-v4l2.c:1024
+ vivid_fop_release+0x18e/0x440 drivers/media/platform/vivid/vivid-core.c:474
+ v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1ad6/0x26d0 kernel/exit.c:867
+ do_group_exit+0x177/0x440 kernel/exit.c:970
+ __do_sys_exit_group kernel/exit.c:981 [inline]
+ __se_sys_exit_group kernel/exit.c:979 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:979
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x442c78
+Code: Bad RIP value.
+RSP: 002b:00007fff4ac5a278 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000442c78
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004c2848 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d4180 R14: 0000000000000000 R15: 0000000000000000
+==================================================================

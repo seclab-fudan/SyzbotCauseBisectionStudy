@@ -1,0 +1,55 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 4407 Comm: syz-executor5 Not tainted 4.13.0-rc2+ #9
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801d661c0c0 task.stack: ffff8801ca9b0000
+RIP: 0010:__kvm_memslots include/linux/kvm_host.h:571 [inline]
+RIP: 0010:gfn_to_rmap+0x57f/0x6b0 arch/x86/kvm/mmu.c:1235
+RSP: 0018:ffff8801ca9b6820 EFLAGS: 00010297
+RAX: dffffc0000000000 RBX: ffff8801cc3e1078 RCX: 1ffff1003987c204
+RDX: 0000000000000000 RSI: ffff8801cc3ec3c8 RDI: ffff8801cc3e1080
+RBP: ffff8801ca9b6960 R08: 0000000000000002 R09: 0000000000000004
+R10: ffff8801ca9b6cc8 R11: ffffffff81120ef1 R12: 0000000000000002
+R13: 000000000000000f R14: 000000000000000e R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8801dc000000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 00000001d28ce000 CR4: 00000000001426f0
+Call Trace:
+ rmap_remove arch/x86/kvm/mmu.c:1267 [inline]
+ drop_spte+0x161/0x270 arch/x86/kvm/mmu.c:1350
+ mmu_page_zap_pte+0x224/0x350 arch/x86/kvm/mmu.c:2482
+ kvm_mmu_page_unlink_children arch/x86/kvm/mmu.c:2504 [inline]
+ kvm_mmu_prepare_zap_page+0x1b7/0x1260 arch/x86/kvm/mmu.c:2548
+ kvm_zap_obsolete_pages arch/x86/kvm/mmu.c:5223 [inline]
+ kvm_mmu_invalidate_zap_all_pages+0x4a0/0x680 arch/x86/kvm/mmu.c:5264
+ kvm_arch_flush_shadow_all+0x15/0x20 arch/x86/kvm/x86.c:8394
+ kvm_mmu_notifier_release+0x59/0x90 arch/x86/kvm/../../../virt/kvm/kvm_main.c:508
+ __mmu_notifier_release+0x1d5/0x690 mm/mmu_notifier.c:75
+ mmu_notifier_release include/linux/mmu_notifier.h:235 [inline]
+ exit_mmap+0x3a3/0x470 mm/mmap.c:2972
+ __mmput kernel/fork.c:903 [inline]
+ mmput+0x223/0x6e0 kernel/fork.c:925
+ exit_mm kernel/exit.c:544 [inline]
+ do_exit+0x981/0x1b10 kernel/exit.c:852
+ do_group_exit+0x149/0x400 kernel/exit.c:969
+ get_signal+0x7e8/0x17e0 kernel/signal.c:2330
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:808
+ exit_to_usermode_loop+0x21c/0x2d0 arch/x86/entry/common.c:157
+ prepare_exit_to_usermode arch/x86/entry/common.c:194 [inline]
+ syscall_return_slowpath+0x3a7/0x450 arch/x86/entry/common.c:263
+ entry_SYSCALL_64_fastpath+0xbc/0xbe
+RIP: 0033:0x4512c9
+RSP: 002b:00007f5548015c18 EFLAGS: 00000206 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000001 RBX: 00000000007180a8 RCX: 00000000004512c9
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 00000000007180cc
+RBP: 0000000000001fe0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000206 R12: 00000000004b7f09
+R13: 00000000ffffffff R14: 0000000000000007 R15: 000000000000ae80
+Code: 3c 02 00 00 48 c7 c7 20 63 62 84 c6 05 e0 42 f8 03 01 e8 25 de 44 00 e9 da fb ff ff e8 6b 7f 5d 00 48 b8 00 00 00 00 00 fc ff df <80> 38 00 0f 85 1b 01 00 00 4c 8b 24 25 00 00 00 00 31 db e9 83 
+RIP: __kvm_memslots include/linux/kvm_host.h:571 [inline] RSP: ffff8801ca9b6820
+RIP: gfn_to_rmap+0x57f/0x6b0 arch/x86/kvm/mmu.c:1235 RSP: ffff8801ca9b6820
+---[ end trace 0a16957bec756c04 ]---

@@ -1,0 +1,108 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 8515 Comm: syz-executor2 Not tainted 5.0.0-rc3+ #37
+kobject: 'loop5' (000000000a1151d7): kobject_uevent_env
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__xfrm_policy_eval_candidates net/xfrm/xfrm_policy.c:2019 [inline]
+RIP: 0010:xfrm_policy_eval_candidates net/xfrm/xfrm_policy.c:2053 [inline]
+RIP: 0010:xfrm_policy_lookup_bytype+0x8fc/0xdb0 net/xfrm/xfrm_policy.c:2113
+Code: 89 f7 48 89 85 08 fe ff ff 48 c1 e8 03 4c 01 e0 48 89 85 18 fe ff ff e8 d2 e2 c1 fa 4c 8d b3 b4 00 00 00 4c 89 f0 48 c1 e8 03 <42> 0f b6 14 20 4c 89 f0 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85
+RSP: 0018:ffff8880ae706d10 EFLAGS: 00010203
+RAX: 0000000020000015 RBX: 00000000fffffff8 RCX: ffffffff86c01ed7
+RDX: 0000000000000100 RSI: ffffffff86c01c1e RDI: 0000000000000007
+kernel msg: ebtables bug: please report to author: Wrong len argument
+RBP: ffff8880ae706f18 R08: ffff888056fae5c0 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: dffffc0000000000
+R13: 00000000fffffffd R14: 00000001000000ac R15: 00000000ffffffff
+FS:  00007f1ddf72c700(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+kobject: 'loop5' (000000000a1151d7): fill_kobj_path: path = '/devices/virtual/block/loop5'
+CR2: 000000000073c000 CR3: 0000000089a80000 CR4: 00000000001406e0
+IPVS: ip_vs_svc_hash(): request for already hashed, called from do_ip_vs_set_ctl+0x1b5d/0x1da0 net/netfilter/ipvs/ip_vs_ctl.c:2433
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ xfrm_policy_lookup+0x7e/0x90 net/xfrm/xfrm_policy.c:2145
+ __xfrm_policy_check+0x1426/0x2b00 net/xfrm/xfrm_policy.c:3354
+ __xfrm_policy_check2 include/net/xfrm.h:1166 [inline]
+ xfrm_policy_check include/net/xfrm.h:1175 [inline]
+ xfrm6_policy_check include/net/xfrm.h:1185 [inline]
+ udpv6_queue_rcv_one_skb+0x532/0x1750 net/ipv6/udp.c:615
+ udpv6_queue_rcv_skb+0x128/0x730 net/ipv6/udp.c:699
+ __udp6_lib_mcast_deliver net/ipv6/udp.c:812 [inline]
+ __udp6_lib_rcv+0x1e8d/0x30d0 net/ipv6/udp.c:916
+ udpv6_rcv+0x22/0x30 net/ipv6/udp.c:1026
+ ip6_protocol_deliver_rcu+0x3aa/0x1940 net/ipv6/ip6_input.c:394
+ ip6_input_finish+0x84/0x170 net/ipv6/ip6_input.c:434
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ip6_input+0xf9/0x600 net/ipv6/ip6_input.c:443
+ ip6_mc_input+0x4f9/0x10d0 net/ipv6/ip6_input.c:537
+ dst_input include/net/dst.h:450 [inline]
+ ip6_rcv_finish+0x177/0x330 net/ipv6/ip6_input.c:76
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ipv6_rcv+0x113/0x650 net/ipv6/ip6_input.c:272
+ __netif_receive_skb_one_core+0x160/0x210 net/core/dev.c:4973
+ __netif_receive_skb+0x2c/0x1c0 net/core/dev.c:5083
+ process_backlog+0x206/0x750 net/core/dev.c:5923
+ napi_poll net/core/dev.c:6346 [inline]
+ net_rx_action+0x76d/0x1930 net/core/dev.c:6412
+ __do_softirq+0x30b/0xb11 kernel/softirq.c:292
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1027
+ </IRQ>
+ do_softirq.part.0+0x11a/0x170 kernel/softirq.c:337
+ do_softirq+0x18/0x20 kernel/softirq.c:325
+ netif_rx_ni+0x4fd/0x860 net/core/dev.c:4569
+ dev_loopback_xmit+0x29b/0x8c0 net/core/dev.c:3576
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ip6_finish_output2+0x1a03/0x28e0 net/ipv6/ip6_output.c:84
+ ip6_finish_output+0x577/0xc30 net/ipv6/ip6_output.c:154
+ NF_HOOK_COND include/linux/netfilter.h:278 [inline]
+ ip6_output+0x23c/0xa00 net/ipv6/ip6_output.c:171
+ dst_output include/net/dst.h:444 [inline]
+ ip6_local_out+0xc4/0x1b0 net/ipv6/output_core.c:176
+ ip6_send_skb+0xbb/0x350 net/ipv6/ip6_output.c:1727
+ udp_v6_send_skb.isra.0+0x839/0x14f0 net/ipv6/udp.c:1177
+ udpv6_sendmsg+0x2ba8/0x3570 net/ipv6/udp.c:1474
+ inet_sendmsg+0x1af/0x740 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ __sys_sendto+0x387/0x5f0 net/socket.c:1788
+ __do_sys_sendto net/socket.c:1800 [inline]
+ __se_sys_sendto net/socket.c:1796 [inline]
+ __x64_sys_sendto+0xe1/0x1a0 net/socket.c:1796
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x458099
+Code: 6d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 3b b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f1ddf72bc78 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 0000000000458099
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000004
+RBP: 000000000073bfa0 R08: 0000000020000300 R09: 000000000000001c
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f1ddf72c6d4
+R13: 00000000004c5710 R14: 00000000004d94e0 R15: 00000000ffffffff
+Modules linked in:
+---[ end trace 7e738bc151912857 ]---
+RIP: 0010:__xfrm_policy_eval_candidates net/xfrm/xfrm_policy.c:2019 [inline]
+RIP: 0010:xfrm_policy_eval_candidates net/xfrm/xfrm_policy.c:2053 [inline]
+RIP: 0010:xfrm_policy_lookup_bytype+0x8fc/0xdb0 net/xfrm/xfrm_policy.c:2113
+Code: 89 f7 48 89 85 08 fe ff ff 48 c1 e8 03 4c 01 e0 48 89 85 18 fe ff ff e8 d2 e2 c1 fa 4c 8d b3 b4 00 00 00 4c 89 f0 48 c1 e8 03 <42> 0f b6 14 20 4c 89 f0 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85
+RSP: 0018:ffff8880ae706d10 EFLAGS: 00010203
+RAX: 0000000020000015 RBX: 00000000fffffff8 RCX: ffffffff86c01ed7
+RDX: 0000000000000100 RSI: ffffffff86c01c1e RDI: 0000000000000007
+RBP: ffff8880ae706f18 R08: ffff888056fae5c0 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: dffffc0000000000
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor0'.
+R13: 00000000fffffffd R14: 00000001000000ac R15: 00000000ffffffff
+kobject: 'loop3' (00000000d366402e): kobject_uevent_env
+FS:  00007f1ddf72c700(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000073c000 CR3: 0000000089a80000 CR4: 00000000001406e0
+kobject: 'loop3' (00000000d366402e): fill_kobj_path: path = '/devices/virtual/block/loop3'
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+kernel msg: ebtables bug: please report to author: Wrong len argument
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

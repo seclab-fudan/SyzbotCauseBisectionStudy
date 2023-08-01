@@ -1,0 +1,77 @@
+INFO: task syz-executor236:11039 blocked for more than 143 seconds.
+      Not tainted 5.6.0-rc3-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor236 D27248 11039  11037 0x00000000
+Call Trace:
+ context_switch kernel/sched/core.c:3380 [inline]
+ __schedule+0x934/0x1f90 kernel/sched/core.c:4080
+ schedule+0xdc/0x2b0 kernel/sched/core.c:4154
+ __lock_sock+0x165/0x290 net/core/sock.c:2413
+ lock_sock_nested+0xfe/0x120 net/core/sock.c:2938
+ virtio_transport_release+0xc4/0xd60 net/vmw_vsock/virtio_transport_common.c:832
+ vsock_assign_transport+0xf3/0x3b0 net/vmw_vsock/af_vsock.c:454
+ vsock_stream_connect+0x2b3/0xc70 net/vmw_vsock/af_vsock.c:1288
+ __sys_connect_file+0x161/0x1c0 net/socket.c:1857
+ __sys_connect+0x174/0x1b0 net/socket.c:1874
+ __do_sys_connect net/socket.c:1885 [inline]
+ __se_sys_connect net/socket.c:1882 [inline]
+ __x64_sys_connect+0x73/0xb0 net/socket.c:1882
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4401b9
+Code: Bad RIP value.
+RSP: 002b:00007ffeb6a237c8 EFLAGS: 00000246 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004401b9
+RDX: 0000000000000010 RSI: 0000000020000440 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401a40
+R13: 0000000000401ad0 R14: 0000000000000000 R15: 0000000000000000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1114:
+ #0: ffffffff89bac280 (rcu_read_lock){....}, at: debug_show_all_locks+0x5f/0x279 kernel/locking/lockdep.c:5333
+1 lock held by rsyslogd/10887:
+ #0: ffff8880a8e275e0 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0xee/0x110 fs/file.c:821
+2 locks held by getty/11009:
+ #0: ffff88809711d090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc9000184b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/11010:
+ #0: ffff8880a9a72090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc9000186b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/11011:
+ #0: ffff88809826b090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc9000187b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/11012:
+ #0: ffff8880972e2090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc9000185b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/11013:
+ #0: ffff8880a7644090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc9000180b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/11014:
+ #0: ffff8880982b1090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc9000188b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/11015:
+ #0: ffff888093d9d090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc900017cf2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+1 lock held by syz-executor236/11039:
+ #0: ffff8880a1de98d0 (sk_lock-AF_VSOCK){+.+.}, at: lock_sock include/net/sock.h:1541 [inline]
+ #0: ffff8880a1de98d0 (sk_lock-AF_VSOCK){+.+.}, at: vsock_stream_connect+0xfb/0xc70 net/vmw_vsock/af_vsock.c:1258
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 1114 Comm: khungtaskd Not tainted 5.6.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x70/0xb2 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x23b/0x28b lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:205 [inline]
+ watchdog+0xb11/0x10c0 kernel/hung_task.c:289
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0 skipped: idling at native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:60

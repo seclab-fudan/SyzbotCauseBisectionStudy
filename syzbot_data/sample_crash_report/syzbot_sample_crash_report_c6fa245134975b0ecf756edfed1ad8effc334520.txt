@@ -1,0 +1,144 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.2.0-rc8-syzkaller-00134-g38f8ccde04a3 #0 Not tainted
+------------------------------------------------------
+syz-executor.3/16585 is trying to acquire lock:
+ffff888079e483b0 (&sbi->cp_rwsem){++++}-{3:3}, at: f2fs_down_read fs/f2fs/f2fs.h:2188 [inline]
+ffff888079e483b0 (&sbi->cp_rwsem){++++}-{3:3}, at: f2fs_lock_op fs/f2fs/f2fs.h:2231 [inline]
+ffff888079e483b0 (&sbi->cp_rwsem){++++}-{3:3}, at: f2fs_convert_inline_inode+0x57e/0x810 fs/f2fs/inline.c:219
+
+but task is already holding lock:
+ffff88807b2a9b98 (&mm->mmap_lock){++++}-{3:3}, at: mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ffff88807b2a9b98 (&mm->mmap_lock){++++}-{3:3}, at: do_user_addr_fault arch/x86/mm/fault.c:1369 [inline]
+ffff88807b2a9b98 (&mm->mmap_lock){++++}-{3:3}, at: handle_page_fault arch/x86/mm/fault.c:1519 [inline]
+ffff88807b2a9b98 (&mm->mmap_lock){++++}-{3:3}, at: exc_page_fault+0x18d/0x880 arch/x86/mm/fault.c:1575
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&mm->mmap_lock){++++}-{3:3}:
+       lock_acquire+0x235/0x630 kernel/locking/lockdep.c:5668
+       __might_fault+0xba/0x120 mm/memory.c:5650
+       _copy_to_user+0x2a/0x130 lib/usercopy.c:29
+       copy_to_user include/linux/uaccess.h:169 [inline]
+       f2fs_ioc_get_encryption_pwsalt fs/f2fs/file.c:2365 [inline]
+       __f2fs_ioctl+0xaf1d/0xb500 fs/f2fs/file.c:4169
+       vfs_ioctl fs/ioctl.c:51 [inline]
+       __do_sys_ioctl fs/ioctl.c:870 [inline]
+       __se_sys_ioctl+0xf1/0x160 fs/ioctl.c:856
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #1 (&sbi->sb_lock){++++}-{3:3}:
+       lock_acquire+0x235/0x630 kernel/locking/lockdep.c:5668
+       down_write+0x3a/0x60 kernel/locking/rwsem.c:1562
+       f2fs_down_write fs/f2fs/f2fs.h:2213 [inline]
+       f2fs_handle_error+0xef/0x240 fs/f2fs/super.c:3926
+       f2fs_new_node_page+0x815/0xb60 fs/f2fs/node.c:1303
+       f2fs_get_dnode_of_data+0x73f/0x1e40 fs/f2fs/node.c:810
+       f2fs_reserve_block+0x54/0x250 fs/f2fs/data.c:1199
+       f2fs_get_new_data_page+0x186/0x770 fs/f2fs/data.c:1387
+       f2fs_add_regular_entry+0x64b/0xe10 fs/f2fs/dir.c:754
+       f2fs_add_dentry fs/f2fs/dir.c:816 [inline]
+       f2fs_do_add_link+0x2c6/0x4e0 fs/f2fs/dir.c:855
+       f2fs_add_link fs/f2fs/f2fs.h:3564 [inline]
+       f2fs_create+0x32c/0x530 fs/f2fs/namei.c:363
+       lookup_open fs/namei.c:3413 [inline]
+       open_last_lookups fs/namei.c:3481 [inline]
+       path_openat+0x12cb/0x2e40 fs/namei.c:3711
+       do_filp_open+0x234/0x490 fs/namei.c:3741
+       do_sys_openat2+0x13f/0x500 fs/open.c:1310
+       do_sys_open fs/open.c:1326 [inline]
+       __do_sys_creat fs/open.c:1402 [inline]
+       __se_sys_creat fs/open.c:1396 [inline]
+       __x64_sys_creat+0x123/0x160 fs/open.c:1396
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&sbi->cp_rwsem){++++}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3097 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+       validate_chain+0x166b/0x58e0 kernel/locking/lockdep.c:3831
+       __lock_acquire+0x125b/0x1f80 kernel/locking/lockdep.c:5055
+       lock_acquire+0x235/0x630 kernel/locking/lockdep.c:5668
+       down_read+0x3d/0x50 kernel/locking/rwsem.c:1509
+       f2fs_down_read fs/f2fs/f2fs.h:2188 [inline]
+       f2fs_lock_op fs/f2fs/f2fs.h:2231 [inline]
+       f2fs_convert_inline_inode+0x57e/0x810 fs/f2fs/inline.c:219
+       f2fs_vm_page_mkwrite+0x32d/0x1440 fs/f2fs/file.c:79
+       do_page_mkwrite+0x1a1/0x600 mm/memory.c:2943
+       wp_page_shared mm/memory.c:3291 [inline]
+       do_wp_page+0x506/0x3280 mm/memory.c:3373
+       handle_pte_fault mm/memory.c:4952 [inline]
+       __handle_mm_fault mm/memory.c:5076 [inline]
+       handle_mm_fault+0x2395/0x51e0 mm/memory.c:5222
+       do_user_addr_fault arch/x86/mm/fault.c:1428 [inline]
+       handle_page_fault arch/x86/mm/fault.c:1519 [inline]
+       exc_page_fault+0x673/0x880 arch/x86/mm/fault.c:1575
+       asm_exc_page_fault+0x26/0x30 arch/x86/include/asm/idtentry.h:570
+
+other info that might help us debug this:
+
+Chain exists of:
+  &sbi->cp_rwsem --> &sbi->sb_lock --> &mm->mmap_lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&mm->mmap_lock);
+                               lock(&sbi->sb_lock);
+                               lock(&mm->mmap_lock);
+  lock(&sbi->cp_rwsem);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor.3/16585:
+ #0: ffff88807b2a9b98 (&mm->mmap_lock){++++}-{3:3}, at: mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff88807b2a9b98 (&mm->mmap_lock){++++}-{3:3}, at: do_user_addr_fault arch/x86/mm/fault.c:1369 [inline]
+ #0: ffff88807b2a9b98 (&mm->mmap_lock){++++}-{3:3}, at: handle_page_fault arch/x86/mm/fault.c:1519 [inline]
+ #0: ffff88807b2a9b98 (&mm->mmap_lock){++++}-{3:3}, at: exc_page_fault+0x18d/0x880 arch/x86/mm/fault.c:1575
+
+stack backtrace:
+CPU: 0 PID: 16585 Comm: syz-executor.3 Not tainted 6.2.0-rc8-syzkaller-00134-g38f8ccde04a3 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ check_noncircular+0x2fe/0x3b0 kernel/locking/lockdep.c:2177
+ check_prev_add kernel/locking/lockdep.c:3097 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain+0x166b/0x58e0 kernel/locking/lockdep.c:3831
+ __lock_acquire+0x125b/0x1f80 kernel/locking/lockdep.c:5055
+ lock_acquire+0x235/0x630 kernel/locking/lockdep.c:5668
+ down_read+0x3d/0x50 kernel/locking/rwsem.c:1509
+ f2fs_down_read fs/f2fs/f2fs.h:2188 [inline]
+ f2fs_lock_op fs/f2fs/f2fs.h:2231 [inline]
+ f2fs_convert_inline_inode+0x57e/0x810 fs/f2fs/inline.c:219
+ f2fs_vm_page_mkwrite+0x32d/0x1440 fs/f2fs/file.c:79
+ do_page_mkwrite+0x1a1/0x600 mm/memory.c:2943
+ wp_page_shared mm/memory.c:3291 [inline]
+ do_wp_page+0x506/0x3280 mm/memory.c:3373
+ handle_pte_fault mm/memory.c:4952 [inline]
+ __handle_mm_fault mm/memory.c:5076 [inline]
+ handle_mm_fault+0x2395/0x51e0 mm/memory.c:5222
+ do_user_addr_fault arch/x86/mm/fault.c:1428 [inline]
+ handle_page_fault arch/x86/mm/fault.c:1519 [inline]
+ exc_page_fault+0x673/0x880 arch/x86/mm/fault.c:1575
+ asm_exc_page_fault+0x26/0x30 arch/x86/include/asm/idtentry.h:570
+RIP: 0033:0x7f286062bd79
+Code: 48 8b 04 24 48 85 c0 74 17 48 8b 54 24 18 48 0f ca 48 89 54 24 18 48 83 f8 01 0f 85 9b 02 00 00 48 8b 44 24 10 48 8b 54 24 18 <48> 89 10 e9 c2 fd ff ff 48 8b 44 24 10 0f b7 10 48 8b 04 24 48 85
+RSP: 002b:00007ffdf6e20930 EFLAGS: 00010246
+RAX: 0000000020000040 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000001 RSI: 0000000000000000 RDI: 00005555563c72e8
+RBP: 00007ffdf6e20a28 R08: 0000000000000000 R09: 0000000000000000
+R10: 00007f2860205fb0 R11: 0000000000000246 R12: 00000000002551e0
+R13: 00007ffdf6e20a50 R14: 00007f28607abf80 R15: 0000000000000032
+ </TASK>
+syz-executor.3: attempt to access beyond end of device
+loop3: rw=10241, sector=45096, nr_sectors = 8 limit=40427

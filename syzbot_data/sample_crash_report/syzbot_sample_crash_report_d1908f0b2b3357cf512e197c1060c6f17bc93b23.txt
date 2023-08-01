@@ -1,0 +1,30 @@
+BUG: memory leak
+unreferenced object 0xffff888126f43800 (size 232):
+  comm "softirq", pid 0, jiffies 4295076373 (age 21.190s)
+  hex dump (first 32 bytes):
+    50 5b 8a 27 81 88 ff ff 50 5b 8a 27 81 88 ff ff  P[.'....P[.'....
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff8369f7ff>] __alloc_skb+0x20f/0x280 net/core/skbuff.c:413
+    [<ffffffff836a44fa>] __netdev_alloc_skb+0x6a/0x210 net/core/skbuff.c:492
+    [<ffffffff83f2ea62>] netdev_alloc_skb include/linux/skbuff.h:2867 [inline]
+    [<ffffffff83f2ea62>] dev_alloc_skb include/linux/skbuff.h:2880 [inline]
+    [<ffffffff83f2ea62>] __ieee80211_beacon_get+0x662/0x7a0 net/mac80211/tx.c:4836
+    [<ffffffff83f2ec17>] ieee80211_beacon_get_tim+0x47/0x1c0 net/mac80211/tx.c:4950
+    [<ffffffff82b07491>] ieee80211_beacon_get include/net/mac80211.h:4938 [inline]
+    [<ffffffff82b07491>] mac80211_hwsim_beacon_tx+0xa1/0x2c0 drivers/net/wireless/mac80211_hwsim.c:1799
+    [<ffffffff83f37cf5>] __iterate_interfaces+0x125/0x260 net/mac80211/util.c:793
+    [<ffffffff83f3850e>] ieee80211_iterate_active_interfaces_atomic+0x2e/0x40 net/mac80211/util.c:829
+    [<ffffffff82b00532>] mac80211_hwsim_beacon+0x52/0xb0 drivers/net/wireless/mac80211_hwsim.c:1852
+    [<ffffffff812e16fa>] __run_hrtimer kernel/time/hrtimer.c:1537 [inline]
+    [<ffffffff812e16fa>] __hrtimer_run_queues+0x1ba/0x470 kernel/time/hrtimer.c:1601
+    [<ffffffff812e1a2e>] hrtimer_run_softirq+0x7e/0x100 kernel/time/hrtimer.c:1618
+    [<ffffffff846000bf>] __do_softirq+0xbf/0x2ab kernel/softirq.c:559
+    [<ffffffff81238b90>] invoke_softirq kernel/softirq.c:433 [inline]
+    [<ffffffff81238b90>] __irq_exit_rcu kernel/softirq.c:637 [inline]
+    [<ffffffff81238b90>] irq_exit_rcu+0xa0/0xc0 kernel/softirq.c:649
+    [<ffffffff84357972>] sysvec_apic_timer_interrupt+0x72/0x90 arch/x86/kernel/apic/apic.c:1100
+    [<ffffffff84400c02>] asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:647
+    [<ffffffff8134ad90>] __sanitizer_cov_trace_pc+0x0/0x60 kernel/kcov.c:917
+    [<ffffffff812aef21>] console_unlock+0x3a1/0x780 arch/x86/include/asm/irqflags.h:45
+

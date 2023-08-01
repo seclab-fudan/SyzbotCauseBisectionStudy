@@ -1,0 +1,88 @@
+==================================================================
+BUG: KMSAN: uninit-value in ip_vs_lblc_check_expire+0xe62/0xf10 net/netfilter/ipvs/ip_vs_lblc.c:315
+CPU: 0 PID: 4482 Comm: sshd Not tainted 4.17.0+ #9
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:113
+ kmsan_report+0x188/0x2a0 mm/kmsan/kmsan.c:1125
+ __msan_warning_32+0x70/0xc0 mm/kmsan/kmsan_instr.c:620
+ ip_vs_lblc_check_expire+0xe62/0xf10 net/netfilter/ipvs/ip_vs_lblc.c:315
+ call_timer_fn+0x280/0x5d0 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0xd96/0x11b0 kernel/time/timer.c:1666
+ run_timer_softirq+0x43/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x592/0x979 kernel/softirq.c:285
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1049
+ </IRQ>
+ do_softirq kernel/softirq.c:329 [inline]
+ __local_bh_enable_ip+0x114/0x140 kernel/softirq.c:182
+ local_bh_enable+0x36/0x40 include/linux/bottom_half.h:32
+ ipt_do_table+0x2559/0x2750 net/ipv4/netfilter/ip_tables.c:361
+ ipt_mangle_out net/ipv4/netfilter/iptable_mangle.c:59 [inline]
+ iptable_mangle_hook+0x22e/0x720 net/ipv4/netfilter/iptable_mangle.c:84
+ nf_hook_entry_hookfn include/linux/netfilter.h:120 [inline]
+ nf_hook_slow+0x15d/0x3e0 net/netfilter/core.c:483
+ nf_hook include/linux/netfilter.h:243 [inline]
+ __ip_local_out+0x6da/0x7e0 net/ipv4/ip_output.c:113
+ ip_local_out net/ipv4/ip_output.c:122 [inline]
+ ip_queue_xmit+0x1a44/0x1d00 net/ipv4/ip_output.c:504
+ tcp_transmit_skb+0x3db5/0x5350 net/ipv4/tcp_output.c:1176
+ tcp_write_xmit+0x2d81/0xb200 net/ipv4/tcp_output.c:2373
+ __tcp_push_pending_frames+0x124/0x400 net/ipv4/tcp_output.c:2546
+ tcp_push+0x803/0x8f0 net/ipv4/tcp.c:735
+ tcp_sendmsg_locked+0x4eb1/0x6610 net/ipv4/tcp.c:1410
+ tcp_sendmsg+0xb2/0x100 net/ipv4/tcp.c:1447
+ inet_sendmsg+0x3fc/0x760 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg net/socket.c:639 [inline]
+ sock_write_iter+0x3bc/0x470 net/socket.c:908
+ call_write_iter include/linux/fs.h:1784 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x808/0x9f0 fs/read_write.c:487
+ vfs_write+0x467/0x8c0 fs/read_write.c:549
+ ksys_write fs/read_write.c:598 [inline]
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x1bf/0x3e0 fs/read_write.c:607
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7efc8cc08370
+RSP: 002b:00007ffd414fce58 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000048 RCX: 00007efc8cc08370
+RDX: 0000000000000048 RSI: 000055a405441440 RDI: 0000000000000003
+RBP: 000055a405441440 R08: 0000000000000001 R09: 00007efc8cc5b410
+R10: 0000000000000008 R11: 0000000000000246 R12: 00007ffd414fcebc
+R13: 000055a40493bfb4 R14: 0000000000000028 R15: 000055a40493dca0
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:282 [inline]
+ kmsan_alloc_meta_for_pages+0x161/0x3a0 mm/kmsan/kmsan.c:819
+ kmsan_alloc_page+0x82/0xe0 mm/kmsan/kmsan.c:889
+ __alloc_pages_nodemask+0xf7b/0x5cc0 mm/page_alloc.c:4402
+ alloc_pages_current+0x6b1/0x970 mm/mempolicy.c:2093
+ alloc_pages include/linux/gfp.h:494 [inline]
+ kmalloc_order mm/slab_common.c:1148 [inline]
+ kmalloc_order_trace+0xbb/0x390 mm/slab_common.c:1159
+ kmalloc_large include/linux/slab.h:446 [inline]
+ __kmalloc+0x335/0x350 mm/slub.c:3805
+ kmalloc include/linux/slab.h:517 [inline]
+ ip_vs_lblc_init_svc+0x57/0x310 net/netfilter/ipvs/ip_vs_lblc.c:355
+ ip_vs_bind_scheduler+0xa9/0x1f0 net/netfilter/ipvs/ip_vs_sched.c:51
+ ip_vs_add_service+0xa9d/0x1d90 net/netfilter/ipvs/ip_vs_ctl.c:1265
+ do_ip_vs_set_ctl+0x2aa9/0x2cd0 net/netfilter/ipvs/ip_vs_ctl.c:2462
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x47c/0x4e0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0x24b/0x2b0 net/ipv4/ip_sockglue.c:1251
+ udp_setsockopt+0x108/0x1b0 net/ipv4/udp.c:2416
+ ipv6_setsockopt+0x311/0x350 net/ipv6/ipv6_sockglue.c:917
+ tcp_setsockopt+0x1c0/0x1f0 net/ipv4/tcp.c:2891
+ sock_common_setsockopt+0x13b/0x170 net/core/sock.c:3039
+ __sys_setsockopt+0x496/0x540 net/socket.c:1903
+ __do_sys_setsockopt net/socket.c:1914 [inline]
+ __se_sys_setsockopt net/socket.c:1911 [inline]
+ __x64_sys_setsockopt+0x15c/0x1c0 net/socket.c:1911
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+==================================================================

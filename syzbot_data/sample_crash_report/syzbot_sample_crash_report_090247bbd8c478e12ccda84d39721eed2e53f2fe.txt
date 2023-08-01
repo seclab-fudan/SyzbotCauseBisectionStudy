@@ -1,0 +1,46 @@
+==================================================================
+BUG: KCSAN: data-race in snd_seq_prioq_cell_out / snd_seq_timer_interrupt
+
+write to 0xffff88806e3c3318 of 4 bytes by interrupt on cpu 1:
+ snd_seq_timer_update_tick sound/core/seq/seq_timer.h:58 [inline]
+ snd_seq_timer_interrupt+0x1e4/0x260 sound/core/seq/seq_timer.c:150
+ snd_timer_process_callbacks+0x1eb/0x230 sound/core/timer.c:796
+ snd_timer_interrupt sound/core/timer.c:919 [inline]
+ snd_timer_interrupt+0x488/0x950 sound/core/timer.c:840
+ snd_hrtimer_callback+0x188/0x250 sound/core/hrtimer.c:50
+ __run_hrtimer kernel/time/hrtimer.c:1517 [inline]
+ __hrtimer_run_queues+0x271/0x600 kernel/time/hrtimer.c:1579
+ hrtimer_interrupt+0x226/0x490 kernel/time/hrtimer.c:1641
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1119 [inline]
+ smp_apic_timer_interrupt+0xd8/0x270 arch/x86/kernel/apic/apic.c:1144
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:60
+ arch_safe_halt arch/x86/include/asm/paravirt.h:144 [inline]
+ default_idle+0x21/0x170 arch/x86/kernel/process.c:695
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x1b7/0x290 kernel/sched/idle.c:269
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:361
+ start_secondary+0x164/0x1b0 arch/x86/kernel/smpboot.c:264
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:242
+
+read to 0xffff88806e3c3318 of 4 bytes by task 10573 on cpu 0:
+ event_is_ready sound/core/seq/seq_prioq.c:205 [inline]
+ snd_seq_prioq_cell_out+0x7b/0x200 sound/core/seq/seq_prioq.c:225
+ snd_seq_check_queue+0xd6/0x210 sound/core/seq/seq_queue.c:258
+ snd_seq_enqueue_event+0x15a/0x2a0 sound/core/seq/seq_queue.c:330
+ snd_seq_client_enqueue_event.constprop.0+0x187/0x2a0 sound/core/seq/seq_clientmgr.c:974
+ snd_seq_write+0x227/0x4e0 sound/core/seq/seq_clientmgr.c:1093
+ __vfs_write+0x58/0xb0 fs/read_write.c:494
+ vfs_write fs/read_write.c:558 [inline]
+ vfs_write+0x189/0x380 fs/read_write.c:542
+ ksys_write+0x16a/0x1a0 fs/read_write.c:611
+ __do_sys_write fs/read_write.c:623 [inline]
+ __se_sys_write fs/read_write.c:620 [inline]
+ __x64_sys_write+0x49/0x60 fs/read_write.c:620
+ do_syscall_64+0xc7/0x390 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 10573 Comm: syz-executor.5 Not tainted 5.6.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

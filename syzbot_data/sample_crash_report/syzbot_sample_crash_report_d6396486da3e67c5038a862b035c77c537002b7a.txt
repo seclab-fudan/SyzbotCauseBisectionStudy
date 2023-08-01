@@ -1,0 +1,176 @@
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_write include/linux/instrumented.h:86 [inline]
+BUG: KASAN: use-after-free in io_queue_worker_create+0x1cc/0x320 include/asm-generic/bitops/instrumented-lock.h:25
+Write of size 8 at addr ffff88807b52f0d8 by task kworker/0:3/3267
+
+CPU: 0 PID: 3267 Comm: kworker/0:3 Not tainted 5.16.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events io_workqueue_create
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1dc/0x2d8 lib/dump_stack.c:106
+ print_address_description+0x65/0x380 mm/kasan/report.c:247
+ __kasan_report mm/kasan/report.c:433 [inline]
+ kasan_report+0x19a/0x1f0 mm/kasan/report.c:450
+ kasan_check_range+0x2b5/0x2f0 mm/kasan/generic.c:189
+ instrument_atomic_write include/linux/instrumented.h:86 [inline]
+ io_queue_worker_create+0x1cc/0x320 include/asm-generic/bitops/instrumented-lock.h:25
+ io_workqueue_create+0x75/0xb0 fs/io-wq.c:780
+ process_one_work+0x853/0x1140 kernel/workqueue.c:2298
+ worker_thread+0xac1/0x1320 kernel/workqueue.c:2445
+ kthread+0x468/0x490 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+ </TASK>
+
+Allocated by task 3621:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc+0xdc/0x110 mm/kasan/common.c:513
+ kasan_kmalloc include/linux/kasan.h:269 [inline]
+ kmem_cache_alloc_node_trace+0x26f/0x370 mm/slub.c:3289
+ kmalloc_node include/linux/slab.h:608 [inline]
+ kzalloc_node include/linux/slab.h:735 [inline]
+ create_io_worker+0xef/0x630 fs/io-wq.c:792
+ create_worker_cb+0x16e/0x340 fs/io-wq.c:329
+ task_work_run+0x146/0x1c0 kernel/task_work.c:164
+ tracehook_notify_signal include/linux/tracehook.h:214 [inline]
+ handle_signal_work kernel/entry/common.c:146 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x180/0x220 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x2e/0x70 kernel/entry/common.c:300
+ do_syscall_64+0x53/0xd0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 3621:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track+0x4c/0x80 mm/kasan/common.c:46
+ kasan_set_free_info+0x1f/0x40 mm/kasan/generic.c:370
+ ____kasan_slab_free+0x10d/0x150 mm/kasan/common.c:366
+ kasan_slab_free include/linux/kasan.h:235 [inline]
+ slab_free_hook mm/slub.c:1723 [inline]
+ slab_free_freelist_hook+0x12e/0x1a0 mm/slub.c:1749
+ slab_free mm/slub.c:3513 [inline]
+ kfree+0xe1/0x330 mm/slub.c:4561
+ create_worker_cont+0x4ca/0x5a0 fs/io-wq.c:766
+ task_work_run+0x146/0x1c0 kernel/task_work.c:164
+ tracehook_notify_signal include/linux/tracehook.h:214 [inline]
+ handle_signal_work kernel/entry/common.c:146 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x180/0x220 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x2e/0x70 kernel/entry/common.c:300
+ do_syscall_64+0x53/0xd0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Last potentially related work creation:
+ kasan_save_stack+0x3b/0x60 mm/kasan/common.c:38
+ __kasan_record_aux_stack+0xfa/0x130 mm/kasan/generic.c:348
+ task_work_add+0x2f/0x1b0 kernel/task_work.c:38
+ io_queue_worker_create+0x1b4/0x320 fs/io-wq.c:362
+ io_workqueue_create+0x75/0xb0 fs/io-wq.c:780
+ process_one_work+0x853/0x1140 kernel/workqueue.c:2298
+ worker_thread+0xac1/0x1320 kernel/workqueue.c:2445
+ kthread+0x468/0x490 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x3b/0x60 mm/kasan/common.c:38
+ __kasan_record_aux_stack+0xfa/0x130 mm/kasan/generic.c:348
+ insert_work+0x54/0x400 kernel/workqueue.c:1354
+ __queue_work+0x928/0xc60 kernel/workqueue.c:1520
+ queue_work_on+0x12b/0x220 kernel/workqueue.c:1547
+ queue_work include/linux/workqueue.h:502 [inline]
+ schedule_work include/linux/workqueue.h:563 [inline]
+ create_worker_cont+0x442/0x5a0 fs/io-wq.c:772
+ task_work_run+0x146/0x1c0 kernel/task_work.c:164
+ tracehook_notify_signal include/linux/tracehook.h:214 [inline]
+ handle_signal_work kernel/entry/common.c:146 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x180/0x220 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x2e/0x70 kernel/entry/common.c:300
+ do_syscall_64+0x53/0xd0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff88807b52f000
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 216 bytes inside of
+ 512-byte region [ffff88807b52f000, ffff88807b52f200)
+The buggy address belongs to the page:
+page:ffffea0001ed4b00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x7b52c
+head:ffffea0001ed4b00 order:2 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 0000000000000000 dead000000000122 ffff888011441c80
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 2, migratetype Unmovable, gfp_mask 0x1d20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC|__GFP_HARDWALL), pid 3621, ts 51184877647, free_ts 17901522119
+ prep_new_page mm/page_alloc.c:2418 [inline]
+ get_page_from_freelist+0x729/0x9e0 mm/page_alloc.c:4149
+ __alloc_pages+0x255/0x580 mm/page_alloc.c:5369
+ __alloc_pages_node include/linux/gfp.h:570 [inline]
+ alloc_slab_page mm/slub.c:1795 [inline]
+ allocate_slab+0x89/0x4d0 mm/slub.c:1930
+ new_slab mm/slub.c:1993 [inline]
+ ___slab_alloc+0x41e/0xc40 mm/slub.c:3022
+ __slab_alloc mm/slub.c:3109 [inline]
+ slab_alloc_node mm/slub.c:3200 [inline]
+ kmem_cache_alloc_node_trace+0x2ca/0x370 mm/slub.c:3284
+ kmalloc_node include/linux/slab.h:608 [inline]
+ kzalloc_node include/linux/slab.h:735 [inline]
+ create_io_worker+0xef/0x630 fs/io-wq.c:792
+ create_worker_cb+0x16e/0x340 fs/io-wq.c:329
+ task_work_run+0x146/0x1c0 kernel/task_work.c:164
+ tracehook_notify_signal include/linux/tracehook.h:214 [inline]
+ handle_signal_work kernel/entry/common.c:146 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x180/0x220 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x2e/0x70 kernel/entry/common.c:300
+ do_syscall_64+0x53/0xd0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1338 [inline]
+ free_pcp_prepare+0xd1c/0xe00 mm/page_alloc.c:1389
+ free_unref_page_prepare mm/page_alloc.c:3309 [inline]
+ free_unref_page+0x7d/0x580 mm/page_alloc.c:3388
+ free_slab mm/slub.c:2033 [inline]
+ discard_slab mm/slub.c:2039 [inline]
+ __unfreeze_partials+0x1ab/0x200 mm/slub.c:2527
+ put_cpu_partial+0x116/0x180 mm/slub.c:2603
+ do_slab_free mm/slub.c:3501 [inline]
+ ___cache_free+0xe6/0x120 mm/slub.c:3520
+ qlist_free_all mm/kasan/quarantine.c:165 [inline]
+ kasan_quarantine_reduce+0x151/0x1c0 mm/kasan/quarantine.c:272
+ __kasan_slab_alloc+0x2f/0xf0 mm/kasan/common.c:444
+ kasan_slab_alloc include/linux/kasan.h:259 [inline]
+ slab_post_alloc_hook mm/slab.h:519 [inline]
+ slab_alloc_node mm/slub.c:3234 [inline]
+ slab_alloc mm/slub.c:3242 [inline]
+ __kmalloc+0x1ed/0x380 mm/slub.c:4419
+ kmalloc include/linux/slab.h:595 [inline]
+ tomoyo_realpath_from_path+0xd8/0x610 security/tomoyo/realpath.c:254
+ tomoyo_get_realpath security/tomoyo/file.c:151 [inline]
+ tomoyo_path_perm+0x238/0x660 security/tomoyo/file.c:822
+ security_inode_getattr+0xc0/0x140 security/security.c:1334
+ vfs_getattr fs/stat.c:157 [inline]
+ vfs_statx+0x168/0x3f0 fs/stat.c:225
+ vfs_fstatat fs/stat.c:243 [inline]
+ __do_sys_newfstatat fs/stat.c:412 [inline]
+ __se_sys_newfstatat+0xc8/0x760 fs/stat.c:406
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Memory state around the buggy address:
+ ffff88807b52ef80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88807b52f000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88807b52f080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff88807b52f100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88807b52f180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

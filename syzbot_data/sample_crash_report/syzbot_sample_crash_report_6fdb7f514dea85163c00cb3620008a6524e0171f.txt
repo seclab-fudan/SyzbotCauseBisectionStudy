@@ -1,0 +1,89 @@
+BUG: KASAN: use-after-free in debug_spin_unlock kernel/locking/spinlock_debug.c:97 [inline]
+BUG: KASAN: use-after-free in do_raw_spin_unlock+0x308/0x330 kernel/locking/spinlock_debug.c:134
+Read of size 4 at addr ffff8801d0ef41d4 by task syz-executor5/31572
+
+CPU: 1 PID: 31572 Comm: syz-executor5 Not tainted 4.14.0-rc5-mm1+ #20
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ debug_spin_unlock kernel/locking/spinlock_debug.c:97 [inline]
+ do_raw_spin_unlock+0x308/0x330 kernel/locking/spinlock_debug.c:134
+ __raw_spin_unlock include/linux/spinlock_api_smp.h:151 [inline]
+ _raw_spin_unlock+0x22/0x30 kernel/locking/spinlock.c:181
+ exit_pi_state_list+0x598/0x7a0 kernel/futex.c:921
+ mm_release+0x46d/0x590 kernel/fork.c:1191
+ exit_mm kernel/exit.c:499 [inline]
+ do_exit+0x481/0x1ad0 kernel/exit.c:856
+ do_group_exit+0x149/0x400 kernel/exit.c:972
+ get_signal+0x73f/0x16d0 kernel/signal.c:2333
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:808
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath+0x42f/0x510 arch/x86/entry/common.c:266
+ entry_SYSCALL_64_fastpath+0xbc/0xbe
+RIP: 0033:0x452869
+RSP: 002b:00007fa3bb789be8 EFLAGS: 00000212 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000000 RBX: 0000000000758248 RCX: 0000000000452869
+RDX: 0000000000000004 RSI: 000080000000000b RDI: 000000002000cffc
+RBP: 000000000000008f R08: 0000000020048000 R09: 0000000000000000
+R10: 0000000020edfff0 R11: 0000000000000212 R12: 00000000006eee08
+R13: 00000000ffffffff R14: 00007fa3bb78a6d4 R15: 0000000000000004
+
+Allocated by task 31561:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3614
+ kmalloc include/linux/slab.h:499 [inline]
+ kzalloc include/linux/slab.h:688 [inline]
+ refill_pi_state_cache.part.6+0xa5/0x2f0 kernel/futex.c:790
+ refill_pi_state_cache kernel/futex.c:1810 [inline]
+ futex_requeue+0x1887/0x2370 kernel/futex.c:1877
+ do_futex+0x7f5/0x20d0 kernel/futex.c:3488
+ SYSC_futex kernel/futex.c:3526 [inline]
+ SyS_futex+0x260/0x390 kernel/futex.c:3494
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 31553:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3492 [inline]
+ kfree+0xca/0x250 mm/slab.c:3807
+ put_pi_state+0x3f4/0x560 kernel/futex.c:852
+ exit_pi_state_list+0x57a/0x7a0 kernel/futex.c:937
+ mm_release+0x46d/0x590 kernel/fork.c:1191
+ exit_mm kernel/exit.c:499 [inline]
+ do_exit+0x481/0x1ad0 kernel/exit.c:856
+ do_group_exit+0x149/0x400 kernel/exit.c:972
+ get_signal+0x73f/0x16d0 kernel/signal.c:2333
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:808
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath+0x42f/0x510 arch/x86/entry/common.c:266
+ entry_SYSCALL_64_fastpath+0xbc/0xbe
+
+The buggy address belongs to the object at ffff8801d0ef41c0
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 20 bytes inside of
+ 256-byte region [ffff8801d0ef41c0, ffff8801d0ef42c0)
+The buggy address belongs to the page:
+page:ffffea000743bd00 count:1 mapcount:0 mapping:ffff8801d0ef4080 index:0x0
+flags: 0x200000000000100(slab)
+raw: 0200000000000100 ffff8801d0ef4080 0000000000000000 000000010000000c
+raw: ffffea000743baa0 ffffea0007439fa0 ffff8801dac007c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d0ef4080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d0ef4100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801d0ef4180: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                 ^
+ ffff8801d0ef4200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d0ef4280: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================

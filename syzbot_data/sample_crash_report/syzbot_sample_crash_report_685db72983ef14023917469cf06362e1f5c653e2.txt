@@ -1,0 +1,113 @@
+------------[ cut here ]------------
+kernel BUG at net/core/skbuff.c:1726!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 6.1.0-rc5-syzkaller-00008-ge01d50cbd6ee #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+RIP: 0010:skb_copy+0x344/0x3c0 net/core/skbuff.c:1726
+Code: 89 e7 e8 3f fa ff ff e8 da f2 cd f9 4c 89 e0 48 83 c4 08 5b 5d 41 5c 41 5d 41 5e 41 5f c3 e8 c3 f2 cd f9 0f 0b e8 bc f2 cd f9 <0f> 0b e8 85 f3 19 fa e9 b4 fd ff ff e8 bb f3 19 fa e9 7b fd ff ff
+RSP: 0018:ffffc90000737ff0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 00000000fffffff2 RCX: 0000000000000100
+RDX: ffff888012d061c0 RSI: ffffffff87b14964 RDI: 0000000000000005
+RBP: ffff88801dcd3bc0 R08: 0000000000000005 R09: 0000000000000000
+R10: 00000000fffffff2 R11: 0000000000000000 R12: ffff88801e5cad00
+R13: 0000000000008140 R14: ffff88804b460000 R15: 000000000000805e
+FS:  0000000000000000(0000) GS:ffff88802c700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000c28e000 CR4: 0000000000150ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ skb_unshare include/linux/skbuff.h:2004 [inline]
+ netem_enqueue+0x2928/0x3550 net/sched/sch_netem.c:504
+ netem_enqueue+0x2037/0x3550 net/sched/sch_netem.c:483
+ dev_qdisc_enqueue+0x46/0x390 net/core/dev.c:3785
+ __dev_xmit_skb net/core/dev.c:3874 [inline]
+ __dev_queue_xmit+0x2279/0x3ba0 net/core/dev.c:4222
+ dev_queue_xmit include/linux/netdevice.h:3008 [inline]
+ neigh_hh_output include/net/neighbour.h:530 [inline]
+ neigh_output include/net/neighbour.h:544 [inline]
+ ip6_finish_output2+0xfa3/0x1530 net/ipv6/ip6_output.c:134
+ __ip6_finish_output net/ipv6/ip6_output.c:195 [inline]
+ ip6_finish_output+0x694/0x1170 net/ipv6/ip6_output.c:206
+ NF_HOOK_COND include/linux/netfilter.h:291 [inline]
+ ip6_output+0x1f1/0x540 net/ipv6/ip6_output.c:227
+ dst_output include/net/dst.h:445 [inline]
+ NF_HOOK include/linux/netfilter.h:302 [inline]
+ NF_HOOK include/linux/netfilter.h:296 [inline]
+ ip6_xmit+0x11f7/0x1c60 net/ipv6/ip6_output.c:343
+ inet6_csk_xmit+0x3b5/0x6d0 net/ipv6/inet6_connection_sock.c:135
+ __tcp_transmit_skb+0x1967/0x3800 net/ipv4/tcp_output.c:1402
+ tcp_transmit_skb net/ipv4/tcp_output.c:1420 [inline]
+ __tcp_retransmit_skb+0x5fc/0x29e0 net/ipv4/tcp_output.c:3244
+ tcp_retransmit_skb+0x2e/0x360 net/ipv4/tcp_output.c:3267
+ tcp_retransmit_timer+0xf5c/0x3410 net/ipv4/tcp_timer.c:537
+ tcp_write_timer_handler net/ipv4/tcp_timer.c:620 [inline]
+ tcp_write_timer_handler+0x4e2/0x9f0 net/ipv4/tcp_timer.c:594
+ tcp_write_timer+0xa6/0x2b0 net/ipv4/tcp_timer.c:637
+ call_timer_fn+0x1da/0x7c0 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers.part.0+0x6a2/0xaf0 kernel/time/timer.c:1790
+ __run_timers kernel/time/timer.c:1768 [inline]
+ run_timer_softirq+0xb7/0x1d0 kernel/time/timer.c:1803
+ __do_softirq+0x1fb/0xadc kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x9/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x97/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:default_idle+0xf/0x10 arch/x86/kernel/process.c:731
+Code: e8 16 1e d7 f7 e9 8c fd ff ff 4c 89 f7 e8 09 1e d7 f7 e9 3a fd ff ff cc cc cc cc f3 0f 1e fa 66 90 0f 00 2d 83 58 52 00 fb f4 <c3> f3 0f 1e fa 41 54 be 08 00 00 00 53 65 48 8b 1c 25 c0 7f 02 00
+RSP: 0018:ffffc9000066fdf8 EFLAGS: 00000246
+RAX: 0000000000b011f5 RBX: ffff888012d061c0 RCX: ffffffff89f105e5
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
+RBP: dffffc0000000000 R08: 0000000000000001 R09: ffff88802c735c8b
+R10: ffffed10058e6b91 R11: 0000000000000000 R12: 0000000000000001
+R13: 0000000000000001 R14: ffffffff8e529ed0 R15: 0000000000000000
+ default_idle_call+0x84/0xc0 kernel/sched/idle.c:109
+ cpuidle_idle_call kernel/sched/idle.c:191 [inline]
+ do_idle+0x410/0x590 kernel/sched/idle.c:303
+ cpu_startup_entry+0x18/0x20 kernel/sched/idle.c:400
+ start_secondary+0x256/0x300 arch/x86/kernel/smpboot.c:262
+ secondary_startup_64_no_verify+0xce/0xdb
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:skb_copy+0x344/0x3c0 net/core/skbuff.c:1726
+Code: 89 e7 e8 3f fa ff ff e8 da f2 cd f9 4c 89 e0 48 83 c4 08 5b 5d 41 5c 41 5d 41 5e 41 5f c3 e8 c3 f2 cd f9 0f 0b e8 bc f2 cd f9 <0f> 0b e8 85 f3 19 fa e9 b4 fd ff ff e8 bb f3 19 fa e9 7b fd ff ff
+RSP: 0018:ffffc90000737ff0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 00000000fffffff2 RCX: 0000000000000100
+RDX: ffff888012d061c0 RSI: ffffffff87b14964 RDI: 0000000000000005
+RBP: ffff88801dcd3bc0 R08: 0000000000000005 R09: 0000000000000000
+R10: 00000000fffffff2 R11: 0000000000000000 R12: ffff88801e5cad00
+R13: 0000000000008140 R14: ffff88804b460000 R15: 000000000000805e
+FS:  0000000000000000(0000) GS:ffff88802c700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000c28e000 CR4: 0000000000150ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	e8 16 1e d7 f7       	callq  0xf7d71e1b
+   5:	e9 8c fd ff ff       	jmpq   0xfffffd96
+   a:	4c 89 f7             	mov    %r14,%rdi
+   d:	e8 09 1e d7 f7       	callq  0xf7d71e1b
+  12:	e9 3a fd ff ff       	jmpq   0xfffffd51
+  17:	cc                   	int3
+  18:	cc                   	int3
+  19:	cc                   	int3
+  1a:	cc                   	int3
+  1b:	f3 0f 1e fa          	endbr64
+  1f:	66 90                	xchg   %ax,%ax
+  21:	0f 00 2d 83 58 52 00 	verw   0x525883(%rip)        # 0x5258ab
+  28:	fb                   	sti
+  29:	f4                   	hlt
+* 2a:	c3                   	retq <-- trapping instruction
+  2b:	f3 0f 1e fa          	endbr64
+  2f:	41 54                	push   %r12
+  31:	be 08 00 00 00       	mov    $0x8,%esi
+  36:	53                   	push   %rbx
+  37:	65 48 8b 1c 25 c0 7f 	mov    %gs:0x27fc0,%rbx
+  3e:	02 00

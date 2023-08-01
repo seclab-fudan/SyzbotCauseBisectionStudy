@@ -1,0 +1,80 @@
+loop0: detected capacity change from 0 to 264192
+F2FS-fs (loop0): invalid crc_offset: 0
+F2FS-fs (loop0): Found nat_bits in checkpoint
+F2FS-fs (loop0): Mounted with checkpoint version = 3651456e
+Unable to handle kernel NULL pointer dereference at virtual address 000000000000001c
+Mem abort info:
+  ESR = 0x0000000096000004
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000004
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010899a000
+[000000000000001c] pgd=0000000000000000, p4d=0000000000000000
+Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 3029 Comm: syz-executor654 Not tainted 6.0.0-rc7-syzkaller-18095-gbbed346d5a96 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __lse_atomic_fetch_add_relaxed arch/arm64/include/asm/atomic_lse.h:62 [inline]
+pc : arch_atomic_fetch_add_relaxed arch/arm64/include/asm/atomic.h:49 [inline]
+pc : atomic_fetch_add_relaxed include/linux/atomic/atomic-instrumented.h:117 [inline]
+pc : __refcount_add include/linux/refcount.h:193 [inline]
+pc : __refcount_inc include/linux/refcount.h:250 [inline]
+pc : refcount_inc include/linux/refcount.h:267 [inline]
+pc : get_task_struct include/linux/sched/task.h:110 [inline]
+pc : kthread_stop+0x34/0x1c0 kernel/kthread.c:703
+lr : __refcount_add include/linux/refcount.h:193 [inline]
+lr : __refcount_inc include/linux/refcount.h:250 [inline]
+lr : refcount_inc include/linux/refcount.h:267 [inline]
+lr : get_task_struct include/linux/sched/task.h:110 [inline]
+lr : kthread_stop+0x30/0x1c0 kernel/kthread.c:703
+sp : ffff8000128abb60
+x29: ffff8000128abb60 x28: 0000000000000000 x27: 000000000000007e
+x26: ffff80000d30cf28 x25: ffff80000d309000 x24: 0000000000000008
+x23: ffffffffffffffff x22: 0000000000000000 x21: 0000000000000000
+x20: fffffffffffffff4 x19: 000000000000001c x18: 00000000000000c0
+x17: ffff80000dd0b198 x16: ffff80000db49158 x15: ffff0000c665cf80
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c665cf80
+x11: ff808000081403c0 x10: 0000000000000000 x9 : ffff8000081403c0
+x8 : 0000000000000001 x7 : ffff8000095d331c x6 : 0000000000000000
+x5 : 000000008010000f x4 : fffffc00032f6a20 x3 : 000000008010000f
+x2 : ffff0000cbda8100 x1 : 0000000100000000 x0 : 0000000000000000
+Call trace:
+ __refcount_add include/linux/refcount.h:193 [inline]
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ get_task_struct include/linux/sched/task.h:110 [inline]
+ kthread_stop+0x34/0x1c0 kernel/kthread.c:703
+ f2fs_stop_discard_thread+0x3c/0x5c fs/f2fs/segment.c:1638
+ kill_f2fs_super+0x5c/0x194 fs/f2fs/super.c:4522
+ deactivate_locked_super+0x70/0xe8 fs/super.c:332
+ deactivate_super+0xd0/0xd4 fs/super.c:363
+ cleanup_mnt+0x1f8/0x234 fs/namespace.c:1186
+ __cleanup_mnt+0x20/0x30 fs/namespace.c:1193
+ task_work_run+0xc4/0x14c kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbe0 kernel/exit.c:795
+ do_group_exit+0x60/0xe8 kernel/exit.c:925
+ __do_sys_exit_group kernel/exit.c:936 [inline]
+ __se_sys_exit_group kernel/exit.c:934 [inline]
+ __wake_up_parent+0x0/0x40 kernel/exit.c:934
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:636
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+Code: 9100a293 d503201f 94057e16 52800028 (b8280275) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	9100a293 	add	x19, x20, #0x28
+   4:	d503201f 	nop
+   8:	94057e16 	bl	0x15f860
+   c:	52800028 	mov	w8, #0x1                   	// #1
+* 10:	b8280275 	ldadd	w8, w21, [x19] <-- trapping instruction

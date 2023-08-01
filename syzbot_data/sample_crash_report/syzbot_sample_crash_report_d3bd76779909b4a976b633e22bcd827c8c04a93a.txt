@@ -1,0 +1,111 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.17.0-rc2+ #25 Not tainted
+------------------------------------------------------
+syz-executor037/4509 is trying to acquire lock:
+        (ptrval) (sk_lock-AF_INET){+.+.}, at: lock_sock include/net/sock.h:1469 [inline]
+        (ptrval) (sk_lock-AF_INET){+.+.}, at: tcp_mmap+0x1c7/0x14f0 net/ipv4/tcp.c:1759
+
+but task is already holding lock:
+        (ptrval) (&mm->mmap_sem){++++}, at: vm_mmap_pgoff+0x1a1/0x2a0 mm/util.c:355
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&mm->mmap_sem){++++}:
+       __might_fault+0x155/0x1e0 mm/memory.c:4555
+       _copy_from_iter_full+0x2fd/0xd10 lib/iov_iter.c:607
+       copy_from_iter_full include/linux/uio.h:124 [inline]
+       skb_do_copy_data_nocache include/net/sock.h:1883 [inline]
+       skb_add_data_nocache include/net/sock.h:1894 [inline]
+       tcp_sendmsg_locked+0x2f98/0x3e10 net/ipv4/tcp.c:1316
+       tcp_sendmsg+0x2f/0x50 net/ipv4/tcp.c:1446
+       inet_sendmsg+0x19f/0x690 net/ipv4/af_inet.c:798
+       sock_sendmsg_nosec net/socket.c:629 [inline]
+       sock_sendmsg+0xd5/0x120 net/socket.c:639
+       sock_write_iter+0x35a/0x5a0 net/socket.c:908
+       call_write_iter include/linux/fs.h:1784 [inline]
+       new_sync_write fs/read_write.c:474 [inline]
+       __vfs_write+0x64d/0x960 fs/read_write.c:487
+       vfs_write+0x1f8/0x560 fs/read_write.c:549
+       ksys_write+0xf9/0x250 fs/read_write.c:598
+       __do_sys_write fs/read_write.c:610 [inline]
+       __se_sys_write fs/read_write.c:607 [inline]
+       __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+       do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (sk_lock-AF_INET){+.+.}:
+       lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+       lock_sock_nested+0xd0/0x120 net/core/sock.c:2844
+       lock_sock include/net/sock.h:1469 [inline]
+       tcp_mmap+0x1c7/0x14f0 net/ipv4/tcp.c:1759
+       sock_mmap+0x8e/0xc0 net/socket.c:1144
+       call_mmap include/linux/fs.h:1789 [inline]
+       mmap_region+0xd13/0x1820 mm/mmap.c:1723
+       do_mmap+0xc79/0x11d0 mm/mmap.c:1494
+       do_mmap_pgoff include/linux/mm.h:2237 [inline]
+       vm_mmap_pgoff+0x1fb/0x2a0 mm/util.c:357
+       ksys_mmap_pgoff+0x4c9/0x640 mm/mmap.c:1544
+       __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+       __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+       __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+       do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&mm->mmap_sem);
+                               lock(sk_lock-AF_INET);
+                               lock(&mm->mmap_sem);
+  lock(sk_lock-AF_INET);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor037/4509:
+ #0:         (ptrval) (&mm->mmap_sem){++++}, at: vm_mmap_pgoff+0x1a1/0x2a0 mm/util.c:355
+
+stack backtrace:
+CPU: 1 PID: 4509 Comm: syz-executor037 Not tainted 4.17.0-rc2+ #25
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_circular_bug.isra.36.cold.54+0x1bd/0x27d kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x343e/0x5140 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+ lock_sock_nested+0xd0/0x120 net/core/sock.c:2844
+ lock_sock include/net/sock.h:1469 [inline]
+ tcp_mmap+0x1c7/0x14f0 net/ipv4/tcp.c:1759
+ sock_mmap+0x8e/0xc0 net/socket.c:1144
+ call_mmap include/linux/fs.h:1789 [inline]
+ mmap_region+0xd13/0x1820 mm/mmap.c:1723
+ do_mmap+0xc79/0x11d0 mm/mmap.c:1494
+ do_mmap_pgoff include/linux/mm.h:2237 [inline]
+ vm_mmap_pgoff+0x1fb/0x2a0 mm/util.c:357
+ ksys_mmap_pgoff+0x4c9/0x640 mm/mmap.c:1544
+ __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+ __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43fcb9
+RSP: 002b:00007fffdda24408 EFLAGS: 00000216 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fcb9
+RDX: 0000080000000000 RSI: 0000000000f50000 RDI: 0000000020000000
+RBP: 00000000006ca018 R08: 0000000000000003 R09: 0000000000000000
+R10: 0000000000004011 R11: 0000000000000216 R12: 00000000004015e0
+R13: 0000000000401670 R14: 0000000000000000 R15: 000

@@ -1,0 +1,97 @@
+=====================================================
+BUG: KMSAN: uninit-value in __sk_rx_queue_set include/net/sock.h:1924 [inline]
+BUG: KMSAN: uninit-value in sk_rx_queue_update include/net/sock.h:1938 [inline]
+BUG: KMSAN: uninit-value in sk_mark_napi_id include/net/busy_poll.h:136 [inline]
+BUG: KMSAN: uninit-value in tcp_child_process+0xbaa/0x1030 net/ipv4/tcp_minisocks.c:833
+ __sk_rx_queue_set include/net/sock.h:1924 [inline]
+ sk_rx_queue_update include/net/sock.h:1938 [inline]
+ sk_mark_napi_id include/net/busy_poll.h:136 [inline]
+ tcp_child_process+0xbaa/0x1030 net/ipv4/tcp_minisocks.c:833
+ tcp_v4_rcv+0x3d24/0x4e70 net/ipv4/tcp_ipv4.c:2066
+ ip_protocol_deliver_rcu+0x752/0x10a0 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish net/ipv4/ip_input.c:231 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ip_local_deliver+0x584/0x8c0 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:460 [inline]
+ ip_sublist_rcv_finish net/ipv4/ip_input.c:551 [inline]
+ ip_list_rcv_finish net/ipv4/ip_input.c:601 [inline]
+ ip_sublist_rcv+0x11a7/0x14d0 net/ipv4/ip_input.c:609
+ ip_list_rcv+0x930/0x970 net/ipv4/ip_input.c:644
+ __netif_receive_skb_list_ptype net/core/dev.c:5508 [inline]
+ __netif_receive_skb_list_core+0xdf9/0x11f0 net/core/dev.c:5556
+ __netif_receive_skb_list+0x7e3/0x940 net/core/dev.c:5608
+ netif_receive_skb_list_internal+0x848/0xdc0 net/core/dev.c:5699
+ gro_normal_list net/core/dev.c:5853 [inline]
+ napi_complete_done+0x579/0xdc0 net/core/dev.c:6590
+ virtqueue_napi_complete drivers/net/virtio_net.c:339 [inline]
+ virtnet_poll+0x17a4/0x2340 drivers/net/virtio_net.c:1557
+ __napi_poll+0x14c/0xc00 net/core/dev.c:7023
+ napi_poll net/core/dev.c:7090 [inline]
+ net_rx_action+0x7e2/0x1820 net/core/dev.c:7177
+ __do_softirq+0x1ee/0x7c5 kernel/softirq.c:558
+ invoke_softirq+0xa4/0x130 kernel/softirq.c:432
+ __irq_exit_rcu kernel/softirq.c:637 [inline]
+ irq_exit_rcu+0x76/0x130 kernel/softirq.c:649
+ common_interrupt+0xb6/0xd0 arch/x86/kernel/irq.c:240
+ asm_common_interrupt+0x1e/0x40
+ native_safe_halt arch/x86/include/asm/irqflags.h:51 [inline]
+ arch_safe_halt arch/x86/include/asm/irqflags.h:89 [inline]
+ acpi_safe_halt drivers/acpi/processor_idle.c:109 [inline]
+ acpi_idle_do_entry drivers/acpi/processor_idle.c:553 [inline]
+ acpi_idle_enter+0x747/0x820 drivers/acpi/processor_idle.c:688
+ cpuidle_enter_state+0x9a8/0x1840 drivers/cpuidle/cpuidle.c:237
+ cpuidle_enter+0xf4/0x180 drivers/cpuidle/cpuidle.c:351
+ call_cpuidle kernel/sched/idle.c:158 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:239 [inline]
+ do_idle+0x68d/0x840 kernel/sched/idle.c:306
+ cpu_startup_entry+0x3c/0x40 kernel/sched/idle.c:403
+ rest_init+0x278/0x2e0 init/main.c:726
+ arch_call_rest_init+0x13/0x15
+ start_kernel+0xa96/0xc49 init/main.c:1138
+ x86_64_start_reservations+0x2a/0x2c arch/x86/kernel/head64.c:530
+ x86_64_start_kernel+0xd6/0xdb arch/x86/kernel/head64.c:511
+ secondary_startup_64_no_verify+0xb1/0xbb
+
+Uninit was created at:
+ __alloc_pages+0xbbf/0x1090 mm/page_alloc.c:5409
+ alloc_pages+0x8a5/0xb80
+ alloc_slab_page mm/slub.c:1810 [inline]
+ allocate_slab+0x287/0x1c10 mm/slub.c:1947
+ new_slab mm/slub.c:2010 [inline]
+ ___slab_alloc+0xb85/0x1e30 mm/slub.c:3039
+ __slab_alloc mm/slub.c:3126 [inline]
+ slab_alloc_node mm/slub.c:3217 [inline]
+ slab_alloc mm/slub.c:3259 [inline]
+ kmem_cache_alloc+0xbb3/0x11c0 mm/slub.c:3264
+ sk_prot_alloc+0xeb/0x570 net/core/sock.c:1914
+ sk_clone_lock+0xdd/0x1980 net/core/sock.c:2118
+ inet_csk_clone_lock+0x8d/0x6a0 net/ipv4/inet_connection_sock.c:956
+ tcp_create_openreq_child+0xb1/0x1ef0 net/ipv4/tcp_minisocks.c:453
+ tcp_v4_syn_recv_sock+0x268/0x2710 net/ipv4/tcp_ipv4.c:1563
+ tcp_check_req+0x21b2/0x2b10 net/ipv4/tcp_minisocks.c:765
+ tcp_v4_rcv+0x3696/0x4e70 net/ipv4/tcp_ipv4.c:2047
+ ip_protocol_deliver_rcu+0x752/0x10a0 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish net/ipv4/ip_input.c:231 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ip_local_deliver+0x584/0x8c0 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:460 [inline]
+ ip_sublist_rcv_finish net/ipv4/ip_input.c:551 [inline]
+ ip_list_rcv_finish net/ipv4/ip_input.c:601 [inline]
+ ip_sublist_rcv+0x11a7/0x14d0 net/ipv4/ip_input.c:609
+ ip_list_rcv+0x930/0x970 net/ipv4/ip_input.c:644
+ __netif_receive_skb_list_ptype net/core/dev.c:5508 [inline]
+ __netif_receive_skb_list_core+0xdf9/0x11f0 net/core/dev.c:5556
+ __netif_receive_skb_list+0x7e3/0x940 net/core/dev.c:5608
+ netif_receive_skb_list_internal+0x848/0xdc0 net/core/dev.c:5699
+ gro_normal_list net/core/dev.c:5853 [inline]
+ napi_complete_done+0x579/0xdc0 net/core/dev.c:6590
+ virtqueue_napi_complete drivers/net/virtio_net.c:339 [inline]
+ virtnet_poll+0x17a4/0x2340 drivers/net/virtio_net.c:1557
+ __napi_poll+0x14c/0xc00 net/core/dev.c:7023
+ napi_poll net/core/dev.c:7090 [inline]
+ net_rx_action+0x7e2/0x1820 net/core/dev.c:7177
+ __do_softirq+0x1ee/0x7c5 kernel/softirq.c:558
+
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.16.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=====================================================

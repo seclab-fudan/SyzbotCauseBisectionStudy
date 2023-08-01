@@ -1,0 +1,50 @@
+
+audit: type=1400 audit(1518212025.190:8): avc:  denied  { create } for  pid=4173 comm="syzkaller170917" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+=============================
+WARNING: suspicious RCU usage
+audit: type=1400 audit(1518212025.190:9): avc:  denied  { write } for  pid=4173 comm="syzkaller170917" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+4.15.0+ #306 Not tainted
+-----------------------------
+net/tipc/bearer.c:177 suspicious rcu_dereference_protected() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+2 locks held by syzkaller170917/4173:
+ #0:  (cb_lock){++++}, at: [<00000000636d5d1b>] genl_rcv+0x19/0x40 net/netlink/genetlink.c:634
+ #1:  (genl_mutex){+.+.}, at: [<0000000078f2e5be>] genl_lock net/netlink/genetlink.c:33 [inline]
+ #1:  (genl_mutex){+.+.}, at: [<0000000078f2e5be>] genl_rcv_msg+0x115/0x140 net/netlink/genetlink.c:622
+
+stack backtrace:
+CPU: 1 PID: 4173 Comm: syzkaller170917 Not tainted 4.15.0+ #306
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4592
+ tipc_bearer_find+0x2b4/0x3b0 net/tipc/bearer.c:177
+ tipc_nl_compat_link_set+0x329/0x9f0 net/tipc/netlink_compat.c:729
+ __tipc_nl_compat_doit net/tipc/netlink_compat.c:288 [inline]
+ tipc_nl_compat_doit+0x15b/0x670 net/tipc/netlink_compat.c:335
+ tipc_nl_compat_handle net/tipc/netlink_compat.c:1119 [inline]
+ tipc_nl_compat_recv+0x1135/0x18f0 net/tipc/netlink_compat.c:1201
+ genl_family_rcv_msg+0x7b7/0xfb0 net/netlink/genetlink.c:599
+ genl_rcv_msg+0xb2/0x140 net/netlink/genetlink.c:624
+ netlink_rcv_skb+0x14b/0x380 net/netlink/af_netlink.c:2442
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:635
+ netlink_unicast_kernel net/netlink/af_netlink.c:1308 [inline]
+ netlink_unicast+0x4c4/0x6b0 net/netlink/af_netlink.c:1334
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1897
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x43fd69
+RSP: 002b:00007ffd334a56d8 EFLAGS: 00000203 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd69
+RDX: 0

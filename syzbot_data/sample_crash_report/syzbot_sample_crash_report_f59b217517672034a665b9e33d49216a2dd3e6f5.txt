@@ -1,0 +1,144 @@
+INFO: task kworker/0:2:146 blocked for more than 143 seconds.
+      Not tainted 5.19.0-rc3-syzkaller-00175-g0a18d802d65c #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:kworker/0:2     state:D stack:26848 pid:  146 ppid:     2 flags:0x00004000
+Workqueue: ipv6_addrconf addrconf_verify_work
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5146 [inline]
+ __schedule+0xa00/0x4b50 kernel/sched/core.c:6458
+ schedule+0xd2/0x1f0 kernel/sched/core.c:6530
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6589
+ __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+ __mutex_lock+0xa70/0x1350 kernel/locking/mutex.c:747
+ addrconf_verify_work+0xe/0x20 net/ipv6/addrconf.c:4616
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+INFO: task dhcpcd:3190 blocked for more than 143 seconds.
+      Not tainted 5.19.0-rc3-syzkaller-00175-g0a18d802d65c #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:dhcpcd          state:D stack:22976 pid: 3190 ppid:  3189 flags:0x00000000
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5146 [inline]
+ __schedule+0xa00/0x4b50 kernel/sched/core.c:6458
+ schedule+0xd2/0x1f0 kernel/sched/core.c:6530
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6589
+ __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+ __mutex_lock+0xa70/0x1350 kernel/locking/mutex.c:747
+ __netlink_dump_start+0x16a/0x900 net/netlink/af_netlink.c:2344
+ netlink_dump_start include/linux/netlink.h:245 [inline]
+ rtnetlink_rcv_msg+0x73e/0xc90 net/core/rtnetlink.c:6046
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2501
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x543/0x7f0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x917/0xe10 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:734
+ __sys_sendto+0x21a/0x320 net/socket.c:2119
+ __do_sys_sendto net/socket.c:2131 [inline]
+ __se_sys_sendto net/socket.c:2127 [inline]
+ __x64_sys_sendto+0xdd/0x1b0 net/socket.c:2127
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+RIP: 0033:0x7f2bfaf0f206
+RSP: 002b:00007ffe2691a358 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 00007ffe2691b490 RCX: 00007f2bfaf0f206
+RDX: 0000000000000014 RSI: 00007ffe2691b3b0 RDI: 0000000000000018
+RBP: 00007ffe2691b420 R08: 00007ffe2691b394 R09: 000000000000000c
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffe2691b3b0
+R13: 00007ffe2691b394 R14: 0000000000000000 R15: 00007ffe2691a360
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/29:
+ #0: ffffffff8bd86ba0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6491
+3 locks held by kworker/0:2/146:
+ #0: ffff888026879138 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888026879138 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888026879138 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888026879138 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff888026879138 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff888026879138 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc9000297fda8 ((work_completion)(&(&net->ipv6.addr_chk_work)->work)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffffffff8d58e828 (rtnl_mutex){+.+.}-{3:3}, at: addrconf_verify_work+0xe/0x20 net/ipv6/addrconf.c:4616
+1 lock held by dhcpcd/3190:
+ #0: ffffffff8d58e828 (rtnl_mutex){+.+.}-{3:3}, at: __netlink_dump_start+0x16a/0x900 net/netlink/af_netlink.c:2344
+2 locks held by getty/3295:
+ #0: ffff88814ada8098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc90002d162e8 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xe50/0x13c0 drivers/tty/n_tty.c:2124
+1 lock held by syz-executor355/3648:
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 29 Comm: khungtaskd Not tainted 5.19.0-rc3-syzkaller-00175-g0a18d802d65c #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 06/18/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x47/0x144 lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x1e6/0x230 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:220 [inline]
+ watchdog+0xc22/0xf90 kernel/hung_task.c:378
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 33 Comm: kcompactd1 Not tainted 5.19.0-rc3-syzkaller-00175-g0a18d802d65c #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 06/18/2022
+RIP: 0010:arch_is_kernel_initmem_freed arch/x86/include/asm/sections.h:34 [inline]
+RIP: 0010:static_obj+0x59/0xc0 kernel/locking/lockdep.c:840
+Code: 3d cb 87 5c 0a 00 75 2a 48 c7 c0 00 e9 b9 8b 48 ba 00 00 00 00 00 fc ff df 48 c1 e8 03 80 3c 10 00 75 5a 48 3b 2d 67 87 5c 0a <72> 06 31 c0 84 db 75 12 48 81 fd 00 00 00 81 72 0c 84 db 74 08 b8
+RSP: 0018:ffffc90000a9fc90 EFLAGS: 00000287
+RAX: 1ffffffff1773d20 RBX: ffffffff8dbbb901 RCX: 0000000000000000
+RDX: dffffc0000000000 RSI: ffffffff89cec240 RDI: ffffffff90f525a0
+RBP: ffffffff90f525a0 R08: 0000000000000000 R09: 0000000000000000
+R10: fffffbfff222c29f R11: 0000000000000001 R12: ffffffff90f525a0
+R13: 0000000000000000 R14: ffffffff90f4f980 R15: 000000000000005a
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000555556a492b8 CR3: 0000000020d73000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ lockdep_init_map_type+0x21a/0x7f0 kernel/locking/lockdep.c:4837
+ lockdep_init_map_waits include/linux/lockdep.h:191 [inline]
+ lockdep_init_map_wait include/linux/lockdep.h:198 [inline]
+ lockdep_init_map include/linux/lockdep.h:204 [inline]
+ do_init_timer kernel/time/timer.c:850 [inline]
+ init_timer_on_stack_key kernel/time/timer.c:806 [inline]
+ schedule_timeout+0x135/0x2a0 kernel/time/timer.c:1933
+ freezable_schedule_timeout include/linux/freezer.h:192 [inline]
+ kcompactd+0xa5d/0xf30 mm/compaction.c:2950
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	3d cb 87 5c 0a       	cmp    $0xa5c87cb,%eax
+   5:	00 75 2a             	add    %dh,0x2a(%rbp)
+   8:	48 c7 c0 00 e9 b9 8b 	mov    $0xffffffff8bb9e900,%rax
+   f:	48 ba 00 00 00 00 00 	movabs $0xdffffc0000000000,%rdx
+  16:	fc ff df
+  19:	48 c1 e8 03          	shr    $0x3,%rax
+  1d:	80 3c 10 00          	cmpb   $0x0,(%rax,%rdx,1)
+  21:	75 5a                	jne    0x7d
+  23:	48 3b 2d 67 87 5c 0a 	cmp    0xa5c8767(%rip),%rbp        # 0xa5c8791
+* 2a:	72 06                	jb     0x32 <-- trapping instruction
+  2c:	31 c0                	xor    %eax,%eax
+  2e:	84 db                	test   %bl,%bl
+  30:	75 12                	jne    0x44
+  32:	48 81 fd 00 00 00 81 	cmp    $0xffffffff81000000,%rbp
+  39:	72 0c                	jb     0x47
+  3b:	84 db                	test   %bl,%bl
+  3d:	74 08                	je     0x47
+  3f:	b8                   	.byte 0xb8

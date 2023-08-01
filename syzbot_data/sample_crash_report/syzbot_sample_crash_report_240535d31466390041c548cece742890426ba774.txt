@@ -1,0 +1,102 @@
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x3a8b/0x4a00 kernel/locking/lockdep.c:3828
+Read of size 8 at addr ffff88805b20c6f0 by task syz-executor.4/31506
+
+CPU: 0 PID: 31506 Comm: syz-executor.4 Not tainted 5.4.0-rc5+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:634
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ __lock_acquire+0x3a8b/0x4a00 kernel/locking/lockdep.c:3828
+ lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4487
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:151
+ spin_lock include/linux/spinlock.h:338 [inline]
+ shmem_fault+0x5ec/0x7b0 mm/shmem.c:2049
+ __do_fault+0x111/0x540 mm/memory.c:3092
+ do_shared_fault mm/memory.c:3544 [inline]
+ do_fault mm/memory.c:3622 [inline]
+ handle_pte_fault mm/memory.c:3849 [inline]
+ __handle_mm_fault+0x2bf5/0x4040 mm/memory.c:3973
+ handle_mm_fault+0x3b7/0xaa0 mm/memory.c:4010
+ do_user_addr_fault arch/x86/mm/fault.c:1441 [inline]
+ __do_page_fault+0x536/0xdd0 arch/x86/mm/fault.c:1506
+ do_page_fault+0x38/0x590 arch/x86/mm/fault.c:1530
+ page_fault+0x39/0x40 arch/x86/entry/entry_64.S:1202
+RIP: 0033:0x441191
+Code: 8d 15 13 98 0a 00 8b 0c 8a 8b 04 82 29 c8 c3 66 2e 0f 1f 84 00 00 00 00 00 48 83 fa 20 48 89 f8 73 77 f6 c2 01 74 0b 0f b6 0e <88> 0f 48 ff c6 48 ff c7 f6 c2 02 74 12 0f b7 0e 66 89 0f 48 83 c6
+RSP: 002b:00007fff1206e9a8 EFLAGS: 00010202
+RAX: 0000000020000100 RBX: 0000000000000000 RCX: 000000000000002f
+RDX: 0000000000000009 RSI: 0000000000760110 RDI: 0000000020000100
+RBP: 00000000007600f0 R08: 00000000007600f0 R09: ffffffffffffffff
+R10: 00007fff1206ea70 R11: 0000000000000246 R12: 000000000075bfc8
+R13: 0000000000000006 R14: 00000000007600f8 R15: 000000000075bfd4
+
+Allocated by task 31510:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:510 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:483
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:518
+ slab_post_alloc_hook mm/slab.h:584 [inline]
+ slab_alloc mm/slab.c:3319 [inline]
+ kmem_cache_alloc+0x121/0x710 mm/slab.c:3483
+ shmem_alloc_inode+0x1c/0x50 mm/shmem.c:3733
+ alloc_inode+0x68/0x1e0 fs/inode.c:230
+ new_inode_pseudo+0x19/0xf0 fs/inode.c:919
+ new_inode+0x1f/0x40 fs/inode.c:948
+ shmem_get_inode+0x84/0x7e0 mm/shmem.c:2243
+ __shmem_file_setup.part.0+0x1e2/0x2b0 mm/shmem.c:4102
+ __shmem_file_setup mm/shmem.c:4096 [inline]
+ shmem_kernel_file_setup mm/shmem.c:4132 [inline]
+ shmem_zero_setup+0xe1/0x4cc mm/shmem.c:4176
+ mmap_region+0x13d5/0x1760 mm/mmap.c:1822
+ do_mmap+0x853/0x1190 mm/mmap.c:1577
+ do_mmap_pgoff include/linux/mm.h:2353 [inline]
+ vm_mmap_pgoff+0x1c5/0x230 mm/util.c:496
+ ksys_mmap_pgoff+0xf7/0x630 mm/mmap.c:1629
+ __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+ __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 16:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ kasan_set_free_info mm/kasan/common.c:332 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:471
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:480
+ __cache_free mm/slab.c:3425 [inline]
+ kmem_cache_free+0x86/0x320 mm/slab.c:3693
+ shmem_free_in_core_inode+0x63/0xb0 mm/shmem.c:3743
+ i_callback+0x44/0x80 fs/inode.c:219
+ __rcu_reclaim kernel/rcu/rcu.h:222 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2157 [inline]
+ rcu_core+0x581/0x1560 kernel/rcu/tree.c:2377
+ rcu_core_si+0x9/0x10 kernel/rcu/tree.c:2386
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff88805b20c548
+ which belongs to the cache shmem_inode_cache(81:syz4) of size 1224
+The buggy address is located 424 bytes inside of
+ 1224-byte region [ffff88805b20c548, ffff88805b20ca10)
+The buggy address belongs to the page:
+page:ffffea00016c8300 refcount:1 mapcount:0 mapping:ffff888098960c40 index:0xffff88805b20cffd
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea00014f8888 ffffea0002a2f348 ffff888098960c40
+raw: ffff88805b20cffd ffff88805b20c000 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88805b20c580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88805b20c600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88805b20c680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff88805b20c700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88805b20c780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,53 @@
+gfs2: fsid=syz:syz.0: G:  s:EX n:8/1 f:qb t:EX d:EX/0 a:0 v:0 r:5 m:20 p:0
+gfs2: fsid=syz:syz.0:  H: s:EX f:cH e:0 p:3073 [syz-executor321] gfs2_quota_sync+0xf0/0x204 fs/gfs2/quota.c:1318
+------------[ cut here ]------------
+kernel BUG at fs/gfs2/glock.c:1560!
+Internal error: Oops - BUG: 00000000f2000800 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 3073 Comm: syz-executor321 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : add_to_queue+0x6ec/0x780 fs/gfs2/glock.c:1559
+lr : add_to_queue+0x6ec/0x780 fs/gfs2/glock.c:1559
+sp : ffff800012dc3950
+x29: ffff800012dc3960 x28: ffff0000ca514880 x27: ffff0000cbee6000
+x26: ffff0000ca514880 x25: 0000000000000400 x24: ffff0000c9870900
+x23: 0000000000000000 x22: ffff0000c9870900 x21: ffff0000cbee7270
+x20: ffff0000ca5148b8 x19: ffff0000caa9aaa0 x18: 00000000000000c0
+x17: 5d313233726f7475 x16: ffff80000dbe6158 x15: ffff0000c938b480
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c938b480
+x11: ff8080000926d2a8 x10: 0000000000000000 x9 : 0d685379ccde1f00
+x8 : 0d685379ccde1f00 x7 : ffff80000c091ebc x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000000000001 x0 : 0000000000000000
+Call trace:
+ add_to_queue+0x6ec/0x780 fs/gfs2/glock.c:1559
+ gfs2_glock_nq+0x90/0x220 fs/gfs2/glock.c:1585
+ gfs2_glock_nq_init fs/gfs2/glock.h:264 [inline]
+ do_sync+0x1dc/0x650 fs/gfs2/quota.c:910
+ gfs2_quota_sync+0xf0/0x204 fs/gfs2/quota.c:1318
+ gfs2_sync_fs+0x30/0x78 fs/gfs2/super.c:643
+ sync_filesystem+0x68/0x134 fs/sync.c:56
+ generic_shutdown_super+0x38/0x198 fs/super.c:474
+ kill_block_super+0x30/0x78 fs/super.c:1428
+ gfs2_kill_sb+0x68/0x78
+ deactivate_locked_super+0x70/0xe8 fs/super.c:332
+ deactivate_super+0xd0/0xd4 fs/super.c:363
+ cleanup_mnt+0x184/0x1c0 fs/namespace.c:1186
+ __cleanup_mnt+0x20/0x30 fs/namespace.c:1193
+ task_work_run+0x100/0x148 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x2dc/0xcac kernel/exit.c:820
+ __arm64_sys_exit_group+0x0/0x18 kernel/exit.c:950
+ __do_sys_exit_group kernel/exit.c:961 [inline]
+ __se_sys_exit_group kernel/exit.c:959 [inline]
+ __wake_up_parent+0x0/0x40 kernel/exit.c:959
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 52800022 aa1f03e0 aa1303e1 97fff219 (d4210000) 
+---[ end trace 0000000000000000 ]---

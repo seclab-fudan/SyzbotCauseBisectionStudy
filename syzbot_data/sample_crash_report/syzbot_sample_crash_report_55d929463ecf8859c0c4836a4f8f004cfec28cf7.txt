@@ -1,0 +1,698 @@
+audit: type=1400 audit(1542564624.749:40): avc:  denied  { prog_run } for  pid=7713 comm="syz-executor0" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=bpf permissive=1
+==================================================================
+BUG: KASAN: use-after-free in __list_del_entry_valid+0xf1/0x100 lib/list_debug.c:51
+Read of size 8 at addr ffff8881bdb8daa0 by task syz-executor5/7868
+
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __list_del_entry_valid+0xf1/0x100 lib/list_debug.c:51
+ __list_del_entry include/linux/list.h:117 [inline]
+ list_del_rcu include/linux/rculist.h:130 [inline]
+ bpf_prog_ksym_node_del kernel/bpf/core.c:470 [inline]
+ bpf_prog_kallsyms_del+0x1e7/0x410 kernel/bpf/core.c:501
+ bpf_prog_kallsyms_del_subprogs+0xde/0x180 kernel/bpf/core.c:358
+ bpf_prog_kallsyms_del_all+0x15/0x20 kernel/bpf/core.c:363
+ __bpf_prog_put+0xd7/0x150 kernel/bpf/syscall.c:1215
+ bpf_prog_put kernel/bpf/syscall.c:1223 [inline]
+ bpf_prog_release+0x3c/0x50 kernel/bpf/syscall.c:1231
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1ad6/0x26d0 kernel/exit.c:867
+ do_group_exit+0x177/0x440 kernel/exit.c:970
+ get_signal+0x8b0/0x1980 kernel/signal.c:2517
+ do_signal+0x9c/0x21c0 arch/x86/kernel/signal.c:816
+WARNING: CPU: 1 PID: 7868 at kernel/bpf/core.c:384 bpf_get_prog_addr_region kernel/bpf/core.c:384 [inline]
+WARNING: CPU: 1 PID: 7868 at kernel/bpf/core.c:384 bpf_tree_comp kernel/bpf/core.c:438 [inline]
+WARNING: CPU: 1 PID: 7868 at kernel/bpf/core.c:384 __lt_find include/linux/rbtree_latch.h:115 [inline]
+WARNING: CPU: 1 PID: 7868 at kernel/bpf/core.c:384 latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+WARNING: CPU: 1 PID: 7868 at kernel/bpf/core.c:384 bpf_prog_kallsyms_find+0x2d0/0x4a0 kernel/bpf/core.c:512
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ panic+0x2ad/0x55c kernel/panic.c:188
+ __warn.cold.8+0x20/0x45 kernel/panic.c:540
+ report_bug+0x254/0x2d0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:178 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
+ do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:290
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:969
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:384 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2d0/0x4a0 kernel/bpf/core.c:512
+Code: 38 ca 7f 08 84 d2 0f 85 74 01 00 00 41 0f b6 45 02 31 ff 83 e0 01 41 89 c5 89 c6 e8 fa 82 f3 ff 45 84 ed 75 07 e8 20 82 f3 ff <0f> 0b e8 19 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7
+RSP: 0018:ffff8881bfd3ec28 EFLAGS: 00010093
+RAX: ffff8881b8bce2c0 RBX: ffff8881bdb8da70 RCX: ffffffff818c05b6
+RDX: 0000000000000000 RSI: ffffffff818c05c0 RDI: 0000000000000001
+RBP: ffff8881bfd3eda0 R08: ffff8881b8bce2c0 R09: ffffed103b5e5b67
+R10: ffffed103b5e5b67 R11: ffff8881daf2db3b R12: 0000000000000000
+R13: 0000000000000000 R14: dffffc0000000000 R15: ffff8881bdb8da70
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3e638 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3e7b0 R08: ffff8881b8bce2c0 R09: ffffed103b5e5b67
+R10: ffffed103b5e5b67 R11: ffff8881daf2db3b R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#2] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3e228 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3e3a0 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#3] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3de18 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3df90 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#4] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3da08 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3db80 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#5] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3d5f8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3d770 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#6] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3d1e8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3d360 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#7] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3cdd8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3cf50 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#8] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3c9c8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3cb40 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#9] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3c5b8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3c730 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#10] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3c1a8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3c320 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#11] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3bd98 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3bf10 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#12] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3b988 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3bb00 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#13] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3b578 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3b6f0 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#14] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3b168 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3b2e0 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#15] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3ad58 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3aed0 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#16] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3a948 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3aac0 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#17] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3a538 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3a6b0 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#18] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3a128 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3a2a0 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#19] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd39d18 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd39e90 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#20] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd39908 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd39a80 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#21] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd394f8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd39670 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#22] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd390e8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd39260 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#23] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd38cd8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd38e50 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#24] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd388c8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd38a40 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#25] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd384b8 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd38630 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+------------[ cut here ]------------
+kernel BUG at mm/slab.c:4425!
+invalid opcode: 0000 [#26] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__check_heap_object+0xa7/0xb5 mm/slab.c:4450
+Code: 48 c7 c7 15 b1 14 89 e8 97 e3 0a 00 5d c3 41 8b 91 04 01 00 00 48 29 c7 48 39 d7 77 be 48 01 d0 48 29 c8 48 39 f0 72 b3 5d c3 <0f> 0b 48 c7 c7 15 b1 14 89 e8 fd eb 0a 00 44 89 e9 48 c7 c7 d0 b1
+RSP: 0018:ffff8881bfd372e0 EFLAGS: 00010046
+RAX: 0000000000000001 RBX: 1ffff11037fa6e63 RCX: 000000000000000c
+RDX: ffff8881bfd36300 RSI: 0000000000000002 RDI: ffff8881bfd37488
+RBP: ffff8881bfd372e0 R08: ffff8881b8bce2c0 R09: ffff8881da986e40
+R10: 0000000000000f78 R11: 0000000000000000 R12: ffff8881bfd37488
+R13: 0000000000000002 R14: ffffea0006ff4d80 R15: 0000000000000001
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#27] PREEMPT SMP KASAN
+CPU: 1 PID: 7868 Comm: syz-executor5 Not tainted 4.20.0-rc2+ #118
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd36e30 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd36fa8 R08: ffff8881b8bce2c0 R09: 0000000000000001
+R10: ffffed103b5e5b67 R11: ffff8881b8bce2c0 R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+Modules linked in:
+---[ end trace 2e83966fafd9dc18 ]---
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:387 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:438 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x2fe/0x4a0 kernel/bpf/core.c:512
+Code: 82 f3 ff 4c 8b ad b0 fe ff ff 4c 89 e6 4c 89 ef e8 b7 82 f3 ff 4d 39 e5 0f 82 a7 00 00 00 e8 f9 81 f3 ff 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 74 08 3c 03 0f 8e 35 01 00 00 41 8b 04 24 4c
+RSP: 0018:ffff8881bfd3e638 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: ffff8881bdb8da70 RCX: ffffffff818c05d9
+RDX: 0000000000000000 RSI: ffffffff818c05e7 RDI: 0000000000000006
+RBP: ffff8881bfd3e7b0 R08: ffff8881b8bce2c0 R09: ffffed103b5e5b67
+R10: ffffed103b5e5b67 R11: ffff8881daf2db3b R12: 0000000000000000
+R13: ffffffffffffffff R14: dffffc0000000000 R15: ffff8881bdb8da70
+FS:  00007fce36f50700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000072c000 CR3: 00000001ce339000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

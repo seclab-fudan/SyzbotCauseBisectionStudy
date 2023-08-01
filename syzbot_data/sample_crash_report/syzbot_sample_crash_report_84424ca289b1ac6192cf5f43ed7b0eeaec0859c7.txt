@@ -1,0 +1,48 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: slab-out-of-bounds in bpf_skb_proto_xlat net/core/filter.c:2637 [inline]
+BUG: KASAN: slab-out-of-bounds in ____bpf_skb_change_proto net/core/filter.c:2675 [inline]
+BUG: KASAN: slab-out-of-bounds in bpf_skb_change_proto+0xe37/0x1300 net/core/filter.c:2650
+Read of size 2 at addr ffff8801b04646c0 by task syz-executor241/4519
+
+CPU: 0 PID: 4519 Comm: syz-executor241 Not tainted 4.17.0+ #93
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load2_noabort+0x14/0x20 mm/kasan/report.c:431
+ bpf_skb_proto_xlat net/core/filter.c:2637 [inline]
+ ____bpf_skb_change_proto net/core/filter.c:2675 [inline]
+ bpf_skb_change_proto+0xe37/0x1300 net/core/filter.c:2650
+
+Allocated by task 0:
+(stack is not available)
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801b04646c0
+ which belongs to the cache skbuff_head_cache of size 232
+The buggy address is located 0 bytes inside of
+ 232-byte region [ffff8801b04646c0, ffff8801b04647a8)
+The buggy address belongs to the page:
+page:ffffea0006c11900 count:1 mapcount:0 mapping:ffff8801d9a0d080 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0006c49388 ffffea0006ae5c48 ffff8801d9a0d080
+raw: 0000000000000000 ffff8801b0464080 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b0464580: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801b0464600: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801b0464680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                           ^
+ ffff8801b0464700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801b0464780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

@@ -1,0 +1,79 @@
+==================================================================
+BUG: KASAN: use-after-free in shm_get_unmapped_area+0xfd/0x120 ipc/shm.c:478
+Read of size 8 at addr ffff8801bd6ccce8 by task syz-executor3/6565
+
+CPU: 1 PID: 6565 Comm: syz-executor3 Not tainted 4.15.0+ #290
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ shm_get_unmapped_area+0xfd/0x120 ipc/shm.c:478
+ get_unmapped_area+0x18d/0x300 mm/mmap.c:2115
+ do_mmap+0x2aa/0xe00 mm/mmap.c:1364
+ do_mmap_pgoff include/linux/mm.h:2223 [inline]
+ SYSC_remap_file_pages mm/mmap.c:2846 [inline]
+ SyS_remap_file_pages+0x7ce/0xb30 mm/mmap.c:2762
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x453299
+RSP: 002b:00007f225d2c3c58 EFLAGS: 00000212 ORIG_RAX: 00000000000000d8
+RAX: ffffffffffffffda RBX: 000000000071bf58 RCX: 0000000000453299
+RDX: 0000000000000000 RSI: 0000000000001000 RDI: 0000000020002000
+RBP: 0000000000000450 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f5820
+R13: 00000000ffffffff R14: 00007f225d2c46d4 R15: 0000000000000000
+
+Allocated by task 6557:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3540
+ kmem_cache_zalloc include/linux/slab.h:678 [inline]
+ get_empty_filp+0xfb/0x4f0 fs/file_table.c:122
+ alloc_file+0x26/0x390 fs/file_table.c:163
+ __shmem_file_setup+0x54f/0x6a0 mm/shmem.c:4230
+ shmem_kernel_file_setup+0x32/0x40 mm/shmem.c:4256
+ newseg+0x7bd/0xcb0 ipc/shm.c:589
+ ipcget_new ipc/util.c:311 [inline]
+ ipcget+0x8f0/0xfd0 ipc/util.c:649
+ SYSC_shmget ipc/shm.c:675 [inline]
+ SyS_shmget+0x158/0x230 ipc/shm.c:659
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 7:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3484 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3742
+ file_free_rcu+0x5c/0x70 fs/file_table.c:49
+ __rcu_reclaim kernel/rcu/rcu.h:172 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2674 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2933 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2900 [inline]
+ rcu_process_callbacks+0xd6c/0x17f0 kernel/rcu/tree.c:2917
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801bd6cccc0
+ which belongs to the cache filp of size 456
+The buggy address is located 40 bytes inside of
+ 456-byte region [ffff8801bd6cccc0, ffff8801bd6cce88)
+The buggy address belongs to the page:
+page:ffffea0006f5b300 count:1 mapcount:0 mapping:ffff8801bd6cc040 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801bd6cc040 0000000000000000 0000000100000006
+raw: ffffea0006f57760 ffffea0006f5b460 ffff8801da9d2180 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bd6ccb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bd6ccc00: fb fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801bd6ccc80: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                          ^
+ ffff8801bd6ccd00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bd6ccd80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

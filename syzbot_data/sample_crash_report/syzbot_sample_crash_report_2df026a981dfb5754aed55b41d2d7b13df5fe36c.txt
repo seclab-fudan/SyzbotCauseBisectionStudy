@@ -1,0 +1,47 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 32041 Comm: kworker/u4:6 Not tainted 5.4.0-rc1+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: writeback wb_workfn (flush-8:0)
+RIP: 0010:__lock_acquire+0x1254/0x4a00 kernel/locking/lockdep.c:3828
+Code: 00 0f 85 96 24 00 00 48 81 c4 f0 00 00 00 5b 41 5c 41 5d 41 5e 41 5f 5d c3 48 b8 00 00 00 00 00 fc ff df 4c 89 f2 48 c1 ea 03 <80> 3c 02 00 0f 85 0b 28 00 00 49 81 3e e0 85 06 8a 0f 84 5f ee ff
+RSP: 0000:ffff88808f32f930 EFLAGS: 00010007
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000003 RSI: 0000000000000000 RDI: 0000000000000001
+RBP: ffff88808f32fa48 R08: 0000000000000001 R09: 0000000000000001
+R10: fffffbfff138cdd0 R11: ffff888061c4c280 R12: 000000000000001d
+R13: 0000000000000000 R14: 000000000000001d R15: 0000000000000001
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b30020000 CR3: 0000000098a37000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4487
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:159
+ __wake_up_common_lock+0xc8/0x150 kernel/sched/wait.c:122
+ __wake_up+0xe/0x10 kernel/sched/wait.c:142
+ finish_writeback_work.isra.0+0xf6/0x120 fs/fs-writeback.c:168
+ wb_do_writeback fs/fs-writeback.c:2030 [inline]
+ wb_workfn+0x34f/0x1220 fs/fs-writeback.c:2070
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+---[ end trace f80a925279b46a6d ]---
+RIP: 0010:__lock_acquire+0x1254/0x4a00 kernel/locking/lockdep.c:3828
+Code: 00 0f 85 96 24 00 00 48 81 c4 f0 00 00 00 5b 41 5c 41 5d 41 5e 41 5f 5d c3 48 b8 00 00 00 00 00 fc ff df 4c 89 f2 48 c1 ea 03 <80> 3c 02 00 0f 85 0b 28 00 00 49 81 3e e0 85 06 8a 0f 84 5f ee ff
+RSP: 0000:ffff88808f32f930 EFLAGS: 00010007
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000003 RSI: 0000000000000000 RDI: 0000000000000001
+RBP: ffff88808f32fa48 R08: 0000000000000001 R09: 0000000000000001
+R10: fffffbfff138cdd0 R11: ffff888061c4c280 R12: 000000000000001d
+R13: 0000000000000000 R14: 000000000000001d R15: 0000000000000001
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b30020000 CR3: 0000000098a37000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

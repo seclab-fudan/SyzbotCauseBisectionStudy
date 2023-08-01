@@ -1,0 +1,144 @@
+usb 1-1: Direct firmware load for ueagle-atm/eagleII.fw failed with error -2
+usb 1-1: Falling back to sysfs fallback for: ueagle-atm/eagleII.fw
+==================================================================
+BUG: KASAN: use-after-free in kernfs_root fs/kernfs/kernfs-internal.h:66 [inline]
+BUG: KASAN: use-after-free in kernfs_add_one+0x55d/0x720 fs/kernfs/dir.c:766
+Read of size 8 at addr ffff8881450a42e8 by task kworker/0:0/6
+
+CPU: 0 PID: 6 Comm: kworker/0:0 Not tainted 5.18.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events request_firmware_work_func
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ print_address_description+0x65/0x4b0 mm/kasan/report.c:313
+ print_report+0xf4/0x210 mm/kasan/report.c:429
+ kasan_report+0xfb/0x130 mm/kasan/report.c:491
+ kernfs_root fs/kernfs/kernfs-internal.h:66 [inline]
+ kernfs_add_one+0x55d/0x720 fs/kernfs/dir.c:766
+ kernfs_create_dir_ns+0x1bf/0x220 fs/kernfs/dir.c:1013
+ sysfs_create_dir_ns+0x181/0x390 fs/sysfs/dir.c:59
+ create_dir lib/kobject.c:63 [inline]
+ kobject_add_internal+0x6dd/0xd10 lib/kobject.c:223
+ kobject_add_varg lib/kobject.c:358 [inline]
+ kobject_add+0x14c/0x210 lib/kobject.c:410
+ class_dir_create_and_add drivers/base/core.c:2942 [inline]
+ get_device_parent+0x3d5/0x430 drivers/base/core.c:2997
+ device_add+0x340/0xf90 drivers/base/core.c:3326
+ fw_load_sysfs_fallback+0xd8/0x7e0 drivers/base/firmware_loader/fallback.c:512
+ fw_load_from_user_helper+0x242/0x320 drivers/base/firmware_loader/fallback.c:588
+ _request_firmware+0x3ac/0x680 drivers/base/firmware_loader/main.c:774
+ request_firmware_work_func+0x125/0x270 drivers/base/firmware_loader/main.c:1020
+ process_one_work+0x81c/0xd10 kernel/workqueue.c:2289
+ worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+ </TASK>
+
+Allocated by task 6:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:436 [inline]
+ __kasan_slab_alloc+0xb2/0xe0 mm/kasan/common.c:469
+ kasan_slab_alloc include/linux/kasan.h:224 [inline]
+ slab_post_alloc_hook mm/slab.h:749 [inline]
+ slab_alloc_node mm/slub.c:3217 [inline]
+ slab_alloc mm/slub.c:3225 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3232 [inline]
+ kmem_cache_alloc+0x199/0x2f0 mm/slub.c:3242
+ kmem_cache_zalloc include/linux/slab.h:704 [inline]
+ __kernfs_new_node+0xdb/0x730 fs/kernfs/dir.c:585
+ kernfs_new_node fs/kernfs/dir.c:647 [inline]
+ kernfs_create_dir_ns+0x90/0x220 fs/kernfs/dir.c:1003
+ sysfs_create_dir_ns+0x181/0x390 fs/sysfs/dir.c:59
+ create_dir lib/kobject.c:63 [inline]
+ kobject_add_internal+0x6dd/0xd10 lib/kobject.c:223
+ kobject_add_varg lib/kobject.c:358 [inline]
+ kobject_add+0x14c/0x210 lib/kobject.c:410
+ class_dir_create_and_add drivers/base/core.c:2942 [inline]
+ get_device_parent+0x3d5/0x430 drivers/base/core.c:2997
+ device_add+0x340/0xf90 drivers/base/core.c:3326
+ fw_load_sysfs_fallback+0xd8/0x7e0 drivers/base/firmware_loader/fallback.c:512
+ fw_load_from_user_helper+0x242/0x320 drivers/base/firmware_loader/fallback.c:588
+ _request_firmware+0x3ac/0x680 drivers/base/firmware_loader/main.c:774
+ request_firmware_work_func+0x125/0x270 drivers/base/firmware_loader/main.c:1020
+ process_one_work+0x81c/0xd10 kernel/workqueue.c:2289
+ worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+
+Freed by task 3260:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track+0x4c/0x70 mm/kasan/common.c:45
+ kasan_set_free_info+0x1f/0x40 mm/kasan/generic.c:370
+ ____kasan_slab_free+0xd8/0x110 mm/kasan/common.c:366
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ slab_free_hook mm/slub.c:1728 [inline]
+ slab_free_freelist_hook+0x12e/0x1a0 mm/slub.c:1754
+ slab_free mm/slub.c:3510 [inline]
+ kmem_cache_free+0xc7/0x270 mm/slub.c:3527
+ kernfs_put+0x340/0x490 fs/kernfs/dir.c:539
+ __kernfs_remove+0xe80/0x1150 fs/kernfs/dir.c:1397
+ kernfs_remove+0x6c/0x80 fs/kernfs/dir.c:1412
+ __kobject_del+0xdc/0x300 lib/kobject.c:588
+ kobject_del+0x41/0x60 lib/kobject.c:611
+ device_del+0xa10/0xbe0 drivers/base/core.c:3603
+ usb_disconnect+0x56e/0x890 drivers/usb/core/hub.c:2254
+ hub_port_connect+0x2a2/0x2930 drivers/usb/core/hub.c:5207
+ hub_port_connect_change+0x619/0xbe0 drivers/usb/core/hub.c:5507
+ port_event+0xe72/0x13a0 drivers/usb/core/hub.c:5665
+ hub_event+0x5be/0xd70 drivers/usb/core/hub.c:5747
+ process_one_work+0x81c/0xd10 kernel/workqueue.c:2289
+ process_scheduled_works kernel/workqueue.c:2352 [inline]
+ worker_thread+0xe16/0x1330 kernel/workqueue.c:2438
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+
+The buggy address belongs to the object at ffff8881450a42b8
+ which belongs to the cache kernfs_node_cache of size 168
+The buggy address is located 48 bytes inside of
+ 168-byte region [ffff8881450a42b8, ffff8881450a4360)
+
+The buggy address belongs to the physical page:
+page:ffffea0005142900 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1450a4
+flags: 0x57ff00000000200(slab|node=1|zone=2|lastcpupid=0x7ff)
+raw: 057ff00000000200 ffffea00051429c0 dead000000000006 ffff888140007c80
+raw: 0000000000000000 0000000080110011 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 1, tgid 1 (swapper/0), ts 1956304596, free_ts 0
+ prep_new_page mm/page_alloc.c:2441 [inline]
+ get_page_from_freelist+0x72e/0x7a0 mm/page_alloc.c:4182
+ __alloc_pages+0x26c/0x5f0 mm/page_alloc.c:5408
+ alloc_page_interleave+0x22/0x1c0 mm/mempolicy.c:2104
+ alloc_slab_page+0x70/0xf0 mm/slub.c:1799
+ allocate_slab+0x5e/0x560 mm/slub.c:1944
+ new_slab mm/slub.c:2004 [inline]
+ ___slab_alloc+0x41e/0xcd0 mm/slub.c:3005
+ __slab_alloc mm/slub.c:3092 [inline]
+ slab_alloc_node mm/slub.c:3183 [inline]
+ slab_alloc mm/slub.c:3225 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3232 [inline]
+ kmem_cache_alloc+0x246/0x2f0 mm/slub.c:3242
+ kmem_cache_zalloc include/linux/slab.h:704 [inline]
+ __kernfs_new_node+0xdb/0x730 fs/kernfs/dir.c:585
+ kernfs_new_node+0x95/0x160 fs/kernfs/dir.c:647
+ __kernfs_create_file+0x45/0x2e0 fs/kernfs/file.c:982
+ sysfs_add_file_mode_ns+0x21d/0x330 fs/sysfs/file.c:294
+ create_files fs/sysfs/group.c:64 [inline]
+ internal_create_group+0x55c/0xf50 fs/sysfs/group.c:148
+ kernel_add_sysfs_param+0xe8/0x126 kernel/params.c:814
+ param_sysfs_builtin+0x16a/0x1e2 kernel/params.c:851
+ param_sysfs_init+0x68/0x6c kernel/params.c:970
+ do_one_initcall+0xbd/0x2b0 init/main.c:1298
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff8881450a4180: fb fb fc fc fc fc fc fc fc fc fb fb fb fb fb fb
+ ffff8881450a4200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fc
+>ffff8881450a4280: fc fc fc fc fc fc fc fa fb fb fb fb fb fb fb fb
+                                                          ^
+ ffff8881450a4300: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff8881450a4380: fc fc fc fc fa fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,30 @@
+BUG: memory leak
+unreferenced object 0xffff8881189e20a0 (size 32):
+  comm "syz-executor763", pid 6993, jiffies 4294943151 (age 8.350s)
+  hex dump (first 32 bytes):
+    62 6f 6e 64 30 00 00 00 00 00 00 00 00 00 00 00  bond0...........
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<00000000856cc2c7>] kmemleak_alloc_recursive include/linux/kmemleak.h:43 [inline]
+    [<00000000856cc2c7>] slab_post_alloc_hook mm/slab.h:439 [inline]
+    [<00000000856cc2c7>] slab_alloc mm/slab.c:3326 [inline]
+    [<00000000856cc2c7>] __do_kmalloc mm/slab.c:3658 [inline]
+    [<00000000856cc2c7>] __kmalloc_track_caller+0x15d/0x2c0 mm/slab.c:3675
+    [<00000000d3ea9156>] kstrdup+0x3a/0x70 mm/util.c:52
+    [<00000000b8644a57>] kstrdup_const+0x48/0x60 mm/util.c:74
+    [<00000000335051c2>] kvasprintf_const+0x7e/0xe0 lib/kasprintf.c:48
+    [<000000002b24d8b6>] kobject_set_name_vargs+0x40/0xe0 lib/kobject.c:289
+    [<00000000b6a73548>] dev_set_name+0x63/0x90 drivers/base/core.c:1915
+    [<000000003ffaab43>] netdev_register_kobject+0x5a/0x1b0 net/core/net-sysfs.c:1727
+    [<000000006fa8690c>] register_netdevice+0x397/0x600 net/core/dev.c:8733
+    [<00000000d91c4b17>] bond_newlink drivers/net/bonding/bond_netlink.c:449 [inline]
+    [<00000000d91c4b17>] bond_newlink+0x41/0x80 drivers/net/bonding/bond_netlink.c:439
+    [<00000000b811933f>] __rtnl_newlink+0x892/0xb30 net/core/rtnetlink.c:3187
+    [<00000000b75b8ba8>] rtnl_newlink+0x4e/0x80 net/core/rtnetlink.c:3245
+    [<00000000b2551c97>] rtnetlink_rcv_msg+0x178/0x4b0 net/core/rtnetlink.c:5214
+    [<000000003ef80388>] netlink_rcv_skb+0x61/0x170 net/netlink/af_netlink.c:2482
+    [<000000000e4a4779>] rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5232
+    [<000000007e424066>] netlink_unicast_kernel net/netlink/af_netlink.c:1307 [inline]
+    [<000000007e424066>] netlink_unicast+0x1ec/0x2d0 net/netlink/af_netlink.c:1333
+    [<0000000025d14354>] netlink_sendmsg+0x26a/0x480 net/netlink/af_netlink.c:1922
+

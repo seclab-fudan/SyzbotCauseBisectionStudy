@@ -1,0 +1,110 @@
+device bridge_slave_1 left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+device bridge_slave_0 left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+==================================================================
+BUG: KASAN: use-after-free in nbp_vlan_rcu_free+0x152/0x160 net/bridge/br_vlan.c:200
+Read of size 8 at addr ffff8881bbc44a18 by task swapper/1/0
+
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.20.0-rc1+ #332
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ nbp_vlan_rcu_free+0x152/0x160 net/bridge/br_vlan.c:200
+ __rcu_reclaim kernel/rcu/rcu.h:240 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2437 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2716 [inline]
+ rcu_process_callbacks+0x100a/0x1ac0 kernel/rcu/tree.c:2697
+ __do_softirq+0x308/0xb7e kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x17f/0x1c0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1cb/0x760 arch/x86/kernel/apic/apic.c:1061
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:804
+ </IRQ>
+RIP: 0010:native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:57
+Code: e9 2c ff ff ff 48 89 c7 48 89 45 d8 e8 d3 43 f3 f9 48 8b 45 d8 e9 ca fe ff ff 48 89 df e8 c2 43 f3 f9 eb 82 55 48 89 e5 fb f4 <5d> c3 0f 1f 84 00 00 00 00 00 55 48 89 e5 f4 5d c3 90 90 90 90 90
+RSP: 0018:ffff8881d9b27cb8 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: 1ffff1103b364f9b RCX: 0000000000000000
+RDX: 1ffffffff12a3f71 RSI: 0000000000000001 RDI: ffffffff8951fb88
+RBP: ffff8881d9b27cb8 R08: ffff8881d9b14340 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8881d9b27d78
+R13: ffffffff8a14e1e0 R14: 0000000000000000 R15: 0000000000000001
+ arch_safe_halt arch/x86/include/asm/paravirt.h:151 [inline]
+ default_idle+0xbf/0x490 arch/x86/kernel/process.c:498
+ arch_cpu_idle+0x10/0x20 arch/x86/kernel/process.c:489
+ default_idle_call+0x6d/0x90 kernel/sched/idle.c:93
+ cpuidle_idle_call kernel/sched/idle.c:153 [inline]
+ do_idle+0x49b/0x5c0 kernel/sched/idle.c:262
+ cpu_startup_entry+0x18/0x20 kernel/sched/idle.c:353
+ start_secondary+0x487/0x5f0 arch/x86/kernel/smpboot.c:271
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+
+Allocated by task 13858:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x750 mm/slab.c:3620
+ kmalloc include/linux/slab.h:546 [inline]
+ kzalloc include/linux/slab.h:741 [inline]
+ br_vlan_add+0x6e5/0x1340 net/bridge/br_vlan.c:650
+ br_vlan_init+0x339/0x3e0 net/bridge/br_vlan.c:1047
+ br_dev_init+0x10d/0x2a0 net/bridge/br_device.c:134
+ register_netdevice+0x332/0x11d0 net/core/dev.c:8459
+ br_dev_newlink+0x2a/0x130 net/bridge/br_netlink.c:1309
+ rtnl_newlink+0xf08/0x1da0 net/core/rtnetlink.c:3175
+ rtnetlink_rcv_msg+0x46a/0xc20 net/core/rtnetlink.c:4947
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4965
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 9:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ br_master_vlan_rcu_free+0xa8/0xe0 net/bridge/br_vlan.c:174
+ __rcu_reclaim kernel/rcu/rcu.h:240 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2437 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2716 [inline]
+ rcu_process_callbacks+0x100a/0x1ac0 kernel/rcu/tree.c:2697
+ __do_softirq+0x308/0xb7e kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff8881bbc44a00
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 24 bytes inside of
+ 96-byte region [ffff8881bbc44a00, ffff8881bbc44a60)
+The buggy address belongs to the page:
+page:ffffea0006ef1100 count:1 mapcount:0 mapping:ffff8881da8004c0 index:0x0
+flags: 0x2fffc0000000200(slab)
+raw: 02fffc0000000200 ffffea0007471a08 ffffea000757b908 ffff8881da8004c0
+raw: 0000000000000000 ffff8881bbc44000 0000000100000020 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881bbc44900: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff8881bbc44980: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+>ffff8881bbc44a00: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+                            ^
+ ffff8881bbc44a80: 00 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc
+ ffff8881bbc44b00: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+==================================================================

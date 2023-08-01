@@ -1,0 +1,92 @@
+loop0: detected capacity change from 0 to 8185
+==================================================================
+BUG: KASAN: use-after-free in ntfs_is_extended_system_file fs/ntfs/inode.c:484 [inline]
+BUG: KASAN: use-after-free in ntfs_read_locked_inode+0x5714/0x5af0 fs/ntfs/inode.c:1023
+Read of size 8 at addr ffff888036d2cdb8 by task syz-executor965/8517
+
+CPU: 0 PID: 8517 Comm: syz-executor965 Not tainted 5.13.0-rc2-next-20210518-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x13e/0x1d6 lib/dump_stack.c:129
+ print_address_description.constprop.0.cold+0x6c/0x309 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:436
+ ntfs_is_extended_system_file fs/ntfs/inode.c:484 [inline]
+ ntfs_read_locked_inode+0x5714/0x5af0 fs/ntfs/inode.c:1023
+ ntfs_iget+0x12d/0x180 fs/ntfs/inode.c:177
+ load_and_init_upcase fs/ntfs/super.c:1655 [inline]
+ load_system_files fs/ntfs/super.c:1810 [inline]
+ ntfs_fill_super+0x1f75/0x84e0 fs/ntfs/super.c:2893
+ mount_bdev+0x34d/0x410 fs/super.c:1368
+ legacy_get_tree+0x105/0x220 fs/fs_context.c:592
+ vfs_get_tree+0x89/0x2f0 fs/super.c:1498
+ do_new_mount fs/namespace.c:2905 [inline]
+ path_mount+0x132a/0x1fa0 fs/namespace.c:3235
+ do_mount fs/namespace.c:3248 [inline]
+ __do_sys_mount fs/namespace.c:3456 [inline]
+ __se_sys_mount fs/namespace.c:3433 [inline]
+ __x64_sys_mount+0x27f/0x300 fs/namespace.c:3433
+ do_syscall_64+0x31/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x44876a
+Code: 48 c7 c2 c0 ff ff ff f7 d8 64 89 02 b8 ff ff ff ff eb d2 e8 a8 00 00 00 0f 1f 84 00 00 00 00 00 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd48f43638 EFLAGS: 00000286 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007ffd48f43690 RCX: 000000000044876a
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007ffd48f43650
+RBP: 00007ffd48f43650 R08: 00007ffd48f43690 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000286 R12: 0000000020001fa0
+R13: 0000000000000003 R14: 0000000000000004 R15: 000000000000013c
+
+The buggy address belongs to the page:
+page:ffffea0000db4b00 refcount:0 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x36d2c
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 ffffea0000bbb148 ffffea0000d195c8 0000000000000000
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as freed
+page last allocated via order 0, migratetype Movable, gfp_mask 0x100cca(GFP_HIGHUSER_MOVABLE), pid 8464, ts 63337994321, free_ts 68380784236
+ prep_new_page mm/page_alloc.c:2377 [inline]
+ get_page_from_freelist+0x125c/0x2ed0 mm/page_alloc.c:4038
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5239
+ alloc_pages_vma+0xdd/0x770 mm/mempolicy.c:2236
+ wp_page_copy+0x1bf/0x2270 mm/memory.c:2897
+ do_wp_page+0x2cb/0x1ad0 mm/memory.c:3204
+ handle_pte_fault mm/memory.c:4395 [inline]
+ __handle_mm_fault+0x236b/0x5200 mm/memory.c:4512
+ handle_mm_fault+0x1b9/0x7e0 mm/memory.c:4610
+ do_user_addr_fault+0x483/0x1210 arch/x86/mm/fault.c:1390
+ handle_page_fault arch/x86/mm/fault.c:1475 [inline]
+ exc_page_fault+0x9e/0x180 arch/x86/mm/fault.c:1531
+ asm_exc_page_fault+0x1e/0x30 arch/x86/include/asm/idtentry.h:577
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1305 [inline]
+ free_pcp_prepare+0x217/0x300 mm/page_alloc.c:1349
+ free_unref_page_prepare mm/page_alloc.c:3272 [inline]
+ free_unref_page_list+0x19f/0x1050 mm/page_alloc.c:3340
+ release_pages+0x824/0x20b0 mm/swap.c:972
+ tlb_batch_pages_flush mm/mmu_gather.c:49 [inline]
+ tlb_flush_mmu_free mm/mmu_gather.c:242 [inline]
+ tlb_flush_mmu mm/mmu_gather.c:249 [inline]
+ tlb_finish_mmu+0x165/0x8c0 mm/mmu_gather.c:340
+ exit_mmap+0x1ea/0x620 mm/mmap.c:3203
+ __mmput+0x122/0x470 kernel/fork.c:1096
+ mmput+0x58/0x60 kernel/fork.c:1117
+ exit_mm kernel/exit.c:502 [inline]
+ do_exit+0xb0a/0x2a70 kernel/exit.c:813
+ do_group_exit+0x125/0x310 kernel/exit.c:923
+ __do_sys_exit_group kernel/exit.c:934 [inline]
+ __se_sys_exit_group kernel/exit.c:932 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:932
+ do_syscall_64+0x31/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Memory state around the buggy address:
+ ffff888036d2cc80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888036d2cd00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff888036d2cd80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                        ^
+ ffff888036d2ce00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888036d2ce80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

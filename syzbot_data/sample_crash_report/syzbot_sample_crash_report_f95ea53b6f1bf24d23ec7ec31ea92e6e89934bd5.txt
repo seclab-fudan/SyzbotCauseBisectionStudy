@@ -1,0 +1,89 @@
+==================================================================
+BUG: KASAN: use-after-free in rds_tcp_kill_sock net/rds/tcp.c:530 [inline]
+BUG: KASAN: use-after-free in rds_tcp_dev_event+0xc01/0xc90 net/rds/tcp.c:568
+Read of size 8 at addr ffff8801cd879200 by task kworker/u4:3/147
+
+CPU: 0 PID: 147 Comm: kworker/u4:3 Not tainted 4.14.0-rc7+ #156
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ rds_tcp_kill_sock net/rds/tcp.c:530 [inline]
+ rds_tcp_dev_event+0xc01/0xc90 net/rds/tcp.c:568
+ notifier_call_chain+0x136/0x2c0 kernel/notifier.c:93
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2d/0x40 kernel/notifier.c:401
+ call_netdevice_notifiers_info+0x51/0x90 net/core/dev.c:1671
+ call_netdevice_notifiers net/core/dev.c:1687 [inline]
+ netdev_run_todo+0x437/0xca0 net/core/dev.c:7846
+ rtnl_unlock+0xe/0x10 net/core/rtnetlink.c:106
+ default_device_exit_batch+0x4b4/0x5d0 net/core/dev.c:8664
+ ops_exit_list.isra.6+0x100/0x150 net/core/net_namespace.c:145
+ cleanup_net+0x5c7/0xb50 net/core/net_namespace.c:483
+ process_one_work+0xbf0/0x1bc0 kernel/workqueue.c:2113
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+ kthread+0x35e/0x430 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+
+Allocated by task 30987:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc_node mm/slab.c:3689 [inline]
+ __kmalloc_node_track_caller+0x47/0x70 mm/slab.c:3703
+ __kmalloc_reserve.isra.40+0x41/0xd0 net/core/skbuff.c:138
+ __alloc_skb+0x13b/0x740 net/core/skbuff.c:206
+ alloc_skb include/linux/skbuff.h:976 [inline]
+ netlink_dump+0x2ba/0xb90 net/netlink/af_netlink.c:2162
+ netlink_recvmsg+0x9b6/0x1300 net/netlink/af_netlink.c:1945
+ sock_recvmsg_nosec net/socket.c:806 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:813
+ SYSC_recvfrom+0x2d6/0x570 net/socket.c:1802
+ SyS_recvfrom+0x40/0x50 net/socket.c:1774
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 30987:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ skb_free_head+0x74/0xb0 net/core/skbuff.c:554
+ skb_release_data+0x58c/0x790 net/core/skbuff.c:574
+ skb_release_all+0x4a/0x60 net/core/skbuff.c:631
+ __kfree_skb net/core/skbuff.c:645 [inline]
+ consume_skb+0x153/0x490 net/core/skbuff.c:705
+ skb_free_datagram+0x1a/0xe0 net/core/datagram.c:330
+ netlink_recvmsg+0x5c6/0x1300 net/netlink/af_netlink.c:1941
+ sock_recvmsg_nosec net/socket.c:806 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:813
+ SYSC_recvfrom+0x2d6/0x570 net/socket.c:1802
+ SyS_recvfrom+0x40/0x50 net/socket.c:1774
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+The buggy address belongs to the object at ffff8801cd879200
+ which belongs to the cache kmalloc-8192 of size 8192
+The buggy address is located 0 bytes inside of
+ 8192-byte region [ffff8801cd879200, ffff8801cd87b200)
+The buggy address belongs to the page:
+page:ffffea0007361e00 count:1 mapcount:0 mapping:ffff8801cd879200 index:0x0 compound_mapcount: 0
+flags: 0x200000000008100(slab|head)
+raw: 0200000000008100 ffff8801cd879200 0000000000000000 0000000100000001
+raw: ffffea0007120720 ffffea0006757420 ffff8801dac02080 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cd879100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801cd879180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801cd879200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8801cd879280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801cd879300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

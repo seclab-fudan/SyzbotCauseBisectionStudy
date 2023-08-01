@@ -1,0 +1,26 @@
+==================================================================
+BUG: KCSAN: data-race in process_srcu / synchronize_srcu
+
+write to 0xffffffff8625b2e0 of 8 bytes by task 44 on cpu 1:
+ srcu_gp_end kernel/rcu/srcutree.c:533 [inline]
+ srcu_advance_state kernel/rcu/srcutree.c:1146 [inline]
+ process_srcu+0x207/0x780 kernel/rcu/srcutree.c:1237
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2264
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2410
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+read to 0xffffffff8625b2e0 of 8 bytes by task 15683 on cpu 0:
+ srcu_might_be_idle kernel/rcu/srcutree.c:784 [inline]
+ synchronize_srcu+0x107/0x214 kernel/rcu/srcutree.c:996
+ fsnotify_mark_destroy_workfn+0xef/0x230 fs/notify/mark.c:832
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2264
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2410
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 15683 Comm: kworker/u4:7 Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound fsnotify_mark_destroy_workfn
+==================================================================

@@ -1,0 +1,92 @@
+audit: type=1400 audit(1536202560.246:9): avc:  denied  { prog_run } for  pid=4752 comm="syz-executor726" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=bpf permissive=1
+==================================================================
+BUG: KASAN: use-after-free in _decode_session6+0x1331/0x14e0 net/ipv6/xfrm6_policy.c:161
+Read of size 1 at addr ffff8801bb87e97f by task syz-executor726/4752
+
+CPU: 0 PID: 4752 Comm: syz-executor726 Not tainted 4.19.0-rc2+ #2
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x30d mm/kasan/report.c:412
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+ _decode_session6+0x1331/0x14e0 net/ipv6/xfrm6_policy.c:161
+ __xfrm_decode_session+0x71/0x140 net/xfrm/xfrm_policy.c:2299
+ xfrm_decode_session include/net/xfrm.h:1232 [inline]
+ vti6_tnl_xmit+0x3fc/0x1bb1 net/ipv6/ip6_vti.c:542
+ __netdev_start_xmit include/linux/netdevice.h:4287 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4296 [inline]
+ xmit_one net/core/dev.c:3216 [inline]
+ dev_hard_start_xmit+0x272/0xc10 net/core/dev.c:3232
+ __dev_queue_xmit+0x2ab2/0x3870 net/core/dev.c:3802
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3835
+ __bpf_tx_skb net/core/filter.c:2012 [inline]
+ __bpf_redirect_common net/core/filter.c:2050 [inline]
+ __bpf_redirect+0x5b7/0xae0 net/core/filter.c:2057
+ ____bpf_clone_redirect net/core/filter.c:2090 [inline]
+ bpf_clone_redirect+0x2f6/0x490 net/core/filter.c:2062
+ bpf_prog_c39d1ba309a769f7+0xd1e/0x1000
+
+Allocated by task 4752:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc_node mm/slab.c:3682 [inline]
+ __kmalloc_node_track_caller+0x47/0x70 mm/slab.c:3696
+ __kmalloc_reserve.isra.41+0x3a/0xe0 net/core/skbuff.c:137
+ pskb_expand_head+0x230/0x10e0 net/core/skbuff.c:1463
+ skb_ensure_writable+0x3dd/0x640 net/core/skbuff.c:5129
+ __bpf_try_make_writable net/core/filter.c:1633 [inline]
+ bpf_try_make_writable net/core/filter.c:1639 [inline]
+ bpf_try_make_head_writable net/core/filter.c:1647 [inline]
+ ____bpf_clone_redirect net/core/filter.c:2084 [inline]
+ bpf_clone_redirect+0x14a/0x490 net/core/filter.c:2062
+ bpf_prog_c39d1ba309a769f7+0xd1e/0x1000
+
+Freed by task 4752:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x210 mm/slab.c:3813
+ skb_free_head+0x99/0xc0 net/core/skbuff.c:550
+ skb_release_data+0x6a4/0x880 net/core/skbuff.c:570
+ skb_release_all+0x4a/0x60 net/core/skbuff.c:627
+ __kfree_skb net/core/skbuff.c:641 [inline]
+ kfree_skb+0x19d/0x4e0 net/core/skbuff.c:659
+ vti6_tnl_xmit+0x387/0x1bb1 net/ipv6/ip6_vti.c:561
+ __netdev_start_xmit include/linux/netdevice.h:4287 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4296 [inline]
+ xmit_one net/core/dev.c:3216 [inline]
+ dev_hard_start_xmit+0x272/0xc10 net/core/dev.c:3232
+ __dev_queue_xmit+0x2ab2/0x3870 net/core/dev.c:3802
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3835
+ __bpf_tx_skb net/core/filter.c:2012 [inline]
+ __bpf_redirect_common net/core/filter.c:2050 [inline]
+ __bpf_redirect+0x5b7/0xae0 net/core/filter.c:2057
+ ____bpf_clone_redirect net/core/filter.c:2090 [inline]
+ bpf_clone_redirect+0x2f6/0x490 net/core/filter.c:2062
+ bpf_prog_c39d1ba309a769f7+0xd1e/0x1000
+
+The buggy address belongs to the object at ffff8801bb87e780
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 511 bytes inside of
+ 512-byte region [ffff8801bb87e780, ffff8801bb87e980)
+The buggy address belongs to the page:
+page:ffffea0006ee1f80 count:1 mapcount:0 mapping:ffff8801dac00940 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0006eefd48 ffffea00073f5f08 ffff8801dac00940
+raw: 0000000000000000 ffff8801bb87e000 0000000100000006 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bb87e800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bb87e880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801bb87e900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                                ^
+ ffff8801bb87e980: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801bb87ea00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,239 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in __rb_insert lib/rbtree.c:133 [inline]
+BUG: KASAN: stack-out-of-bounds in rb_insert_color+0xb08/0x1480 lib/rbtree.c:452
+kasan: CONFIG_KASAN_INLINE enabled
+Read of size 8 at addr ffff88019d07f718 by task syz-executor1/4486
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+
+CPU: 0 PID: 4486 Comm: syz-executor1 Not tainted 4.18.0-rc3+ #53
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+general protection fault: 0000 [#1] SMP KASAN
+Call Trace:
+CPU: 1 PID: 8762 Comm: syz-executor5 Not tainted 4.18.0-rc3+ #53
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__rb_insert lib/rbtree.c:131 [inline]
+RIP: 0010:rb_insert_color+0x189/0x1480 lib/rbtree.c:452
+Code: 
+09 
+00 
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+00 
+4d 
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+8b 65 
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+00 
+ __rb_insert lib/rbtree.c:133 [inline]
+ rb_insert_color+0xb08/0x1480 lib/rbtree.c:452
+41 
+f6 
+c4 
+01 
+0f 
+85 
+01 
+02 
+00 
+00 
+48 
+ba 
+00 
+00 
+00 
+00 
+00 
+fc 
+ff 
+df 
+49 
+ timerqueue_add+0x173/0x2b0 lib/timerqueue.c:58
+8d 
+ enqueue_hrtimer+0x18e/0x540 kernel/time/hrtimer.c:960
+4c 
+24 
+08 
+4d 
+89 
+e0 
+ __hrtimer_start_range_ns kernel/time/hrtimer.c:1089 [inline]
+ hrtimer_start_range_ns+0x616/0xd20 kernel/time/hrtimer.c:1115
+48 
+89 
+c8 
+48 
+c1 
+e8 
+ hrtimer_start_expires include/linux/hrtimer.h:412 [inline]
+ do_nanosleep+0x1b0/0x750 kernel/time/hrtimer.c:1686
+03 
+<80> 
+3c 
+10 
+00 
+0f 85 
+e5 
+08 
+00 
+ hrtimer_nanosleep+0x2d4/0x620 kernel/time/hrtimer.c:1743
+00 
+49 
+8b 
+ __do_sys_nanosleep kernel/time/hrtimer.c:1777 [inline]
+ __se_sys_nanosleep kernel/time/hrtimer.c:1764 [inline]
+ __x64_sys_nanosleep+0x1e7/0x280 kernel/time/hrtimer.c:1764
+44 
+24 
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+08 
+4c 
+39 
+e8 
+0f 
+84 
+27 
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+02 
+RIP: 0033:0x4811c0
+Code: 
+RSP: 0018:ffff8801daf07618 EFLAGS: 00010002
+05 
+48 
+RAX: 0000000000000001 RBX: 1ffff1003b5e0ec9 RCX: 0000000000000008
+3d 
+RDX: dffffc0000000000 RSI: ffff8801daf25d40 RDI: ffff8801daf26560
+01 f0 
+RBP: ffff8801daf07a10 R08: 0000000000000000 R09: fffffbfff156f0e9
+ff 
+R10: fffffbfff156f0e9 R11: ffffffff8ab7874b R12: 0000000000000000
+ff 
+R13: ffff8801cf3ac040 R14: ffff8801daf079e8 R15: ffff8801daf26560
+FS:  0000000001f95940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+0f 
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+83 
+CR2: 00007f97aafeadb8 CR3: 00000001b1119000 CR4: 00000000001406e0
+0d 
+DR0: 0000000020000080 DR1: 0000000020000000 DR2: 0000000000000000
+03 
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+f9 
+Call Trace:
+ff 
+ <IRQ>
+c3 
+66 
+2e 
+0f 
+1f 
+84 
+00 
+00 
+00 
+00 
+00 
+66 
+90 
+83 
+3d 
+91 
+52 
+5c 
+00 
+00 
+75 
+ timerqueue_add+0x173/0x2b0 lib/timerqueue.c:58
+14 
+ enqueue_hrtimer+0x18e/0x540 kernel/time/hrtimer.c:960
+b8 
+23 
+00 
+00 
+ __run_hrtimer kernel/time/hrtimer.c:1413 [inline]
+ __hrtimer_run_queues+0xc07/0x10c0 kernel/time/hrtimer.c:1460
+00 
+0f 
+05 
+<48> 
+3d 
+01 
+f0 
+ff 
+ff 
+0f 
+83 
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+e4 
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x165/0x730 arch/x86/kernel/apic/apic.c:1050
+02 
+f9 
+ff 
+c3 
+48 
+83 
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ec 
+ </IRQ>
+08 
+Modules linked in:
+e8 
+6a 
+Dumping ftrace buffer:
+74 
+   (ftrace buffer empty)
+fd 
+---[ end trace a8b368c3d3ff6f95 ]---
+ff 
+RIP: 0010:__rb_insert lib/rbtree.c:131 [inline]
+RIP: 0010:rb_insert_color+0x189/0x1480 lib/rbtree.c:452
+Code: 
+RSP: 002b:00007ffec07f11e8 EFLAGS: 00000246
+09 
+ ORIG_RAX: 0000000000000023
+00 
+RAX: ffffffffffffffda RBX: 0000000000010f88 RCX: 00000000004811c0
+00 
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007ffec07f11f0
+4d 
+RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000e0f940
+8b 65 
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000000000b
+00 
+R13: 00000000000001c4 R14: 00007ffec07f18b0 R15: 0000000000010c3b
+41 
+
+f6 
+The buggy address belongs to the page:
+c4 
+page:ffffea0006741fc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+01 
+0f 
+flags: 0x2fffc0000000000()
+85 
+raw: 02fffc0000000000 0000000000000000 ffffffff06740101 0000000000000000
+01 
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+02 
+page dumped because: kasan: bad access detected
+00 
+
+00 
+Memory state around the buggy address:
+48 
+ ffff88019d07f600: f2 f2 f2 f2 f2 00 f2 f2 f2 00 00 00 00 00 00 00
+ba 
+ ffff88019d07f680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1
+00 
+>ffff88019d07f700: f1 f1 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2
+00 
+                            ^
+00 
+ ffff88019d07f780: f2 f2 00 f2 f2 f2 f2 f2 f2 f2 f8 f2 f2 f2 f2 f2
+00 00 
+ ffff88019d07f800: f2 f2 00 f2 f2 f2 00 00 00 00 00 00 00 00 00 00
+fc 
+==================================================================
+ff 

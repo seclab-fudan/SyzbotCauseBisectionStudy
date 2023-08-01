@@ -1,0 +1,125 @@
+==================================================================
+BUG: KASAN: use-after-free in dev_net include/linux/netdevice.h:2220 [inline]
+BUG: KASAN: use-after-free in ipv6_get_ifaddr+0x4b6/0x560 net/ipv6/addrconf.c:2001
+Read of size 8 at addr ffff88805b93e588 by task kworker/1:24/2745
+
+CPU: 1 PID: 2745 Comm: kworker/1:24 Not tainted 5.6.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: rcu_gp process_srcu
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x32 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:641
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ dev_net include/linux/netdevice.h:2220 [inline]
+ ipv6_get_ifaddr+0x4b6/0x560 net/ipv6/addrconf.c:2001
+ ndisc_send_rs+0x188/0x720 net/ipv6/ndisc.c:668
+ addrconf_rs_timer+0x30f/0x6e0 net/ipv6/addrconf.c:3879
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:546 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1146
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:752 [inline]
+RIP: 0010:queue_delayed_work_on+0x12a/0x210 kernel/workqueue.c:1673
+Code: 00 fc ff df 48 c1 e8 03 80 3c 10 00 0f 85 d8 00 00 00 48 83 3d 1e 2f 66 08 00 0f 84 9a 00 00 00 e8 8b 0f 28 00 48 89 df 57 9d <0f> 1f 44 00 00 e8 7c 0f 28 00 44 89 f8 48 83 c4 10 5b 41 5c 41 5d
+RSP: 0018:ffffc90008637bd0 EFLAGS: 00000293 ORIG_RAX: ffffffffffffff13
+RAX: ffff8880a0162400 RBX: 0000000000000293 RCX: 0000000000000006
+RDX: 0000000000000000 RSI: ffffffff814d81a5 RDI: 0000000000000293
+RBP: ffffc90008637c08 R08: 1ffffffff16a3371 R09: fffffbfff16a3372
+R10: fffffbfff16a3371 R11: ffffffff8b519b8f R12: 0000000000000200
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000001
+ queue_delayed_work include/linux/workqueue.h:509 [inline]
+ srcu_reschedule kernel/rcu/srcutree.c:1226 [inline]
+ srcu_reschedule+0xd7/0x130 kernel/rcu/srcutree.c:1209
+ process_srcu+0x125/0xe10 kernel/rcu/srcutree.c:1239
+ process_one_work+0xa05/0x17a0 kernel/workqueue.c:2264
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2410
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 10138:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:488
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:529
+ __do_kmalloc_node mm/slab.c:3616 [inline]
+ __kmalloc_node+0x4e/0x70 mm/slab.c:3623
+ kmalloc_node include/linux/slab.h:578 [inline]
+ kvmalloc_node+0x68/0x100 mm/util.c:574
+ kvmalloc include/linux/mm.h:645 [inline]
+ kvzalloc include/linux/mm.h:653 [inline]
+ alloc_netdev_mqs+0x98/0xe40 net/core/dev.c:9797
+ vti6_init_net+0x244/0x810 net/ipv6/ip6_vti.c:1119
+ ops_init+0xb3/0x420 net/core/net_namespace.c:137
+ setup_net+0x2d5/0x8b0 net/core/net_namespace.c:327
+ copy_net_ns+0x29e/0x5a0 net/core/net_namespace.c:468
+ create_new_namespaces+0x403/0xb50 kernel/nsproxy.c:108
+ unshare_nsproxy_namespaces+0xc2/0x200 kernel/nsproxy.c:229
+ ksys_unshare+0x444/0x980 kernel/fork.c:2955
+ __do_sys_unshare kernel/fork.c:3023 [inline]
+ __se_sys_unshare kernel/fork.c:3021 [inline]
+ __x64_sys_unshare+0x31/0x40 kernel/fork.c:3021
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 13476:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:476
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:485
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ __netdev_name_node_alt_destroy+0x1ff/0x2a0 net/core/dev.c:322
+ netdev_name_node_alt_destroy+0x57/0x80 net/core/dev.c:334
+ rtnl_alt_ifname net/core/rtnetlink.c:3518 [inline]
+ rtnl_linkprop.isra.0+0x575/0x6f0 net/core/rtnetlink.c:3567
+ rtnl_dellinkprop+0x46/0x60 net/core/rtnetlink.c:3588
+ rtnetlink_rcv_msg+0x45e/0xaf0 net/core/rtnetlink.c:5438
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5456
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x59e/0x7e0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:672
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2343
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2397
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2430
+ __do_sys_sendmsg net/socket.c:2439 [inline]
+ __se_sys_sendmsg net/socket.c:2437 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2437
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88805b93e000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 1416 bytes inside of
+ 4096-byte region [ffff88805b93e000, ffff88805b93f000)
+The buggy address belongs to the page:
+page:ffffea00016e4f80 refcount:1 mapcount:0 mapping:ffff8880aa402000 index:0x0 compound_mapcount: 0
+flags: 0xfffe0000010200(slab|head)
+raw: 00fffe0000010200 ffffea00016e4608 ffffea00016e5908 ffff8880aa402000
+raw: 0000000000000000 ffff88805b93e000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88805b93e480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88805b93e500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88805b93e580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff88805b93e600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88805b93e680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

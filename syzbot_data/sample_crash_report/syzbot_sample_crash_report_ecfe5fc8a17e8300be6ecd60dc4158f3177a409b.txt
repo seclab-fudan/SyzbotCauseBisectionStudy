@@ -1,0 +1,53 @@
+------------[ cut here ]------------
+refcount_t: decrement hit 0; leaking memory.
+WARNING: CPU: 1 PID: 11438 at lib/refcount.c:228 refcount_dec+0x4c/0x50 lib/refcount.c:228
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 1 PID: 11438 Comm: syz-executor0 Not tainted 4.14.0-next-20171123+ #50
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ panic+0x1e4/0x41c kernel/panic.c:183
+ __warn+0x1dc/0x200 kernel/panic.c:547
+ report_bug+0x211/0x2d0 lib/bug.c:184
+ fixup_bug.part.11+0x37/0x80 arch/x86/kernel/traps.c:177
+ fixup_bug arch/x86/kernel/traps.c:246 [inline]
+ do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:295
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:314
+ invalid_op+0x18/0x20 arch/x86/entry/entry_64.S:926
+RIP: 0010:refcount_dec+0x4c/0x50 lib/refcount.c:228
+RSP: 0018:ffff8801560a70e8 EFLAGS: 00010282
+RAX: dffffc0000000008 RBX: ffff8801c4fe4c80 RCX: ffffffff8159ea5e
+RDX: 0000000000000000 RSI: 1ffff1003953199d RDI: 0000000000000293
+RBP: ffff8801560a70f0 R08: 1ffff1002ac14db0 R09: 0000000000000000
+R10: ffff8801ca98c440 R11: 0000000000000000 R12: 0000000000000000
+R13: ffff8801c4fe4c00 R14: 1ffff1002ac14e36 R15: ffff8801cf50b980
+ __sock_put include/net/sock.h:628 [inline]
+ __unregister_prot_hook+0x1c4/0x280 net/packet/af_packet.c:368
+ unregister_prot_hook net/packet/af_packet.c:382 [inline]
+ packet_release+0x8e5/0xde0 net/packet/af_packet.c:3006
+ sock_release+0x8d/0x1e0 net/socket.c:596
+ sock_close+0x16/0x20 net/socket.c:1125
+ __fput+0x333/0x7f0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ae0 kernel/exit.c:869
+ do_group_exit+0x149/0x400 kernel/exit.c:972
+ get_signal+0x73f/0x16c0 kernel/signal.c:2335
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:809
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x94/0x96
+RIP: 0033:0x452879
+RSP: 002b:00007ff9a5b9fce8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 0000000000758100 RCX: 0000000000452879
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000758100
+RBP: 0000000000758100 R08: 000000000000008d R09: 00000000007580d8
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000a6f7ff R14: 00007ff9a5ba09c0 R15: 0000000000000002
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled

@@ -1,0 +1,77 @@
+BUG: unable to handle page fault for address: ffffc90001923030
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD aa551067 P4D aa551067 PUD aa552067 PMD a572b067 PTE 80000000a1173163
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 7982 Comm: syz-executor912 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:bpf_jit_binary_hdr include/linux/filter.h:787 [inline]
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:531 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:600 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find kernel/bpf/core.c:674 [inline]
+RIP: 0010:is_bpf_text_address+0x184/0x3b0 kernel/bpf/core.c:709
+Code: 89 df e8 ff dd 2e 00 48 8b 1b 48 8d 7b 30 48 89 f8 48 c1 e8 03 48 b9 00 00 00 00 00 fc ff df 80 3c 08 00 74 05 e8 dc dd 2e 00 <4c> 8b 63 30 48 c7 c0 00 f0 ff ff 49 21 c4 48 83 c3 02 48 89 d8 48
+RSP: 0018:ffff88809569f9c8 EFLAGS: 00010246
+RAX: 1ffff92000324606 RBX: ffffc90001923000 RCX: dffffc0000000000
+RDX: ffff88809d900500 RSI: ffff8880a8227838 RDI: ffffc90001923030
+RBP: ffff88809569fa00 R08: ffffffff817d9d5a R09: ffffed1015d46b05
+R10: ffffed1015d46b05 R11: 0000000000000000 R12: ffff88809d900500
+R13: 0000000000000000 R14: 0000000000000000 R15: ffff8880a8227838
+FS:  0000000000728880(0000) GS:ffff8880aea00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffc90001923030 CR3: 0000000096dc4000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ kernel_text_address kernel/extable.c:147 [inline]
+ __kernel_text_address+0x9a/0x110 kernel/extable.c:102
+ unwind_get_return_address+0x4c/0x90 arch/x86/kernel/unwind_frame.c:19
+ arch_stack_walk+0x98/0xe0 arch/x86/kernel/stacktrace.c:26
+ stack_trace_save+0xb6/0x150 kernel/stacktrace.c:123
+ save_stack mm/kasan/common.c:69 [inline]
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc+0x11c/0x1b0 mm/kasan/common.c:510
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:518
+ slab_post_alloc_hook mm/slab.h:584 [inline]
+ slab_alloc mm/slab.c:3319 [inline]
+ kmem_cache_alloc+0x1f5/0x2e0 mm/slab.c:3483
+ getname_flags+0xba/0x640 fs/namei.c:138
+ getname+0x19/0x20 fs/namei.c:209
+ do_sys_open+0x261/0x560 fs/open.c:1091
+ __do_sys_open fs/open.c:1115 [inline]
+ __se_sys_open fs/open.c:1110 [inline]
+ __x64_sys_open+0x87/0x90 fs/open.c:1110
+ do_syscall_64+0xf7/0x1c0 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4011a0
+Code: 01 f0 ff ff 0f 83 c0 0b 00 00 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 83 3d 2d 15 2d 00 00 75 14 b8 02 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 94 0b 00 00 c3 48 83 ec 08 e8 fa 00 00 00
+RSP: 002b:00007ffd6d953f58 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 00007ffd6d953f84 RCX: 00000000004011a0
+RDX: 00007ffd6d953f8a RSI: 0000000000080001 RDI: 00000000004a2422
+RBP: 00007ffd6d953f80 R08: 0000000000000000 R09: 0000000000000004
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004021c0
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+CR2: ffffc90001923030
+---[ end trace a62c6ddd9792af6a ]---
+RIP: 0010:bpf_jit_binary_hdr include/linux/filter.h:787 [inline]
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:531 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:600 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find kernel/bpf/core.c:674 [inline]
+RIP: 0010:is_bpf_text_address+0x184/0x3b0 kernel/bpf/core.c:709
+Code: 89 df e8 ff dd 2e 00 48 8b 1b 48 8d 7b 30 48 89 f8 48 c1 e8 03 48 b9 00 00 00 00 00 fc ff df 80 3c 08 00 74 05 e8 dc dd 2e 00 <4c> 8b 63 30 48 c7 c0 00 f0 ff ff 49 21 c4 48 83 c3 02 48 89 d8 48
+RSP: 0018:ffff88809569f9c8 EFLAGS: 00010246
+RAX: 1ffff92000324606 RBX: ffffc90001923000 RCX: dffffc0000000000
+RDX: ffff88809d900500 RSI: ffff8880a8227838 RDI: ffffc90001923030
+RBP: ffff88809569fa00 R08: ffffffff817d9d5a R09: ffffed1015d46b05
+R10: ffffed1015d46b05 R11: 0000000000000000 R12: ffff88809d900500
+R13: 0000000000000000 R14: 0000000000000000 R15: ffff8880a8227838
+FS:  0000000000728880(0000) GS:ffff8880aea00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffc90001923030 CR3: 0000000096dc4000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

@@ -1,0 +1,36 @@
+==================================================================
+BUG: KCSAN: data-race in inet_send_prepare / udp_lib_get_port
+
+write to 0xffff88812e04a00e of 2 bytes by task 16676 on cpu 1:
+ udp_lib_get_port+0x4b2/0xe20 net/ipv4/udp.c:308
+ udp_v6_get_port+0x5e/0x70 net/ipv6/udp.c:89
+ inet_autobind net/ipv4/af_inet.c:183 [inline]
+ inet_dgram_connect+0x12a/0x180 net/ipv4/af_inet.c:578
+ __sys_connect_file net/socket.c:1837 [inline]
+ __sys_connect+0x245/0x280 net/socket.c:1854
+ __do_sys_connect net/socket.c:1864 [inline]
+ __se_sys_connect net/socket.c:1861 [inline]
+ __x64_sys_connect+0x3d/0x50 net/socket.c:1861
+ do_syscall_64+0x4a/0x90 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+read to 0xffff88812e04a00e of 2 bytes by task 16693 on cpu 0:
+ inet_send_prepare+0x21/0x210 net/ipv4/af_inet.c:806
+ inet6_sendmsg+0x29/0x80 net/ipv6/af_inet6.c:639
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg net/socket.c:674 [inline]
+ ____sys_sendmsg+0x360/0x4d0 net/socket.c:2350
+ ___sys_sendmsg net/socket.c:2404 [inline]
+ __sys_sendmmsg+0x315/0x4b0 net/socket.c:2490
+ __do_sys_sendmmsg net/socket.c:2519 [inline]
+ __se_sys_sendmmsg net/socket.c:2516 [inline]
+ __x64_sys_sendmmsg+0x53/0x60 net/socket.c:2516
+ do_syscall_64+0x4a/0x90 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+value changed: 0x0000 -> 0xb52b
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 16693 Comm: syz-executor.3 Not tainted 5.13.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

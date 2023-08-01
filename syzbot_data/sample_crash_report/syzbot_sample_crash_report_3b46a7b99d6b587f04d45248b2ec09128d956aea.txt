@@ -1,0 +1,91 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000070: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000380-0x0000000000000387]
+CPU: 0 PID: 16028 Comm: syz-executor.5 Not tainted 6.1.0-rc2-syzkaller-00217-gecaf75ffd5f5 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/11/2022
+RIP: 0010:rose_send_frame+0x1dd/0x2f0 net/rose/rose_link.c:101
+Code: 48 c1 ea 03 80 3c 02 00 0f 85 06 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b 6b 20 48 8d bd 80 03 00 00 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 ea 00 00 00 4c 8b bd 80 03 00 00 e9 77 fe ff ff
+RSP: 0018:ffffc90000007ae0 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: ffff88814a950400 RCX: 0000000000000100
+RDX: 0000000000000070 RSI: ffffffff88527fa2 RDI: 0000000000000380
+RBP: 0000000000000000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff88814a950400
+R13: 0000000000000078 R14: ffff8880731ba280 R15: 0000000000000010
+FS:  00005555567c0400(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ff07370caa5 CR3: 000000001f8ce000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ rose_transmit_clear_request+0x1d5/0x290 net/rose/rose_link.c:255
+ rose_rx_call_request+0x4c0/0x1bc0 net/rose/af_rose.c:1009
+ rose_loopback_timer+0x19e/0x590 net/rose/rose_loopback.c:111
+ call_timer_fn+0x1da/0x7c0 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers.part.0+0x6a2/0xaf0 kernel/time/timer.c:1790
+ __run_timers kernel/time/timer.c:1768 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1803
+ __do_softirq+0x1f7/0xad8 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:mas_prev_nentry+0xe7/0x12b0 lib/maple_tree.c:4812
+Code: 89 eb 48 89 44 24 28 48 83 fb 03 0f 87 79 0f 00 00 48 8d bb 80 39 23 8b 48 89 f8 48 89 fa 48 c1 e8 03 83 e2 07 42 0f b6 04 38 <38> d0 7f 08 84 c0 0f 85 4a 0f 00 00 44 0f b6 a3 80 39 23 8b 44 89
+RSP: 0018:ffffc90003c37b30 EFLAGS: 00000202
+RAX: 0000000000000004 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: 0000000000000001 RSI: ffffffff8942612b RDI: ffffffff8b233981
+RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000007 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000006 R14: ffffc90003c37cd0 R15: dffffc0000000000
+ mas_prev_entry lib/maple_tree.c:4852 [inline]
+ mas_prev+0x10d/0x650 lib/maple_tree.c:5932
+ mmap_region+0x31e/0x1c00 mm/mmap.c:2564
+ do_mmap+0x825/0xf50 mm/mmap.c:1412
+ vm_mmap_pgoff+0x1ab/0x270 mm/util.c:520
+ ksys_mmap_pgoff+0x41b/0x5a0 mm/mmap.c:1458
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7ff07368b5f2
+Code: 00 00 00 00 00 0f 1f 00 41 f7 c1 ff 0f 00 00 75 27 55 48 89 fd 53 89 cb 48 85 ff 74 3b 41 89 da 48 89 ef b8 09 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 66 5b 5d c3 0f 1f 00 48 c7 c0 b8 ff ff ff 64
+RSP: 002b:00007fff00072b58 EFLAGS: 00000206 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 0000000000000011 RCX: 00007ff07368b5f2
+RDX: 0000000000000003 RSI: 00000000003c0000 RDI: 0000001b2e860000
+RBP: 0000001b2e860000 R08: 0000000000000004 R09: 0000000000040000
+R10: 0000000000000011 R11: 0000000000000206 R12: 0000001b2e860000
+R13: 0000000000000000 R14: 0000000000000001 R15: 00007fff00072e40
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:rose_send_frame+0x1dd/0x2f0 net/rose/rose_link.c:101
+Code: 48 c1 ea 03 80 3c 02 00 0f 85 06 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b 6b 20 48 8d bd 80 03 00 00 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 ea 00 00 00 4c 8b bd 80 03 00 00 e9 77 fe ff ff
+RSP: 0018:ffffc90000007ae0 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: ffff88814a950400 RCX: 0000000000000100
+RDX: 0000000000000070 RSI: ffffffff88527fa2 RDI: 0000000000000380
+RBP: 0000000000000000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff88814a950400
+R13: 0000000000000078 R14: ffff8880731ba280 R15: 0000000000000010
+FS:  00005555567c0400(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ff07370caa5 CR3: 000000001f8ce000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	48 c1 ea 03          	shr    $0x3,%rdx
+   4:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+   8:	0f 85 06 01 00 00    	jne    0x114
+   e:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  15:	fc ff df
+  18:	48 8b 6b 20          	mov    0x20(%rbx),%rbp
+  1c:	48 8d bd 80 03 00 00 	lea    0x380(%rbp),%rdi
+  23:	48 89 fa             	mov    %rdi,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	0f 85 ea 00 00 00    	jne    0x11e
+  34:	4c 8b bd 80 03 00 00 	mov    0x380(%rbp),%r15
+  3b:	e9 77 fe ff ff       	jmpq   0xfffffeb7

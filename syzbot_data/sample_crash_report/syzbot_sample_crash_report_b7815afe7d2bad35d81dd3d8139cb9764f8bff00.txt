@@ -1,0 +1,63 @@
+=============================
+WARNING: suspicious RCU usage
+5.12.0-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-sched read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+2 locks held by kworker/u4:5/200:
+ #0: 
+ffff888011069138
+ (
+(wq_completion)events_unbound
+){+.+.}-{0:0}
+, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+, at: atomic64_set include/asm-generic/atomic-instrumented.h:856 [inline]
+, at: atomic_long_set include/asm-generic/atomic-long.h:41 [inline]
+, at: set_work_data kernel/workqueue.c:616 [inline]
+, at: set_work_pool_and_clear_pending kernel/workqueue.c:643 [inline]
+, at: process_one_work+0x871/0x1600 kernel/workqueue.c:2246
+ #1: 
+ffffc900017dfda8
+ (
+(work_completion)(&sub_info->work)
+){+.+.}-{0:0}
+, at: process_one_work+0x8a5/0x1600 kernel/workqueue.c:2250
+
+stack backtrace:
+CPU: 1 PID: 200 Comm: kworker/u4:5 Not tainted 5.12.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound call_usermodehelper_exec_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x266/0x2c0 kernel/sched/core.c:8304
+ prepare_alloc_pages mm/page_alloc.c:4947 [inline]
+ __alloc_pages_nodemask+0x48a/0x730 mm/page_alloc.c:4991
+ alloc_pages_current+0x18c/0x2a0 mm/mempolicy.c:2277
+ alloc_pages include/linux/gfp.h:561 [inline]
+ __get_free_pages+0x8/0x40 mm/page_alloc.c:5044
+ kasan_populate_vmalloc_pte mm/kasan/shadow.c:260 [inline]
+ kasan_populate_vmalloc_pte+0x25/0x160 mm/kasan/shadow.c:251
+ apply_to_pte_range mm/memory.c:2414 [inline]
+ apply_to_pmd_range mm/memory.c:2450 [inline]
+ apply_to_pud_range mm/memory.c:2478 [inline]
+ apply_to_p4d_range mm/memory.c:2506 [inline]
+ __apply_to_page_range+0x645/0xdf0 mm/memory.c:2533
+ alloc_vmap_area+0xb0a/0x1e10 mm/vmalloc.c:1243
+ __get_vm_area_node+0x128/0x380 mm/vmalloc.c:2096
+ __vmalloc_node_range+0xcb/0x170 mm/vmalloc.c:2571
+ alloc_thread_stack_node kernel/fork.c:244 [inline]
+ dup_task_struct kernel/fork.c:864 [inline]
+ copy_process+0x8de/0x70f0 kernel/fork.c:1949
+ kernel_clone+0xe7/0xab0 kernel/fork.c:2502
+ kernel_thread+0xb5/0xf0 kernel/fork.c:2554
+ call_usermodehelper_exec_sync kernel/umh.c:133 [inline]
+ call_usermodehelper_exec_work+0x69/0x180 kernel/umh.c:164
+ process_one_work+0x98d/0x1600 kernel/workqueue.c:2275
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294

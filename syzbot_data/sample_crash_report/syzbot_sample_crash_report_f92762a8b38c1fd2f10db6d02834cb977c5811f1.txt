@@ -1,0 +1,34 @@
+==================================================================
+BUG: KCSAN: data-race in call_rcu / rcu_gp_kthread
+
+write to 0xffffffff837328a0 of 8 bytes by task 11 on cpu 0:
+ rcu_gp_fqs kernel/rcu/tree.c:1949 [inline]
+ rcu_gp_fqs_loop kernel/rcu/tree.c:2010 [inline]
+ rcu_gp_kthread+0xd78/0xec0 kernel/rcu/tree.c:2169
+ kthread+0x262/0x280 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+read to 0xffffffff837328a0 of 8 bytes by task 30193 on cpu 1:
+ __call_rcu_core kernel/rcu/tree.c:2946 [inline]
+ __call_rcu kernel/rcu/tree.c:3062 [inline]
+ call_rcu+0x4b0/0x6c0 kernel/rcu/tree.c:3109
+ file_free fs/file_table.c:58 [inline]
+ __fput+0x43e/0x4e0 fs/file_table.c:298
+ ____fput+0x11/0x20 fs/file_table.c:313
+ task_work_run+0xae/0x130 kernel/task_work.c:164
+ get_signal+0x156c/0x15e0 kernel/signal.c:2581
+ arch_do_signal_or_restart+0x2a/0x220 arch/x86/kernel/signal.c:865
+ handle_signal_work kernel/entry/common.c:148 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x109/0x190 kernel/entry/common.c:209
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:291 [inline]
+ syscall_exit_to_user_mode+0x20/0x40 kernel/entry/common.c:302
+ do_syscall_64+0x49/0x90 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+value changed: 0x0000000000000f57 -> 0x0000000000000f58
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 30193 Comm: syz-executor.5 Tainted: G        W         5.14.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

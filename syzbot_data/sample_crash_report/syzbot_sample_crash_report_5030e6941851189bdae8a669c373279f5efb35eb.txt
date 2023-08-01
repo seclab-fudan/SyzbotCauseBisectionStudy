@@ -1,0 +1,100 @@
+ntfs: (device loop0): load_system_files(): Failed to load $MFTMirr.  Mounting read-only.  Run ntfsfix and/or chkdsk.
+ntfs: (device loop0): ntfs_external_attr_find(): Base inode 0xa contains corrupt attribute list attribute. Unmount and run chkdsk.
+ntfs: (device loop0): ntfs_read_locked_inode(): Failed to lookup $DATA attribute.
+ntfs: (device loop0): ntfs_read_locked_inode(): Failed with error code -5.  Marking corrupt inode 0xa as bad.  Run chkdsk.
+ntfs: (device loop0): load_and_init_upcase(): Failed to load $UpCase from the volume. Using default.
+==================================================================
+BUG: KASAN: use-after-free in ntfs_read_folio+0x9bc/0x29f0 fs/ntfs/aops.c:489
+Read of size 1 at addr ffff88807345e17f by task syz-executor870/5075
+
+CPU: 0 PID: 5075 Comm: syz-executor870 Not tainted 6.3.0-rc2-syzkaller-00077-g38e04b3e4240 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:319 [inline]
+ print_report+0x163/0x540 mm/kasan/report.c:430
+ kasan_report+0x176/0x1b0 mm/kasan/report.c:536
+ kasan_check_range+0x283/0x290 mm/kasan/generic.c:187
+ __asan_memcpy+0x29/0x70 mm/kasan/shadow.c:105
+ ntfs_read_folio+0x9bc/0x29f0 fs/ntfs/aops.c:489
+ filemap_read_folio+0x19d/0x7a0 mm/filemap.c:2424
+ do_read_cache_folio+0x2ee/0x820 mm/filemap.c:3683
+ do_read_cache_page+0x32/0x230 mm/filemap.c:3749
+ read_mapping_page include/linux/pagemap.h:769 [inline]
+ ntfs_map_page fs/ntfs/aops.h:75 [inline]
+ load_and_init_attrdef fs/ntfs/super.c:1617 [inline]
+ load_system_files+0x1c0b/0x4840 fs/ntfs/super.c:1825
+ ntfs_fill_super+0x19b4/0x2bd0 fs/ntfs/super.c:2900
+ mount_bdev+0x271/0x3a0 fs/super.c:1371
+ legacy_get_tree+0xef/0x190 fs/fs_context.c:610
+ vfs_get_tree+0x8c/0x270 fs/super.c:1501
+ do_new_mount+0x28f/0xae0 fs/namespace.c:3042
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount+0x2d9/0x3c0 fs/namespace.c:3571
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f1aca4b2d1a
+Code: 48 c7 c2 c0 ff ff ff f7 d8 64 89 02 b8 ff ff ff ff eb d2 e8 a8 00 00 00 0f 1f 84 00 00 00 00 00 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffcc0f252b8 EFLAGS: 00000286 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0000555555e2d2c0 RCX: 00007f1aca4b2d1a
+RDX: 0000000020000040 RSI: 000000002001f200 RDI: 00007ffcc0f25300
+RBP: 0000000000000000 R08: 00007ffcc0f25340 R09: 0000000000000978
+R10: 0000000000000000 R11: 0000000000000286 R12: 0000000000000004
+R13: 00007ffcc0f25340 R14: 0000000000000003 R15: 00007ffcc0f25300
+ </TASK>
+
+The buggy address belongs to the physical page:
+page:ffffea0001cd1780 refcount:0 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x7345e
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 ffffea0001cd17c8 ffffea0001cd1748 0000000000000000
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as freed
+page last allocated via order 0, migratetype Movable, gfp_mask 0x140dca(GFP_HIGHUSER_MOVABLE|__GFP_COMP|__GFP_ZERO), pid 5066, tgid 5066 (sshd), ts 46590455458, free_ts 46593964562
+ prep_new_page mm/page_alloc.c:2552 [inline]
+ get_page_from_freelist+0x3246/0x33c0 mm/page_alloc.c:4325
+ __alloc_pages+0x255/0x670 mm/page_alloc.c:5591
+ __folio_alloc+0x13/0x30 mm/page_alloc.c:5623
+ vma_alloc_folio+0x48a/0x9a0 mm/mempolicy.c:2244
+ do_anonymous_page mm/memory.c:4052 [inline]
+ handle_pte_fault mm/memory.c:4907 [inline]
+ __handle_mm_fault mm/memory.c:5051 [inline]
+ handle_mm_fault+0x2984/0x51c0 mm/memory.c:5197
+ do_user_addr_fault arch/x86/mm/fault.c:1407 [inline]
+ handle_page_fault arch/x86/mm/fault.c:1498 [inline]
+ exc_page_fault+0x5b1/0x7c0 arch/x86/mm/fault.c:1554
+ asm_exc_page_fault+0x26/0x30 arch/x86/include/asm/idtentry.h:570
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1453 [inline]
+ free_pcp_prepare mm/page_alloc.c:1503 [inline]
+ free_unref_page_prepare+0xe2f/0xe70 mm/page_alloc.c:3387
+ free_unref_page_list+0x596/0x830 mm/page_alloc.c:3528
+ release_pages+0x219e/0x2470 mm/swap.c:1042
+ tlb_batch_pages_flush mm/mmu_gather.c:97 [inline]
+ tlb_flush_mmu_free mm/mmu_gather.c:292 [inline]
+ tlb_flush_mmu+0x100/0x210 mm/mmu_gather.c:299
+ tlb_finish_mmu+0xd4/0x1f0 mm/mmu_gather.c:391
+ unmap_region+0x253/0x2a0 mm/mmap.c:2146
+ do_vmi_align_munmap+0xba3/0x1200 mm/mmap.c:2395
+ do_vmi_munmap+0x24a/0x2b0 mm/mmap.c:2452
+ __vm_munmap+0x200/0x310 mm/mmap.c:2731
+ __do_sys_munmap mm/mmap.c:2756 [inline]
+ __se_sys_munmap mm/mmap.c:2753 [inline]
+ __x64_sys_munmap+0x60/0x70 mm/mmap.c:2753
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Memory state around the buggy address:
+ ffff88807345e000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88807345e080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff88807345e100: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                                                ^
+ ffff88807345e180: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88807345e200: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

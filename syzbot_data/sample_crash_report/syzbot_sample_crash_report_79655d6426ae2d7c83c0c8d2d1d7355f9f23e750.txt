@@ -1,0 +1,44 @@
+==================================================================
+BUG: KCSAN: data-race in __inet_hash_connect / inet_send_prepare
+
+write to 0xffff888107c2e98e of 2 bytes by task 18238 on cpu 1:
+ inet_bind_hash net/ipv4/inet_hashtables.c:98 [inline]
+ __inet_hash_connect+0x716/0x900 net/ipv4/inet_hashtables.c:829
+ inet6_hash_connect+0x77/0x80 net/ipv6/inet6_hashtables.c:327
+ tcp_v6_connect+0x983/0xbb0 net/ipv6/tcp_ipv6.c:311
+ __inet_stream_connect+0x156/0x6d0 net/ipv4/af_inet.c:664
+ tcp_sendmsg_fastopen net/ipv4/tcp.c:1190 [inline]
+ tcp_sendmsg_locked+0x22e9/0x23f0 net/ipv4/tcp.c:1232
+ tcp_sendmsg+0x2c/0x40 net/ipv4/tcp.c:1458
+ inet6_sendmsg+0x5f/0x80 net/ipv6/af_inet6.c:642
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg net/socket.c:674 [inline]
+ ____sys_sendmsg+0x360/0x4d0 net/socket.c:2350
+ ___sys_sendmsg net/socket.c:2404 [inline]
+ __sys_sendmmsg+0x315/0x4b0 net/socket.c:2490
+ __do_sys_sendmmsg net/socket.c:2519 [inline]
+ __se_sys_sendmmsg net/socket.c:2516 [inline]
+ __x64_sys_sendmmsg+0x53/0x60 net/socket.c:2516
+ do_syscall_64+0x4a/0x90 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+read to 0xffff888107c2e98e of 2 bytes by task 18239 on cpu 0:
+ inet_send_prepare+0x21/0x210 net/ipv4/af_inet.c:806
+ inet6_sendmsg+0x29/0x80 net/ipv6/af_inet6.c:639
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg net/socket.c:674 [inline]
+ ____sys_sendmsg+0x360/0x4d0 net/socket.c:2350
+ ___sys_sendmsg net/socket.c:2404 [inline]
+ __sys_sendmmsg+0x315/0x4b0 net/socket.c:2490
+ __do_sys_sendmmsg net/socket.c:2519 [inline]
+ __se_sys_sendmmsg net/socket.c:2516 [inline]
+ __x64_sys_sendmmsg+0x53/0x60 net/socket.c:2516
+ do_syscall_64+0x4a/0x90 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+value changed: 0x0000 -> 0xbb7c
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 18239 Comm: syz-executor.3 Not tainted 5.13.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

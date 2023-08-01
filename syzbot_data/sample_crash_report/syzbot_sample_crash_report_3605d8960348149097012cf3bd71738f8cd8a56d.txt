@@ -1,0 +1,73 @@
+loop0: detected capacity change from 0 to 32768
+gfs2: fsid=syz:syz: Trying to join cluster "lock_nolock", "syz:syz"
+gfs2: fsid=syz:syz: Now mounting FS (format 1801)...
+gfs2: fsid=syz:syz.0: journal 0 mapped with 3 extents in 0ms
+Unable to handle kernel NULL pointer dereference at virtual address 00000000000004b8
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010d0e4000
+[00000000000004b8] pgd=080000010d0ef003, p4d=080000010d0ef003, pud=080000010c843003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 3073 Comm: syz-executor647 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : gfs2_rindex_update+0x4c/0x21c fs/gfs2/rgrp.c:1037
+lr : gfs2_rindex_update+0x3c/0x21c fs/gfs2/rgrp.c:1035
+sp : ffff800012f13610
+x29: ffff800012f13650 x28: 0000000000000000 x27: 0000000000000000
+x26: ffff0000ca97a580 x25: ffff0000cb5ee000 x24: ffff0000cb5ee174
+x23: 0000000000000000 x22: ffff80000925c6b0 x21: ffff800012f13850
+x20: ffff0000cb5ee000 x19: 0000000000000000 x18: ffff800012f132d0
+x17: ffff80000dda8198 x16: ffff80000dbe6158 x15: ffff0000c99bcec0
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c99bcec0
+x11: ff808000092a1b7c x10: 0000000000000000 x9 : ffff8000092a1b7c
+x8 : ffff0000c99bcec0 x7 : ffff80000846001c x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000000 x3 : 0000000000000002
+x2 : 0000000000000000 x1 : 0000000000000000 x0 : 0000000000000000
+Call trace:
+ gfs2_rindex_update+0x4c/0x21c fs/gfs2/rgrp.c:1038
+ punch_hole+0x578/0x18b8 fs/gfs2/bmap.c:1796
+ gfs2_truncatei_resume+0x28/0x68 fs/gfs2/bmap.c:2154
+ inode_go_held+0xb8/0xe0 fs/gfs2/glops.c:513
+ gfs2_instantiate+0xf0/0x208 fs/gfs2/glock.c:529
+ gfs2_glock_holder_ready fs/gfs2/glock.c:1326 [inline]
+ gfs2_glock_wait+0x10c/0x164 fs/gfs2/glock.c:1346
+ gfs2_glock_nq+0x104/0x220 fs/gfs2/glock.c:1596
+ gfs2_glock_nq_init fs/gfs2/glock.h:264 [inline]
+ init_statfs fs/gfs2/ops_fstype.c:696 [inline]
+ init_journal+0x7a8/0xcbc fs/gfs2/ops_fstype.c:820
+ init_inodes+0x74/0x184 fs/gfs2/ops_fstype.c:889
+ gfs2_fill_super+0x630/0x874 fs/gfs2/ops_fstype.c:1247
+ get_tree_bdev+0x1e8/0x2a0 fs/super.c:1324
+ gfs2_get_tree+0x30/0xc0 fs/gfs2/ops_fstype.c:1330
+ vfs_get_tree+0x40/0x140 fs/super.c:1531
+ do_new_mount+0x1dc/0x4e4 fs/namespace.c:3040
+ path_mount+0x358/0x890 fs/namespace.c:3370
+ do_mount fs/namespace.c:3383 [inline]
+ __do_sys_mount fs/namespace.c:3591 [inline]
+ __se_sys_mount fs/namespace.c:3568 [inline]
+ __arm64_sys_mount+0x2c4/0x3c4 fs/namespace.c:3568
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: f943a293 b947c697 2a1f03e0 a902ffff (f9425e75) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	f943a293 	ldr	x19, [x20, #1856]
+   4:	b947c697 	ldr	w23, [x20, #1988]
+   8:	2a1f03e0 	mov	w0, wzr
+   c:	a902ffff 	stp	xzr, xzr, [sp, #40]
+* 10:	f9425e75 	ldr	x21, [x19, #1208] <-- trapping instruction

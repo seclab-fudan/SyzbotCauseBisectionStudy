@@ -1,0 +1,128 @@
+usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 1-1: Product: syz
+usb 1-1: Manufacturer: syz
+usb 1-1: SerialNumber: syz
+==================================================================
+BUG: KASAN: slab-out-of-bounds in uac_extension_unit_iExtension include/uapi/linux/usb/audio.h:483 [inline]
+BUG: KASAN: slab-out-of-bounds in build_audio_procunit+0xeab/0x13f0 sound/usb/mixer.c:2434
+Read of size 1 at addr ffff8881d58a6549 by task kworker/1:2/83
+
+CPU: 1 PID: 83 Comm: kworker/1:2 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description.constprop.0+0x36/0x50 mm/kasan/report.c:374
+ __kasan_report.cold+0x1a/0x33 mm/kasan/report.c:506
+ kasan_report+0xe/0x20 mm/kasan/common.c:634
+ uac_extension_unit_iExtension include/uapi/linux/usb/audio.h:483 [inline]
+ build_audio_procunit+0xeab/0x13f0 sound/usb/mixer.c:2434
+ parse_audio_extension_unit sound/usb/mixer.c:2483 [inline]
+ parse_audio_unit+0x1812/0x36f0 sound/usb/mixer.c:2761
+ snd_usb_mixer_controls+0x715/0xb90 sound/usb/mixer.c:3095
+ snd_usb_create_mixer+0x2b5/0x1890 sound/usb/mixer.c:3445
+ usb_audio_probe+0xc76/0x2010 sound/usb/card.c:653
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:430
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:490
+ device_add+0xae6/0x16f0 drivers/base/core.c:2201
+ usb_set_configuration+0xdf6/0x1670 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:430
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:490
+ device_add+0xae6/0x16f0 drivers/base/core.c:2201
+ usb_new_device.cold+0x6a4/0xe79 drivers/usb/core/hub.c:2536
+ hub_port_connect drivers/usb/core/hub.c:5183 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5323 [inline]
+ port_event drivers/usb/core/hub.c:5469 [inline]
+ hub_event+0x1dd0/0x37e0 drivers/usb/core/hub.c:5551
+ process_one_work+0x92b/0x1530 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 83:
+ save_stack+0x1b/0x80 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:510 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:483
+ kmalloc include/linux/slab.h:561 [inline]
+ usb_get_configuration+0x314/0x3050 drivers/usb/core/config.c:857
+ usb_enumerate_device drivers/usb/core/hub.c:2369 [inline]
+ usb_new_device+0xd3/0x160 drivers/usb/core/hub.c:2505
+ hub_port_connect drivers/usb/core/hub.c:5183 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5323 [inline]
+ port_event drivers/usb/core/hub.c:5469 [inline]
+ hub_event+0x1dd0/0x37e0 drivers/usb/core/hub.c:5551
+ process_one_work+0x92b/0x1530 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 1:
+ save_stack+0x1b/0x80 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ kasan_set_free_info mm/kasan/common.c:332 [inline]
+ __kasan_slab_free+0x130/0x180 mm/kasan/common.c:471
+ slab_free_hook mm/slub.c:1424 [inline]
+ slab_free_freelist_hook mm/slub.c:1475 [inline]
+ slab_free mm/slub.c:3018 [inline]
+ kfree+0xe4/0x320 mm/slub.c:3967
+ scsi_probe_and_add_lun+0x2815/0x2cd0 drivers/scsi/scsi_scan.c:1166
+ __scsi_scan_target+0x273/0xc30 drivers/scsi/scsi_scan.c:1562
+ scsi_scan_channel.part.0+0x126/0x1a0 drivers/scsi/scsi_scan.c:1650
+ scsi_scan_channel drivers/scsi/scsi_scan.c:1677 [inline]
+ scsi_scan_host_selected+0x2bb/0x3f0 drivers/scsi/scsi_scan.c:1679
+ do_scsi_scan_host drivers/scsi/scsi_scan.c:1817 [inline]
+ do_scsi_scan_host+0x1e8/0x260 drivers/scsi/scsi_scan.c:1807
+ scsi_scan_host drivers/scsi/scsi_scan.c:1847 [inline]
+ scsi_scan_host+0x37c/0x440 drivers/scsi/scsi_scan.c:1835
+ virtscsi_probe+0x9b7/0xbb5 drivers/scsi/virtio_scsi.c:905
+ virtio_dev_probe+0x463/0x710 drivers/virtio/virtio.c:248
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:721
+ device_driver_attach+0x108/0x140 drivers/base/dd.c:995
+ __driver_attach+0xda/0x240 drivers/base/dd.c:1072
+ bus_for_each_dev+0x14b/0x1d0 drivers/base/bus.c:304
+ bus_add_driver+0x457/0x5a0 drivers/base/bus.c:621
+ driver_register+0x1c4/0x330 drivers/base/driver.c:170
+ __write_once_size include/linux/compiler.h:226 [inline]
+ INIT_LIST_HEAD include/linux/list.h:28 [inline]
+ init+0xa1/0x115 drivers/char/virtio_console.c:2251
+ do_one_initcall+0xf0/0x614 init/main.c:938
+ do_initcall_level init/main.c:1006 [inline]
+ do_initcalls init/main.c:1014 [inline]
+ do_basic_setup init/main.c:1031 [inline]
+ kernel_init_freeable+0x4a9/0x596 init/main.c:1191
+ kernel_init+0xd/0x1bf init/main.c:1109
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8881d58a6400
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 73 bytes to the right of
+ 256-byte region [ffff8881d58a6400, ffff8881d58a6500)
+The buggy address belongs to the page:
+page:ffffea0007562980 refcount:1 mapcount:0 mapping:ffff8881da002780 index:0x0 compound_mapcount: 0
+flags: 0x200000000010200(slab|head)
+raw: 0200000000010200 ffffea0007562900 0000000300000003 ffff8881da002780
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881d58a6400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8881d58a6480: 00 00 00 00 00 00 00 00 05 fc fc fc fc fc fc fc
+>ffff8881d58a6500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                              ^
+ ffff8881d58a6580: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8881d58a6600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

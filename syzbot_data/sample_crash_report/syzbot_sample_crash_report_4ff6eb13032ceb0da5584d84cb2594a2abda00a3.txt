@@ -1,0 +1,191 @@
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read_write include/linux/instrumented.h:102 [inline]
+BUG: KASAN: use-after-free in test_and_set_bit include/asm-generic/bitops/instrumented-atomic.h:71 [inline]
+BUG: KASAN: use-after-free in l2tp_session_delete net/l2tp/l2tp_core.c:1555 [inline]
+BUG: KASAN: use-after-free in l2tp_tunnel_closeall net/l2tp/l2tp_core.c:1207 [inline]
+BUG: KASAN: use-after-free in l2tp_tunnel_del_work+0x1e8/0x780 net/l2tp/l2tp_core.c:1239
+Write of size 8 at addr ffff888075d46008 by task kworker/u4:2/33
+
+CPU: 1 PID: 33 Comm: kworker/u4:2 Not tainted 6.2.0-rc1-next-20221226-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: l2tp l2tp_tunnel_del_work
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x15e/0x45d mm/kasan/report.c:417
+ kasan_report+0xc0/0xf0 mm/kasan/report.c:517
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x141/0x190 mm/kasan/generic.c:189
+ instrument_atomic_read_write include/linux/instrumented.h:102 [inline]
+ test_and_set_bit include/asm-generic/bitops/instrumented-atomic.h:71 [inline]
+ l2tp_session_delete net/l2tp/l2tp_core.c:1555 [inline]
+ l2tp_tunnel_closeall net/l2tp/l2tp_core.c:1207 [inline]
+ l2tp_tunnel_del_work+0x1e8/0x780 net/l2tp/l2tp_core.c:1239
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+
+Allocated by task 2986:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:376 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:335 [inline]
+ __kasan_kmalloc+0xa5/0xb0 mm/kasan/common.c:385
+ kasan_kmalloc include/linux/kasan.h:212 [inline]
+ __do_kmalloc_node mm/slab_common.c:968 [inline]
+ __kmalloc+0x5a/0xd0 mm/slab_common.c:981
+ kmalloc include/linux/slab.h:584 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ l2tp_session_create+0x3a/0xb70 net/l2tp/l2tp_core.c:1591
+ pppol2tp_connect+0xfff/0x1a10 net/l2tp/l2tp_ppp.c:771
+ __sys_connect_file+0x153/0x1a0 net/socket.c:1976
+ __sys_connect+0x165/0x1a0 net/socket.c:1993
+ __do_sys_connect net/socket.c:2003 [inline]
+ __se_sys_connect net/socket.c:2000 [inline]
+ __x64_sys_connect+0x73/0xb0 net/socket.c:2000
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 15:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2e/0x40 mm/kasan/generic.c:518
+ ____kasan_slab_free mm/kasan/common.c:241 [inline]
+ ____kasan_slab_free+0x160/0x1c0 mm/kasan/common.c:205
+ kasan_slab_free include/linux/kasan.h:178 [inline]
+ slab_free_hook mm/slub.c:1781 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1807
+ slab_free mm/slub.c:3787 [inline]
+ __kmem_cache_free+0xaf/0x3b0 mm/slub.c:3800
+ l2tp_session_free net/l2tp/l2tp_core.c:163 [inline]
+ l2tp_session_dec_refcount+0x15d/0x3a0 net/l2tp/l2tp_core.c:200
+ pppol2tp_session_destruct+0xbe/0x100 net/l2tp/l2tp_ppp.c:418
+ __sk_destruct+0x4d/0x750 net/core/sock.c:2133
+ sk_destruct net/core/sock.c:2181 [inline]
+ __sk_free+0x175/0x460 net/core/sock.c:2192
+ sk_free+0x7c/0xa0 net/core/sock.c:2203
+ sock_put include/net/sock.h:1991 [inline]
+ pppol2tp_put_sk+0x9f/0xd0 net/l2tp/l2tp_ppp.c:401
+ rcu_do_batch kernel/rcu/tree.c:2246 [inline]
+ rcu_core+0x837/0x1950 kernel/rcu/tree.c:2506
+ __do_softirq+0x1fb/0xadc kernel/softirq.c:571
+
+Last potentially related work creation:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xbc/0xd0 mm/kasan/generic.c:488
+ __call_rcu_common.constprop.0+0x99/0x780 kernel/rcu/tree.c:2755
+ pppol2tp_release+0x315/0x560 net/l2tp/l2tp_ppp.c:457
+ __sock_release+0xcd/0x280 net/socket.c:650
+ sock_close+0x1c/0x20 net/socket.c:1365
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x23c/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xbc/0xd0 mm/kasan/generic.c:488
+ __call_rcu_common.constprop.0+0x99/0x780 kernel/rcu/tree.c:2755
+ pppol2tp_release+0x315/0x560 net/l2tp/l2tp_ppp.c:457
+ __sock_release+0xcd/0x280 net/socket.c:650
+ sock_close+0x1c/0x20 net/socket.c:1365
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x23c/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff888075d46000
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 8 bytes inside of
+ 1024-byte region [ffff888075d46000, ffff888075d46400)
+
+The buggy address belongs to the physical page:
+page:ffffea0001d75000 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x75d40
+head:ffffea0001d75000 order:3 compound_mapcount:0 subpages_mapcount:0 compound_pincount:0
+ksm flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffff888012441dc0 ffffea0001fb7c00 dead000000000003
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd2a20(GFP_ATOMIC|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 7, tgid 7 (kworker/0:0), ts 77183392530, free_ts 77164396748
+ prep_new_page mm/page_alloc.c:2546 [inline]
+ get_page_from_freelist+0x119e/0x2a80 mm/page_alloc.c:4298
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5564
+ alloc_pages+0x1aa/0x270 mm/mempolicy.c:2282
+ alloc_slab_page mm/slub.c:1851 [inline]
+ allocate_slab+0x25f/0x350 mm/slub.c:1998
+ new_slab mm/slub.c:2051 [inline]
+ ___slab_alloc+0xa91/0x1400 mm/slub.c:3193
+ __slab_alloc.constprop.0+0x56/0xa0 mm/slub.c:3292
+ __slab_alloc_node mm/slub.c:3345 [inline]
+ slab_alloc_node mm/slub.c:3442 [inline]
+ __kmem_cache_alloc_node+0x1a4/0x430 mm/slub.c:3491
+ __do_kmalloc_node mm/slab_common.c:967 [inline]
+ __kmalloc_node_track_caller+0x4b/0xc0 mm/slab_common.c:988
+ kmalloc_reserve net/core/skbuff.c:492 [inline]
+ __alloc_skb+0xe9/0x310 net/core/skbuff.c:565
+ alloc_skb include/linux/skbuff.h:1270 [inline]
+ nlmsg_new include/net/netlink.h:1002 [inline]
+ inet6_rt_notify+0xf0/0x2b0 net/ipv6/route.c:6172
+ fib6_add_rt2node net/ipv6/ip6_fib.c:1251 [inline]
+ fib6_add+0x26eb/0x3f20 net/ipv6/ip6_fib.c:1477
+ __ip6_ins_rt net/ipv6/route.c:1302 [inline]
+ ip6_ins_rt+0xb6/0x110 net/ipv6/route.c:1312
+ __ipv6_ifa_notify+0x8c7/0xb60 net/ipv6/addrconf.c:6157
+ ipv6_ifa_notify net/ipv6/addrconf.c:6196 [inline]
+ addrconf_dad_completed+0x133/0xda0 net/ipv6/addrconf.c:4209
+ addrconf_dad_begin net/ipv6/addrconf.c:4014 [inline]
+ addrconf_dad_work+0x820/0x12d0 net/ipv6/addrconf.c:4116
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1448 [inline]
+ free_pcp_prepare+0x4d0/0x9e0 mm/page_alloc.c:1498
+ free_unref_page_prepare mm/page_alloc.c:3384 [inline]
+ free_unref_page+0x1d/0x490 mm/page_alloc.c:3479
+ __unfreeze_partials+0x17c/0x1a0 mm/slub.c:2637
+ qlink_free mm/kasan/quarantine.c:168 [inline]
+ qlist_free_all+0x6a/0x170 mm/kasan/quarantine.c:187
+ kasan_quarantine_reduce+0x192/0x220 mm/kasan/quarantine.c:294
+ __kasan_slab_alloc+0x66/0x90 mm/kasan/common.c:307
+ kasan_slab_alloc include/linux/kasan.h:202 [inline]
+ slab_post_alloc_hook mm/slab.h:761 [inline]
+ slab_alloc_node mm/slub.c:3452 [inline]
+ kmem_cache_alloc_node+0x1f1/0x460 mm/slub.c:3497
+ __alloc_skb+0x216/0x310 net/core/skbuff.c:552
+ alloc_skb include/linux/skbuff.h:1270 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1202 [inline]
+ netlink_sendmsg+0x9a6/0xe10 net/netlink/af_netlink.c:1907
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xd3/0x120 net/socket.c:734
+ __sys_sendto+0x23a/0x340 net/socket.c:2117
+ __do_sys_sendto net/socket.c:2129 [inline]
+ __se_sys_sendto net/socket.c:2125 [inline]
+ __x64_sys_sendto+0xe1/0x1b0 net/socket.c:2125
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Memory state around the buggy address:
+ ffff888075d45f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888075d45f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888075d46000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff888075d46080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888075d46100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

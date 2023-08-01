@@ -1,0 +1,83 @@
+audit: type=1804 audit(2000000050.800:112): pid=14163 uid=0 auid=4294967295 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 op=invalid_pcr cause=open_writers comm="syz-executor2" name="/root/syzkaller-testdir921313768/syzkaller.maT3zQ/241/bus" dev="sda1" ino=16820 res=1
+==================================================================
+------------[ cut here ]------------
+BUG: KASAN: stack-out-of-bounds in atomic64_add_return include/asm-generic/atomic-instrumented.h:299 [inline]
+BUG: KASAN: stack-out-of-bounds in atomic_long_add_return include/asm-generic/atomic-long.h:72 [inline]
+BUG: KASAN: stack-out-of-bounds in page_counter_try_charge+0xc2/0x220 mm/page_counter.c:121
+ODEBUG: deactivate not available (active state 0) object type: hrtimer hint: tick_sched_timer+0x0/0x130 kernel/time/tick-sched.c:63
+Write of size 8 at addr ffff8880a940adb8 by task syz-executor2/14126
+kasan: CONFIG_KASAN_INLINE enabled
+
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 14126 Comm: syz-executor2 Not tainted 5.0.0-rc2+ #27
+CPU: 1 PID: -1975669536 Comm: ksoftirqd/1 Not tainted 5.0.0-rc2+ #27
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+RIP: 0010:uprobe_get_trap_addr+0x9a/0xf0 kernel/events/uprobes.c:1660
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+Code: 00 00 e8 a9 b8 e3 ff 4c 89 e0 5b 41 5c 5d c3 e8 9c b8 e3 ff 49 8d 7c 24 20 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 75 41 49 83 7c 24 20 00 74 a0 e8 73 b8 e3 ff 49 8d 7c
+RSP: 0018:ffff8880ae707a48 EFLAGS: 00010006
+RAX: dffffc0000000000 RBX: ffff8880ae707a88 RCX: ffffffff880009e7
+RDX: 000000000000000c RSI: ffffffff819e3ec4 RDI: 0000000000000060
+RBP: ffff8880ae707a58 R08: 0000000000000000 R09: 0000000000000000
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000040
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000070a158 CR3: 000000008f142000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x123/0x190 mm/kasan/generic.c:191
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+ kasan_check_write+0x14/0x20 mm/kasan/common.c:106
+Call Trace:
+ <IRQ>
+ atomic64_add_return include/asm-generic/atomic-instrumented.h:299 [inline]
+ atomic_long_add_return include/asm-generic/atomic-long.h:72 [inline]
+ page_counter_try_charge+0xc2/0x220 mm/page_counter.c:121
+ do_invalid_op+0x13/0x50 arch/x86/kernel/traps.c:290
+ try_charge+0x231/0x19b0 mm/memcontrol.c:2191
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:973
+RIP: 0010:debug_print_object+0x16a/0x250 lib/debugobjects.c:325
+Code: dd a0 be 81 88 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 b5 00 00 00 48 8b 14 dd a0 be 81 88 48 c7 c7 40 b4 81 88 e8 b6 5f ba fd <0f> 0b 83 05 d1 ee ca 06 01 48 83 c4 20 5b 41 5c 41 5d 41 5e 5d c3
+RSP: 0018:ffff8880ae707b30 EFLAGS: 00010082
+RAX: 0000000000000000 RBX: 0000000000000005 RCX: 0000000000000000
+RDX: 0000000000010100 RSI: ffffffff81684cc6 RDI: 0000000000000005
+RBP: ffff8880ae707b70 R08: ffff8880a94ba440 R09: ffffed1015ce3ef9
+R10: ffffed1015ce3ef8 R11: ffff8880ae71f7c7 R12: 0000000000000001
+R13: ffffffff899b14a0 R14: ffffffff816fd330 R15: ffffffff8b6b05e8
+ mem_cgroup_try_charge+0x43a/0xdb0 mm/memcontrol.c:5913
+ debug_object_deactivate lib/debugobjects.c:565 [inline]
+ debug_object_deactivate+0x33a/0x4b0 lib/debugobjects.c:529
+ debug_hrtimer_deactivate kernel/time/hrtimer.c:412 [inline]
+ debug_deactivate kernel/time/hrtimer.c:462 [inline]
+ __run_hrtimer kernel/time/hrtimer.c:1359 [inline]
+ __hrtimer_run_queues+0x225/0x1050 kernel/time/hrtimer.c:1451
+ __add_to_page_cache_locked+0x6f4/0x1730 mm/filemap.c:812
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1035 [inline]
+ smp_apic_timer_interrupt+0x18d/0x760 arch/x86/kernel/apic/apic.c:1060
+ add_to_page_cache_lru+0x314/0xd20 mm/filemap.c:886
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+Modules linked in:
+---[ end trace cdab6d45b007e476 ]---
+RIP: 0010:uprobe_get_trap_addr+0x9a/0xf0 kernel/events/uprobes.c:1660
+Code: 00 00 e8 a9 b8 e3 ff 4c 89 e0 5b 41 5c 5d c3 e8 9c b8 e3 ff 49 8d 7c 24 20 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 75 41 49 83 7c 24 20 00 74 a0 e8 73 b8 e3 ff 49 8d 7c
+RSP: 0018:ffff8880ae707a48 EFLAGS: 00010006
+ ext4_mpage_readpages+0x546/0x25f0 fs/ext4/readpage.c:133
+RAX: dffffc0000000000 RBX: ffff8880ae707a88 RCX: ffffffff880009e7
+RDX: 000000000000000c RSI: ffffffff819e3ec4 RDI: 0000000000000060
+RBP: ffff8880ae707a58 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000040
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000070a158 CR3: 000000008f142000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

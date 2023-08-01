@@ -1,0 +1,118 @@
+==================================================================
+BUG: KASAN: out-of-bounds in check_canary_byte mm/kfence/core.c:211 [inline]
+BUG: KASAN: out-of-bounds in for_each_canary mm/kfence/core.c:245 [inline]
+BUG: KASAN: out-of-bounds in kfence_guarded_free+0x7f1/0x8f0 mm/kfence/core.c:374
+Read of size 1 at addr ffff88823bdcafe4 by task syz-executor939/26003
+
+CPU: 1 PID: 26003 Comm: syz-executor939 Not tainted 5.10.0-next-20201223-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ print_address_description.constprop.0.cold+0x5b/0x2f8 mm/kasan/report.c:230
+ __kasan_report mm/kasan/report.c:396 [inline]
+ kasan_report.cold+0x79/0xd5 mm/kasan/report.c:413
+ check_canary_byte mm/kfence/core.c:211 [inline]
+ for_each_canary mm/kfence/core.c:245 [inline]
+ kfence_guarded_free+0x7f1/0x8f0 mm/kfence/core.c:374
+ __kfence_free+0x70/0x150 mm/kfence/core.c:756
+ do_slab_free mm/slub.c:3145 [inline]
+ slab_free mm/slub.c:3158 [inline]
+ kfree+0x57c/0x5c0 mm/slub.c:4156
+ crypto_destroy_tfm+0xc0/0x210 crypto/api.c:574
+ crypto_exit_ops crypto/api.c:308 [inline]
+ crypto_destroy_tfm+0xab/0x210 crypto/api.c:572
+ alg_do_release crypto/af_alg.c:115 [inline]
+ alg_sock_destruct+0x85/0xe0 crypto/af_alg.c:369
+ __sk_destruct+0x4b/0x900 net/core/sock.c:1778
+ sk_destruct+0xbd/0xe0 net/core/sock.c:1822
+ __sk_free+0xef/0x3d0 net/core/sock.c:1833
+ sk_free+0x78/0xa0 net/core/sock.c:1844
+ sock_put include/net/sock.h:1797 [inline]
+ af_alg_release+0xdb/0x110 crypto/af_alg.c:122
+ __sock_release+0xcd/0x280 net/socket.c:597
+ sock_close+0x18/0x20 net/socket.c:1256
+ __fput+0x283/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x190 kernel/task_work.c:140
+ exit_task_work include/linux/task_work.h:30 [inline]
+ do_exit+0xb89/0x29e0 kernel/exit.c:823
+ do_group_exit+0x125/0x310 kernel/exit.c:920
+ __do_sys_exit_group kernel/exit.c:931 [inline]
+ __se_sys_exit_group kernel/exit.c:929 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:929
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x43feb8
+Code: Unable to access opcode bytes at RIP 0x43fe8e.
+RSP: 002b:00007ffefb4cacd8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043feb8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004bf790 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000004 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d1180 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 2846403498:
+------------[ cut here ]------------
+slab index 831406 out of bounds (390) for stack id adacafae
+WARNING: CPU: 1 PID: 26003 at lib/stackdepot.c:211 stack_depot_fetch+0x6d/0xa0 lib/stackdepot.c:211
+Modules linked in:
+CPU: 1 PID: 26003 Comm: syz-executor939 Not tainted 5.10.0-next-20201223-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:stack_depot_fetch+0x6d/0xa0 lib/stackdepot.c:211
+Code: 48 c1 e0 04 25 f0 3f 00 00 48 01 d0 48 8d 50 18 48 89 13 8b 40 0c 48 83 c4 10 5b c3 89 f9 48 c7 c7 58 8d d2 8a e8 6a b6 de 04 <0f> 0b 48 83 c4 10 31 c0 5b c3 48 83 c4 10 31 c0 5b c3 48 c7 c7 20
+RSP: 0018:ffffc900022579e8 EFLAGS: 00010082
+RAX: 0000000000000000 RBX: ffffc90002257a08 RCX: 0000000000000000
+RDX: ffff888029838000 RSI: ffffffff815b3355 RDI: fffff5200044af2f
+RBP: ffffea0008ef7280 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff815ac52e R11: 0000000000000000 R12: ffff88823bdcafe4
+R13: ffff88823bdca000 R14: ffff88823bdca040 R15: 00000000ffffffad
+FS:  0000000000000000(0000) GS:ffff8880b9f00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000004bf7c8 CR3: 000000000b08e000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ print_stack+0x9/0x18 mm/kasan/report.c:114
+ describe_object_stacks mm/kasan/report.c:176 [inline]
+ describe_object mm/kasan/report.c:206 [inline]
+ print_address_description.constprop.0.cold+0x21a/0x2f8 mm/kasan/report.c:237
+ __kasan_report mm/kasan/report.c:396 [inline]
+ kasan_report.cold+0x79/0xd5 mm/kasan/report.c:413
+ check_canary_byte mm/kfence/core.c:211 [inline]
+ for_each_canary mm/kfence/core.c:245 [inline]
+ kfence_guarded_free+0x7f1/0x8f0 mm/kfence/core.c:374
+ __kfence_free+0x70/0x150 mm/kfence/core.c:756
+ do_slab_free mm/slub.c:3145 [inline]
+ slab_free mm/slub.c:3158 [inline]
+ kfree+0x57c/0x5c0 mm/slub.c:4156
+ crypto_destroy_tfm+0xc0/0x210 crypto/api.c:574
+ crypto_exit_ops crypto/api.c:308 [inline]
+ crypto_destroy_tfm+0xab/0x210 crypto/api.c:572
+ alg_do_release crypto/af_alg.c:115 [inline]
+ alg_sock_destruct+0x85/0xe0 crypto/af_alg.c:369
+ __sk_destruct+0x4b/0x900 net/core/sock.c:1778
+ sk_destruct+0xbd/0xe0 net/core/sock.c:1822
+ __sk_free+0xef/0x3d0 net/core/sock.c:1833
+ sk_free+0x78/0xa0 net/core/sock.c:1844
+ sock_put include/net/sock.h:1797 [inline]
+ af_alg_release+0xdb/0x110 crypto/af_alg.c:122
+ __sock_release+0xcd/0x280 net/socket.c:597
+ sock_close+0x18/0x20 net/socket.c:1256
+ __fput+0x283/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x190 kernel/task_work.c:140
+ exit_task_work include/linux/task_work.h:30 [inline]
+ do_exit+0xb89/0x29e0 kernel/exit.c:823
+ do_group_exit+0x125/0x310 kernel/exit.c:920
+ __do_sys_exit_group kernel/exit.c:931 [inline]
+ __se_sys_exit_group kernel/exit.c:929 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:929
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x43feb8
+Code: Unable to access opcode bytes at RIP 0x43fe8e.
+RSP: 002b:00007ffefb4cacd8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043feb8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004bf790 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000004 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d1180 R14: 0000000000000000 R15: 0000000000000000

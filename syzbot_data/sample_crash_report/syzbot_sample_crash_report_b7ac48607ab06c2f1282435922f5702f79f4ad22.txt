@@ -1,0 +1,73 @@
+FAT-fs (loop1): error, clusters badly computed (876 != 875)
+FAT-fs (loop1): error, clusters badly computed (877 != 876)
+FAT-fs (loop1): error, clusters badly computed (878 != 877)
+==================================================================
+BUG: KCSAN: data-race in __fat_write_inode / fat12_ent_get
+
+write to 0xffff8881015f423c of 4 bytes by task 9966 on cpu 1:
+ __fat_write_inode+0x246/0x510 fs/fat/inode.c:877
+ fat_write_inode+0x67/0xe0 fs/fat/inode.c:909
+ write_inode fs/fs-writeback.c:1312 [inline]
+ __writeback_single_inode+0x722/0x910 fs/fs-writeback.c:1511
+ writeback_single_inode+0x219/0x2f0 fs/fs-writeback.c:1565
+ sync_inode fs/fs-writeback.c:2602 [inline]
+ sync_inode_metadata+0x75/0xa0 fs/fs-writeback.c:2622
+ __generic_file_fsync+0x117/0x180 fs/libfs.c:1081
+ fat_file_fsync+0x54/0x120 fs/fat/file.c:190
+ vfs_fsync_range+0x7c/0x150 fs/sync.c:197
+ generic_write_sync include/linux/fs.h:2867 [inline]
+ generic_file_write_iter+0x31c/0x38e mm/filemap.c:3452
+ call_write_iter include/linux/fs.h:1901 [inline]
+ do_iter_readv_writev+0x4a7/0x5d0 fs/read_write.c:693
+ do_iter_write fs/read_write.c:998 [inline]
+ do_iter_write+0x137/0x3a0 fs/read_write.c:979
+ vfs_iter_write+0x56/0x80 fs/read_write.c:1039
+ iter_file_splice_write+0x530/0x830 fs/splice.c:760
+ do_splice_from fs/splice.c:863 [inline]
+ direct_splice_actor+0x97/0xb0 fs/splice.c:1037
+ splice_direct_to_actor+0x22f/0x540 fs/splice.c:992
+ do_splice_direct+0x152/0x1d0 fs/splice.c:1080
+ do_sendfile+0x396/0x810 fs/read_write.c:1520
+ __do_sys_sendfile64 fs/read_write.c:1575 [inline]
+ __se_sys_sendfile64 fs/read_write.c:1567 [inline]
+ __x64_sys_sendfile64+0xb8/0x140 fs/read_write.c:1567
+ do_syscall_64+0xc7/0x390 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffff8881015f423d of 1 bytes by task 9960 on cpu 0:
+ fat12_ent_get+0x5e/0x120 fs/fat/fatent.c:125
+ fat_ent_read+0x3de/0x560 fs/fat/fatent.c:370
+ fat_get_cluster+0x52b/0x920 fs/fat/cache.c:266
+ fat_bmap_cluster fs/fat/cache.c:299 [inline]
+ fat_get_mapped_cluster+0x105/0x230 fs/fat/cache.c:320
+ fat_bmap+0x146/0x28e fs/fat/cache.c:384
+ __fat_get_block fs/fat/inode.c:165 [inline]
+ fat_get_block+0x244/0x4f0 fs/fat/inode.c:190
+ __block_write_begin_int+0x306/0xf80 fs/buffer.c:2008
+ __block_write_begin fs/buffer.c:2058 [inline]
+ block_write_begin+0x76/0x160 fs/buffer.c:2117
+ cont_write_begin+0x3bd/0x660 fs/buffer.c:2466
+ fat_write_begin+0x69/0xc0 fs/fat/inode.c:236
+ pagecache_write_begin+0x67/0x90 mm/filemap.c:3106
+ cont_expand_zero fs/buffer.c:2393 [inline]
+ cont_write_begin+0x176/0x660 fs/buffer.c:2456
+ fat_write_begin+0x69/0xc0 fs/fat/inode.c:236
+ generic_perform_write+0x13a/0x320 mm/filemap.c:3287
+ __generic_file_write_iter+0x240/0x370 mm/filemap.c:3416
+ generic_file_write_iter+0x294/0x38e mm/filemap.c:3448
+ call_write_iter include/linux/fs.h:1901 [inline]
+ new_sync_write+0x303/0x400 fs/read_write.c:483
+ __vfs_write+0x9e/0xb0 fs/read_write.c:496
+ vfs_write fs/read_write.c:558 [inline]
+ vfs_write+0x189/0x380 fs/read_write.c:542
+ ksys_write+0xc5/0x1a0 fs/read_write.c:611
+ __do_sys_write fs/read_write.c:623 [inline]
+ __se_sys_write fs/read_write.c:620 [inline]
+ __x64_sys_write+0x49/0x60 fs/read_write.c:620
+ do_syscall_64+0xc7/0x390 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 9960 Comm: syz-executor.1 Not tainted 5.6.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

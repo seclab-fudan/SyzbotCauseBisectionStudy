@@ -1,0 +1,115 @@
+==================================================================
+BUG: KASAN: use-after-free in delayed_uprobe_remove+0x113/0x140 kernel/events/uprobes.c:339
+Read of size 8 at addr ffff8801bf108180 by task syz-executor179/15677
+
+CPU: 1 PID: 15677 Comm: syz-executor179 Not tainted 4.19.0+ #98
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ delayed_uprobe_remove+0x113/0x140 kernel/events/uprobes.c:339
+ put_uprobe+0x4d/0x60 kernel/events/uprobes.c:575
+ uprobe_unregister+0x56/0x70 kernel/events/uprobes.c:1088
+ probe_event_disable.part.16+0x16a/0x2c0 kernel/trace/trace_uprobe.c:990
+ probe_event_disable kernel/trace/trace_uprobe.c:1224 [inline]
+ trace_uprobe_register+0x52c/0xcf0 kernel/trace/trace_uprobe.c:1223
+ perf_trace_event_unreg.isra.3+0xbb/0x220 kernel/trace/trace_event_perf.c:157
+ perf_uprobe_destroy+0xc3/0x130 kernel/trace/trace_event_perf.c:342
+ _free_event+0x414/0x1660 kernel/events/core.c:4446
+ put_event+0x48/0x60 kernel/events/core.c:4532
+ perf_event_release_kernel+0x8d0/0x10e0 kernel/events/core.c:4638
+ perf_release+0x37/0x50 kernel/events/core.c:4648
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x406b71
+Code: 75 14 b8 03 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 b4 17 00 00 c3 48 83 ec 08 e8 6a fc ff ff 48 89 04 24 b8 03 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 b3 fc ff ff 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007ffd64de3e30 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000406b71
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000004
+RBP: 0000000000000002 R08: 0000000000000000 R09: 0000000000000000
+R10: 00007ffd64de3e50 R11: 0000000000000293 R12: 00000000006e4a0c
+R13: 00000000000003e8 R14: 000000000000002d R15: 0000000000000006
+
+Allocated by task 15676:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x750 mm/slab.c:3620
+ kmalloc include/linux/slab.h:546 [inline]
+ kzalloc include/linux/slab.h:741 [inline]
+ delayed_uprobe_add kernel/events/uprobes.c:313 [inline]
+ update_ref_ctr+0x36f/0x590 kernel/events/uprobes.c:447
+ uprobe_write_opcode+0x948/0xc50 kernel/events/uprobes.c:496
+ set_swbp+0x2a/0x40
+ install_breakpoint.isra.24+0x161/0x840 kernel/events/uprobes.c:883
+ register_for_each_vma+0xa38/0xee0 kernel/events/uprobes.c:1039
+ uprobe_apply+0xee/0x140 kernel/events/uprobes.c:1190
+ uprobe_perf_open kernel/trace/trace_uprobe.c:1087 [inline]
+ trace_uprobe_register+0x771/0xcf0 kernel/trace/trace_uprobe.c:1227
+ perf_trace_event_open kernel/trace/trace_event_perf.c:181 [inline]
+ perf_trace_event_init+0x1a5/0x990 kernel/trace/trace_event_perf.c:203
+ perf_uprobe_init+0x1f1/0x280 kernel/trace/trace_event_perf.c:329
+ perf_uprobe_event_init+0x106/0x1a0 kernel/events/core.c:8503
+ perf_try_init_event+0x137/0x2f0 kernel/events/core.c:9770
+ perf_init_event kernel/events/core.c:9801 [inline]
+ perf_event_alloc.part.94+0x1d54/0x3740 kernel/events/core.c:10074
+ perf_event_alloc kernel/events/core.c:10430 [inline]
+ __do_sys_perf_event_open+0xada/0x3020 kernel/events/core.c:10531
+ __se_sys_perf_event_open kernel/events/core.c:10420 [inline]
+ __x64_sys_perf_event_open+0xbe/0x150 kernel/events/core.c:10420
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 15679:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ delayed_uprobe_delete+0x1b0/0x2b0 kernel/events/uprobes.c:328
+ delayed_uprobe_remove+0xe8/0x140 kernel/events/uprobes.c:347
+ uprobe_clear_state+0xbe/0x390 kernel/events/uprobes.c:1510
+ __mmput kernel/fork.c:1041 [inline]
+ mmput+0x1bc/0x610 kernel/fork.c:1066
+ exit_mm kernel/exit.c:545 [inline]
+ do_exit+0xe74/0x26d0 kernel/exit.c:854
+ do_group_exit+0x177/0x440 kernel/exit.c:970
+ get_signal+0x8b0/0x1980 kernel/signal.c:2517
+ do_signal+0x9c/0x21c0 arch/x86/kernel/signal.c:816
+ exit_to_usermode_loop+0x2e5/0x380 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801bf108180
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8801bf108180, ffff8801bf1081a0)
+The buggy address belongs to the page:
+page:ffffea0006fc4200 count:1 mapcount:0 mapping:ffff8801da8001c0 index:0xffff8801bf108fc1
+flags: 0x2fffc0000000200(slab)
+raw: 02fffc0000000200 ffffea00070997c8 ffffea00074da788 ffff8801da8001c0
+raw: ffff8801bf108fc1 ffff8801bf108000 000000010000003f 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bf108080: 00 00 00 07 fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801bf108100: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801bf108180: fb fb fb fb fc fc fc fc 00 00 00 01 fc fc fc fc
+                   ^
+ ffff8801bf108200: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801bf108280: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

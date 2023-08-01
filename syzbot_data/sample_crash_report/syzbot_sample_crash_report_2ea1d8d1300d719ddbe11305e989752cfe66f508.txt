@@ -1,0 +1,163 @@
+INFO: task syz-executor6:4470 blocked for more than 120 seconds.
+      Not tainted 4.16.0+ #15
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor6   D20304  4470   4462 0x00000000
+Call Trace:
+ context_switch kernel/sched/core.c:2848 [inline]
+ __schedule+0x8fb/0x1ef0 kernel/sched/core.c:3490
+ schedule+0xf5/0x430 kernel/sched/core.c:3549
+ jbd2_log_wait_commit+0x2d1/0x420 fs/jbd2/journal.c:726
+ jbd2_journal_stop+0xa80/0x14d0 fs/jbd2/transaction.c:1771
+ __ext4_journal_stop+0xcd/0x1b0 fs/ext4/ext4_jbd2.c:103
+ ext4_unlink+0xb2c/0x1100 fs/ext4/namei.c:3048
+ vfs_unlink+0x283/0x480 fs/namei.c:3982
+ do_unlinkat+0x731/0x940 fs/namei.c:4045
+ SYSC_unlink fs/namei.c:4092 [inline]
+ SyS_unlink+0x26/0x30 fs/namei.c:4090
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x455027
+RSP: 002b:00007ffeed874518 EFLAGS: 00000206 ORIG_RAX: 0000000000000057
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000455027
+RDX: 00000000014e799b RSI: 00007ffeed8745b0 RDI: 00007ffeed8745b0
+RBP: 00007ffeed8762c0 R08: 0000000000000000 R09: 000000000000000c
+R10: 0000000000000006 R11: 0000000000000206 R12: 00000000014e7940
+R13: 0000000000000000 R14: 0000000000000227 R15: 000000000001dbf8
+
+Showing all locks held in the system:
+2 locks held by khungtaskd/877:
+ #0: 000000006f0e9b7c (rcu_read_lock){....}, at: check_hung_uninterruptible_tasks kernel/hung_task.c:175 [inline]
+ #0: 000000006f0e9b7c (rcu_read_lock){....}, at: watchdog+0x1d6/0xd70 kernel/hung_task.c:249
+ #1: 00000000bf17f6ee (tasklist_lock){.+.+}, at: debug_show_all_locks+0xd3/0x3d0 kernel/locking/lockdep.c:4470
+2 locks held by getty/4386:
+ #0: 000000000f40e24c (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 000000000bfb5169 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4387:
+ #0: 00000000c427aae6 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000cd956072 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4388:
+ #0: 000000002200d6c2 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 0000000098a58b7c (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4389:
+ #0: 00000000d9e484a1 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000afd775ca (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4390:
+ #0: 00000000fcaf71fc (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000a0435289 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4391:
+ #0: 00000000b7016b1f (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 0000000035af1bb1 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4392:
+ #0: 000000007f51a4a0 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 0000000059573bea (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+3 locks held by syz-executor6/4470:
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: sb_start_write include/linux/fs.h:1548 [inline]
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: mnt_want_write+0x3f/0xb0 fs/namespace.c:386
+ #1: 00000000474f0d75 (&type->i_mutex_dir_key/1){+.+.}, at: inode_lock_nested include/linux/fs.h:748 [inline]
+ #1: 00000000474f0d75 (&type->i_mutex_dir_key/1){+.+.}, at: do_unlinkat+0x397/0x940 fs/namei.c:4031
+ #2: 00000000d1a878d9 (&sb->s_type->i_mutex_key#10){++++}, at: inode_lock include/linux/fs.h:713 [inline]
+ #2: 00000000d1a878d9 (&sb->s_type->i_mutex_key#10){++++}, at: vfs_unlink+0xc7/0x480 fs/namei.c:3973
+3 locks held by syz-executor4/6384:
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: sb_start_write include/linux/fs.h:1548 [inline]
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: mnt_want_write+0x3f/0xb0 fs/namespace.c:386
+ #1: 00000000155e460b (&type->i_mutex_dir_key/1){+.+.}, at: inode_lock_nested include/linux/fs.h:748 [inline]
+ #1: 00000000155e460b (&type->i_mutex_dir_key/1){+.+.}, at: do_unlinkat+0x397/0x940 fs/namei.c:4031
+ #2: 0000000071de93d3 (&sb->s_type->i_mutex_key#10){++++}, at: inode_lock include/linux/fs.h:713 [inline]
+ #2: 0000000071de93d3 (&sb->s_type->i_mutex_key#10){++++}, at: vfs_unlink+0xc7/0x480 fs/namei.c:3973
+4 locks held by syz-executor2/11321:
+ #0: 00000000f0ad26d0 (&tty->legacy_mutex){+.+.}, at: tty_lock+0x5d/0x90 drivers/tty/tty_mutex.c:19
+ #1: 00000000b47be066 (&tty->legacy_mutex/1){+.+.}, at: tty_lock+0x5d/0x90 drivers/tty/tty_mutex.c:19
+ #2: 00000000fdce1290 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref+0x1b/0x80 drivers/tty/tty_ldisc.c:298
+ #3: 000000000a430676 (&o_tty->termios_rwsem/1){++++}, at: n_tty_flush_buffer+0x21/0x320 drivers/tty/n_tty.c:357
+1 lock held by syz-executor0/11382:
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2709 [inline]
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: do_sendfile+0xada/0xe80 fs/read_write.c:1439
+1 lock held by syz-executor0/11415:
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2709 [inline]
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: do_sendfile+0xada/0xe80 fs/read_write.c:1439
+2 locks held by syz-executor0/11416:
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2709 [inline]
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: vfs_fallocate+0x515/0x6f0 fs/open.c:318
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: inode_lock include/linux/fs.h:713 [inline]
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: ext4_fallocate+0x271/0x1f50 fs/ext4/extents.c:4944
+2 locks held by syz-executor0/11417:
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2709 [inline]
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: do_sendfile+0xada/0xe80 fs/read_write.c:1439
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: inode_lock include/linux/fs.h:713 [inline]
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: ext4_file_write_iter+0x268/0x10e0 fs/ext4/file.c:235
+3 locks held by syz-executor0/11418:
+ #0: 00000000dc7b6dac (&f->f_pos_lock){+.+.}, at: __fdget_pos+0x165/0x1a0 fs/file.c:766
+ #1: 00000000aa0cf29a (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2709 [inline]
+ #1: 00000000aa0cf29a (sb_writers#4){.+.+}, at: vfs_write+0x407/0x510 fs/read_write.c:548
+ #2: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: inode_lock include/linux/fs.h:713 [inline]
+ #2: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: ext4_file_write_iter+0x268/0x10e0 fs/ext4/file.c:235
+2 locks held by syz-executor0/11419:
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2709 [inline]
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: do_sendfile+0xada/0xe80 fs/read_write.c:1439
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: inode_lock include/linux/fs.h:713 [inline]
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: ext4_file_write_iter+0x268/0x10e0 fs/ext4/file.c:235
+2 locks held by syz-executor0/11420:
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: sb_start_write include/linux/fs.h:1548 [inline]
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: mnt_want_write+0x3f/0xb0 fs/namespace.c:386
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: inode_lock include/linux/fs.h:713 [inline]
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: do_truncate+0x180/0x280 fs/open.c:61
+2 locks held by syz-executor0/11422:
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2709 [inline]
+ #0: 00000000aa0cf29a (sb_writers#4){.+.+}, at: vfs_fallocate+0x515/0x6f0 fs/open.c:318
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: inode_lock include/linux/fs.h:713 [inline]
+ #1: 000000005d6a96c6 (&sb->s_type->i_mutex_key#10){++++}, at: ext4_fallocate+0x271/0x1f50 fs/ext4/extents.c:4944
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 877 Comm: khungtaskd Not tainted 4.16.0+ #15
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x1a7/0x27d lib/dump_stack.c:53
+ nmi_cpu_backtrace+0x1e0/0x220 lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x123/0x180 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:138 [inline]
+ check_hung_task kernel/hung_task.c:132 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:190 [inline]
+ watchdog+0x969/0xd70 kernel/hung_task.c:249
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+INFO: rcu_sched detected stalls on CPUs/tasks:
+	0-....: (125067 ticks this GP) idle=c32/1/4611686018427387904 softirq=39112/39112 fqs=31033 
+	(detected by 1, t=125063 jiffies, g=20717, c=20716, q=264)
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 5759 Comm: kworker/u4:4 Not tainted 4.16.0+ #15
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound flush_to_ldisc
+RIP: 0010:echo_buf drivers/tty/n_tty.c:144 [inline]
+RIP: 0010:__process_echoes+0x5c9/0x770 drivers/tty/n_tty.c:732
+RSP: 0018:ffff8801b0977238 EFLAGS: 00000293
+RAX: ffff8801b04c4440 RBX: ffffc90001acc000 RCX: ffffffff8355b259
+RDX: 0000000000000000 RSI: 1ffff100360989b4 RDI: ffffc90001acdb63
+RBP: ffff8801b09772a0 R08: 1ffff1003612eded R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 000000063c843904
+R13: dffffc0000000000 R14: 000000063c843904 R15: 0000000000000a02
+FS:  0000000000000000(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007faf3430ddb8 CR3: 000000018c924000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ commit_echoes+0x147/0x1b0 drivers/tty/n_tty.c:764
+ n_tty_receive_char_inline drivers/tty/n_tty.c:1388 [inline]
+ n_tty_receive_buf_standard drivers/tty/n_tty.c:1550 [inline]
+ __receive_buf drivers/tty/n_tty.c:1613 [inline]
+ n_tty_receive_buf_common+0x75d/0x2520 drivers/tty/n_tty.c:1709
+ n_tty_receive_buf2+0x33/0x40 drivers/tty/n_tty.c:1744
+ tty_ldisc_receive_buf+0xa7/0x180 drivers/tty/tty_buffer.c:456
+ tty_port_default_receive_buf+0x106/0x160 drivers/tty/tty_port.c:38
+ receive_buf drivers/tty/tty_buffer.c:475 [inline]
+ flush_to_ldisc+0x3b6/0x5a0 drivers/tty/tty_buffer.c:524
+ process_one_work+0xc97/0x1c40 kernel/workqueue.c:2145
+ worker_thread+0x1c3/0x1380 kernel/workqueue.c:2279
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+Code: 49 bd 00 00 00 00 00 fc ff df eb 03 4d 89 f4 e8 ce f1 1b fe 4c 89 f8 4c 29 e0 48 3d df 0e 00 00 0f 86 f3 fb ff ff e8 b7 f1 1b fe <4c> 89 e0 25 ff 0f 00 00 48 8d bc 03 60 12 00 00 48 89 fa 48 89 

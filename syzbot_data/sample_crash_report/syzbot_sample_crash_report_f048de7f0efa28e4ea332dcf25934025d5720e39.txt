@@ -1,0 +1,58 @@
+asix 1-1:0.0 (unnamed net_device) (uninitialized): Failed to enable software MII access
+asix 1-1:0.0 (unnamed net_device) (uninitialized): Failed to read reg index 0x0000: -71
+=====================================================
+BUG: KMSAN: uninit-value in asix_check_host_enable drivers/net/usb/asix_common.c:84 [inline]
+BUG: KMSAN: uninit-value in asix_mdio_read+0x537/0xa40 drivers/net/usb/asix_common.c:499
+ asix_check_host_enable drivers/net/usb/asix_common.c:84 [inline]
+ asix_mdio_read+0x537/0xa40 drivers/net/usb/asix_common.c:499
+ asix_mdio_bus_read+0xba/0xe0 drivers/net/usb/asix_common.c:558
+ __mdiobus_read+0xbf/0x4f0 drivers/net/phy/mdio_bus.c:762
+ mdiobus_read+0xaa/0xf0 drivers/net/phy/mdio_bus.c:869
+ get_phy_c22_id drivers/net/phy/phy_device.c:813 [inline]
+ get_phy_device+0x218/0x8b0 drivers/net/phy/phy_device.c:890
+ mdiobus_scan+0x1c7/0x940
+ __mdiobus_register+0xe6c/0x11a0 drivers/net/phy/mdio_bus.c:589
+ __devm_mdiobus_register+0x18f/0x2f0 drivers/net/phy/mdio_devres.c:87
+ ax88772_init_mdio drivers/net/usb/asix_devices.c:676 [inline]
+ ax88772_bind+0x10b1/0x1770 drivers/net/usb/asix_devices.c:786
+ usbnet_probe+0x1251/0x4160 drivers/net/usb/usbnet.c:1747
+ usb_probe_interface+0xf19/0x1600 drivers/usb/core/driver.c:396
+ really_probe+0x653/0x14b0 drivers/base/dd.c:596
+ __driver_probe_device+0x3e9/0x530 drivers/base/dd.c:752
+ driver_probe_device drivers/base/dd.c:782 [inline]
+ __device_attach_driver+0x79f/0x1120 drivers/base/dd.c:899
+ bus_for_each_drv+0x2d6/0x3f0 drivers/base/bus.c:427
+ __device_attach+0x593/0x8e0 drivers/base/dd.c:970
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:1017
+ bus_probe_device+0x17b/0x3e0 drivers/base/bus.c:487
+ device_add+0x1fff/0x26e0 drivers/base/core.c:3405
+ usb_set_configuration+0x37e9/0x3ed0 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0x13c/0x300 drivers/usb/core/generic.c:238
+ usb_probe_device+0x309/0x570 drivers/usb/core/driver.c:293
+ really_probe+0x653/0x14b0 drivers/base/dd.c:596
+ __driver_probe_device+0x3e9/0x530 drivers/base/dd.c:752
+ driver_probe_device drivers/base/dd.c:782 [inline]
+ __device_attach_driver+0x79f/0x1120 drivers/base/dd.c:899
+ bus_for_each_drv+0x2d6/0x3f0 drivers/base/bus.c:427
+ __device_attach+0x593/0x8e0 drivers/base/dd.c:970
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:1017
+ bus_probe_device+0x17b/0x3e0 drivers/base/bus.c:487
+ device_add+0x1fff/0x26e0 drivers/base/core.c:3405
+ usb_new_device+0x1b8e/0x2950 drivers/usb/core/hub.c:2566
+ hub_port_connect drivers/usb/core/hub.c:5358 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5502 [inline]
+ port_event drivers/usb/core/hub.c:5660 [inline]
+ hub_event+0x58e3/0x89e0 drivers/usb/core/hub.c:5742
+ process_one_work+0xdb6/0x1820 kernel/workqueue.c:2307
+ worker_thread+0x10b3/0x21e0 kernel/workqueue.c:2454
+ kthread+0x3c7/0x500 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30
+
+Local variable smsr.i created at:
+ asix_mdio_read+0xaf/0xa40 drivers/net/usb/asix_common.c:499
+ asix_mdio_bus_read+0xba/0xe0 drivers/net/usb/asix_common.c:558
+
+CPU: 0 PID: 7 Comm: kworker/0:1 Not tainted 5.17.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+=====================================================

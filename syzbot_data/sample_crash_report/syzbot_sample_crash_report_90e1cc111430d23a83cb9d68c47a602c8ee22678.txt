@@ -1,0 +1,46 @@
+------------[ cut here ]------------
+do not call blocking ops when !TASK_RUNNING; state=2 set at [<00000000d8547871>] prepare_to_wait+0xb2/0x3f0 kernel/sched/wait.c:262
+WARNING: CPU: 1 PID: 18280 at kernel/sched/core.c:7848 __might_sleep+0x135/0x190 kernel/sched/core.c:7848
+Modules linked in:
+CPU: 1 PID: 18280 Comm: syz-executor.0 Not tainted 5.11.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__might_sleep+0x135/0x190 kernel/sched/core.c:7848
+Code: 65 48 8b 1c 25 00 f0 01 00 48 8d 7b 18 48 89 fe 48 c1 ee 03 80 3c 06 00 75 2b 48 8b 73 18 48 c7 c7 c0 3a 4b 89 e8 df 4f 6b 07 <0f> 0b e9 46 ff ff ff e8 af fb 67 00 e9 29 ff ff ff e8 a5 fb 67 00
+RSP: 0018:ffffc9000975f710 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: ffff88802b230000 RCX: 0000000000000000
+RDX: ffff88802b230000 RSI: ffffffff815b6b65 RDI: fffff520012ebed4
+RBP: ffffffff894b9a60 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff815afd3e R11: 0000000000000000 R12: 00000000000003a7
+R13: 0000000000000000 R14: ffff88802b7c21b0 R15: ffff88802b7c2190
+FS:  00007fa062306700(0000) GS:ffff8880b9f00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000052e8cc CR3: 000000001e87e000 CR4: 0000000000350ee0
+Call Trace:
+ __mutex_lock_common kernel/locking/mutex.c:935 [inline]
+ __mutex_lock+0xa9/0x1110 kernel/locking/mutex.c:1103
+ io_wq_submit_work+0x346/0x6f0 fs/io_uring.c:6411
+ io_run_cancel fs/io-wq.c:856 [inline]
+ io_wqe_cancel_pending_work fs/io-wq.c:990 [inline]
+ io_wq_cancel_cb+0x365/0x940 fs/io-wq.c:1027
+ io_uring_cancel_files fs/io_uring.c:8874 [inline]
+ io_uring_cancel_task_requests fs/io_uring.c:8952 [inline]
+ __io_uring_files_cancel+0xba1/0xfe0 fs/io_uring.c:9038
+ io_uring_files_cancel include/linux/io_uring.h:51 [inline]
+ do_exit+0x2fe/0x2ae0 kernel/exit.c:780
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ get_signal+0x427/0x20f0 kernel/signal.c:2773
+ arch_do_signal_or_restart+0x2a8/0x1eb0 arch/x86/kernel/signal.c:811
+ handle_signal_work kernel/entry/common.c:147 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x148/0x250 kernel/entry/common.c:201
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:291 [inline]
+ syscall_exit_to_user_mode+0x19/0x50 kernel/entry/common.c:302
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x45e219
+Code: 0d b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fa062305cf8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000000 RBX: 000000000119bf88 RCX: 000000000045e219
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 000000000119bf88
+RBP: 000000000119bf80 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000119bf8c
+R13: 00007ffc797e882f R14: 00007fa0623069c0 R15: 000000000119bf8c

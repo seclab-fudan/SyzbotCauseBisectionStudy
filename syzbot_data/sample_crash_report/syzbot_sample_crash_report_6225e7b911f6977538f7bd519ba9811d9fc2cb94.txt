@@ -1,0 +1,50 @@
+------------[ cut here ]------------
+kernel BUG at ./include/linux/mm.h:844!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 3654 Comm: syzkaller442918 Not tainted 4.15.0-rc7+ #260
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:get_page include/linux/mm.h:844 [inline]
+RIP: 0010:mon_bin_vma_fault+0x2f4/0x400 drivers/usb/mon/mon_bin.c:1239
+RSP: 0018:ffff8801d9fff510 EFLAGS: 00010203
+RAX: 0000000000000000 RBX: 1ffff1003b3ffea4 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 1ffff1003b3ffdee RDI: ffffed003b3ffe90
+RBP: ffff8801d9fff5e8 R08: 1ffff1003b3ffdb0 R09: 0000000000000000
+R10: dffffc0000000000 R11: 0000000000000000 R12: 1ffff1003b3ffea8
+R13: dffffc0000000000 R14: ffff8801d9fff840 R15: ffffea0006f08e80
+FS:  00007f2cd7754700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000208be000 CR3: 00000001bcf64001 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __do_fault+0xeb/0x30f mm/memory.c:3196
+ do_read_fault mm/memory.c:3606 [inline]
+ do_fault mm/memory.c:3706 [inline]
+ handle_pte_fault mm/memory.c:3937 [inline]
+ __handle_mm_fault+0x1d8f/0x3ce0 mm/memory.c:4061
+ handle_mm_fault+0x334/0x8d0 mm/memory.c:4098
+ faultin_page mm/gup.c:502 [inline]
+ __get_user_pages+0x50c/0x15f0 mm/gup.c:699
+ populate_vma_page_range+0x20e/0x2f0 mm/gup.c:1216
+ __mm_populate+0x23a/0x450 mm/gup.c:1266
+ mm_populate include/linux/mm.h:2226 [inline]
+ vm_mmap_pgoff+0x241/0x280 mm/util.c:338
+ SYSC_mmap_pgoff mm/mmap.c:1533 [inline]
+ SyS_mmap_pgoff+0x462/0x5f0 mm/mmap.c:1491
+ SYSC_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ SyS_mmap+0x16/0x20 arch/x86/kernel/sys_x86_64.c:91
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x449279
+RSP: 002b:00007f2cd7753d98 EFLAGS: 00000212 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 00000000006dac24 RCX: 0000000000449279
+RDX: 0000000001000004 RSI: 0000000000004000 RDI: 0000000020ac6000
+RBP: 0000000000000000 R08: 0000000000000008 R09: 0000000000000000
+R10: 0000000000008011 R11: 0000000000000212 R12: 00000000006dac20
+R13: 6273752f7665642f R14: 00007f2cd77549c0 R15: 0000000000000007
+Code: 00 44 89 e0 5b 41 5c 41 5d 41 5e 41 5f 5d c3 41 bc 02 00 00 00 eb bb e8 1b 2c 92 fd 48 c7 c6 00 00 13 86 4c 89 ff e8 6c 2b bb fd <0f> 0b 48 89 95 28 ff ff ff 48 89 85 30 ff ff ff e8 f7 2b 92 fd 
+RIP: get_page include/linux/mm.h:844 [inline] RSP: ffff8801d9fff510
+RIP: mon_bin_vma_fault+0x2f4/0x400 drivers/usb/mon/mon_bin.c:1239 RSP: ffff8801d9fff510
+---[ end trace 0a15022458cfcd78 ]---

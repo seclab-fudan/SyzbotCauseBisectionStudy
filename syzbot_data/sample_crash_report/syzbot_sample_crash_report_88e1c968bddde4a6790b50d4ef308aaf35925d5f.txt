@@ -1,0 +1,140 @@
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:201
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 19, name: ksoftirqd/1
+INFO: lockdep is turned off.
+Preemption disabled at:
+[<ffffffff896000e1>] softirq_handle_begin kernel/softirq.c:396 [inline]
+[<ffffffff896000e1>] __do_softirq+0xe1/0x9c2 kernel/softirq.c:534
+CPU: 1 PID: 19 Comm: ksoftirqd/1 Not tainted 5.15.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ ___might_sleep.cold+0x1f3/0x239 kernel/sched/core.c:9538
+ might_alloc include/linux/sched/mm.h:201 [inline]
+ slab_pre_alloc_hook mm/slab.h:492 [inline]
+ slab_alloc_node mm/slub.c:3120 [inline]
+ kmem_cache_alloc_node+0x32d/0x3d0 mm/slub.c:3242
+ __alloc_skb+0x20b/0x340 net/core/skbuff.c:414
+ alloc_skb_fclone include/linux/skbuff.h:1166 [inline]
+ sk_stream_alloc_skb+0x109/0xc30 net/ipv4/tcp.c:887
+ tcp_build_frag+0x5a5/0x1260 net/ipv4/tcp.c:980
+ mptcp_sendmsg_frag+0x93a/0x1bc0 net/mptcp/protocol.c:1349
+ __mptcp_subflow_push_pending+0x1b5/0xaf0 net/mptcp/protocol.c:1607
+ __mptcp_check_push+0x233/0x610 net/mptcp/protocol.c:2972
+ mptcp_incoming_options+0x7af/0x2230 net/mptcp/options.c:1100
+ tcp_data_queue+0x1640/0x4b90 net/ipv4/tcp_input.c:4982
+ tcp_rcv_established+0x8ad/0x2130 net/ipv4/tcp_input.c:5928
+ tcp_v6_do_rcv+0x41d/0x12b0 net/ipv6/tcp_ipv6.c:1517
+ tcp_v6_rcv+0x2412/0x2d00 net/ipv6/tcp_ipv6.c:1759
+ ip6_protocol_deliver_rcu+0x2e9/0x1ca0 net/ipv6/ip6_input.c:422
+ ip6_input_finish+0x62/0x170 net/ipv6/ip6_input.c:463
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ip6_input+0x9c/0xd0 net/ipv6/ip6_input.c:472
+ dst_input include/net/dst.h:460 [inline]
+ ip6_rcv_finish+0x1d7/0x310 net/ipv6/ip6_input.c:76
+ ip_sabotage_in net/bridge/br_netfilter_hooks.c:873 [inline]
+ ip_sabotage_in+0x206/0x270 net/bridge/br_netfilter_hooks.c:864
+ nf_hook_entry_hookfn include/linux/netfilter.h:142 [inline]
+ nf_hook_slow+0xc5/0x1e0 net/netfilter/core.c:589
+ nf_hook.constprop.0+0x3ac/0x650 include/linux/netfilter.h:262
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ipv6_rcv+0x9e/0x3c0 net/ipv6/ip6_input.c:297
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5436
+ __netif_receive_skb+0x24/0x1b0 net/core/dev.c:5550
+ netif_receive_skb_internal net/core/dev.c:5636 [inline]
+ netif_receive_skb+0x13e/0x8e0 net/core/dev.c:5695
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ br_pass_frame_up+0x2d2/0x3e0 net/bridge/br_input.c:61
+ br_handle_frame_finish+0x694/0x1850 net/bridge/br_input.c:174
+ br_nf_hook_thresh+0x2a5/0x360 net/bridge/br_netfilter_hooks.c:1025
+ br_nf_pre_routing_finish_ipv6+0x684/0xe00 net/bridge/br_netfilter_ipv6.c:206
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ br_nf_pre_routing_ipv6+0x42c/0x7b0 net/bridge/br_netfilter_ipv6.c:236
+ br_nf_pre_routing+0x1477/0x1ec0 net/bridge/br_netfilter_hooks.c:505
+ nf_hook_entry_hookfn include/linux/netfilter.h:142 [inline]
+ nf_hook_bridge_pre net/bridge/br_input.c:230 [inline]
+ br_handle_frame+0x8f8/0x1180 net/bridge/br_input.c:370
+ __netif_receive_skb_core+0x9da/0x3640 net/core/dev.c:5330
+ __netif_receive_skb_one_core+0xae/0x180 net/core/dev.c:5434
+ __netif_receive_skb+0x24/0x1b0 net/core/dev.c:5550
+ process_backlog+0x2a5/0x6c0 net/core/dev.c:6427
+ __napi_poll+0xaf/0x440 net/core/dev.c:6982
+ napi_poll net/core/dev.c:7049 [inline]
+ net_rx_action+0x801/0xb40 net/core/dev.c:7136
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ run_ksoftirqd kernel/softirq.c:920 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:912
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 19 at net/mptcp/protocol.c:1366 mptcp_sendmsg_frag+0x1362/0x1bc0 net/mptcp/protocol.c:1366
+Modules linked in:
+
+CPU: 1 PID: 19 Comm: ksoftirqd/1 Tainted: G        W         5.15.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:mptcp_sendmsg_frag+0x1362/0x1bc0 net/mptcp/protocol.c:1366
+Code: ff 4c 8b 74 24 50 48 8b 5c 24 58 e9 0f fb ff ff e8 03 18 8b f8 4c 89 e7 45 31 ed e8 58 5b 2e fe e9 81 f4 ff ff e8 ee 17 8b f8 <0f> 0b 41 bd ea ff ff ff e9 6f f4 ff ff 4c 89 e7 e8 29 61 d2 f8 e9
+RSP: 0018:ffffc90000d968e8 EFLAGS: 00010246
+
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000100
+RDX: ffff888011fb5580 RSI: ffffffff88eaf3d2 RDI: 0000000000000003
+RBP: ffff88801e7e7080 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff88eaea07 R11: 0000000000000000 R12: ffff88801ec5aa00
+R13: 0000000000006b58 R14: ffff888069588000 R15: ffff8880787ec680
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f55a7071cc2 CR3: 000000006f408000 CR4: 0000000000350ee0
+Call Trace:
+ __mptcp_subflow_push_pending+0x1b5/0xaf0 net/mptcp/protocol.c:1607
+ __mptcp_check_push+0x233/0x610 net/mptcp/protocol.c:2972
+ mptcp_incoming_options+0x7af/0x2230 net/mptcp/options.c:1100
+ tcp_data_queue+0x1640/0x4b90 net/ipv4/tcp_input.c:4982
+ tcp_rcv_established+0x8ad/0x2130 net/ipv4/tcp_input.c:5928
+ tcp_v6_do_rcv+0x41d/0x12b0 net/ipv6/tcp_ipv6.c:1517
+ tcp_v6_rcv+0x2412/0x2d00 net/ipv6/tcp_ipv6.c:1759
+ ip6_protocol_deliver_rcu+0x2e9/0x1ca0 net/ipv6/ip6_input.c:422
+ ip6_input_finish+0x62/0x170 net/ipv6/ip6_input.c:463
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ip6_input+0x9c/0xd0 net/ipv6/ip6_input.c:472
+ dst_input include/net/dst.h:460 [inline]
+ ip6_rcv_finish+0x1d7/0x310 net/ipv6/ip6_input.c:76
+ ip_sabotage_in net/bridge/br_netfilter_hooks.c:873 [inline]
+ ip_sabotage_in+0x206/0x270 net/bridge/br_netfilter_hooks.c:864
+ nf_hook_entry_hookfn include/linux/netfilter.h:142 [inline]
+ nf_hook_slow+0xc5/0x1e0 net/netfilter/core.c:589
+ nf_hook.constprop.0+0x3ac/0x650 include/linux/netfilter.h:262
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ipv6_rcv+0x9e/0x3c0 net/ipv6/ip6_input.c:297
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5436
+ __netif_receive_skb+0x24/0x1b0 net/core/dev.c:5550
+ netif_receive_skb_internal net/core/dev.c:5636 [inline]
+ netif_receive_skb+0x13e/0x8e0 net/core/dev.c:5695
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ br_pass_frame_up+0x2d2/0x3e0 net/bridge/br_input.c:61
+ br_handle_frame_finish+0x694/0x1850 net/bridge/br_input.c:174
+ br_nf_hook_thresh+0x2a5/0x360 net/bridge/br_netfilter_hooks.c:1025
+ br_nf_pre_routing_finish_ipv6+0x684/0xe00 net/bridge/br_netfilter_ipv6.c:206
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ br_nf_pre_routing_ipv6+0x42c/0x7b0 net/bridge/br_netfilter_ipv6.c:236
+ br_nf_pre_routing+0x1477/0x1ec0 net/bridge/br_netfilter_hooks.c:505
+ nf_hook_entry_hookfn include/linux/netfilter.h:142 [inline]
+ nf_hook_bridge_pre net/bridge/br_input.c:230 [inline]
+ br_handle_frame+0x8f8/0x1180 net/bridge/br_input.c:370
+ __netif_receive_skb_core+0x9da/0x3640 net/core/dev.c:5330
+ __netif_receive_skb_one_core+0xae/0x180 net/core/dev.c:5434
+ __netif_receive_skb+0x24/0x1b0 net/core/dev.c:5550
+ process_backlog+0x2a5/0x6c0 net/core/dev.c:6427
+ __napi_poll+0xaf/0x440 net/core/dev.c:6982
+ napi_poll net/core/dev.c:7049 [inline]
+ net_rx_action+0x801/0xb40 net/core/dev.c:7136
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ run_ksoftirqd kernel/softirq.c:920 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:912
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295

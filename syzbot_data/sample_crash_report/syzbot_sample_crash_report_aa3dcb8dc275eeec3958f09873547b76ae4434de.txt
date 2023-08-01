@@ -1,0 +1,68 @@
+audit: type=1400 audit(1519982868.404:7): avc:  denied  { map } for  pid=4219 comm="syzkaller422792" path="/root/syzkaller422792076" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+TCP: request_sock_TCP: Possible SYN flooding on port 20003. Sending cookies.  Check SNMP counters.
+
+============================================
+WARNING: possible recursive locking detected
+4.16.0-rc3+ #335 Not tainted
+--------------------------------------------
+syzkaller422792/4223 is trying to acquire lock:
+ (sk_lock-AF_SMC){+.+.}, at: [<0000000061eecceb>] lock_sock include/net/sock.h:1463 [inline]
+ (sk_lock-AF_SMC){+.+.}, at: [<0000000061eecceb>] smc_close_non_accepted+0x1d/0x370 net/smc/af_smc.c:693
+
+but task is already holding lock:
+ (sk_lock-AF_SMC){+.+.}, at: [<000000001eb3fef6>] lock_sock include/net/sock.h:1463 [inline]
+ (sk_lock-AF_SMC){+.+.}, at: [<000000001eb3fef6>] smc_close_wait_listen_clcsock net/smc/smc_close.c:47 [inline]
+ (sk_lock-AF_SMC){+.+.}, at: [<000000001eb3fef6>] smc_close_active+0x8d9/0x11f0 net/smc/smc_close.c:207
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(sk_lock-AF_SMC);
+  lock(sk_lock-AF_SMC);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+1 lock held by syzkaller422792/4223:
+ #0:  (sk_lock-AF_SMC){+.+.}, at: [<000000001eb3fef6>] lock_sock include/net/sock.h:1463 [inline]
+ #0:  (sk_lock-AF_SMC){+.+.}, at: [<000000001eb3fef6>] smc_close_wait_listen_clcsock net/smc/smc_close.c:47 [inline]
+ #0:  (sk_lock-AF_SMC){+.+.}, at: [<000000001eb3fef6>] smc_close_active+0x8d9/0x11f0 net/smc/smc_close.c:207
+
+stack backtrace:
+CPU: 1 PID: 4223 Comm: syzkaller422792 Not tainted 4.16.0-rc3+ #335
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_deadlock_bug kernel/locking/lockdep.c:1761 [inline]
+ check_deadlock kernel/locking/lockdep.c:1805 [inline]
+ validate_chain kernel/locking/lockdep.c:2401 [inline]
+ __lock_acquire+0xe8f/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ lock_sock_nested+0xc2/0x110 net/core/sock.c:2777
+ lock_sock include/net/sock.h:1463 [inline]
+ smc_close_non_accepted+0x1d/0x370 net/smc/af_smc.c:693
+ smc_close_cleanup_listen net/smc/smc_close.c:30 [inline]
+ smc_close_active+0x9aa/0x11f0 net/smc/smc_close.c:209
+ smc_release+0x379/0x580 net/smc/af_smc.c:127
+ sock_release+0x8d/0x1e0 net/socket.c:595
+ sock_close+0x16/0x20 net/socket.c:1149
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x73a/0x16d0 kernel/signal.c:2469
+ do_signal+0x90/0x1e90 arch/x86/kernel/signal.c:809
+ exit_to_usermode_loop+0x258/0x2f0 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+ do_syscall_64+0x6ec/0x940 arch/x86/entry/common.c:292
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x445659
+RSP: 002b:00007f7678acbdb8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 00000000006dac6c

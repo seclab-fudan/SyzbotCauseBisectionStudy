@@ -1,0 +1,89 @@
+BUG: KASAN: slab-out-of-bounds in tipc_nametbl_lookup_dst_nodes+0x4a3/0x4b0 net/tipc/name_table.c:670
+Read of size 4 at addr ffff8801d2fb0590 by task syzkaller046591/2986
+
+CPU: 1 PID: 2986 Comm: syzkaller046591 Not tainted 4.13.0+ #75
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ tipc_nametbl_lookup_dst_nodes+0x4a3/0x4b0 net/tipc/name_table.c:670
+ tipc_sendmcast+0x704/0xe30 net/tipc/socket.c:767
+ __tipc_sendmsg+0xf49/0x1590 net/tipc/socket.c:971
+ __tipc_sendstream+0x8eb/0xc00 net/tipc/socket.c:1065
+ tipc_sendstream+0x50/0x70 net/tipc/socket.c:1039
+ tipc_send_packet+0x33/0x50 net/tipc/socket.c:1113
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ ___sys_sendmsg+0x75b/0x8a0 net/socket.c:2049
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2083
+ SYSC_sendmsg net/socket.c:2094 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2090
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x43fd79
+RSP: 002b:00007ffc54515d78 EFLAGS: 00000203 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd79
+RDX: 0000000000000004 RSI: 00000000207ca000 RDI: 0000000000000003
+RBP: 0000000000000082 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000203 R12: 00000000004016e0
+R13: 0000000000401770 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 1:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3627
+ kmalloc include/linux/slab.h:493 [inline]
+ kmalloc_array include/linux/slab.h:611 [inline]
+ kcalloc include/linux/slab.h:623 [inline]
+ tipc_subseq_alloc net/tipc/name_table.c:141 [inline]
+ tipc_nameseq_create+0xe8/0x540 net/tipc/name_table.c:152
+ tipc_nametbl_insert_publ+0xf77/0x17c0 net/tipc/name_table.c:476
+ tipc_nametbl_publish+0x2aa/0x4f0 net/tipc/name_table.c:701
+ tipc_sk_publish net/tipc/socket.c:2201 [inline]
+ tipc_bind+0x33a/0x700 net/tipc/socket.c:629
+ kernel_bind+0x62/0x80 net/socket.c:3285
+ tipc_create_listen_sock net/tipc/server.c:337 [inline]
+ tipc_open_listening_sock net/tipc/server.c:395 [inline]
+ tipc_server_start+0x3a1/0xb60 net/tipc/server.c:610
+ tipc_topsrv_start+0x64f/0x890 net/tipc/subscr.c:382
+ tipc_init_net+0x3cc/0x570 net/tipc/core.c:74
+ ops_init+0x10a/0x570 net/core/net_namespace.c:118
+ __register_pernet_operations net/core/net_namespace.c:879 [inline]
+ register_pernet_operations+0x45e/0x980 net/core/net_namespace.c:953
+ register_pernet_subsys+0x2a/0x40 net/core/net_namespace.c:995
+ tipc_init+0x83/0x104 net/tipc/core.c:136
+ do_one_initcall+0x9e/0x330 init/main.c:825
+ do_initcall_level init/main.c:891 [inline]
+ do_initcalls init/main.c:899 [inline]
+ do_basic_setup init/main.c:917 [inline]
+ kernel_init_freeable+0x469/0x521 init/main.c:1065
+ kernel_init+0x13/0x172 init/main.c:992
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801d2fb0580
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 16 bytes inside of
+ 32-byte region [ffff8801d2fb0580, ffff8801d2fb05a0)
+The buggy address belongs to the page:
+page:ffffea00074bec00 count:1 mapcount:0 mapping:ffff8801d2fb0000 index:0xffff8801d2fb0fc1
+flags: 0x200000000000100(slab)
+raw: 0200000000000100 ffff8801d2fb0000 ffff8801d2fb0fc1 000000010000003f
+raw: ffffea000750f560 ffffea00074a0320 ffff8801dac001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d2fb0480: 04 fc fc fc fc fc fc fc 00 06 fc fc fc fc fc fc
+ ffff8801d2fb0500: 00 00 00 fc fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801d2fb0580: 00 00 fc fc fc fc fc fc 00 00 00 00 fc fc fc fc
+                         ^
+ ffff8801d2fb0600: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801d2fb0680: 00 00 00 fc fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

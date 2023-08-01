@@ -1,0 +1,47 @@
+INFO: trying to register non-static key.
+The code is fine but needs lockdep annotation, or maybe
+you didn't initialize this object before use?
+turning off the locking correctness validator.
+CPU: 0 PID: 3115 Comm: syz-executor166 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ assign_lock_key+0x134/0x140 kernel/locking/lockdep.c:981
+ register_lock_class+0xc4/0x2f8 kernel/locking/lockdep.c:1294
+ __lock_acquire+0xa8/0x3084 kernel/locking/lockdep.c:4934
+ lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5668
+ __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+ _raw_spin_lock+0x54/0x6c kernel/locking/spinlock.c:154
+ spin_lock include/linux/spinlock.h:350 [inline]
+ hfsplus_release_folio+0x12c/0x214 fs/hfsplus/inode.c:110
+ filemap_release_folio+0xc0/0x238 mm/filemap.c:3948
+ block_invalidate_folio+0x1f4/0x3c4 fs/buffer.c:1526
+ folio_invalidate mm/truncate.c:159 [inline]
+ truncate_cleanup_folio+0xd4/0x334 mm/truncate.c:179
+ truncate_inode_pages_range+0x148/0xb8c mm/truncate.c:369
+ truncate_inode_pages mm/truncate.c:452 [inline]
+ truncate_inode_pages_final+0x8c/0x9c mm/truncate.c:487
+ hfsplus_evict_inode+0x20/0x68 fs/hfsplus/super.c:168
+ evict+0xec/0x334 fs/inode.c:664
+ iput_final fs/inode.c:1747 [inline]
+ iput+0x2c4/0x324 fs/inode.c:1773
+ hfsplus_put_super+0xb4/0xec fs/hfsplus/super.c:302
+ generic_shutdown_super+0x94/0x198 fs/super.c:492
+ kill_block_super+0x30/0x78 fs/super.c:1428
+ deactivate_locked_super+0x70/0xe8 fs/super.c:332
+ deactivate_super+0xd0/0xd4 fs/super.c:363
+ cleanup_mnt+0x184/0x1c0 fs/namespace.c:1186
+ __cleanup_mnt+0x20/0x30 fs/namespace.c:1193
+ task_work_run+0x100/0x148 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ do_notify_resume+0x174/0x1f0 arch/arm64/kernel/signal.c:1132
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:638
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+hfsplus: request for non-existent node 0 in B*Tree

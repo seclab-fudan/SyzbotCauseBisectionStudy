@@ -1,0 +1,65 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 9810 Comm: syz-executor556 Not tainted 5.2.0+ #65
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:kernfs_add_one+0x343/0x4d0 fs/kernfs/dir.c:813
+Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 52 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b 5b 70 48 8d 7b 08 48 89 fa 48 c1 ea 03 <0f> b6 04 02 84 c0 74 08 3c 03 0f 8e 1f 01 00 00 8b 5b 08 31 ff 83
+RSP: 0018:ffff888098587828 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff8733d3b8
+RDX: 0000000000000001 RSI: ffffffff81da8c9b RDI: 0000000000000008
+RBP: ffff888098587868 R08: 1ffffffff11d3a30 R09: fffffbfff11d3a31
+R10: fffffbfff11d3a30 R11: ffffffff88e9d187 R12: ffff8880a75cf8c0
+R13: ffff8880a75cf8c0 R14: 0000000000000000 R15: 0000000000000000
+FS:  00007fac2da35700(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fc46a998000 CR3: 0000000096584000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ kernfs_create_dir_ns+0xff/0x160 fs/kernfs/dir.c:1032
+ sysfs_create_dir_ns+0x131/0x2a0 fs/sysfs/dir.c:59
+ create_dir lib/kobject.c:89 [inline]
+ kobject_add_internal lib/kobject.c:255 [inline]
+ kobject_add_internal.cold+0x116/0x662 lib/kobject.c:225
+ kobject_add_varg lib/kobject.c:390 [inline]
+ kobject_add+0x150/0x1c0 lib/kobject.c:442
+ device_add+0x3b7/0x17a0 drivers/base/core.c:2062
+ hci_register_dev+0x2e8/0x8f0 net/bluetooth/hci_core.c:3307
+ __vhci_create_device+0x2c5/0x5d0 drivers/bluetooth/hci_vhci.c:124
+ vhci_create_device drivers/bluetooth/hci_vhci.c:148 [inline]
+ vhci_get_user drivers/bluetooth/hci_vhci.c:204 [inline]
+ vhci_write+0x2d0/0x470 drivers/bluetooth/hci_vhci.c:284
+ call_write_iter include/linux/fs.h:1870 [inline]
+ new_sync_write+0x4d3/0x770 fs/read_write.c:483
+ __vfs_write+0xe1/0x110 fs/read_write.c:496
+ vfs_write+0x20c/0x580 fs/read_write.c:558
+ ksys_write+0x14f/0x290 fs/read_write.c:611
+ __do_sys_write fs/read_write.c:623 [inline]
+ __se_sys_write fs/read_write.c:620 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:620
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x447109
+Code: e8 ec e7 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 8b 06 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fac2da34db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000006dcc28 RCX: 0000000000447109
+RDX: 0000000000000002 RSI: 0000000020000100 RDI: 0000000000000003
+RBP: 00000000006dcc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dcc2c
+R13: 00007fff0ed925bf R14: 00007fac2da359c0 R15: 00000000006dcc2c
+Modules linked in:
+---[ end trace 187fd9b7585db0f0 ]---
+RIP: 0010:kernfs_add_one+0x343/0x4d0 fs/kernfs/dir.c:813
+Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 52 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b 5b 70 48 8d 7b 08 48 89 fa 48 c1 ea 03 <0f> b6 04 02 84 c0 74 08 3c 03 0f 8e 1f 01 00 00 8b 5b 08 31 ff 83
+RSP: 0018:ffff888098587828 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff8733d3b8
+RDX: 0000000000000001 RSI: ffffffff81da8c9b RDI: 0000000000000008
+RBP: ffff888098587868 R08: 1ffffffff11d3a30 R09: fffffbfff11d3a31
+R10: fffffbfff11d3a30 R11: ffffffff88e9d187 R12: ffff8880a75cf8c0
+R13: ffff8880a75cf8c0 R14: 0000000000000000 R15: 0000000000000000
+FS:  00007fac2da35700(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fc46a999000 CR3: 0000000096584000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

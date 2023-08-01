@@ -1,0 +1,52 @@
+=====================================================
+BUG: KMSAN: use-after-free in rt6_uncached_list_del net/ipv6/route.c:152 [inline]
+BUG: KMSAN: use-after-free in ip6_dst_destroy+0x5d8/0x720 net/ipv6/route.c:374
+CPU: 0 PID: 9 Comm: ksoftirqd/0 Not tainted 5.6.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ rt6_uncached_list_del net/ipv6/route.c:152 [inline]
+ ip6_dst_destroy+0x5d8/0x720 net/ipv6/route.c:374
+ dst_destroy+0x1f5/0x5c0 net/core/dst.c:120
+ dst_destroy_rcu+0x46/0x50 net/core/dst.c:142
+ rcu_do_batch kernel/rcu/tree.c:2186 [inline]
+ rcu_core+0xb8a/0x19f0 kernel/rcu/tree.c:2410
+ rcu_core_si+0xe/0x10 kernel/rcu/tree.c:2419
+ __do_softirq+0x311/0x83d kernel/softirq.c:293
+ run_ksoftirqd+0x25/0x40 kernel/softirq.c:607
+ smpboot_thread_fn+0x493/0x980 kernel/smpboot.c:165
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:353
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_poison_shadow+0x66/0xd0 mm/kmsan/kmsan.c:127
+ kmsan_slab_free+0x6e/0xb0 mm/kmsan/kmsan_hooks.c:107
+ slab_free_freelist_hook mm/slub.c:1477 [inline]
+ slab_free mm/slub.c:3040 [inline]
+ kfree+0x565/0x30a0 mm/slub.c:3993
+ __netdev_name_node_alt_destroy net/core/dev.c:322 [inline]
+ netdev_name_node_alt_destroy+0x587/0x690 net/core/dev.c:334
+ rtnl_alt_ifname net/core/rtnetlink.c:3518 [inline]
+ rtnl_linkprop+0x939/0xc00 net/core/rtnetlink.c:3567
+ rtnl_dellinkprop+0x9d/0xb0 net/core/rtnetlink.c:3588
+ rtnetlink_rcv_msg+0x1153/0x1570 net/core/rtnetlink.c:5438
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x50/0x60 net/core/rtnetlink.c:5456
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2343
+ ___sys_sendmsg net/socket.c:2397 [inline]
+ __sys_sendmsg+0x451/0x5f0 net/socket.c:2430
+ __do_sys_sendmsg net/socket.c:2439 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2437
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2437
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+=====================================================

@@ -1,0 +1,86 @@
+KASAN: use-after-free Read in del_timer_syncNon-volatile memory driver v1.3
+Linux agpgart interface v0.103
+[drm] Initialized vgem 1.0.0 20120112 for virtual device on minor 0
+usbcore: registered new interface driver udl
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x36d9/0x4c20 kernel/locking/lockdep.c:3218
+Read of size 8 at addr ffff8801d1b6b540 by task swapper/0/1
+
+CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.19.0+ #88
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __lock_acquire+0x36d9/0x4c20 kernel/locking/lockdep.c:3218
+ lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+ del_timer_sync+0xb7/0x270 kernel/time/timer.c:1283
+ blk_cleanup_queue+0x413/0x710 block/blk-core.c:809
+ brd_free+0x5d/0x71 drivers/block/brd.c:422
+ brd_init+0x2eb/0x393 drivers/block/brd.c:518
+ do_one_initcall+0x145/0x957 init/main.c:890
+ do_initcall_level init/main.c:958 [inline]
+ do_initcalls init/main.c:966 [inline]
+ do_basic_setup init/main.c:984 [inline]
+ kernel_init_freeable+0x5c6/0x6b9 init/main.c:1148
+ kernel_init+0x11/0x1ae init/main.c:1068
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:350
+
+Allocated by task 1:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_node_trace+0x14c/0x740 mm/slab.c:3663
+ kmalloc_node include/linux/slab.h:584 [inline]
+ bdi_alloc_node+0x89/0xe0 mm/backing-dev.c:861
+ blk_alloc_queue_node+0x2b7/0xe80 block/blk-core.c:1024
+ blk_alloc_queue+0x1a/0x20 block/blk-core.c:911
+ brd_alloc+0xb9/0x540 drivers/block/brd.c:378
+ brd_init+0x11d/0x393 drivers/block/brd.c:498
+ do_one_initcall+0x145/0x957 init/main.c:890
+ do_initcall_level init/main.c:958 [inline]
+ do_initcalls init/main.c:966 [inline]
+ do_basic_setup init/main.c:984 [inline]
+ kernel_init_freeable+0x5c6/0x6b9 init/main.c:1148
+ kernel_init+0x11/0x1ae init/main.c:1068
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:350
+
+Freed by task 12:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ release_bdi mm/backing-dev.c:968 [inline]
+ kref_put include/linux/kref.h:70 [inline]
+ bdi_put+0x138/0x180 mm/backing-dev.c:973
+ blk_exit_queue+0xbf/0xf0 block/blk-core.c:746
+ __blk_release_queue+0x12f/0x510 block/blk-sysfs.c:841
+ process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
+ worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+ kthread+0x35a/0x440 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:350
+
+The buggy address belongs to the object at ffff8801d1b6ae80
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 1728 bytes inside of
+ 2048-byte region [ffff8801d1b6ae80, ffff8801d1b6b680)
+The buggy address belongs to the page:
+page:ffffea000746da80 count:1 mapcount:0 mapping:ffff8801da800c40 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000010200(slab|head)
+raw: 02fffc0000010200 ffffea000746da08 ffffea000746dc08 ffff8801da800c40
+raw: 0000000000000000 ffff8801d1b6a600 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d1b6b400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d1b6b480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801d1b6b500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                           ^
+ ffff8801d1b6b580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d1b6b600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

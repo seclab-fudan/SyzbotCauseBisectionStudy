@@ -1,0 +1,52 @@
+==================================================================
+BUG: KCSAN: data-race in start_this_handle / start_this_handle
+
+write to 0xffff88814462b070 of 8 bytes by task 26818 on cpu 1:
+ jbd2_get_transaction fs/jbd2/transaction.c:125 [inline]
+ start_this_handle+0xceb/0x1010 fs/jbd2/transaction.c:400
+ jbd2__journal_start+0x1fc/0x3f0 fs/jbd2/transaction.c:503
+ __ext4_journal_start_sb+0x159/0x310 fs/ext4/ext4_jbd2.c:105
+ __ext4_journal_start fs/ext4/ext4_jbd2.h:320 [inline]
+ ext4_da_write_begin+0x460/0xaf0 fs/ext4/inode.c:2998
+ generic_perform_write+0x196/0x3a0 mm/filemap.c:3575
+ ext4_buffered_write_iter+0x2e5/0x3e0 fs/ext4/file.c:269
+ ext4_file_write_iter+0x48a/0x10b0 fs/ext4/file.c:502
+ call_write_iter include/linux/fs.h:1977 [inline]
+ do_iter_readv_writev+0x2cb/0x360 fs/read_write.c:740
+ do_iter_write+0x112/0x4c0 fs/read_write.c:866
+ vfs_iter_write+0x4c/0x70 fs/read_write.c:907
+ ovl_write_iter+0x62f/0x8f0 fs/overlayfs/file.c:358
+ call_write_iter include/linux/fs.h:1977 [inline]
+ do_iter_readv_writev+0x2cb/0x360 fs/read_write.c:740
+ do_iter_write+0x112/0x4c0 fs/read_write.c:866
+ vfs_iter_write+0x4c/0x70 fs/read_write.c:907
+ iter_file_splice_write+0x40a/0x750 fs/splice.c:689
+ do_splice_from fs/splice.c:767 [inline]
+ direct_splice_actor+0x80/0xa0 fs/splice.c:936
+ splice_direct_to_actor+0x345/0x650 fs/splice.c:891
+ do_splice_direct+0xf5/0x170 fs/splice.c:979
+ do_sendfile+0x7a6/0xe20 fs/read_write.c:1260
+ __do_sys_sendfile64 fs/read_write.c:1319 [inline]
+ __se_sys_sendfile64 fs/read_write.c:1311 [inline]
+ __x64_sys_sendfile64+0xa9/0x130 fs/read_write.c:1311
+ do_syscall_64+0x39/0x80 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+read to 0xffff88814462b070 of 8 bytes by task 26835 on cpu 0:
+ start_this_handle+0x1c1/0x1010 fs/jbd2/transaction.c:352
+ jbd2__journal_start+0x1fc/0x3f0 fs/jbd2/transaction.c:503
+ __ext4_journal_start_sb+0x159/0x310 fs/ext4/ext4_jbd2.c:105
+ __ext4_new_inode+0xc6c/0x2fe0 fs/ext4/ialloc.c:1077
+ ext4_symlink+0x2d1/0x780 fs/ext4/namei.c:3347
+ vfs_symlink+0xbe/0x170 fs/namei.c:4176
+ do_symlinkat+0x11e/0x2b0 fs/namei.c:4206
+ __do_sys_symlink fs/namei.c:4227 [inline]
+ __se_sys_symlink fs/namei.c:4225 [inline]
+ __x64_sys_symlink+0x32/0x40 fs/namei.c:4225
+ do_syscall_64+0x39/0x80 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 26835 Comm: syz-executor.5 Not tainted 5.12.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

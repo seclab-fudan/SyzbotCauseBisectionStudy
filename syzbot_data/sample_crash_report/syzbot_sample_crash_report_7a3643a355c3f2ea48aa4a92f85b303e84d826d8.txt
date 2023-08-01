@@ -1,0 +1,161 @@
+usb 1-1: reset full-speed USB device number 2 using dummy_hcd
+usb 1-1: device descriptor read/64, error -71
+usb 1-1: unable to get BOS descriptor or descriptor too short
+zd1211rw 1-1:0.22: phy1
+zd1211rw 1-1:0.144: error ioread32(CR_REG1): -11
+============================================
+WARNING: possible recursive locking detected
+6.1.0-rc3-syzkaller-00026-ga8bc8cc193c6 #0 Not tainted
+--------------------------------------------
+kworker/0:2/71 is trying to acquire lock:
+ffff888111dd5f90 (&chip->mutex){+.+.}-{3:3}, at: zd_chip_disable_rxtx+0x1c/0x40 drivers/net/wireless/zydas/zd1211rw/zd_chip.c:1465
+
+but task is already holding lock:
+ffff88811dd6df90 (&chip->mutex){+.+.}-{3:3}, at: pre_reset+0x20f/0x280 drivers/net/wireless/zydas/zd1211rw/zd_usb.c:1503
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&chip->mutex);
+  lock(&chip->mutex);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+6 locks held by kworker/0:2/71:
+ #0: ffff888109c85138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888109c85138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888109c85138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888109c85138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff888109c85138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff888109c85138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: process_one_work+0x86d/0x1710 kernel/workqueue.c:2260
+ #1: ffffc90001477da8 ((work_completion)(&hub->events)){+.+.}-{0:0}, at: process_one_work+0x8a1/0x1710 kernel/workqueue.c:2264
+ #2: ffff88810f8eb190 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #2: ffff88810f8eb190 (&dev->mutex){....}-{3:3}, at: hub_event+0x1bc/0x45c0 drivers/usb/core/hub.c:5681
+ #3: ffff888110401190 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #3: ffff888110401190 (&dev->mutex){....}-{3:3}, at: __device_attach+0x76/0x530 drivers/base/dd.c:983
+ #4: ffff888110405118 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #4: ffff888110405118 (&dev->mutex){....}-{3:3}, at: __device_attach+0x76/0x530 drivers/base/dd.c:983
+ #5: ffff88811dd6df90 (&chip->mutex){+.+.}-{3:3}, at: pre_reset+0x20f/0x280 drivers/net/wireless/zydas/zd1211rw/zd_usb.c:1503
+
+stack backtrace:
+CPU: 0 PID: 71 Comm: kworker/0:2 Not tainted 6.1.0-rc3-syzkaller-00026-ga8bc8cc193c6 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_deadlock_bug kernel/locking/lockdep.c:2990 [inline]
+ check_deadlock kernel/locking/lockdep.c:3033 [inline]
+ validate_chain kernel/locking/lockdep.c:3818 [inline]
+ __lock_acquire.cold+0x116/0x3a7 kernel/locking/lockdep.c:5055
+ lock_acquire kernel/locking/lockdep.c:5668 [inline]
+ lock_acquire+0x1df/0x630 kernel/locking/lockdep.c:5633
+ __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+ __mutex_lock+0x12f/0x1350 kernel/locking/mutex.c:747
+ zd_chip_disable_rxtx+0x1c/0x40 drivers/net/wireless/zydas/zd1211rw/zd_chip.c:1465
+ zd_op_stop+0x60/0x1a0 drivers/net/wireless/zydas/zd1211rw/zd_mac.c:343
+ zd_usb_stop drivers/net/wireless/zydas/zd1211rw/zd_usb.c:1478 [inline]
+ pre_reset+0x195/0x280 drivers/net/wireless/zydas/zd1211rw/zd_usb.c:1501
+ usb_reset_device+0x417/0xac0 drivers/usb/core/hub.c:6108
+ probe+0x10f/0x590 drivers/net/wireless/zydas/zd1211rw/zd_usb.c:1370
+ usb_probe_interface+0x30b/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d0/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbd5/0x1e90 drivers/base/core.c:3517
+ usb_set_configuration+0x1019/0x1900 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd4/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d0/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbd5/0x1e90 drivers/base/core.c:3517
+ usb_new_device.cold+0x685/0x10ad drivers/usb/core/hub.c:2573
+ hub_port_connect drivers/usb/core/hub.c:5353 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5497 [inline]
+ port_event drivers/usb/core/hub.c:5653 [inline]
+ hub_event+0x26c7/0x45c0 drivers/usb/core/hub.c:5735
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2ea/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+zd1211rw 1-1:0.22: error ioread32(CR_REG1): -11
+usb 1-1: reset full-speed USB device number 2 using dummy_hcd
+usb 1-1: unable to get BOS descriptor or descriptor too short
+ieee80211 phy2: Selected rate control algorithm 'minstrel_ht'
+zd1211rw 1-1:0.243: phy2
+usb 1-1: USB disconnect, device number 2
+usb 1-1: new full-speed USB device number 3 using dummy_hcd
+usb 1-1: unable to get BOS descriptor or descriptor too short
+usb 1-1: not running at top speed; connect to a high speed hub
+usb 1-1: config 0 has an invalid interface number: 144 but max is 1
+usb 1-1: config 0 has an invalid interface number: 22 but max is 1
+usb 1-1: config 0 has an invalid interface association descriptor of length 2, skipping
+usb 1-1: config 0 contains an unexpected descriptor of type 0x2, skipping
+usb 1-1: config 0 has an invalid interface number: 243 but max is 1
+usb 1-1: config 0 has 3 interfaces, different from the descriptor's value: 2
+usb 1-1: config 0 has no interface number 0
+usb 1-1: config 0 has no interface number 1
+usb 1-1: config 0 has no interface number 2
+usb 1-1: config 0 interface 144 altsetting 1 endpoint 0xC has invalid maxpacket 1023, setting to 64
+usb 1-1: config 0 interface 144 altsetting 1 endpoint 0x4 has invalid maxpacket 1024, setting to 64
+usb 1-1: config 0 interface 22 altsetting 0 endpoint 0xD has invalid maxpacket 1024, setting to 64
+usb 1-1: config 0 interface 22 altsetting 0 has an invalid endpoint with address 0x80, skipping
+usb 1-1: config 0 interface 22 altsetting 0 has a duplicate endpoint with address 0xC, skipping
+usb 1-1: config 0 interface 22 altsetting 0 endpoint 0x6 has invalid maxpacket 1024, setting to 64
+usb 1-1: config 0 interface 22 altsetting 0 has a duplicate endpoint with address 0xD, skipping
+usb 1-1: config 0 interface 22 altsetting 0 has a duplicate endpoint with address 0x4, skipping
+usb 1-1: config 0 interface 22 altsetting 0 has a duplicate endpoint with address 0xD, skipping
+usb 1-1: config 0 interface 22 altsetting 0 has a duplicate endpoint with address 0xC, skipping
+usb 1-1: config 0 interface 22 altsetting 0 endpoint 0xA has invalid maxpacket 503, setting to 64
+usb 1-1: config 0 interface 22 altsetting 0 has an invalid endpoint with address 0x80, skipping
+usb 1-1: config 0 interface 22 altsetting 0 has a duplicate endpoint with address 0xE, skipping
+usb 1-1: config 0 interface 22 altsetting 0 endpoint 0x1 has invalid maxpacket 1024, setting to 64
+usb 1-1: config 0 interface 22 altsetting 0 has an invalid endpoint with address 0x0, skipping
+usb 1-1: config 0 interface 22 altsetting 0 has 13 endpoint descriptors, different from the interface descriptor's value: 16
+usb 1-1: too many endpoints for config 0 interface 243 altsetting 168: 112, using maximum allowed: 30
+usb 1-1: config 0 interface 243 altsetting 168 has a duplicate endpoint with address 0x6, skipping
+usb 1-1: config 0 interface 243 altsetting 168 endpoint 0xF has invalid maxpacket 512, setting to 64
+usb 1-1: config 0 interface 243 altsetting 168 has an invalid endpoint with address 0x0, skipping
+usb 1-1: config 0 interface 243 altsetting 168 has 3 endpoint descriptors, different from the interface descriptor's value: 112
+usb 1-1: config 0 interface 144 has no altsetting 0
+usb 1-1: config 0 interface 243 has no altsetting 0
+usb 1-1: string descriptor 0 read error: -22
+usb 1-1: New USB device found, idVendor=0471, idProduct=1237, bcdDevice=d0.1f
+usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 1-1: config 0 descriptor??
+usb 1-1: reset full-speed USB device number 3 using dummy_hcd
+usb 1-1: device descriptor read/64, error -71
+usb 1-1: unable to get BOS descriptor or descriptor too short
+ieee80211 phy3: Selected rate control algorithm 'minstrel_ht'
+zd1211rw 1-1:0.144: phy3
+zd1211rw 1-1:0.144: error ioread32(CR_REG1): -11
+usb 1-1: reset full-speed USB device number 3 using dummy_hcd
+usb 1-1: device descriptor read/64, error -71
+usb 1-1: unable to get BOS descriptor or descriptor too short
+ieee80211 phy4: Selected rate control algorithm 'minstrel_ht'
+zd1211rw 1-1:0.22: phy4
+zd1211rw 1-1:0.144: error ioread32(CR_REG1): -11
+zd1211rw 1-1:0.22: error ioread32(CR_REG1): -11
+usb 1-1: reset full-speed USB device number 3 using dummy_hcd
+usb 1-1: device descriptor read/64, error -71
+usb 1-1: unable to get BOS descriptor or descriptor too short
+ieee80211 phy5: Selected rate control algorithm 'minstrel_ht'
+zd1211rw 1-1:0.243: phy5
+usb 1-1: USB disconnect, device number 3

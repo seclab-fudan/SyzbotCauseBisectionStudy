@@ -1,0 +1,59 @@
+EXT4-fs (loop0): unmounting filesystem.
+=====================================================
+BUG: KMSAN: uninit-value in ext4_evict_inode+0xdd/0x26b0 fs/ext4/inode.c:180
+ ext4_evict_inode+0xdd/0x26b0 fs/ext4/inode.c:180
+ evict+0x365/0x9a0 fs/inode.c:664
+ iput_final fs/inode.c:1747 [inline]
+ iput+0x985/0xdd0 fs/inode.c:1773
+ ext4_mb_release+0x1058/0x1910 fs/ext4/mballoc.c:3553
+ ext4_put_super+0x42b/0x1a60 fs/ext4/super.c:1230
+ generic_shutdown_super+0x18c/0x570 fs/super.c:492
+ kill_block_super+0x8d/0x180 fs/super.c:1428
+ deactivate_locked_super+0xb1/0x120 fs/super.c:332
+ deactivate_super+0x13a/0x150 fs/super.c:363
+ cleanup_mnt+0x6b5/0x730 fs/namespace.c:1186
+ __cleanup_mnt+0x1e/0x30 fs/namespace.c:1193
+ task_work_run+0x229/0x2c0 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop+0x2a9/0x320 kernel/entry/common.c:171
+ exit_to_user_mode_prepare+0x16e/0x220 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x23/0x40 kernel/entry/common.c:296
+ __do_fast_syscall_32+0xb1/0x100 arch/x86/entry/common.c:181
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Uninit was created at:
+ __alloc_pages+0x9f1/0xe80 mm/page_alloc.c:5581
+ alloc_pages+0xaae/0xd80 mm/mempolicy.c:2285
+ alloc_slab_page mm/slub.c:1794 [inline]
+ allocate_slab+0x22e/0x1180 mm/slub.c:1939
+ new_slab mm/slub.c:1992 [inline]
+ ___slab_alloc+0x10c3/0x2d60 mm/slub.c:3180
+ __slab_alloc mm/slub.c:3279 [inline]
+ slab_alloc_node mm/slub.c:3364 [inline]
+ slab_alloc mm/slub.c:3406 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3413 [inline]
+ kmem_cache_alloc_lru+0x6f3/0xb30 mm/slub.c:3429
+ alloc_inode_sb include/linux/fs.h:3125 [inline]
+ ext4_alloc_inode+0x5f/0x860 fs/ext4/super.c:1321
+ alloc_inode+0x83/0x440 fs/inode.c:259
+ new_inode_pseudo fs/inode.c:1018 [inline]
+ new_inode+0x3b/0x430 fs/inode.c:1046
+ __ext4_new_inode+0x2a7/0x7ec0 fs/ext4/ialloc.c:959
+ ext4_symlink+0x57e/0x13d0 fs/ext4/namei.c:3369
+ vfs_symlink+0x41c/0x610 fs/namei.c:4401
+ do_symlinkat+0x26c/0x930 fs/namei.c:4430
+ __do_sys_symlinkat fs/namei.c:4447 [inline]
+ __se_sys_symlinkat fs/namei.c:4444 [inline]
+ __ia32_sys_symlinkat+0xef/0x160 fs/namei.c:4444
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+CPU: 0 PID: 3502 Comm: syz-executor.0 Not tainted 6.1.0-syzkaller-64311-g5c6259d6d19f #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+=====================================================

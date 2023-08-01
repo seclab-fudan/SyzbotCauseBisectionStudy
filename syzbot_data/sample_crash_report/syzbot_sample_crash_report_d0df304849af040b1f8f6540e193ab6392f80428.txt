@@ -1,0 +1,81 @@
+RDX: 00000000208db000 RSI: 000000000000890b RDI: 0000000000000005
+RBP: 0000000000000086 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000216 R12: 00000000004b5e76
+R13: 00007f1189d97b48 R14: 00000000004b5e86 R15: 0000000000000000
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
+IP: free_fib_info_rcu+0x31d/0x3e0 net/ipv4/fib_semantics.c:222
+PGD 1a3803067 
+P4D 1a3803067 
+PUD 1a3804067 
+PMD 0 
+
+Oops: 0002 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 9160 Comm: syz-executor6 Not tainted 4.13.0-rc5+ #36
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801cda92180 task.stack: ffff8801c4630000
+RIP: 0010:free_fib_info_rcu+0x31d/0x3e0 net/ipv4/fib_semantics.c:222
+RSP: 0018:ffff8801db307a68 EFLAGS: 00010206
+RAX: ffff8801cda92180 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000100 RSI: ffff8801cdb9b180 RDI: ffff8801cdb9b1c8
+RBP: ffff8801db307ac8 R08: 0000000000000001 R09: 0000000000000002
+R10: ffff8801db3079a8 R11: ffffffff815c8e72 R12: ffff8801db307d48
+R13: ffff8801cdb9b1e8 R14: dffffc0000000000 R15: ffff8801db307d88
+FS:  00007fad330eb700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000040 CR3: 00000001a3802000 CR4: 00000000001426e0
+DR0: 0000000000000009 DR1: 0000000000000000 DR2: 0000000000000007
+DR3: 0000000000000008 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __rcu_reclaim kernel/rcu/rcu.h:195 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2777 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:3031 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2998 [inline]
+ rcu_process_callbacks+0xd3e/0x17b0 kernel/rcu/tree.c:3015
+ __do_softirq+0x2f5/0xba3 kernel/softirq.c:284
+ invoke_softirq kernel/softirq.c:364 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:638 [inline]
+ smp_apic_timer_interrupt+0x76/0xa0 arch/x86/kernel/apic/apic.c:1044
+ apic_timer_interrupt+0x93/0xa0 arch/x86/entry/entry_64.S:702
+RIP: 0010:vm_normal_page+0x6/0x200 mm/memory.c:821
+RSP: 0018:ffff8801c4636c48 EFLAGS: 00000297 ORIG_RAX: ffffffffffffff10
+RAX: ffff8801cda92180 RBX: 80000001a179a007 RCX: 0000000000000000
+RDX: 80000001a179a007 RSI: 00007fad33806000 RDI: ffff8801d4b52100
+RBP: ffff8801c4636c50 R08: 0000000000000001 R09: 1ffff100388c6d1d
+R10: ffff8801c4636808 R11: 0000000000000001 R12: ffffea000685e640
+R13: dffffc0000000000 R14: ffff8801c0128030 R15: 0000000000000001
+ </IRQ>
+ zap_pte_range mm/memory.c:1238 [inline]
+ zap_pmd_range mm/memory.c:1346 [inline]
+ zap_pud_range mm/memory.c:1375 [inline]
+ zap_p4d_range mm/memory.c:1396 [inline]
+ unmap_page_range+0xfec/0x2160 mm/memory.c:1417
+ unmap_single_vma+0x15f/0x2d0 mm/memory.c:1462
+ unmap_vmas+0xf1/0x1b0 mm/memory.c:1492
+ exit_mmap+0x237/0x470 mm/mmap.c:2994
+ __mmput kernel/fork.c:903 [inline]
+ mmput+0x223/0x6e0 kernel/fork.c:925
+ exit_mm kernel/exit.c:544 [inline]
+ do_exit+0x989/0x1b10 kernel/exit.c:852
+ do_group_exit+0x149/0x400 kernel/exit.c:969
+ get_signal+0x7e8/0x17e0 kernel/signal.c:2330
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:808
+ exit_to_usermode_loop+0x224/0x300 arch/x86/entry/common.c:157
+ prepare_exit_to_usermode arch/x86/entry/common.c:194 [inline]
+ syscall_return_slowpath+0x3a7/0x450 arch/x86/entry/common.c:263
+ entry_SYSCALL_64_fastpath+0xbc/0xbe
+RIP: 0033:0x4512e9
+RSP: 002b:00007fad330eac08 EFLAGS: 00000216 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffb3 RBX: 00000000007180a8 RCX: 00000000004512e9
+RDX: 000000002003bff0 RSI: 00000000401054d5 RDI: 0000000000000005
+RBP: 0000000000003170 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000216 R12: 00000000004b8b6a
+R13: 00000000ffffffff R14: 0000000000000005 R15: 00000000401054d5
+Code: 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 46 48 8b 45 a8 48 8b 58 e8 48 81 fb 20 c1 40 85 74 18 e8 73 cf 56 fd <f0> ff 4b 40 75 0d e8 68 cf 56 fd 48 89 df e8 30 5d 89 fd e8 5b 
+RIP: free_fib_info_rcu+0x31d/0x3e0 net/ipv4/fib_semantics.c:222 RSP: ffff8801db307a68
+CR2: 0000000000000040
+---[ end trace aa466d6bffcf1c8f ]---

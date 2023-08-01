@@ -1,0 +1,81 @@
+netlink: 28 bytes leftover after parsing attributes in process `syz-executor292'.
+=====================================================
+BUG: KMSAN: kernel-infoleak in instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+BUG: KMSAN: kernel-infoleak in copyout+0xbc/0x100 lib/iov_iter.c:169
+ instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+ copyout+0xbc/0x100 lib/iov_iter.c:169
+ _copy_to_iter+0x4f4/0x1fb0 lib/iov_iter.c:529
+ copy_to_iter include/linux/uio.h:179 [inline]
+ simple_copy_to_iter+0x64/0xa0 net/core/datagram.c:513
+ __skb_datagram_iter+0x123/0xdc0 net/core/datagram.c:419
+ skb_copy_datagram_iter+0x53/0x1d0 net/core/datagram.c:527
+ skb_copy_datagram_msg include/linux/skbuff.h:3908 [inline]
+ netlink_recvmsg+0x504/0x1650 net/netlink/af_netlink.c:1988
+ ____sys_recvmsg+0x2c4/0x810
+ ___sys_recvmsg+0x217/0x840 net/socket.c:2737
+ do_recvmmsg+0x55a/0x1180 net/socket.c:2831
+ __sys_recvmmsg net/socket.c:2910 [inline]
+ __do_sys_recvmmsg net/socket.c:2933 [inline]
+ __se_sys_recvmmsg net/socket.c:2926 [inline]
+ __x64_sys_recvmmsg+0x3a7/0x4b0 net/socket.c:2926
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was stored to memory at:
+ __nla_put lib/nlattr.c:1006 [inline]
+ nla_put+0x1c2/0x230 lib/nlattr.c:1064
+ copy_to_user_state_extra+0x115e/0x1aa0 net/xfrm/xfrm_user.c:1101
+ dump_one_state+0x2c8/0x7c0 net/xfrm/xfrm_user.c:1169
+ xfrm_state_walk+0x727/0x1300 net/xfrm/xfrm_state.c:2308
+ xfrm_dump_sa+0x1e6/0x6b0 net/xfrm/xfrm_user.c:1240
+ netlink_dump+0xb18/0x1560 net/netlink/af_netlink.c:2286
+ __netlink_dump_start+0xa6d/0xc40 net/netlink/af_netlink.c:2391
+ netlink_dump_start include/linux/netlink.h:294 [inline]
+ xfrm_user_rcv_msg+0x828/0xf70 net/xfrm/xfrm_user.c:3091
+ netlink_rcv_skb+0x3f1/0x750 net/netlink/af_netlink.c:2564
+ xfrm_netlink_rcv+0x72/0xb0 net/xfrm/xfrm_user.c:3128
+ netlink_unicast_kernel net/netlink/af_netlink.c:1330 [inline]
+ netlink_unicast+0xf3b/0x1270 net/netlink/af_netlink.c:1356
+ netlink_sendmsg+0x127d/0x1430 net/netlink/af_netlink.c:1932
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0xa8e/0xe70 net/socket.c:2476
+ ___sys_sendmsg+0x2a1/0x3f0 net/socket.c:2530
+ __sys_sendmsg net/socket.c:2559 [inline]
+ __do_sys_sendmsg net/socket.c:2568 [inline]
+ __se_sys_sendmsg net/socket.c:2566 [inline]
+ __x64_sys_sendmsg+0x367/0x540 net/socket.c:2566
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:766 [inline]
+ slab_alloc_node mm/slub.c:3452 [inline]
+ __kmem_cache_alloc_node+0x71f/0xce0 mm/slub.c:3491
+ kmalloc_trace+0x4d/0x1f0 mm/slab_common.c:1062
+ kmalloc include/linux/slab.h:580 [inline]
+ pfkey_msg2xfrm_state net/key/af_key.c:1199 [inline]
+ pfkey_add+0x3124/0x3b90 net/key/af_key.c:1504
+ pfkey_process net/key/af_key.c:2844 [inline]
+ pfkey_sendmsg+0x1693/0x1b90 net/key/af_key.c:3695
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0xa8e/0xe70 net/socket.c:2476
+ ___sys_sendmsg+0x2a1/0x3f0 net/socket.c:2530
+ __sys_sendmmsg+0x40d/0xa40 net/socket.c:2616
+ __do_sys_sendmmsg net/socket.c:2645 [inline]
+ __se_sys_sendmmsg net/socket.c:2642 [inline]
+ __x64_sys_sendmmsg+0xb8/0x120 net/socket.c:2642
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Bytes 252-311 of 912 are uninitialized
+Memory access of size 912 starts at ffff88811c76b000
+Data copied to user address 0000000020001580
+
+CPU: 1 PID: 5027 Comm: syz-executor292 Not tainted 6.2.0-rc3-syzkaller-79340-gc9a4e3bf8138 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+=====================================================

@@ -1,0 +1,121 @@
+==================================================================
+BUG: KASAN: use-after-free in percpu_ref_call_confirm_rcu lib/percpu-refcount.c:126 [inline]
+BUG: KASAN: use-after-free in percpu_ref_switch_to_atomic_rcu+0x4a3/0x540 lib/percpu-refcount.c:165
+Read of size 1 at addr ffff888096139230 by task syz-executor.4/12677
+
+CPU: 1 PID: 12677 Comm: syz-executor.4 Not tainted 5.6.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x32 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:641
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ percpu_ref_call_confirm_rcu lib/percpu-refcount.c:126 [inline]
+ percpu_ref_switch_to_atomic_rcu+0x4a3/0x540 lib/percpu-refcount.c:165
+ rcu_do_batch kernel/rcu/tree.c:2186 [inline]
+ rcu_core+0x5e1/0x1390 kernel/rcu/tree.c:2410
+ rcu_core_si+0x9/0x10 kernel/rcu/tree.c:2419
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:546 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1146
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:752 [inline]
+RIP: 0010:kfree+0x239/0x2c0 mm/slab.c:3758
+Code: 4e 7e 0f 85 20 fe ff ff e8 55 8b 4c ff e9 16 fe ff ff e8 3a 42 c7 ff 48 83 3d ca d1 ff 07 00 0f 84 85 00 00 00 48 89 df 57 9d <0f> 1f 44 00 00 5b 41 5c 41 5d 41 5e 5d c3 e8 14 42 c7 ff 48 83 3d
+RSP: 0018:ffffc900048efd10 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000007 RBX: 0000000000000286 RCX: 0000000000000006
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: 0000000000000286
+RBP: ffffc900048efd30 R08: 1ffffffff16a3575 R09: fffffbfff16a3576
+R10: fffffbfff16a3575 R11: ffffffff8b51abaf R12: ffff888218977f40
+R13: ffff8880aa4001c0 R14: ffffffff83934479 R15: ffff888218a2f080
+ disk_release+0x149/0x300 block/genhd.c:1329
+ device_release+0x7a/0x210 drivers/base/core.c:1358
+ kobject_cleanup lib/kobject.c:693 [inline]
+ kobject_release lib/kobject.c:722 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x1ff/0x2e0 lib/kobject.c:739
+ put_disk+0x23/0x30 block/genhd.c:1545
+ loop_remove+0x99/0xd0 drivers/block/loop.c:2095
+ loop_control_ioctl drivers/block/loop.c:2191 [inline]
+ loop_control_ioctl+0x320/0x360 drivers/block/loop.c:2157
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl+0x123/0x180 fs/ioctl.c:763
+ __do_sys_ioctl fs/ioctl.c:772 [inline]
+ __se_sys_ioctl fs/ioctl.c:770 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:770
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x45c449
+Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f0f739c7c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007f0f739c86d4 RCX: 000000000045c449
+RDX: 0000000000000000 RSI: 0000000000004c81 RDI: 000000000000000b
+RBP: 000000000076bf20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000000003ee R14: 00000000004c641b R15: 000000000076bf2c
+
+Allocated by task 12676:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:488
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:529
+ __do_kmalloc mm/slab.c:3656 [inline]
+ __kmalloc+0x163/0x770 mm/slab.c:3665
+ kmalloc include/linux/slab.h:560 [inline]
+ kzalloc.constprop.0+0x1b/0x20 include/linux/slab.h:669
+ io_sqe_files_register fs/io_uring.c:5634 [inline]
+ __io_uring_register+0xad7/0x2f40 fs/io_uring.c:7096
+ __do_sys_io_uring_register fs/io_uring.c:7176 [inline]
+ __se_sys_io_uring_register fs/io_uring.c:7158 [inline]
+ __x64_sys_io_uring_register+0x1a1/0x560 fs/io_uring.c:7158
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 12675:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:476
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:485
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ io_sqe_files_unregister+0x203/0x2f0 fs/io_uring.c:5346
+ io_ring_ctx_free fs/io_uring.c:6335 [inline]
+ io_ring_ctx_wait_and_kill+0x4ed/0xa60 fs/io_uring.c:6426
+ io_uring_release+0x42/0x50 fs/io_uring.c:6434
+ __fput+0x2ff/0x890 fs/file_table.c:280
+ ____fput+0x16/0x20 fs/file_table.c:313
+ task_work_run+0x145/0x1c0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x316/0x380 arch/x86/entry/common.c:164
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:278 [inline]
+ do_syscall_64+0x676/0x790 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888096139200
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 48 bytes inside of
+ 256-byte region [ffff888096139200, ffff888096139300)
+The buggy address belongs to the page:
+page:ffffea0002584e40 refcount:1 mapcount:0 mapping:ffff8880aa4008c0 index:0xffff888096139600
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea000263cf48 ffffea00025302c8 ffff8880aa4008c0
+raw: ffff888096139600 ffff888096139000 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888096139100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888096139180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888096139200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff888096139280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888096139300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

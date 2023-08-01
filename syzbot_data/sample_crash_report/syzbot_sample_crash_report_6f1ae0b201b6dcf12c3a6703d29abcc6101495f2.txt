@@ -1,0 +1,36 @@
+==================================================================
+BUG: KCSAN: data-race in ip6_dst_gc / ip6_dst_gc
+
+read-write to 0xffff8881020ca7c4 of 4 bytes by task 25609 on cpu 0:
+ ip6_dst_gc+0x1f3/0x220 net/ipv6/route.c:3311
+ dst_alloc+0x9b/0x160 net/core/dst.c:86
+ ip6_dst_alloc net/ipv6/route.c:344 [inline]
+ icmp6_dst_alloc+0xb2/0x360 net/ipv6/route.c:3261
+ mld_sendpack+0x2b9/0x580 net/ipv6/mcast.c:1807
+ mld_send_cr net/ipv6/mcast.c:2119 [inline]
+ mld_ifc_work+0x576/0x800 net/ipv6/mcast.c:2651
+ process_one_work+0x3d3/0x720 kernel/workqueue.c:2289
+ worker_thread+0x618/0xa70 kernel/workqueue.c:2436
+ kthread+0x1a9/0x1e0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+
+read-write to 0xffff8881020ca7c4 of 4 bytes by task 15311 on cpu 1:
+ ip6_dst_gc+0x1f3/0x220 net/ipv6/route.c:3311
+ dst_alloc+0x9b/0x160 net/core/dst.c:86
+ ip6_dst_alloc net/ipv6/route.c:344 [inline]
+ icmp6_dst_alloc+0xb2/0x360 net/ipv6/route.c:3261
+ mld_sendpack+0x2b9/0x580 net/ipv6/mcast.c:1807
+ mld_send_cr net/ipv6/mcast.c:2119 [inline]
+ mld_ifc_work+0x576/0x800 net/ipv6/mcast.c:2651
+ process_one_work+0x3d3/0x720 kernel/workqueue.c:2289
+ worker_thread+0x618/0xa70 kernel/workqueue.c:2436
+ kthread+0x1a9/0x1e0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+
+value changed: 0x0000038c -> 0x0000038a
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 15311 Comm: kworker/1:4 Not tainted 5.18.0-rc2-syzkaller-00050-ga19944809fe9-dirty #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: mld mld_ifc_work
+==================================================================

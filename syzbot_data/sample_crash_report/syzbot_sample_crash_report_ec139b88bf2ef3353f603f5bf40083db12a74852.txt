@@ -1,0 +1,137 @@
+usb 1-1: USB disconnect, device number 14
+==================================================================
+BUG: KASAN: use-after-free in register_lock_class+0xeda/0x11d0 kernel/locking/lockdep.c:1262
+Write of size 8 at addr ffff8881cefa1cb0 by task kworker/1:1/78
+
+CPU: 1 PID: 78 Comm: kworker/1:1 Not tainted 5.6.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xef/0x16e lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd3/0x314 mm/kasan/report.c:374
+ __kasan_report.cold+0x37/0x77 mm/kasan/report.c:506
+ kasan_report+0xe/0x20 mm/kasan/common.c:641
+ register_lock_class+0xeda/0x11d0 kernel/locking/lockdep.c:1262
+ __lock_acquire+0xfc/0x3b60 kernel/locking/lockdep.c:3836
+ lock_acquire+0x130/0x340 kernel/locking/lockdep.c:4484
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x32/0x50 kernel/locking/spinlock.c:159
+ __wake_up_common_lock+0xb4/0x130 kernel/sched/wait.c:122
+ hiddev_disconnect+0x154/0x1b4 drivers/hid/usbhid/hiddev.c:937
+ hid_disconnect+0xb4/0x1a0 drivers/hid/hid-core.c:2008
+ hid_hw_stop+0x12/0x70 drivers/hid/hid-core.c:2053
+ appleir_remove+0x38/0x60 drivers/hid/hid-appleir.c:324
+ hid_device_remove+0xed/0x240 drivers/hid/hid-core.c:2294
+ __device_release_driver drivers/base/dd.c:1135 [inline]
+ device_release_driver_internal+0x231/0x500 drivers/base/dd.c:1168
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:533
+ device_del+0x481/0xd30 drivers/base/core.c:2664
+ hid_remove_device drivers/hid/hid-core.c:2465 [inline]
+ hid_destroy_device+0xe1/0x150 drivers/hid/hid-core.c:2484
+ usbhid_disconnect+0x9f/0xe0 drivers/hid/usbhid/hid-core.c:1413
+ usb_unbind_interface+0x1bd/0x8a0 drivers/usb/core/driver.c:436
+ __device_release_driver drivers/base/dd.c:1137 [inline]
+ device_release_driver_internal+0x42f/0x500 drivers/base/dd.c:1168
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:533
+ device_del+0x481/0xd30 drivers/base/core.c:2664
+ usb_disable_device+0x23d/0x790 drivers/usb/core/message.c:1237
+ usb_disconnect+0x293/0x900 drivers/usb/core/hub.c:2207
+ hub_port_connect drivers/usb/core/hub.c:5042 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5331 [inline]
+ port_event drivers/usb/core/hub.c:5477 [inline]
+ hub_event+0x1a1d/0x4300 drivers/usb/core/hub.c:5559
+ process_one_work+0x94b/0x1620 kernel/workqueue.c:2264
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2410
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 12:
+ save_stack+0x1b/0x80 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:488
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ hiddev_connect+0x242/0x5b0 drivers/hid/usbhid/hiddev.c:890
+ hid_connect+0x239/0xbb0 drivers/hid/hid-core.c:1934
+ hid_hw_start drivers/hid/hid-core.c:2033 [inline]
+ hid_hw_start+0xa2/0x130 drivers/hid/hid-core.c:2024
+ appleir_probe+0x13e/0x1a0 drivers/hid/hid-appleir.c:308
+ hid_device_probe+0x2be/0x3f0 drivers/hid/hid-core.c:2261
+ really_probe+0x290/0xac0 drivers/base/dd.c:551
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:724
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:831
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x217/0x390 drivers/base/dd.c:897
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1459/0x1bf0 drivers/base/core.c:2487
+ hid_add_device drivers/hid/hid-core.c:2417 [inline]
+ hid_add_device+0x33c/0x9a0 drivers/hid/hid-core.c:2366
+ usbhid_probe+0xa81/0xfa0 drivers/hid/usbhid/hid-core.c:1386
+ usb_probe_interface+0x310/0x800 drivers/usb/core/driver.c:374
+ really_probe+0x290/0xac0 drivers/base/dd.c:551
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:724
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:831
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x217/0x390 drivers/base/dd.c:897
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1459/0x1bf0 drivers/base/core.c:2487
+ usb_set_configuration+0xe47/0x17d0 drivers/usb/core/message.c:2023
+ usb_generic_driver_probe+0x9d/0xe0 drivers/usb/core/generic.c:241
+ usb_probe_device+0xd9/0x230 drivers/usb/core/driver.c:272
+ really_probe+0x290/0xac0 drivers/base/dd.c:551
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:724
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:831
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x217/0x390 drivers/base/dd.c:897
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1459/0x1bf0 drivers/base/core.c:2487
+ usb_new_device.cold+0x540/0xcd0 drivers/usb/core/hub.c:2544
+ hub_port_connect drivers/usb/core/hub.c:5191 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5331 [inline]
+ port_event drivers/usb/core/hub.c:5477 [inline]
+ hub_event+0x21cb/0x4300 drivers/usb/core/hub.c:5559
+ process_one_work+0x94b/0x1620 kernel/workqueue.c:2264
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2410
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 9689:
+ save_stack+0x1b/0x80 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x117/0x160 mm/kasan/common.c:476
+ slab_free_hook mm/slub.c:1444 [inline]
+ slab_free_freelist_hook mm/slub.c:1477 [inline]
+ slab_free mm/slub.c:3024 [inline]
+ kfree+0xd5/0x300 mm/slub.c:3976
+ hiddev_release+0x402/0x520 drivers/hid/usbhid/hiddev.c:232
+ __fput+0x2d7/0x840 fs/file_table.c:280
+ task_work_run+0x13f/0x1c0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x1d2/0x200 arch/x86/entry/common.c:164
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:278 [inline]
+ do_syscall_64+0x4e0/0x5a0 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8881cefa1c00
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 176 bytes inside of
+ 512-byte region [ffff8881cefa1c00, ffff8881cefa1e00)
+The buggy address belongs to the page:
+page:ffffea00073be800 refcount:1 mapcount:0 mapping:ffff8881da002500 index:0x0 compound_mapcount: 0
+flags: 0x200000000010200(slab|head)
+raw: 0200000000010200 0000000000000000 0000000100000001 ffff8881da002500
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881cefa1b80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8881cefa1c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881cefa1c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff8881cefa1d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881cefa1d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

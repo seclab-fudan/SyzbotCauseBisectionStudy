@@ -1,0 +1,75 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 17595 Comm: syz-executor3 Not tainted 4.19.0-rc6+ #271
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__read_once_size include/linux/compiler.h:188 [inline]
+RIP: 0010:compound_head include/linux/page-flags.h:142 [inline]
+RIP: 0010:put_page include/linux/mm.h:931 [inline]
+RIP: 0010:tls_push_sg+0x2c4/0x8c0 net/tls/tls_main.c:134
+Code: b2 4f dc fa 48 8b 85 08 ff ff ff 48 b9 00 00 00 00 00 fc ff df c6 00 00 48 8b 85 28 ff ff ff 48 8d 78 08 48 89 f8 48 c1 e8 03 <80> 3c 08 00 0f 85 16 05 00 00 48 8b 85 28 ff ff ff 48 8b 58 08 48
+RSP: 0018:ffff8801c067f780 EFLAGS: 00010202
+RAX: 0000000000000001 RBX: 0000000000000000 RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: ffffffff86a285de RDI: 0000000000000008
+RBP: ffff8801c067f8a0 R08: ffff8801c8b4e200 R09: 0000000000000000
+R10: fffff94000c46246 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: ffff880181dd5640
+FS:  00000000018c4940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b2c92c000 CR3: 00000001cbd46000 CR4: 00000000001426e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ tls_push_record+0xb4d/0x1480 net/tls/tls_sw.c:245
+ tls_sw_push_pending_record+0x22/0x30 net/tls/tls_sw.c:257
+ tls_handle_open_record net/tls/tls_main.c:156 [inline]
+ tls_sk_proto_close+0x69c/0xbb0 net/tls/tls_main.c:271
+ inet_release+0x104/0x1f0 net/ipv4/af_inet.c:428
+ inet6_release+0x50/0x70 net/ipv6/af_inet6.c:457
+ __sock_release+0xd7/0x250 net/socket.c:579
+ sock_close+0x19/0x20 net/socket.c:1141
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:193 [inline]
+ exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x411051
+Code: 75 14 b8 03 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 34 19 00 00 c3 48 83 ec 08 e8 0a fc ff ff 48 89 04 24 b8 03 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 53 fc ff ff 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:0000000000a3fd90 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: 0000000000411051
+RDX: 0000000000000000 RSI: 0000000000731400 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000a3fcb0 R11: 0000000000000293 R12: 0000000000000000
+R13: 0000000000000001 R14: 000000000000014d R15: 0000000000000003
+Modules linked in:
+---[ end trace 2f6367e3bd72a870 ]---
+RIP: 0010:__read_once_size include/linux/compiler.h:188 [inline]
+RIP: 0010:compound_head include/linux/page-flags.h:142 [inline]
+RIP: 0010:put_page include/linux/mm.h:931 [inline]
+RIP: 0010:tls_push_sg+0x2c4/0x8c0 net/tls/tls_main.c:134
+Code: b2 4f dc fa 48 8b 85 08 ff ff ff 48 b9 00 00 00 00 00 fc ff df c6 00 00 48 8b 85 28 ff ff ff 48 8d 78 08 48 89 f8 48 c1 e8 03 <80> 3c 08 00 0f 85 16 05 00 00 48 8b 85 28 ff ff ff 48 8b 58 08 48
+kobject: 'loop4' (00000000c5823319): kobject_uevent_env
+RSP: 0018:ffff8801c067f780 EFLAGS: 00010202
+RAX: 0000000000000001 RBX: 0000000000000000 RCX: dffffc0000000000
+kobject: 'loop4' (00000000c5823319): fill_kobj_path: path = '/devices/virtual/block/loop4'
+RDX: 0000000000000000 RSI: ffffffff86a285de RDI: 0000000000000008
+kobject: 'loop0' (00000000f667d3a7): kobject_uevent_env
+kobject: 'loop0' (00000000f667d3a7): fill_kobj_path: path = '/devices/virtual/block/loop0'
+RBP: ffff8801c067f8a0 R08: ffff8801c8b4e200 R09: 0000000000000000
+R10: fffff94000c46246 R11: 0000000000000000 R12: 0000000000000000
+kobject: 'loop2' (000000004dd152c9): kobject_uevent_env
+kobject: 'loop2' (000000004dd152c9): fill_kobj_path: path = '/devices/virtual/block/loop2'
+R13: 0000000000000000 R14: 0000000000000000 R15: ffff880181dd5640
+FS:  00000000018c4940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+kobject: 'loop5' (00000000128bb8a8): kobject_uevent_env
+CR2: 00000000010dcc48 CR3: 00000001cbd46000 CR4: 00000000001426e0
+kobject: 'loop5' (00000000128bb8a8): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop1' (00000000d52030a3): kobject_uevent_env
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+kobject: 'loop1' (00000000d52030a3): fill_kobj_path: path = '/devices/virtual/block/loop1'

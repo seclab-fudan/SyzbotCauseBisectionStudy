@@ -1,0 +1,56 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in memset include/linux/string.h:344 [inline]
+BUG: KASAN: slab-out-of-bounds in __ext4_expand_extra_isize+0x1ab/0x290 fs/ext4/inode.c:5948
+Write of size 83886048 at addr ffff88808a7972a0 by task syz-executor.0/10392
+
+CPU: 0 PID: 10392 Comm: syz-executor.0 Not tainted 5.3.0-rc3+ #106
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0xd4/0x306 mm/kasan/report.c:351
+ __kasan_report.cold+0x1b/0x36 mm/kasan/report.c:482
+ kasan_report+0x12/0x17 mm/kasan/common.c:612
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ memset+0x24/0x40 mm/kasan/common.c:105
+ memset include/linux/string.h:344 [inline]
+ __ext4_expand_extra_isize+0x1ab/0x290 fs/ext4/inode.c:5948
+ ext4_try_to_expand_extra_isize fs/ext4/inode.c:6000 [inline]
+ ext4_mark_inode_dirty+0x74e/0x9b0 fs/ext4/inode.c:6076
+ ext4_rmdir fs/ext4/namei.c:3120 [inline]
+ ext4_rmdir+0x983/0xcd0 fs/ext4/namei.c:3053
+ vfs_rmdir fs/namei.c:3878 [inline]
+ vfs_rmdir+0x19a/0x4f0 fs/namei.c:3857
+ do_rmdir+0x39e/0x420 fs/namei.c:3940
+ __do_sys_rmdir fs/namei.c:3958 [inline]
+ __se_sys_rmdir fs/namei.c:3956 [inline]
+ __x64_sys_rmdir+0x36/0x40 fs/namei.c:3956
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x459597
+Code: 00 66 90 b8 57 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 7d ba fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 b8 54 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 5d ba fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffca3cf38a8 EFLAGS: 00000207 ORIG_RAX: 0000000000000054
+RAX: ffffffffffffffda RBX: 0000000000000065 RCX: 0000000000459597
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007ffca3cf4a40
+RBP: 0000000000000692 R08: 0000000000000000 R09: 0000000000000001
+R10: 0000000000000005 R11: 0000000000000207 R12: 00007ffca3cf4a40
+R13: 00005555555b2980 R14: 0000000000000000 R15: 00007ffca3cf5ad0
+
+The buggy address belongs to the page:
+page:ffffea000229e5c0 refcount:2 mapcount:0 mapping:ffff88821a318ad8 index:0x428
+def_blk_aops 
+flags: 0x1fffc000000203a(referenced|dirty|lru|active|private)
+raw: 01fffc000000203a ffffea000239ad08 ffffea00002df548 ffff88821a318ad8
+raw: 0000000000000428 ffff888092feb498 00000002ffffffff ffff88821b6eaac0
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff88821b6eaac0
+
+Memory state around the buggy address:
+ ffff88808a800680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88808a800700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88808a800780: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
+                                  ^
+ ffff88808a800800: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88808a800880: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

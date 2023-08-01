@@ -1,0 +1,107 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.17.0-rc6+ #25 Not tainted
+------------------------------------------------------
+syz-executor800/4527 is trying to acquire lock:
+        (ptrval) (&htab->buckets[i].lock){+...}, at: bpf_tcp_close+0x822/0x10b0 kernel/bpf/sockmap.c:285
+
+but task is already holding lock:
+        (ptrval) (clock-AF_INET6){++..}, at: bpf_tcp_close+0x241/0x10b0 kernel/bpf/sockmap.c:260
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (clock-AF_INET6){++..}:
+       __raw_write_lock_bh include/linux/rwlock_api_smp.h:203 [inline]
+       _raw_write_lock_bh+0x31/0x40 kernel/locking/spinlock.c:312
+       sock_hash_delete_elem+0x7c6/0xaf0 kernel/bpf/sockmap.c:2338
+       map_delete_elem+0x32e/0x4e0 kernel/bpf/syscall.c:815
+       __do_sys_bpf kernel/bpf/syscall.c:2349 [inline]
+       __se_sys_bpf kernel/bpf/syscall.c:2317 [inline]
+       __x64_sys_bpf+0x342/0x510 kernel/bpf/syscall.c:2317
+       do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&htab->buckets[i].lock){+...}:
+       lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+       __raw_spin_lock_bh include/linux/spinlock_api_smp.h:135 [inline]
+       _raw_spin_lock_bh+0x31/0x40 kernel/locking/spinlock.c:168
+       bpf_tcp_close+0x822/0x10b0 kernel/bpf/sockmap.c:285
+       inet_release+0x104/0x1f0 net/ipv4/af_inet.c:427
+       inet6_release+0x50/0x70 net/ipv6/af_inet6.c:459
+       sock_release+0x96/0x1b0 net/socket.c:594
+       sock_close+0x16/0x20 net/socket.c:1149
+       __fput+0x34d/0x890 fs/file_table.c:209
+       ____fput+0x15/0x20 fs/file_table.c:243
+       task_work_run+0x1e4/0x290 kernel/task_work.c:113
+       exit_task_work include/linux/task_work.h:22 [inline]
+       do_exit+0x1aee/0x2730 kernel/exit.c:865
+       do_group_exit+0x16f/0x430 kernel/exit.c:968
+       get_signal+0x886/0x1960 kernel/signal.c:2482
+       do_signal+0x98/0x2040 arch/x86/kernel/signal.c:810
+       exit_to_usermode_loop+0x28a/0x310 arch/x86/entry/common.c:162
+       prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+       syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+       do_syscall_64+0x6ac/0x800 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(clock-AF_INET6);
+                               lock(&htab->buckets[i].lock);
+                               lock(clock-AF_INET6);
+  lock(&htab->buckets[i].lock);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor800/4527:
+ #0:         (ptrval) (rcu_read_lock){....}, at: bpf_tcp_close+0x0/0x10b0 kernel/bpf/sockmap.c:2106
+ #1:         (ptrval) (clock-AF_INET6){++..}, at: bpf_tcp_close+0x241/0x10b0 kernel/bpf/sockmap.c:260
+
+stack backtrace:
+CPU: 0 PID: 4527 Comm: syz-executor800 Not tainted 4.17.0-rc6+ #25
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_circular_bug.isra.36.cold.54+0x1bd/0x27d kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x343e/0x5140 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:135 [inline]
+ _raw_spin_lock_bh+0x31/0x40 kernel/locking/spinlock.c:168
+ bpf_tcp_close+0x822/0x10b0 kernel/bpf/sockmap.c:285
+ inet_release+0x104/0x1f0 net/ipv4/af_inet.c:427
+ inet6_release+0x50/0x70 net/ipv6/af_inet6.c:459
+ sock_release+0x96/0x1b0 net/socket.c:594
+ sock_close+0x16/0x20 net/socket.c:1149
+ __fput+0x34d/0x890 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x1e4/0x290 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1aee/0x2730 kernel/exit.c:865
+ do_group_exit+0x16f/0x430 kernel/exit.c:968
+ get_signal+0x886/0x1960 kernel/signal.c:2482
+ do_signal+0x98/0x2040 arch/x86/kernel/signal.c:810
+ exit_to_usermode_loop+0x28a/0x310 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+ do_syscall_64+0x6ac/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x445709
+RSP: 002b:00007f36c605ddb8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 00000000006dac3c RCX: 0000000000445709
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00000000006dac3c
+RBP: 00000000006dac38 R08: 0000000000000000 R09: 000

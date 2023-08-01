@@ -1,0 +1,47 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr_slave_0: link becomes ready
+=====================================================
+BUG: KMSAN: uninit-value in memcmp+0x23e/0x290 lib/string.c:789
+ memcmp+0x23e/0x290 lib/string.c:789
+ __hw_addr_add_ex+0x2f9/0x1020 net/core/dev_addr_lists.c:62
+ __hw_addr_sync_one net/core/dev_addr_lists.c:210 [inline]
+ __hw_addr_sync_multiple+0x35f/0xa40 net/core/dev_addr_lists.c:250
+ dev_mc_sync_multiple+0x195/0x2b0 net/core/dev_addr_lists.c:959
+ team_set_rx_mode+0x143/0x230 drivers/net/team/team.c:1780
+ __dev_set_rx_mode+0x3b0/0x440 net/core/dev.c:8717
+ __dev_mc_add net/core/dev_addr_lists.c:836 [inline]
+ dev_mc_add+0x180/0x1d0 net/core/dev_addr_lists.c:850
+ igmp6_group_added+0x320/0x830 net/ipv6/mcast.c:680
+ __ipv6_dev_mc_inc+0x11e9/0x1620 net/ipv6/mcast.c:949
+ ipv6_dev_mc_inc+0x70/0x80 net/ipv6/mcast.c:957
+ addrconf_join_solict net/ipv6/addrconf.c:2179 [inline]
+ addrconf_dad_begin net/ipv6/addrconf.c:3958 [inline]
+ addrconf_dad_work+0x736/0x2210 net/ipv6/addrconf.c:4085
+ process_one_work+0xdb9/0x1820 kernel/workqueue.c:2298
+ worker_thread+0x10bc/0x21f0 kernel/workqueue.c:2445
+ kthread+0x721/0x850 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+
+Uninit was stored to memory at:
+ __hw_addr_create net/core/dev_addr_lists.c:32 [inline]
+ __hw_addr_add_ex+0x718/0x1020 net/core/dev_addr_lists.c:93
+ __dev_mc_add net/core/dev_addr_lists.c:832 [inline]
+ dev_mc_add+0x10a/0x1d0 net/core/dev_addr_lists.c:850
+ igmp6_group_added+0x320/0x830 net/ipv6/mcast.c:680
+ __ipv6_dev_mc_inc+0x11e9/0x1620 net/ipv6/mcast.c:949
+ ipv6_dev_mc_inc+0x70/0x80 net/ipv6/mcast.c:957
+ addrconf_join_solict net/ipv6/addrconf.c:2179 [inline]
+ addrconf_dad_begin net/ipv6/addrconf.c:3958 [inline]
+ addrconf_dad_work+0x736/0x2210 net/ipv6/addrconf.c:4085
+ process_one_work+0xdb9/0x1820 kernel/workqueue.c:2298
+ worker_thread+0x10bc/0x21f0 kernel/workqueue.c:2445
+ kthread+0x721/0x850 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+
+Local variable buf created at:
+ igmp6_group_added+0x9b/0x830 net/ipv6/mcast.c:671
+ __ipv6_dev_mc_inc+0x11e9/0x1620 net/ipv6/mcast.c:949
+
+CPU: 1 PID: 25 Comm: kworker/1:1 Not tainted 5.16.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: ipv6_addrconf addrconf_dad_work
+=====================================================

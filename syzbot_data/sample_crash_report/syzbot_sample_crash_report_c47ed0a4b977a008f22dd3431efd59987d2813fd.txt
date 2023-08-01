@@ -1,0 +1,153 @@
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+rcu: 	0-...!: (1 GPs behind) idle=60dc/1/0x4000000000000000 softirq=4841/4843 fqs=4
+	(detected by 1, t=10502 jiffies, g=4569, q=137 ncpus=2)
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 3644 Comm: syz-executor601 Not tainted 5.19.0-syzkaller-02972-g200e340f2196 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+RIP: 0010:check_preemption_disabled+0x42/0x120 lib/smp_processor_id.c:55
+Code: 08 65 8b 1d 60 f0 d5 75 65 8b 05 d1 45 d6 75 a9 ff ff ff 7f 74 22 65 48 8b 04 25 28 00 00 00 48 3b 44 24 08 0f 85 cc 00 00 00 <89> d8 48 83 c4 10 5b 41 5c 41 5e 41 5f c3 48 c7 04 24 00 00 00 00
+RSP: 0018:ffffc90000007be0 EFLAGS: 00000046
+RAX: f96a9f2ca5f06c00 RBX: 0000000000000000 RCX: 0000000080010002
+RDX: ffff88801efe3b00 RSI: ffffffff8a8d3cc0 RDI: ffffffff8ae9a7c0
+RBP: 00000000ffffffff R08: ffffffff8177fee3 R09: fffffbfff1c07946
+R10: fffffbfff1c07946 R11: 1ffffffff1c07945 R12: 0000000000000046
+R13: ffff88801efe3b00 R14: 00000000ffffffff R15: ffffffff8cb1ede0
+FS:  000055555615e300(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000600 CR3: 0000000072504000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ lockdep_recursion_inc kernel/locking/lockdep.c:461 [inline]
+ lock_is_held_type+0x77/0x190 kernel/locking/lockdep.c:5708
+ lock_is_held include/linux/lockdep.h:283 [inline]
+ rcu_read_lock_sched_held+0x89/0x130 kernel/rcu/update.c:125
+ trace_hrtimer_expire_exit+0xa8/0x260 include/trace/events/timer.h:282
+ __run_hrtimer kernel/time/hrtimer.c:1688 [inline]
+ __hrtimer_run_queues+0x53e/0xa60 kernel/time/hrtimer.c:1749
+ hrtimer_interrupt+0x3a6/0xfd0 kernel/time/hrtimer.c:1811
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1095 [inline]
+ __sysvec_apic_timer_interrupt+0xf9/0x280 arch/x86/kernel/apic/apic.c:1112
+ sysvec_apic_timer_interrupt+0x8c/0xb0 arch/x86/kernel/apic/apic.c:1106
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20
+RIP: 0010:lock_is_held_type+0x144/0x190
+Code: 75 40 48 c7 04 24 00 00 00 00 9c 8f 04 24 f7 04 24 00 02 00 00 75 46 41 f7 c4 00 02 00 00 74 01 fb 65 48 8b 04 25 28 00 00 00 <48> 3b 44 24 08 75 3c 89 e8 48 83 c4 10 5b 41 5c 41 5d 41 5e 41 5f
+RSP: 0018:ffffc900032eed98 EFLAGS: 00000206
+RAX: f96a9f2ca5f06c00 RBX: 0000000000000002 RCX: 0000000080000001
+RDX: 0000000000000000 RSI: ffffffff8a8d4160 RDI: ffffffff8ae9a7c0
+RBP: 0000000000000000 R08: dffffc0000000000 R09: fffffbfff1c07946
+R10: fffffbfff1c07946 R11: 1ffffffff1c07945 R12: 0000000000000246
+R13: ffff88801efe3b00 R14: 00000000ffffffff R15: ffffffff8cb1ede0
+ lock_is_held include/linux/lockdep.h:283 [inline]
+ rcu_read_lock_sched_held+0x89/0x130 kernel/rcu/update.c:125
+ trace_lock_release+0x7a/0x190 include/trace/events/lock.h:69
+ lock_release+0x81/0x870 kernel/locking/lockdep.c:5677
+ might_alloc include/linux/sched/mm.h:272 [inline]
+ slab_pre_alloc_hook mm/slab.h:700 [inline]
+ slab_alloc_node mm/slub.c:3157 [inline]
+ __kmalloc_node+0x66/0x420 mm/slub.c:4468
+ kmalloc_node include/linux/slab.h:623 [inline]
+ kzalloc_node include/linux/slab.h:744 [inline]
+ qdisc_alloc+0x98/0x980 net/sched/sch_generic.c:941
+ qdisc_create_dflt+0x6c/0x2a0 net/sched/sch_generic.c:1000
+ taprio_init+0x407/0x660 net/sched/sch_taprio.c:1725
+ qdisc_create+0x769/0xfe0 net/sched/sch_api.c:1253
+ tc_modify_qdisc+0xa53/0x15c0 net/sched/sch_api.c:1660
+ rtnetlink_rcv_msg+0x7c9/0xea0 net/core/rtnetlink.c:6089
+ netlink_rcv_skb+0x1f0/0x460 net/netlink/af_netlink.c:2501
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x7e7/0x9c0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x9b3/0xcd0 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0x597/0x8e0 net/socket.c:2485
+ ___sys_sendmsg net/socket.c:2539 [inline]
+ __sys_sendmsg+0x28e/0x390 net/socket.c:2568
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f2c2a4741c9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 41 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd9caabcb8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f2c2a4741c9
+RDX: 0000000000000000 RSI: 00000000200007c0 RDI: 0000000000000004
+RBP: 00007ffd9caabd10 R08: 00007ffd9caabd60 R09: 00007ffd9caabd60
+R10: 00007ffd9caabd60 R11: 0000000000000246 R12: 00007ffd9caabd10
+R13: 00007ffd9caabce0 R14: 00000000000f4240 R15: 00007ffd9caabcd4
+ </TASK>
+INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 2.006 msecs
+rcu: rcu_preempt kthread starved for 10493 jiffies! g4569 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x0 ->cpu=1
+rcu: 	Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+rcu: RCU grace-period kthread stack dump:
+task:rcu_preempt     state:R  running task     stack:26456 pid:   16 ppid:     2 flags:0x00004000
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5178 [inline]
+ __schedule+0x957/0xe20 kernel/sched/core.c:6490
+ schedule+0xcb/0x190 kernel/sched/core.c:6566
+ schedule_timeout+0x1b9/0x300 kernel/time/timer.c:1935
+ rcu_gp_fqs_loop+0x309/0x1070 kernel/rcu/tree.c:1657
+ rcu_gp_kthread+0xa5/0x390 kernel/rcu/tree.c:1854
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+ </TASK>
+rcu: Stack dump where RCU GP kthread last ran:
+NMI backtrace for cpu 1
+CPU: 1 PID: 55 Comm: kworker/u4:4 Not tainted 5.19.0-syzkaller-02972-g200e340f2196 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Workqueue: events_unbound toggle_allocation_gate
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ nmi_cpu_backtrace+0x473/0x4a0 lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x168/0x280 lib/nmi_backtrace.c:62
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_check_gp_kthread_starvation+0x1da/0x250 kernel/rcu/tree_stall.h:514
+ print_other_cpu_stall+0x140a/0x1560 kernel/rcu/tree_stall.h:619
+ check_cpu_stall kernel/rcu/tree_stall.h:762 [inline]
+ rcu_pending kernel/rcu/tree.c:3660 [inline]
+ rcu_sched_clock_irq+0xa1a/0x1930 kernel/rcu/tree.c:2342
+ update_process_times+0x148/0x1b0 kernel/time/timer.c:1839
+ tick_sched_handle kernel/time/tick-sched.c:243 [inline]
+ tick_sched_timer+0x377/0x540 kernel/time/tick-sched.c:1480
+ __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+ __hrtimer_run_queues+0x4cb/0xa60 kernel/time/hrtimer.c:1749
+ hrtimer_interrupt+0x3a6/0xfd0 kernel/time/hrtimer.c:1811
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1095 [inline]
+ __sysvec_apic_timer_interrupt+0xf9/0x280 arch/x86/kernel/apic/apic.c:1112
+ sysvec_apic_timer_interrupt+0x8c/0xb0 arch/x86/kernel/apic/apic.c:1106
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20
+RIP: 0010:preempt_count arch/x86/include/asm/preempt.h:27 [inline]
+RIP: 0010:check_kcov_mode kernel/kcov.c:166 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0xd/0x60 kernel/kcov.c:200
+Code: fb e8 17 00 00 00 48 8b 3d b8 ab 7b 0c 48 89 de 5b e9 47 da 51 00 cc cc cc cc cc cc cc 48 8b 04 24 65 48 8b 0c 25 00 6f 02 00 <65> 8b 15 44 4e 7a 7e f7 c2 00 01 ff 00 74 11 f7 c2 00 01 00 00 74
+RSP: 0018:ffffc90001567778 EFLAGS: 00000202
+RAX: ffffffff817d36ca RBX: 1ffff11017348419 RCX: ffff888017921d80
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
+RBP: ffffc90001567940 R08: ffffffff817d3698 R09: fffffbfff1faa409
+R10: fffffbfff1faa409 R11: 1ffffffff1faa408 R12: ffff8880b9a420c8
+R13: 1ffff11017367588 R14: 0000000000000000 R15: dffffc0000000000
+ csd_lock_wait kernel/smp.c:414 [inline]
+ smp_call_function_many_cond+0xf2a/0x1500 kernel/smp.c:988
+ on_each_cpu_cond_mask+0x3b/0x80 kernel/smp.c:1154
+ on_each_cpu include/linux/smp.h:71 [inline]
+ text_poke_sync arch/x86/kernel/alternative.c:1302 [inline]
+ text_poke_bp_batch+0x324/0x970 arch/x86/kernel/alternative.c:1490
+ text_poke_flush arch/x86/kernel/alternative.c:1660 [inline]
+ text_poke_finish+0x16/0x30 arch/x86/kernel/alternative.c:1667
+ arch_jump_label_transform_apply+0x13/0x20 arch/x86/kernel/jump_label.c:146
+ static_key_enable_cpuslocked+0x129/0x250 kernel/jump_label.c:177
+ static_key_enable+0x16/0x20 kernel/jump_label.c:190
+ toggle_allocation_gate+0xbf/0x470 mm/kfence/core.c:811
+ process_one_work+0x81c/0xd10 kernel/workqueue.c:2289
+ worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+ </TASK>

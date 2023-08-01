@@ -1,0 +1,168 @@
+snd_usb_toneport 5-1:0.0: set_interface failed
+snd_usb_toneport 5-1:0.0: Line 6 POD Studio UX2 now disconnected
+==================================================================
+BUG: KASAN: use-after-free in __list_del_entry_valid+0xe0/0xef lib/list_debug.c:51
+Read of size 8 at addr ffff8880a7a5a9a8 by task kworker/1:1/5660
+
+CPU: 1 PID: 5660 Comm: kworker/1:1 Not tainted 5.1.0-rc5-319617-gd34f951 #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xe8/0x16e lib/dump_stack.c:113
+ print_address_description+0x6c/0x236 mm/kasan/report.c:187
+ kasan_report.cold+0x1a/0x3c mm/kasan/report.c:317
+ __list_del_entry_valid+0xe0/0xef lib/list_debug.c:51
+ __list_del_entry include/linux/list.h:117 [inline]
+ list_del include/linux/list.h:125 [inline]
+ snd_info_free_entry+0x137/0x340 sound/core/info.c:795
+ snd_info_card_free+0x43/0x90 sound/core/info.c:606
+ snd_card_do_free sound/core/init.c:469 [inline]
+ release_card_device+0x8b/0x100 sound/core/init.c:156
+ device_release+0x7d/0x210 drivers/base/core.c:1064
+ kobject_cleanup lib/kobject.c:662 [inline]
+ kobject_release lib/kobject.c:691 [inline]
+ kref_put include/linux/kref.h:67 [inline]
+ kobject_put+0x1df/0x4f0 lib/kobject.c:708
+ put_device+0x21/0x30 drivers/base/core.c:2205
+ snd_card_free_when_closed+0x3a/0x50 sound/core/init.c:493
+ line6_disconnect.cold+0xa3/0xbc sound/usb/line6/driver.c:833
+ line6_probe+0xb23/0x1150 sound/usb/line6/driver.c:799
+ usb_probe_interface+0x31d/0x820 drivers/usb/core/driver.c:361
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_set_configuration+0xdf7/0x1740 drivers/usb/core/message.c:2021
+ generic_probe+0xa2/0xda drivers/usb/core/generic.c:210
+ usb_probe_device+0xc0/0x150 drivers/usb/core/driver.c:266
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_new_device.cold+0x537/0xccf drivers/usb/core/hub.c:2534
+ hub_port_connect drivers/usb/core/hub.c:5089 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0x1398/0x3b00 drivers/usb/core/hub.c:5432
+ process_one_work+0x90f/0x1580 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0x7b0/0xe20 kernel/workqueue.c:2417
+ kthread+0x313/0x420 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Allocated by task 12:
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:470
+ kmalloc include/linux/slab.h:547 [inline]
+ kzalloc include/linux/slab.h:742 [inline]
+ snd_info_create_entry+0x56/0x400 sound/core/info.c:701
+ snd_info_create_module_entry sound/core/info.c:737 [inline]
+ create_subdir+0x27/0xa0 sound/core/info.c:454
+ snd_info_card_create+0xcf/0x230 sound/core/info.c:528
+ snd_card_new+0x61d/0x920 sound/core/init.c:255
+ line6_probe+0x135/0x1150 sound/usb/line6/driver.c:736
+ usb_probe_interface+0x31d/0x820 drivers/usb/core/driver.c:361
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_set_configuration+0xdf7/0x1740 drivers/usb/core/message.c:2021
+ generic_probe+0xa2/0xda drivers/usb/core/generic.c:210
+ usb_probe_device+0xc0/0x150 drivers/usb/core/driver.c:266
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_new_device.cold+0x537/0xccf drivers/usb/core/hub.c:2534
+ hub_port_connect drivers/usb/core/hub.c:5089 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0x1398/0x3b00 drivers/usb/core/hub.c:5432
+ process_one_work+0x90f/0x1580 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0x7b0/0xe20 kernel/workqueue.c:2417
+ kthread+0x313/0x420 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Freed by task 12:
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x130/0x180 mm/kasan/common.c:459
+ slab_free_hook mm/slub.c:1429 [inline]
+ slab_free_freelist_hook+0x5e/0x140 mm/slub.c:1456
+ slab_free mm/slub.c:3003 [inline]
+ kfree+0xce/0x280 mm/slub.c:3958
+ snd_info_free_entry+0x29a/0x340 sound/core/info.c:799
+ snd_info_card_free+0x43/0x90 sound/core/info.c:606
+ snd_card_do_free sound/core/init.c:469 [inline]
+ release_card_device+0x8b/0x100 sound/core/init.c:156
+ device_release+0x7d/0x210 drivers/base/core.c:1064
+ kobject_cleanup lib/kobject.c:662 [inline]
+ kobject_release lib/kobject.c:691 [inline]
+ kref_put include/linux/kref.h:67 [inline]
+ kobject_put+0x1df/0x4f0 lib/kobject.c:708
+ put_device+0x21/0x30 drivers/base/core.c:2205
+ snd_card_free_when_closed+0x3a/0x50 sound/core/init.c:493
+ line6_disconnect.cold+0xa3/0xbc sound/usb/line6/driver.c:833
+ line6_probe+0xb23/0x1150 sound/usb/line6/driver.c:799
+ usb_probe_interface+0x31d/0x820 drivers/usb/core/driver.c:361
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_set_configuration+0xdf7/0x1740 drivers/usb/core/message.c:2021
+ generic_probe+0xa2/0xda drivers/usb/core/generic.c:210
+ usb_probe_device+0xc0/0x150 drivers/usb/core/driver.c:266
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_new_device.cold+0x537/0xccf drivers/usb/core/hub.c:2534
+ hub_port_connect drivers/usb/core/hub.c:5089 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0x1398/0x3b00 drivers/usb/core/hub.c:5432
+ process_one_work+0x90f/0x1580 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0x7b0/0xe20 kernel/workqueue.c:2417
+ kthread+0x313/0x420 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8880a7a5a8c0
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 232 bytes inside of
+ 256-byte region [ffff8880a7a5a8c0, ffff8880a7a5a9c0)
+The buggy address belongs to the page:
+page:ffffea00029e9680 count:1 mapcount:0 mapping:ffff88812c3f4e00 index:0xffff8880a7a5ab40
+flags: 0xfff00000000200(slab)
+raw: 00fff00000000200 ffffea00027e8cc0 0000000300000003 ffff88812c3f4e00
+raw: ffff8880a7a5ab40 00000000800c000b 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a7a5a880: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8880a7a5a900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8880a7a5a980: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                                  ^
+ ffff8880a7a5aa00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8880a7a5aa80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

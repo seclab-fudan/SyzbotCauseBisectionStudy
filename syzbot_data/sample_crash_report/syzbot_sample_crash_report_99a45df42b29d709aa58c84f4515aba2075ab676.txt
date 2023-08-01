@@ -1,0 +1,98 @@
+================================
+WARNING: inconsistent lock state
+5.16.0-rc2-syzkaller #0 Not tainted
+--------------------------------
+inconsistent {IN-HARDIRQ-W} -> {HARDIRQ-ON-W} usage.
+syz-executor.2/18597 [HC0[0]:SC0[0]:HE0:SE1] takes:
+ffff888071712418 (&ctx->timeout_lock){?...}-{2:2}, at: spin_lock_irq include/linux/spinlock.h:374 [inline]
+ffff888071712418 (&ctx->timeout_lock){?...}-{2:2}, at: io_poll_remove_all+0x49/0x319 fs/io_uring.c:5702
+{IN-HARDIRQ-W} state was registered at:
+  lock_acquire+0x19f/0x4d0 kernel/locking/lockdep.c:5637
+  __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+  _raw_spin_lock_irqsave+0xd1/0x120 kernel/locking/spinlock.c:162
+  io_timeout_fn+0x6a/0x220 fs/io_uring.c:5943
+  __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+  __hrtimer_run_queues+0x50b/0xa60 kernel/time/hrtimer.c:1749
+  hrtimer_interrupt+0x3b3/0x1040 kernel/time/hrtimer.c:1811
+  local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1086 [inline]
+  __sysvec_apic_timer_interrupt+0xf9/0x270 arch/x86/kernel/apic/apic.c:1103
+  sysvec_apic_timer_interrupt+0x8c/0xb0 arch/x86/kernel/apic/apic.c:1097
+  asm_sysvec_apic_timer_interrupt+0x12/0x20
+  __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:160 [inline]
+  _raw_spin_unlock_irq+0x25/0x40 kernel/locking/spinlock.c:202
+  spin_unlock_irq include/linux/spinlock.h:399 [inline]
+  io_timeout fs/io_uring.c:6223 [inline]
+  io_issue_sqe+0x581d/0x9830 fs/io_uring.c:6662
+  __io_queue_sqe+0x2d/0x780 fs/io_uring.c:6976
+  io_queue_sqe fs/io_uring.c:7018 [inline]
+  io_submit_sqe fs/io_uring.c:7221 [inline]
+  io_submit_sqes+0xffc/0xa7c0 fs/io_uring.c:7327
+  __do_sys_io_uring_enter fs/io_uring.c:10043 [inline]
+  __se_sys_io_uring_enter+0x21f/0x1cb0 fs/io_uring.c:9985
+  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+  do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+  entry_SYSCALL_64_after_hwframe+0x44/0xae
+irq event stamp: 1586
+hardirqs last  enabled at (1585): [<ffffffff8a14b45f>] __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:159 [inline]
+hardirqs last  enabled at (1585): [<ffffffff8a14b45f>] _raw_spin_unlock_irq+0x1f/0x40 kernel/locking/spinlock.c:202
+hardirqs last disabled at (1586): [<ffffffff8a14b229>] __raw_spin_lock_irq include/linux/spinlock_api_smp.h:117 [inline]
+hardirqs last disabled at (1586): [<ffffffff8a14b229>] _raw_spin_lock_irq+0xa9/0x110 kernel/locking/spinlock.c:170
+softirqs last  enabled at (1516): [<ffffffff88e33455>] local_bh_enable+0x5/0x20 include/linux/bottom_half.h:32
+softirqs last disabled at (1514): [<ffffffff88e33435>] local_bh_disable+0x5/0x20 include/linux/bottom_half.h:19
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&ctx->timeout_lock);
+  <Interrupt>
+    lock(&ctx->timeout_lock);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor.2/18597:
+ #0: ffff8880717123d8 (&ctx->completion_lock){+.+.}-{2:2}, at: spin_lock include/linux/spinlock.h:349 [inline]
+ #0: ffff8880717123d8 (&ctx->completion_lock){+.+.}-{2:2}, at: io_poll_remove_all+0x38/0x319 fs/io_uring.c:5701
+ #1: ffff888071712418 (&ctx->timeout_lock){?...}-{2:2}, at: spin_lock_irq include/linux/spinlock.h:374 [inline]
+ #1: ffff888071712418 (&ctx->timeout_lock){?...}-{2:2}, at: io_poll_remove_all+0x49/0x319 fs/io_uring.c:5702
+
+stack backtrace:
+CPU: 1 PID: 18597 Comm: syz-executor.2 Not tainted 5.16.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1dc/0x2d8 lib/dump_stack.c:106
+ print_usage_bug+0xa6d/0xea0 kernel/locking/lockdep.c:3933
+ mark_lock+0x168c/0x1e00 kernel/locking/lockdep.c:4605
+ mark_held_locks kernel/locking/lockdep.c:4206 [inline]
+ __trace_hardirqs_on_caller kernel/locking/lockdep.c:4224 [inline]
+ lockdep_hardirqs_on_prepare+0x26e/0x780 kernel/locking/lockdep.c:4292
+ trace_hardirqs_on+0x6f/0x80 kernel/trace/trace_preemptirq.c:49
+ __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:159 [inline]
+ _raw_spin_unlock_irq+0x1f/0x40 kernel/locking/spinlock.c:202
+ spin_unlock_irq include/linux/spinlock.h:399 [inline]
+ __io_poll_remove_one fs/io_uring.c:5669 [inline]
+ io_poll_remove_one+0x248/0x610 fs/io_uring.c:5680
+ io_poll_remove_all+0x24c/0x319 fs/io_uring.c:5709
+ io_ring_ctx_wait_and_kill+0x22c/0x36a fs/io_uring.c:9534
+ io_uring_release+0x59/0x63 fs/io_uring.c:9554
+ __fput+0x3fc/0x870 fs/file_table.c:280
+ task_work_run+0x146/0x1c0 kernel/task_work.c:164
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:175 [inline]
+ exit_to_user_mode_prepare+0x209/0x220 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x2e/0x70 kernel/entry/common.c:300
+ do_syscall_64+0x53/0xd0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f3afe4a0b32
+Code: 00 00 00 00 00 0f 1f 00 41 f7 c1 ff 0f 00 00 75 27 55 48 89 fd 53 89 cb 48 85 ff 74 3b 41 89 da 48 89 ef b8 09 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 66 5b 5d c3 0f 1f 00 48 c7 c0 bc ff ff ff 64
+RSP: 002b:00007f3afba160f8 EFLAGS: 00000206 ORIG_RAX: 0000000000000009
+RAX: 0000000020ffc000 RBX: 0000000000008011 RCX: 00007f3afe4a0b32
+RDX: 0000000000000003 RSI: 0000000000100000 RDI: 0000000020ffc000
+RBP: 0000000020ffc000 R08: 0000000000000004 R09: 0000000010000000
+R10: 0000000000008011 R11: 0000000000000206 R12: 0000000020000140
+R13: 0000000020ffc000 R14: 0000000020000600 R15: 0000000020002000
+ </TASK>

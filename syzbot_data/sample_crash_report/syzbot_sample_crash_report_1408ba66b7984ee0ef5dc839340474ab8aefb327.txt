@@ -1,0 +1,35 @@
+==================================================================
+BUG: KCSAN: data-race in sctp_assoc_migrate / sctp_hash_obj
+
+write to 0xffff888124553020 of 8 bytes by task 9912 on cpu 1:
+ sctp_assoc_migrate+0x1a6/0x290 net/sctp/associola.c:1091
+ sctp_sock_migrate+0x959/0xa60 net/sctp/socket.c:9465
+ sctp_accept+0x3c8/0x470 net/sctp/socket.c:4916
+ inet_accept+0x7f/0x360 net/ipv4/af_inet.c:734
+ __sys_accept4+0x224/0x430 net/socket.c:1754
+ __do_sys_accept4 net/socket.c:1789 [inline]
+ __se_sys_accept4 net/socket.c:1786 [inline]
+ __x64_sys_accept4+0x5e/0x80 net/socket.c:1786
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffff888124553020 of 8 bytes by task 7647 on cpu 0:
+ sctp_hash_obj+0x4f/0x2e0 net/sctp/input.c:900
+ rht_key_get_hash include/linux/rhashtable.h:133 [inline]
+ rht_key_hashfn include/linux/rhashtable.h:159 [inline]
+ rht_head_hashfn include/linux/rhashtable.h:174 [inline]
+ head_hashfn lib/rhashtable.c:41 [inline]
+ rhashtable_rehash_one lib/rhashtable.c:245 [inline]
+ rhashtable_rehash_chain lib/rhashtable.c:276 [inline]
+ rhashtable_rehash_table lib/rhashtable.c:316 [inline]
+ rht_deferred_worker+0x468/0xab0 lib/rhashtable.c:420
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2269
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2415
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 7647 Comm: kworker/0:4 Not tainted 5.4.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events rht_deferred_worker
+==================================================================

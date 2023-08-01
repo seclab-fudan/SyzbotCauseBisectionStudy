@@ -1,0 +1,62 @@
+BUG: unable to handle kernel paging request at ffffea00031d0000
+#PF error: [normal kernel read fault]
+PGD 12c3f9067 P4D 12c3f9067 PUD 12c3f8067 PMD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 1049 Comm: khugepaged Not tainted 5.1.0-rc7+ #95
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:constant_test_bit arch/x86/include/asm/bitops.h:314 [inline]
+RIP: 0010:PageCompound include/linux/page-flags.h:186 [inline]
+RIP: 0010:isolate_freepages_block+0x1c0/0xd40 mm/compaction.c:579
+Code: 01 d8 ff 4d 85 ed 0f 84 ef 07 00 00 e8 09 00 d8 ff 4c 89 e0 83 85 38 ff ff ff 01 48 c1 e8 03 42 80 3c 38 00 0f 85 31 0a 00 00 <4d> 8b 2c 24 31 ff 49 c1 ed 10 41 83 e5 01 44 89 ee e8 1a 01 d8 ff
+RSP: 0018:ffff8880a8366fd8 EFLAGS: 00010246
+RAX: 1ffffd400063a000 RBX: 00000000000c7400 RCX: ffffffff819894dc
+RDX: 0000000000000000 RSI: ffffffff81988ca7 RDI: 0000000000000001
+RBP: ffff8880a83670f8 R08: ffff8880a7c1a180 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffffea00031d0000
+R13: 0000000000000000 R14: ffff8880a8367550 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffea00031d0000 CR3: 0000000061d39000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ fast_isolate_around mm/compaction.c:1243 [inline]
+ fast_isolate_freepages mm/compaction.c:1418 [inline]
+ isolate_freepages mm/compaction.c:1438 [inline]
+ compaction_alloc+0x1aee/0x22e0 mm/compaction.c:1550
+ unmap_and_move mm/migrate.c:1180 [inline]
+ migrate_pages+0x484/0x2cd0 mm/migrate.c:1431
+ compact_zone+0x1b4f/0x38f0 mm/compaction.c:2181
+ compact_zone_order+0x1af/0x2a0 mm/compaction.c:2306
+ try_to_compact_pages+0x268/0xaf0 mm/compaction.c:2358
+ __alloc_pages_direct_compact+0x154/0x460 mm/page_alloc.c:3786
+ __alloc_pages_slowpath+0xb14/0x28b0 mm/page_alloc.c:4425
+ __alloc_pages_nodemask+0x602/0x8d0 mm/page_alloc.c:4633
+ __alloc_pages include/linux/gfp.h:473 [inline]
+ __alloc_pages_node include/linux/gfp.h:486 [inline]
+ khugepaged_alloc_page+0x96/0x160 mm/khugepaged.c:773
+ collapse_huge_page+0x130/0x3f60 mm/khugepaged.c:962
+ khugepaged_scan_pmd mm/khugepaged.c:1215 [inline]
+ khugepaged_scan_mm_slot mm/khugepaged.c:1725 [inline]
+ khugepaged_do_scan mm/khugepaged.c:1806 [inline]
+ khugepaged+0x28c3/0x3f40 mm/khugepaged.c:1851
+ kthread+0x357/0x430 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Modules linked in:
+CR2: ffffea00031d0000
+---[ end trace d773532d377ced9a ]---
+RIP: 0010:constant_test_bit arch/x86/include/asm/bitops.h:314 [inline]
+RIP: 0010:PageCompound include/linux/page-flags.h:186 [inline]
+RIP: 0010:isolate_freepages_block+0x1c0/0xd40 mm/compaction.c:579
+Code: 01 d8 ff 4d 85 ed 0f 84 ef 07 00 00 e8 09 00 d8 ff 4c 89 e0 83 85 38 ff ff ff 01 48 c1 e8 03 42 80 3c 38 00 0f 85 31 0a 00 00 <4d> 8b 2c 24 31 ff 49 c1 ed 10 41 83 e5 01 44 89 ee e8 1a 01 d8 ff
+RSP: 0018:ffff8880a8366fd8 EFLAGS: 00010246
+RAX: 1ffffd400063a000 RBX: 00000000000c7400 RCX: ffffffff819894dc
+RDX: 0000000000000000 RSI: ffffffff81988ca7 RDI: 0000000000000001
+RBP: ffff8880a83670f8 R08: ffff8880a7c1a180 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffffea00031d0000
+R13: 0000000000000000 R14: ffff8880a8367550 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffea00031d0000 CR3: 0000000061d39000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

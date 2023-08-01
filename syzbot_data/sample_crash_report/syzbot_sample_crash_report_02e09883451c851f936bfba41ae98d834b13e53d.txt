@@ -1,0 +1,90 @@
+scsi 0:0:1:0: Direct-Access     Google   PersistentDisk   1    PQ: 0 ANSI: 6
+BUG: unable to handle page fault for address: ffffdc0000000001
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 11826067 
+P4D 11826067 
+PUD 0 
+
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 41 Comm: kworker/u4:2 Not tainted 5.19.0-syzkaller-14374-g5d6a0f4da927 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Workqueue: events_unbound async_run_entry_fn
+RIP: 0010:__hlist_del include/linux/list.h:886 [inline]
+RIP: 0010:hlist_del include/linux/list.h:898 [inline]
+RIP: 0010:__alloc_object lib/debugobjects.c:213 [inline]
+RIP: 0010:alloc_object lib/debugobjects.c:253 [inline]
+RIP: 0010:__debug_object_init+0x761/0xd10 lib/debugobjects.c:570
+Code: 00 00 4d 8b 47 08 4c 89 c7 48 c1 ef 03 80 3c 0f 00 0f 85 74 04 00 00 48 85 f6 49 89 30 74 1a 48 8d 7e 08 49 89 fa 49 c1 ea 03 <41> 80 3c 0a 00 0f 85 2f 04 00 00 4c 89 46 08 48 b8 00 01 00 00 00
+RSP: 0000:ffffc90000d2f670 EFLAGS: 00010802
+
+RAX: 0000000000000000 RBX: 0000000000001c37 RCX: dffffc0000000000
+RDX: ffff8880b9b36c20 RSI: ffff000000000000 RDI: ffff000000000008
+RBP: 0000000000001c3b R08: ffffffff91340700 R09: 0000000000001c2b
+R10: 1fffe00000000001 R11: 0000000000000215 R12: ffff8880b9b36c20
+R13: 0000000000000209 R14: ffffed1017366d85 R15: ffff8881472293f0
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffdc0000000001 CR3: 000000000bc8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __init_work+0x48/0x50 kernel/workqueue.c:523
+ pm_runtime_init+0x1fe/0x400 drivers/base/power/runtime.c:1717
+ device_pm_init drivers/base/power/power.h:168 [inline]
+ device_initialize+0x23f/0x540 drivers/base/core.c:2985
+ scsi_sysfs_device_initialize+0x257/0xa60 drivers/scsi/scsi_sysfs.c:1627
+ scsi_alloc_sdev+0x9b4/0xcc0 drivers/scsi/scsi_scan.c:364
+ scsi_probe_and_add_lun+0x22be/0x3660 drivers/scsi/scsi_scan.c:1191
+ __scsi_scan_target+0x21f/0xdb0 drivers/scsi/scsi_scan.c:1673
+ scsi_scan_channel drivers/scsi/scsi_scan.c:1761 [inline]
+ scsi_scan_channel+0x148/0x1e0 drivers/scsi/scsi_scan.c:1737
+ scsi_scan_host_selected+0x2df/0x3b0 drivers/scsi/scsi_scan.c:1790
+ do_scsi_scan_host+0x1e8/0x260 drivers/scsi/scsi_scan.c:1929
+ do_scan_async+0x3e/0x500 drivers/scsi/scsi_scan.c:1939
+ async_run_entry_fn+0x98/0x530 kernel/async.c:127
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+CR2: ffffdc0000000001
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__hlist_del include/linux/list.h:886 [inline]
+RIP: 0010:hlist_del include/linux/list.h:898 [inline]
+RIP: 0010:__alloc_object lib/debugobjects.c:213 [inline]
+RIP: 0010:alloc_object lib/debugobjects.c:253 [inline]
+RIP: 0010:__debug_object_init+0x761/0xd10 lib/debugobjects.c:570
+Code: 00 00 4d 8b 47 08 4c 89 c7 48 c1 ef 03 80 3c 0f 00 0f 85 74 04 00 00 48 85 f6 49 89 30 74 1a 48 8d 7e 08 49 89 fa 49 c1 ea 03 <41> 80 3c 0a 00 0f 85 2f 04 00 00 4c 89 46 08 48 b8 00 01 00 00 00
+RSP: 0000:ffffc90000d2f670 EFLAGS: 00010802
+RAX: 0000000000000000 RBX: 0000000000001c37 RCX: dffffc0000000000
+RDX: ffff8880b9b36c20 RSI: ffff000000000000 RDI: ffff000000000008
+RBP: 0000000000001c3b R08: ffffffff91340700 R09: 0000000000001c2b
+R10: 1fffe00000000001 R11: 0000000000000215 R12: ffff8880b9b36c20
+R13: 0000000000000209 R14: ffffed1017366d85 R15: ffff8881472293f0
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffdc0000000001 CR3: 000000000bc8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	00 00                	add    %al,(%rax)
+   2:	4d 8b 47 08          	mov    0x8(%r15),%r8
+   6:	4c 89 c7             	mov    %r8,%rdi
+   9:	48 c1 ef 03          	shr    $0x3,%rdi
+   d:	80 3c 0f 00          	cmpb   $0x0,(%rdi,%rcx,1)
+  11:	0f 85 74 04 00 00    	jne    0x48b
+  17:	48 85 f6             	test   %rsi,%rsi
+  1a:	49 89 30             	mov    %rsi,(%r8)
+  1d:	74 1a                	je     0x39
+  1f:	48 8d 7e 08          	lea    0x8(%rsi),%rdi
+  23:	49 89 fa             	mov    %rdi,%r10
+  26:	49 c1 ea 03          	shr    $0x3,%r10
+* 2a:	41 80 3c 0a 00       	cmpb   $0x0,(%r10,%rcx,1) <-- trapping instruction
+  2f:	0f 85 2f 04 00 00    	jne    0x464
+  35:	4c 89 46 08          	mov    %r8,0x8(%rsi)
+  39:	48                   	rex.W
+  3a:	b8 00 01 00 00       	mov    $0x100,%eax

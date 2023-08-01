@@ -1,0 +1,50 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/l1tf.html for details.
+==================================================================
+BUG: KMSAN: kernel-infoleak in __copy_to_user include/linux/uaccess.h:121 [inline]
+BUG: KMSAN: kernel-infoleak in __kvm_write_guest_page arch/x86/kvm/../../../virt/kvm/kvm_main.c:1849 [inline]
+BUG: KMSAN: kernel-infoleak in kvm_write_guest_page+0x373/0x500 arch/x86/kvm/../../../virt/kvm/kvm_main.c:1861
+CPU: 1 PID: 6274 Comm: syz-executor149 Not tainted 4.19.0+ #78
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x32d/0x480 lib/dump_stack.c:113
+ kmsan_report+0x19f/0x300 mm/kmsan/kmsan.c:911
+ kmsan_internal_check_memory+0x35f/0x450 mm/kmsan/kmsan.c:993
+ kmsan_copy_to_user+0x7c/0xe0 mm/kmsan/kmsan_hooks.c:552
+ __copy_to_user include/linux/uaccess.h:121 [inline]
+ __kvm_write_guest_page arch/x86/kvm/../../../virt/kvm/kvm_main.c:1849 [inline]
+ kvm_write_guest_page+0x373/0x500 arch/x86/kvm/../../../virt/kvm/kvm_main.c:1861
+ kvm_write_guest+0x1e1/0x360 arch/x86/kvm/../../../virt/kvm/kvm_main.c:1883
+ kvm_pv_clock_pairing arch/x86/kvm/x86.c:6793 [inline]
+ kvm_emulate_hypercall+0x1c96/0x21b0 arch/x86/kvm/x86.c:6866
+ handle_vmcall+0x41/0x50 arch/x86/kvm/vmx.c:7487
+ vmx_handle_exit+0x1e81/0xbac0 arch/x86/kvm/vmx.c:10128
+ vcpu_enter_guest arch/x86/kvm/x86.c:7667 [inline]
+ vcpu_run arch/x86/kvm/x86.c:7730 [inline]
+ kvm_arch_vcpu_ioctl_run+0xac32/0x11d80 arch/x86/kvm/x86.c:7930
+ kvm_vcpu_ioctl+0xfb1/0x1f90 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2590
+ do_vfs_ioctl+0xf77/0x2d30 fs/ioctl.c:46
+ ksys_ioctl fs/ioctl.c:702 [inline]
+ __do_sys_ioctl fs/ioctl.c:709 [inline]
+ __se_sys_ioctl+0x1da/0x270 fs/ioctl.c:707
+ __x64_sys_ioctl+0x4a/0x70 fs/ioctl.c:707
+ do_syscall_64+0xcf/0x110 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x442b39
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b 0c fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffcb4e05478 EFLAGS: 00000217 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000442b39
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000007
+RBP: 00000000006cd018 R08: 0000000020000100 R09: 0000000020000100
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000403be0
+R13: 0000000000403c70 R14: 0000000000000000 R15: 0000000000000000
+
+Local variable description: ----clock_pairing.i@kvm_emulate_hypercall
+Variable was created at:
+ kvm_emulate_hypercall+0x60/0x21b0 arch/x86/kvm/x86.c:6827
+ handle_vmcall+0x41/0x50 arch/x86/kvm/vmx.c:7487
+
+Bytes 28-63 of 64 are uninitialized
+Memory access of size 64 starts at ffff8801aac5f3d8
+Data copied to user address 0000000020000000
+==================================================================

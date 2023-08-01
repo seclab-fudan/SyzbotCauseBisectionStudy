@@ -1,0 +1,50 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: slab-out-of-bounds in pskb_may_pull include/linux/skbuff.h:2104 [inline]
+BUG: KASAN: slab-out-of-bounds in skb_ensure_writable+0x554/0x620 net/core/skbuff.c:5101
+Read of size 4 at addr ffff8801aefc1780 by task syz-executor159/4509
+
+CPU: 0 PID: 4509 Comm: syz-executor159 Not tainted 4.17.0-rc7+ #78
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ pskb_may_pull include/linux/skbuff.h:2104 [inline]
+ skb_ensure_writable+0x554/0x620 net/core/skbuff.c:5101
+ __bpf_try_make_writable net/core/filter.c:1419 [inline]
+ bpf_try_make_writable net/core/filter.c:1425 [inline]
+ ____bpf_l3_csum_replace net/core/filter.c:1546 [inline]
+ bpf_l3_csum_replace+0x8c/0x4d0 net/core/filter.c:1537
+
+Allocated by task 0:
+(stack is not available)
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801aefc1680
+ which belongs to the cache skbuff_head_cache of size 232
+The buggy address is located 24 bytes to the right of
+ 232-byte region [ffff8801aefc1680, ffff8801aefc1768)
+The buggy address belongs to the page:
+page:ffffea0006bbf040 count:1 mapcount:0 mapping:ffff8801aefc1040 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801aefc1040 0000000000000000 000000010000000c
+raw: ffffea0006b61060 ffffea0006bd69e0 ffff8801d9bdd6c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801aefc1680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801aefc1700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801aefc1780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                   ^
+ ffff8801aefc1800: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801aefc1880: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

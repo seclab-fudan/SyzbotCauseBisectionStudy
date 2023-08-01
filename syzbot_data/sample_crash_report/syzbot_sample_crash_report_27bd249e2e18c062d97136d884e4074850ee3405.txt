@@ -1,0 +1,59 @@
+============================================
+WARNING: possible recursive locking detected
+5.16.0-rc8-syzkaller #0 Not tainted
+--------------------------------------------
+ksoftirqd/1/19 is trying to acquire lock:
+ffff88807cea4130 (&runtime->sleep){..-.}-{2:2}, at: io_poll_double_wake+0x2ba/0x7c0 fs/io_uring.c:5467
+
+but task is already holding lock:
+ffff888076461130 (&runtime->sleep){..-.}-{2:2}, at: __wake_up_common_lock+0xb4/0x130 kernel/sched/wait.c:137
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&runtime->sleep);
+  lock(&runtime->sleep);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+2 locks held by ksoftirqd/1/19:
+ #0: ffff8880245b9910 (&group->lock){..-.}-{2:2}, at: _snd_pcm_stream_lock_irqsave+0x9f/0xd0 sound/core/pcm_native.c:170
+ #1: ffff888076461130 (&runtime->sleep){..-.}-{2:2}, at: __wake_up_common_lock+0xb4/0x130 kernel/sched/wait.c:137
+
+stack backtrace:
+CPU: 1 PID: 19 Comm: ksoftirqd/1 Not tainted 5.16.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_deadlock_bug kernel/locking/lockdep.c:2956 [inline]
+ check_deadlock kernel/locking/lockdep.c:2999 [inline]
+ validate_chain kernel/locking/lockdep.c:3788 [inline]
+ __lock_acquire.cold+0x149/0x3ab kernel/locking/lockdep.c:5027
+ lock_acquire kernel/locking/lockdep.c:5637 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5602
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x39/0x50 kernel/locking/spinlock.c:162
+ io_poll_double_wake+0x2ba/0x7c0 fs/io_uring.c:5467
+ __wake_up_common+0x147/0x650 kernel/sched/wait.c:108
+ __wake_up_common_lock+0xd0/0x130 kernel/sched/wait.c:138
+ snd_pcm_update_state+0x46a/0x540 sound/core/pcm_lib.c:204
+ snd_pcm_update_hw_ptr0+0xa75/0x1a50 sound/core/pcm_lib.c:465
+ snd_pcm_period_elapsed_under_stream_lock+0x15a/0x230 sound/core/pcm_lib.c:1817
+ snd_pcm_period_elapsed+0x28/0x50 sound/core/pcm_lib.c:1849
+ dummy_hrtimer_callback+0x94/0x1b0 sound/drivers/dummy.c:377
+ __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+ __hrtimer_run_queues+0x609/0xe50 kernel/time/hrtimer.c:1749
+ hrtimer_run_softirq+0x17b/0x360 kernel/time/hrtimer.c:1766
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ run_ksoftirqd kernel/softirq.c:921 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:913
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>

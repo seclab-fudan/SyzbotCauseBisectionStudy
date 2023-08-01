@@ -1,0 +1,116 @@
+==================================================================
+BUG: KASAN: use-after-free in v4l2_release+0x319/0x390 drivers/media/v4l2-core/v4l2-dev.c:449
+Read of size 8 at addr ffff8881c80267e0 by task v4l_id/3136
+
+CPU: 0 PID: 3136 Comm: v4l_id Not tainted 5.2.0-rc6+ #14
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description+0x67/0x231 mm/kasan/report.c:188
+ __kasan_report.cold+0x1a/0x32 mm/kasan/report.c:317
+ kasan_report+0xe/0x20 mm/kasan/common.c:614
+ v4l2_release+0x319/0x390 drivers/media/v4l2-core/v4l2-dev.c:449
+ __fput+0x2d7/0x790 fs/file_table.c:280
+ task_work_run+0x13f/0x1c0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:185 [inline]
+ exit_to_usermode_loop+0x1c5/0x1f0 arch/x86/entry/common.c:168
+ prepare_exit_to_usermode arch/x86/entry/common.c:199 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:279 [inline]
+ do_syscall_64+0x43f/0x560 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x7fd2922da2b0
+Code: 40 75 0b 31 c0 48 83 c4 08 e9 0c ff ff ff 48 8d 3d c5 32 08 00 e8 c0 07 02 00 83 3d 45 a3 2b 00 00 75 10 b8 03 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 ce 8a 01 00 48 89 04 24
+RSP: 002b:00007fff15a044d8 EFLAGS: 00000246 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000003 RCX: 00007fd2922da2b0
+RDX: 00007fd292590df0 RSI: 0000000000000001 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 00007fd292590df0 R09: 000000000000000a
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000400884
+R13: 00007fff15a04630 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 1741:
+ save_stack+0x1b/0x80 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_kmalloc mm/kasan/common.c:489 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:462
+ slab_post_alloc_hook mm/slab.h:437 [inline]
+ slab_alloc_node mm/slub.c:2748 [inline]
+ __kmalloc_node_track_caller+0xee/0x370 mm/slub.c:4363
+ alloc_dr drivers/base/devres.c:103 [inline]
+ devm_kmalloc+0x87/0x190 drivers/base/devres.c:815
+ devm_kzalloc include/linux/device.h:679 [inline]
+ usb_raremono_probe+0x2f/0x231 drivers/media/radio/radio-raremono.c:298
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x660 drivers/base/dd.c:509
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:670
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:777
+ bus_for_each_drv+0x15c/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:843
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2111
+ usb_set_configuration+0xdf6/0x1670 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x660 drivers/base/dd.c:509
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:670
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:777
+ bus_for_each_drv+0x15c/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:843
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2111
+ usb_new_device.cold+0x8c1/0x1016 drivers/usb/core/hub.c:2536
+ hub_port_connect drivers/usb/core/hub.c:5098 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x1b3d/0x35f0 drivers/usb/core/hub.c:5441
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0x7ab/0xe20 kernel/workqueue.c:2417
+ kthread+0x30b/0x410 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 1741:
+ save_stack+0x1b/0x80 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_slab_free+0x130/0x180 mm/kasan/common.c:451
+ slab_free_hook mm/slub.c:1421 [inline]
+ slab_free_freelist_hook mm/slub.c:1448 [inline]
+ slab_free mm/slub.c:2994 [inline]
+ kfree+0xd7/0x280 mm/slub.c:3949
+ release_nodes+0x4a1/0x910 drivers/base/devres.c:508
+ devres_release_all+0x74/0xc3 drivers/base/devres.c:529
+ __device_release_driver drivers/base/dd.c:1085 [inline]
+ device_release_driver_internal+0x21b/0x4c0 drivers/base/dd.c:1112
+ bus_remove_device+0x2dc/0x4a0 drivers/base/bus.c:556
+ device_del+0x460/0xb80 drivers/base/core.c:2274
+ usb_disable_device+0x211/0x690 drivers/usb/core/message.c:1237
+ usb_disconnect+0x284/0x830 drivers/usb/core/hub.c:2199
+ hub_port_connect drivers/usb/core/hub.c:4949 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x143d/0x35f0 drivers/usb/core/hub.c:5441
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2269
+ process_scheduled_works kernel/workqueue.c:2331 [inline]
+ worker_thread+0x7ab/0xe20 kernel/workqueue.c:2417
+ kthread+0x30b/0x410 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8881c8026600
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 480 bytes inside of
+ 4096-byte region [ffff8881c8026600, ffff8881c8027600)
+The buggy address belongs to the page:
+page:ffffea0007200800 refcount:1 mapcount:0 mapping:ffff8881dac02600 index:0x0 compound_mapcount: 0
+flags: 0x200000000010200(slab|head)
+raw: 0200000000010200 dead000000000100 dead000000000200 ffff8881dac02600
+raw: 0000000000000000 0000000000070007 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881c8026680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881c8026700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881c8026780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                       ^
+ ffff8881c8026800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881c8026880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

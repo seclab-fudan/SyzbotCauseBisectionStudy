@@ -1,0 +1,52 @@
+=============================
+WARNING: suspicious RCU usage
+6.2.0-syzkaller-12485-gf3a2439f20d9 #0 Not tainted
+-----------------------------
+lib/maple_tree.c:856 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+5 locks held by syz-executor322/5095:
+ #0: ffff88802d3aa460 (sb_writers#8){.+.+}-{0:0}, at: vfs_write+0x26d/0xbb0 fs/read_write.c:580
+ #1: ffff888023176c88 (&of->mutex){+.+.}-{3:3}, at: kernfs_fop_write_iter+0x1eb/0x4f0 fs/kernfs/file.c:325
+ #2: ffff8881451a7490 (kn->active#47){.+.+}-{0:0}, at: kernfs_fop_write_iter+0x20f/0x4f0 fs/kernfs/file.c:326
+ #3: ffffffff8d214988 (ksm_thread_mutex){+.+.}-{3:3}, at: run_store+0x122/0xb10 mm/ksm.c:2953
+ #4: ffff888025e8c998 (&mm->mmap_lock){++++}-{3:3}, at: mmap_read_lock include/linux/mmap_lock.h:117 [inline]
+ #4: ffff888025e8c998 (&mm->mmap_lock){++++}-{3:3}, at: unmerge_and_remove_all_rmap_items mm/ksm.c:990 [inline]
+ #4: ffff888025e8c998 (&mm->mmap_lock){++++}-{3:3}, at: run_store+0x2db/0xb10 mm/ksm.c:2959
+
+stack backtrace:
+CPU: 0 PID: 5095 Comm: syz-executor322 Not tainted 6.2.0-syzkaller-12485-gf3a2439f20d9 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/16/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ lockdep_rcu_suspicious+0x220/0x340 kernel/locking/lockdep.c:6599
+ mas_root lib/maple_tree.c:856 [inline]
+ mas_start+0x2c1/0x440 lib/maple_tree.c:1357
+ mas_state_walk lib/maple_tree.c:3838 [inline]
+ mas_walk+0x33/0x180 lib/maple_tree.c:5052
+ mas_find+0x1e9/0x240 lib/maple_tree.c:6030
+ vma_next include/linux/mm.h:745 [inline]
+ unmerge_and_remove_all_rmap_items mm/ksm.c:991 [inline]
+ run_store+0x2f9/0xb10 mm/ksm.c:2959
+ kernfs_fop_write_iter+0x3a6/0x4f0 fs/kernfs/file.c:334
+ call_write_iter include/linux/fs.h:1851 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x7b2/0xbb0 fs/read_write.c:584
+ ksys_write+0x1a0/0x2c0 fs/read_write.c:637
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fe864e99e49
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 b1 14 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffc685fb328 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000000f4240 RCX: 00007fe864e99e49
+RDX: 0000000000000002 RSI: 0000000020000000 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000001 R11: 0000000000000246 R12: 000000000000d884
+R13: 00007ffc685fb33c R14: 00007ffc685fb350 R15: 00007ffc685fb340
+ </TASK>

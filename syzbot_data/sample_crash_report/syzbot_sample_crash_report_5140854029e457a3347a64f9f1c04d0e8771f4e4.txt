@@ -1,0 +1,117 @@
+loop1: detected capacity change from 0 to 32768
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(lock->magic != lock)
+WARNING: CPU: 1 PID: 11106 at kernel/locking/mutex.c:582 __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+Modules linked in:
+CPU: 1 PID: 11106 Comm: syz-executor.1 Not tainted 6.2.0-rc3-syzkaller-16387-g9598c377d828 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+lr : __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+sp : ffff80001fa83900
+x29: ffff80001fa83970 x28: ffff80000f068000 x27: ffff80001fa83c78
+x26: 0000000000000000 x25: ffff00010b0487b8 x24: 0000000000000002
+x23: ffff800008d984c8 x22: 0000000000000000 x21: 0000000000000000
+x20: 0000000000000000 x19: ffff00010b0484e8 x18: 00000000000000c0
+x17: ffff80000df48158 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000012 x12: 0000000000040000
+x11: 00000000000058c1 x10: ffff800016e5a000 x9 : 22dc7a1ab33d5d00
+x8 : 22dc7a1ab33d5d00 x7 : 4e5241575f534b43 x6 : ffff80000c11ee8c
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000000 x0 : 0000000000000028
+Call trace:
+ __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x38/0x44 kernel/locking/mutex.c:799
+ __jfs_xattr_set+0x68/0x108 fs/jfs/xattr.c:916
+ jfs_xattr_set+0x58/0x70 fs/jfs/xattr.c:941
+ __vfs_setxattr+0x290/0x29c fs/xattr.c:202
+ __vfs_setxattr_noperm+0xcc/0x320 fs/xattr.c:236
+ __vfs_setxattr_locked+0x16c/0x194 fs/xattr.c:297
+ vfs_setxattr+0xf4/0x1f4 fs/xattr.c:323
+ do_setxattr fs/xattr.c:608 [inline]
+ setxattr fs/xattr.c:631 [inline]
+ path_setxattr+0x32c/0x424 fs/xattr.c:650
+ __do_sys_setxattr fs/xattr.c:666 [inline]
+ __se_sys_setxattr fs/xattr.c:662 [inline]
+ __arm64_sys_setxattr+0x2c/0x40 fs/xattr.c:662
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x104 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+irq event stamp: 72213
+hardirqs last  enabled at (72213): [<ffff80000c112f6c>] __exit_to_kernel_mode arch/arm64/kernel/entry-common.c:84 [inline]
+hardirqs last  enabled at (72213): [<ffff80000c112f6c>] exit_to_kernel_mode+0xe8/0x118 arch/arm64/kernel/entry-common.c:94
+hardirqs last disabled at (72212): [<ffff80000801cdb8>] local_daif_mask+0x14/0x20 arch/arm64/include/asm/daifflags.h:38
+softirqs last  enabled at (72166): [<ffff80000801c864>] local_bh_enable+0x10/0x34 include/linux/bottom_half.h:32
+softirqs last disabled at (72164): [<ffff80000801c830>] local_bh_disable+0x10/0x34 include/linux/bottom_half.h:19
+---[ end trace 0000000000000000 ]---
+Unable to handle kernel paging request at virtual address 000000010000002c
+Mem abort info:
+  ESR = 0x0000000096000005
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x05: level 1 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000005
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000000154966000
+[000000010000002c] pgd=080000014f622003, p4d=080000014f622003, pud=0000000000000000
+Internal error: Oops: 0000000096000005 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 11106 Comm: syz-executor.1 Tainted: G        W          6.2.0-rc3-syzkaller-16387-g9598c377d828 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 00400005 (nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : owner_on_cpu include/linux/sched.h:2284 [inline]
+pc : mutex_can_spin_on_owner kernel/locking/mutex.c:409 [inline]
+pc : mutex_optimistic_spin+0x1c8/0x254 kernel/locking/mutex.c:452
+lr : __mutex_lock_common+0x1b4/0xca8 kernel/locking/mutex.c:607
+sp : ffff80001fa838a0
+x29: ffff80001fa838b0 x28: ffff80000f068000 x27: ffff80000cd43854
+x26: 0000000000000000 x25: ffff00010b0487b8 x24: ffff00010b048550
+x23: ffff800008d984c8 x22: ffff80000d51c000 x21: 0000000000000000
+x20: 0000000000000000 x19: ffff00010b0484e8 x18: 00000000000000c0
+x17: ffff80000df48158 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000012 x12: 0000000000040000
+x11: 00000000000058c1 x10: ffff80000d51c000 x9 : 0000000000000003
+x8 : 00000000fffffff8 x7 : 4e5241575f534b43 x6 : ffff800008d984c8
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000000000000 x0 : ffff00010b0484e8
+Call trace:
+ mutex_can_spin_on_owner kernel/locking/mutex.c:408 [inline]
+ mutex_optimistic_spin+0x1c8/0x254 kernel/locking/mutex.c:452
+ __mutex_lock_common+0x1b4/0xca8 kernel/locking/mutex.c:607
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x38/0x44 kernel/locking/mutex.c:799
+ __jfs_xattr_set+0x68/0x108 fs/jfs/xattr.c:916
+ jfs_xattr_set+0x58/0x70 fs/jfs/xattr.c:941
+ __vfs_setxattr+0x290/0x29c fs/xattr.c:202
+ __vfs_setxattr_noperm+0xcc/0x320 fs/xattr.c:236
+ __vfs_setxattr_locked+0x16c/0x194 fs/xattr.c:297
+ vfs_setxattr+0xf4/0x1f4 fs/xattr.c:323
+ do_setxattr fs/xattr.c:608 [inline]
+ setxattr fs/xattr.c:631 [inline]
+ path_setxattr+0x32c/0x424 fs/xattr.c:650
+ __do_sys_setxattr fs/xattr.c:666 [inline]
+ __se_sys_setxattr fs/xattr.c:662 [inline]
+ __arm64_sys_setxattr+0x2c/0x40 fs/xattr.c:662
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x104 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 37080148 f9400268 f27df108 54000080 (b9403509) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	37080148 	tbnz	w8, #1, 0x28
+   4:	f9400268 	ldr	x8, [x19]
+   8:	f27df108 	ands	x8, x8, #0xfffffffffffffff8
+   c:	54000080 	b.eq	0x1c  // b.none
+* 10:	b9403509 	ldr	w9, [x8, #52] <-- trapping instruction

@@ -1,0 +1,257 @@
+========================================================
+WARNING: possible irq lock inversion dependency detected
+5.7.0-rc1-syzkaller #0 Not tainted
+--------------------------------------------------------
+syz-executor.3/12818 just changed the state of lock:
+ffffffff89a61a58 (shmlock_user_lock){+.+.}-{2:2}, at: spin_lock include/linux/spinlock.h:353 [inline]
+ffffffff89a61a58 (shmlock_user_lock){+.+.}-{2:2}, at: user_shm_lock+0xab/0x230 mm/mlock.c:855
+but this lock was taken by another, SOFTIRQ-safe lock in the past:
+ (&xa->xa_lock#4){..-.}-{2:2}
+
+
+and interrupts could create inverse lock ordering between them.
+
+
+other info that might help us debug this:
+Chain exists of:
+  &xa->xa_lock#4 --> &info->lock --> shmlock_user_lock
+
+ Possible interrupt unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(shmlock_user_lock);
+                               local_irq_disable();
+                               lock(&xa->xa_lock#4);
+                               lock(&info->lock);
+  <Interrupt>
+    lock(&xa->xa_lock#4);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor.3/12818:
+ #0: ffff88806b16b550 (&ids->rwsem){++++}-{3:3}, at: ipcget_new ipc/util.c:343 [inline]
+ #0: ffff88806b16b550 (&ids->rwsem){++++}-{3:3}, at: ipcget+0xc6/0xcb0 ipc/util.c:643
+
+the shortest dependencies between 2nd lock and 1st lock:
+  -> (&xa->xa_lock#4){..-.}-{2:2} {
+     IN-SOFTIRQ-W at:
+                        lock_acquire+0x1f2/0x8f0 kernel/locking/lockdep.c:4934
+                        __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+                        _raw_spin_lock_irqsave+0x8c/0xbf kernel/locking/spinlock.c:159
+                        test_clear_page_writeback+0x1d7/0x11e0 mm/page-writeback.c:2728
+                        end_page_writeback+0x239/0x520 mm/filemap.c:1317
+                        end_buffer_async_write+0x442/0x5c0 fs/buffer.c:384
+                        end_bio_bh_io_sync+0xe2/0x140 fs/buffer.c:3023
+                        bio_endio+0x46a/0x820 block/bio.c:1422
+                        req_bio_endio block/blk-core.c:245 [inline]
+                        blk_update_request+0x3e1/0xdc0 block/blk-core.c:1472
+                        scsi_end_request+0x80/0x7b0 drivers/scsi/scsi_lib.c:575
+                        scsi_io_completion+0x1e7/0x1300 drivers/scsi/scsi_lib.c:959
+                        scsi_softirq_done+0x31e/0x3b0 drivers/scsi/scsi_lib.c:1454
+                        blk_done_softirq+0x2db/0x440 block/blk-softirq.c:37
+                        __do_softirq+0x26c/0x9f7 kernel/softirq.c:292
+                        invoke_softirq kernel/softirq.c:373 [inline]
+                        irq_exit+0x192/0x1d0 kernel/softirq.c:413
+                        exiting_irq arch/x86/include/asm/apic.h:546 [inline]
+                        do_IRQ+0xda/0x270 arch/x86/kernel/irq.c:263
+                        ret_from_intr+0x0/0x2b
+                        __read_once_size include/linux/compiler.h:199 [inline]
+                        check_kcov_mode kernel/kcov.c:155 [inline]
+                        __sanitizer_cov_trace_pc+0x22/0x50 kernel/kcov.c:187
+                        tomoyo_domain_quota_is_ok+0x2f4/0x500 security/tomoyo/util.c:1071
+                        tomoyo_supervisor+0x2d5/0xee0 security/tomoyo/common.c:2089
+                        tomoyo_audit_path_log security/tomoyo/file.c:168 [inline]
+                        tomoyo_path_permission security/tomoyo/file.c:587 [inline]
+                        tomoyo_path_permission+0x257/0x360 security/tomoyo/file.c:573
+                        tomoyo_path_perm+0x2f6/0x400 security/tomoyo/file.c:838
+                        security_inode_getattr+0xeb/0x150 security/security.c:1273
+                        vfs_getattr+0x22/0x60 fs/stat.c:117
+                        vfs_statx_fd+0x6a/0xb0 fs/stat.c:147
+                        vfs_fstat include/linux/fs.h:3295 [inline]
+                        __do_sys_newfstat+0x8b/0x100 fs/stat.c:388
+                        do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+                        entry_SYSCALL_64_after_hwframe+0x49/0xb3
+     INITIAL USE at:
+                       lock_acquire+0x1f2/0x8f0 kernel/locking/lockdep.c:4934
+                       __raw_spin_lock_irq include/linux/spinlock_api_smp.h:128 [inline]
+                       _raw_spin_lock_irq+0x5b/0x80 kernel/locking/spinlock.c:167
+                       spin_lock_irq include/linux/spinlock.h:378 [inline]
+                       __add_to_page_cache_locked+0x607/0xe00 mm/filemap.c:855
+                       add_to_page_cache_lru+0x1aa/0x700 mm/filemap.c:921
+                       do_read_cache_page+0x9ab/0x1810 mm/filemap.c:2755
+                       read_mapping_page include/linux/pagemap.h:397 [inline]
+                       read_part_sector+0xf6/0x600 block/partitions/core.c:643
+                       adfspart_check_ICS+0x9d/0xc80 block/partitions/acorn.c:360
+                       check_partition block/partitions/core.c:140 [inline]
+                       blk_add_partitions+0x474/0xe50 block/partitions/core.c:571
+                       bdev_disk_changed+0x1fb/0x380 fs/block_dev.c:1544
+                       __blkdev_get+0xb15/0x1530 fs/block_dev.c:1647
+                       blkdev_get+0x41/0x2b0 fs/block_dev.c:1749
+                       register_disk block/genhd.c:763 [inline]
+                       __device_add_disk+0xa4f/0x1170 block/genhd.c:853
+                       add_disk include/linux/genhd.h:294 [inline]
+                       brd_init+0x297/0x463 drivers/block/brd.c:533
+                       do_one_initcall+0x10a/0x7d0 init/main.c:1157
+                       do_initcall_level init/main.c:1230 [inline]
+                       do_initcalls init/main.c:1246 [inline]
+                       do_basic_setup init/main.c:1266 [inline]
+                       kernel_init_freeable+0x501/0x5ae init/main.c:1450
+                       kernel_init+0xd/0x1bb init/main.c:1357
+                       ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+   }
+   ... key      at: [<ffffffff8c687080>] __key.18006+0x0/0x40
+   ... acquired at:
+   __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+   _raw_spin_lock_irqsave+0x8c/0xbf kernel/locking/spinlock.c:159
+   shmem_uncharge+0x24/0x270 mm/shmem.c:341
+   __split_huge_page mm/huge_memory.c:2613 [inline]
+   split_huge_page_to_list+0x274b/0x33b0 mm/huge_memory.c:2886
+   split_huge_page include/linux/huge_mm.h:204 [inline]
+   shmem_punch_compound+0x13e/0x1e0 mm/shmem.c:814
+   shmem_undo_range+0x5f1/0x1b80 mm/shmem.c:870
+   shmem_fallocate+0xbe2/0xd40 mm/shmem.c:2810
+   vfs_fallocate+0x48a/0xa10 fs/open.c:309
+   ksys_fallocate+0x51/0x90 fs/open.c:332
+   __do_sys_fallocate fs/open.c:340 [inline]
+   __se_sys_fallocate fs/open.c:338 [inline]
+   __x64_sys_fallocate+0x93/0xf0 fs/open.c:338
+   do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+   entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+ -> (&info->lock){....}-{2:2} {
+    INITIAL USE at:
+                     lock_acquire+0x1f2/0x8f0 kernel/locking/lockdep.c:4934
+                     __raw_spin_lock_irq include/linux/spinlock_api_smp.h:128 [inline]
+                     _raw_spin_lock_irq+0x5b/0x80 kernel/locking/spinlock.c:167
+                     spin_lock_irq include/linux/spinlock.h:378 [inline]
+                     shmem_getpage_gfp+0x937/0x2a10 mm/shmem.c:1882
+                     shmem_getpage mm/shmem.c:154 [inline]
+                     shmem_write_begin+0x102/0x1e0 mm/shmem.c:2483
+                     generic_perform_write+0x20a/0x4e0 mm/filemap.c:3302
+                     __generic_file_write_iter+0x24c/0x610 mm/filemap.c:3431
+                     generic_file_write_iter+0x3f3/0x630 mm/filemap.c:3463
+                     call_write_iter include/linux/fs.h:1907 [inline]
+                     new_sync_write+0x4a2/0x700 fs/read_write.c:484
+                     __vfs_write+0xc9/0x100 fs/read_write.c:497
+                     vfs_write+0x268/0x5d0 fs/read_write.c:559
+                     ksys_write+0x12d/0x250 fs/read_write.c:612
+                     do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+                     entry_SYSCALL_64_after_hwframe+0x49/0xb3
+  }
+  ... key      at: [<ffffffff8c673b00>] __key.56444+0x0/0x40
+  ... acquired at:
+   __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+   _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+   spin_lock include/linux/spinlock.h:353 [inline]
+   user_shm_lock+0xab/0x230 mm/mlock.c:855
+   shmem_lock+0x1dd/0x2d0 mm/shmem.c:2184
+   shmctl_do_lock+0x73f/0x8f0 ipc/shm.c:1111
+   ksys_shmctl.constprop.0+0x203/0x350 ipc/shm.c:1188
+   do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+   entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+-> (shmlock_user_lock){+.+.}-{2:2} {
+   HARDIRQ-ON-W at:
+                    lock_acquire+0x1f2/0x8f0 kernel/locking/lockdep.c:4934
+                    __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+                    _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+                    spin_lock include/linux/spinlock.h:353 [inline]
+                    user_shm_lock+0xab/0x230 mm/mlock.c:855
+                    hugetlb_file_setup+0x4e1/0x677 fs/hugetlbfs/inode.c:1416
+                    newseg+0x460/0xe60 ipc/shm.c:652
+                    ipcget_new ipc/util.c:344 [inline]
+                    ipcget+0xf0/0xcb0 ipc/util.c:643
+                    ksys_shmget ipc/shm.c:742 [inline]
+                    __do_sys_shmget ipc/shm.c:747 [inline]
+                    __se_sys_shmget ipc/shm.c:745 [inline]
+                    __x64_sys_shmget+0x139/0x1a0 ipc/shm.c:745
+                    do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+                    entry_SYSCALL_64_after_hwframe+0x49/0xb3
+   SOFTIRQ-ON-W at:
+                    lock_acquire+0x1f2/0x8f0 kernel/locking/lockdep.c:4934
+                    __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+                    _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+                    spin_lock include/linux/spinlock.h:353 [inline]
+                    user_shm_lock+0xab/0x230 mm/mlock.c:855
+                    hugetlb_file_setup+0x4e1/0x677 fs/hugetlbfs/inode.c:1416
+                    newseg+0x460/0xe60 ipc/shm.c:652
+                    ipcget_new ipc/util.c:344 [inline]
+                    ipcget+0xf0/0xcb0 ipc/util.c:643
+                    ksys_shmget ipc/shm.c:742 [inline]
+                    __do_sys_shmget ipc/shm.c:747 [inline]
+                    __se_sys_shmget ipc/shm.c:745 [inline]
+                    __x64_sys_shmget+0x139/0x1a0 ipc/shm.c:745
+                    do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+                    entry_SYSCALL_64_after_hwframe+0x49/0xb3
+   INITIAL USE at:
+                   lock_acquire+0x1f2/0x8f0 kernel/locking/lockdep.c:4934
+                   __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+                   _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+                   spin_lock include/linux/spinlock.h:353 [inline]
+                   user_shm_lock+0xab/0x230 mm/mlock.c:855
+                   shmem_lock+0x1dd/0x2d0 mm/shmem.c:2184
+                   shmctl_do_lock+0x73f/0x8f0 ipc/shm.c:1111
+                   ksys_shmctl.constprop.0+0x203/0x350 ipc/shm.c:1188
+                   do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+                   entry_SYSCALL_64_after_hwframe+0x49/0xb3
+ }
+ ... key      at: [<ffffffff89a61a58>] shmlock_user_lock+0x18/0x5c0
+ ... acquired at:
+   mark_lock_irq kernel/locking/lockdep.c:3585 [inline]
+   mark_lock+0x624/0xf10 kernel/locking/lockdep.c:3935
+   mark_usage kernel/locking/lockdep.c:3852 [inline]
+   __lock_acquire+0x98c/0x4c50 kernel/locking/lockdep.c:4309
+   lock_acquire+0x1f2/0x8f0 kernel/locking/lockdep.c:4934
+   __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+   _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+   spin_lock include/linux/spinlock.h:353 [inline]
+   user_shm_lock+0xab/0x230 mm/mlock.c:855
+   hugetlb_file_setup+0x4e1/0x677 fs/hugetlbfs/inode.c:1416
+   newseg+0x460/0xe60 ipc/shm.c:652
+   ipcget_new ipc/util.c:344 [inline]
+   ipcget+0xf0/0xcb0 ipc/util.c:643
+   ksys_shmget ipc/shm.c:742 [inline]
+   __do_sys_shmget ipc/shm.c:747 [inline]
+   __se_sys_shmget ipc/shm.c:745 [inline]
+   __x64_sys_shmget+0x139/0x1a0 ipc/shm.c:745
+   do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+   entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+
+stack backtrace:
+CPU: 1 PID: 12818 Comm: syz-executor.3 Not tainted 5.7.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x188/0x20d lib/dump_stack.c:118
+ print_irq_inversion_bug kernel/locking/lockdep.c:3448 [inline]
+ check_usage_backwards.cold+0x1d/0x26 kernel/locking/lockdep.c:3499
+ mark_lock_irq kernel/locking/lockdep.c:3585 [inline]
+ mark_lock+0x624/0xf10 kernel/locking/lockdep.c:3935
+ mark_usage kernel/locking/lockdep.c:3852 [inline]
+ __lock_acquire+0x98c/0x4c50 kernel/locking/lockdep.c:4309
+ lock_acquire+0x1f2/0x8f0 kernel/locking/lockdep.c:4934
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+ spin_lock include/linux/spinlock.h:353 [inline]
+ user_shm_lock+0xab/0x230 mm/mlock.c:855
+ hugetlb_file_setup+0x4e1/0x677 fs/hugetlbfs/inode.c:1416
+ newseg+0x460/0xe60 ipc/shm.c:652
+ ipcget_new ipc/util.c:344 [inline]
+ ipcget+0xf0/0xcb0 ipc/util.c:643
+ ksys_shmget ipc/shm.c:742 [inline]
+ __do_sys_shmget ipc/shm.c:747 [inline]
+ __se_sys_shmget ipc/shm.c:745 [inline]
+ __x64_sys_shmget+0x139/0x1a0 ipc/shm.c:745
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x45c829
+Code: 0d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f8789c56c78 EFLAGS: 00000246 ORIG_RAX: 000000000000001d
+RAX: ffffffffffffffda RBX: 0000000000506280 RCX: 000000000045c829
+RDX: 0000000000000800 RSI: 0000000000004000 RDI: 0000000000000000
+RBP: 000000000078bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000020ffc000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000000b5f R14: 00000000004cd92c R15: 00007f8789c576d4
+hugetlbfs: syz-executor.3 (12818): Using mlock ulimits for SHM_HUGETLB is deprecated

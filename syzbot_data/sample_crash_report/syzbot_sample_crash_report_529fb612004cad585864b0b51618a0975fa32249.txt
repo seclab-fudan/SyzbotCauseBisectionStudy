@@ -1,0 +1,54 @@
+R10: 0000000000000000 R11: 0000000000000292 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+---[ end trace 0000000000000000 ]---
+=====================================================
+BUG: KMSAN: uninit-value in mb_find_extent+0x1603/0x1640 fs/ext4/mballoc.c:1870
+ mb_find_extent+0x1603/0x1640 fs/ext4/mballoc.c:1870
+ ext4_mb_complex_scan_group+0x456/0x1760 fs/ext4/mballoc.c:2307
+ ext4_mb_regular_allocator+0x2e60/0x5c30 fs/ext4/mballoc.c:2735
+ ext4_mb_new_blocks+0x1708/0x2fe0 fs/ext4/mballoc.c:5605
+ ext4_ext_map_blocks+0x2fb5/0x5a60 fs/ext4/extents.c:4286
+ ext4_map_blocks+0x13ae/0x2d70 fs/ext4/inode.c:651
+ ext4_getblk+0x228/0xd10 fs/ext4/inode.c:864
+ ext4_bread+0x46/0x370 fs/ext4/inode.c:920
+ ext4_quota_write+0x2f5/0x9c0 fs/ext4/super.c:7105
+ write_blk fs/quota/quota_tree.c:64 [inline]
+ get_free_dqblk+0x46e/0x910 fs/quota/quota_tree.c:130
+ do_insert_tree+0x300/0x3190 fs/quota/quota_tree.c:340
+ do_insert_tree+0xd42/0x3190 fs/quota/quota_tree.c:375
+ do_insert_tree+0xd42/0x3190 fs/quota/quota_tree.c:375
+ dq_insert_tree fs/quota/quota_tree.c:401 [inline]
+ qtree_write_dquot+0x616/0x730 fs/quota/quota_tree.c:420
+ v2_write_dquot+0x14e/0x220 fs/quota/quota_v2.c:358
+ dquot_acquire+0x450/0x700 fs/quota/dquot.c:444
+ ext4_acquire_dquot+0x44d/0x540 fs/ext4/super.c:6740
+ dqget+0x12db/0x1a90 fs/quota/dquot.c:914
+ __dquot_initialize+0x67a/0x1730 fs/quota/dquot.c:1492
+ dquot_initialize+0x2e/0x40 fs/quota/dquot.c:1550
+ ext4_process_orphan+0x56/0x4f0 fs/ext4/orphan.c:329
+ ext4_orphan_cleanup+0x1160/0x1c60 fs/ext4/orphan.c:474
+ __ext4_fill_super fs/ext4/super.c:5516 [inline]
+ ext4_fill_super+0xd0dc/0xd7f0 fs/ext4/super.c:5644
+ get_tree_bdev+0x8a3/0xd30 fs/super.c:1282
+ ext4_get_tree+0x30/0x40 fs/ext4/super.c:5675
+ vfs_get_tree+0xa1/0x500 fs/super.c:1489
+ do_new_mount+0x694/0x1580 fs/namespace.c:3145
+ path_mount+0x71a/0x1eb0 fs/namespace.c:3475
+ do_mount fs/namespace.c:3488 [inline]
+ __do_sys_mount fs/namespace.c:3697 [inline]
+ __se_sys_mount+0x734/0x840 fs/namespace.c:3674
+ __ia32_sys_mount+0xdf/0x140 fs/namespace.c:3674
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Local variable ex created at:
+ ext4_mb_complex_scan_group+0xa3/0x1760 fs/ext4/mballoc.c:2279
+ ext4_mb_regular_allocator+0x2e60/0x5c30 fs/ext4/mballoc.c:2735
+
+CPU: 1 PID: 6514 Comm: syz-executor.3 Tainted: G        W          6.2.0-rc3-syzkaller-79343-ge919e2b1bc1c #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+=====================================================

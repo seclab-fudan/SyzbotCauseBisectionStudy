@@ -1,0 +1,112 @@
+==================================================================
+BUG: KMSAN: uninit-value in ip6_compressed_string+0x1de/0x1490 lib/vsprintf.c:1174
+CPU: 1 PID: 10632 Comm: syz-executor156 Not tainted 5.1.0-rc4+ #1
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x173/0x1d0 lib/dump_stack.c:113
+ kmsan_report+0x131/0x2a0 mm/kmsan/kmsan.c:619
+ __msan_warning+0x7a/0xf0 mm/kmsan/kmsan_instr.c:310
+ ip6_compressed_string+0x1de/0x1490 lib/vsprintf.c:1174
+ ip6_addr_string+0x165/0x2b0 lib/vsprintf.c:1263
+ pointer+0x10f2/0x1660 lib/vsprintf.c:2009
+ vsnprintf+0x1c24/0x3230 lib/vsprintf.c:2400
+ snprintf+0x246/0x290 lib/vsprintf.c:2529
+ rpc_ntop6_noscopeid net/sunrpc/addr.c:56 [inline]
+ rpc_sockaddr2uaddr+0x4ec/0x730 net/sunrpc/addr.c:281
+ rpcb_getport_async+0xfbe/0x1790 net/sunrpc/rpcb_clnt.c:773
+ call_bind net/sunrpc/clnt.c:1879 [inline]
+ call_encode+0xba0/0x1650 net/sunrpc/clnt.c:1832
+ call_allocate+0x1a5/0x920 net/sunrpc/clnt.c:1715
+ call_refreshresult+0x15d/0x580 net/sunrpc/clnt.c:1669
+ call_refresh net/sunrpc/clnt.c:1650 [inline]
+ call_reserveresult+0x6b8/0x740 net/sunrpc/clnt.c:1582
+ call_reserve net/sunrpc/clnt.c:1559 [inline]
+ call_start+0x73c/0x790 net/sunrpc/clnt.c:1543
+ __rpc_execute+0x968/0x1610 net/sunrpc/sched.c:832
+ rpc_execute+0x437/0x6d0 net/sunrpc/sched.c:900
+ rpc_run_task+0x8b8/0xbb0 net/sunrpc/clnt.c:1062
+ rpc_call_sync net/sunrpc/clnt.c:1091 [inline]
+ rpc_ping net/sunrpc/clnt.c:2609 [inline]
+ rpc_create_xprt+0x5a3/0xd50 net/sunrpc/clnt.c:479
+ rpc_create+0xaa6/0xb30 net/sunrpc/clnt.c:587
+ nfs_create_rpc_client+0x723/0x920 fs/nfs/client.c:517
+ nfs_init_client+0xb8/0x1d0 fs/nfs/client.c:629
+ nfs_get_client+0x1487/0x16a0 fs/nfs/client.c:419
+ nfs_init_server fs/nfs/client.c:665 [inline]
+ nfs_create_server+0xb9a/0x3550 fs/nfs/client.c:949
+ nfs_try_mount+0x1134/0x1550 fs/nfs/super.c:1818
+ nfs_fs_mount+0x36b2/0x3a70 fs/nfs/super.c:2691
+ legacy_get_tree+0x163/0x2d0 fs/fs_context.c:584
+ vfs_get_tree+0x1ae/0x810 fs/super.c:1481
+ do_new_mount fs/namespace.c:2622 [inline]
+ do_mount+0x31d4/0x65f0 fs/namespace.c:2942
+ ksys_mount+0x32e/0x3d0 fs/namespace.c:3151
+ __do_sys_mount fs/namespace.c:3165 [inline]
+ __se_sys_mount+0xe5/0x110 fs/namespace.c:3162
+ __x64_sys_mount+0x62/0x80 fs/namespace.c:3162
+ do_syscall_64+0xbc/0xf0 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x440259
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffd251d6208 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0030656c69662f2e RCX: 0000000000440259
+RDX: 0000000020000180 RSI: 0000000020000140 RDI: 0000000000000000
+RBP: 00000000006ca018 R08: 000000002000a000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401ae0
+R13: 0000000000401b70 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:205 [inline]
+ kmsan_save_stack mm/kmsan/kmsan.c:220 [inline]
+ kmsan_internal_chain_origin+0x134/0x230 mm/kmsan/kmsan.c:426
+ kmsan_memcpy_memmove_metadata+0x989/0xd60 mm/kmsan/kmsan.c:304
+ kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:324
+ __msan_memcpy+0x58/0x70 mm/kmsan/kmsan_instr.c:139
+ ip6_compressed_string+0xbe/0x1490 lib/vsprintf.c:1170
+ ip6_addr_string+0x165/0x2b0 lib/vsprintf.c:1263
+ pointer+0x10f2/0x1660 lib/vsprintf.c:2009
+ vsnprintf+0x1c24/0x3230 lib/vsprintf.c:2400
+ snprintf+0x246/0x290 lib/vsprintf.c:2529
+ rpc_ntop6_noscopeid net/sunrpc/addr.c:56 [inline]
+ rpc_sockaddr2uaddr+0x4ec/0x730 net/sunrpc/addr.c:281
+ rpcb_getport_async+0xfbe/0x1790 net/sunrpc/rpcb_clnt.c:773
+ call_bind net/sunrpc/clnt.c:1879 [inline]
+ call_encode+0xba0/0x1650 net/sunrpc/clnt.c:1832
+ call_allocate+0x1a5/0x920 net/sunrpc/clnt.c:1715
+ call_refreshresult+0x15d/0x580 net/sunrpc/clnt.c:1669
+ call_refresh net/sunrpc/clnt.c:1650 [inline]
+ call_reserveresult+0x6b8/0x740 net/sunrpc/clnt.c:1582
+ call_reserve net/sunrpc/clnt.c:1559 [inline]
+ call_start+0x73c/0x790 net/sunrpc/clnt.c:1543
+ __rpc_execute+0x968/0x1610 net/sunrpc/sched.c:832
+ rpc_execute+0x437/0x6d0 net/sunrpc/sched.c:900
+ rpc_run_task+0x8b8/0xbb0 net/sunrpc/clnt.c:1062
+ rpc_call_sync net/sunrpc/clnt.c:1091 [inline]
+ rpc_ping net/sunrpc/clnt.c:2609 [inline]
+ rpc_create_xprt+0x5a3/0xd50 net/sunrpc/clnt.c:479
+ rpc_create+0xaa6/0xb30 net/sunrpc/clnt.c:587
+ nfs_create_rpc_client+0x723/0x920 fs/nfs/client.c:517
+ nfs_init_client+0xb8/0x1d0 fs/nfs/client.c:629
+ nfs_get_client+0x1487/0x16a0 fs/nfs/client.c:419
+ nfs_init_server fs/nfs/client.c:665 [inline]
+ nfs_create_server+0xb9a/0x3550 fs/nfs/client.c:949
+ nfs_try_mount+0x1134/0x1550 fs/nfs/super.c:1818
+ nfs_fs_mount+0x36b2/0x3a70 fs/nfs/super.c:2691
+ legacy_get_tree+0x163/0x2d0 fs/fs_context.c:584
+ vfs_get_tree+0x1ae/0x810 fs/super.c:1481
+ do_new_mount fs/namespace.c:2622 [inline]
+ do_mount+0x31d4/0x65f0 fs/namespace.c:2942
+ ksys_mount+0x32e/0x3d0 fs/namespace.c:3151
+ __do_sys_mount fs/namespace.c:3165 [inline]
+ __se_sys_mount+0xe5/0x110 fs/namespace.c:3162
+ __x64_sys_mount+0x62/0x80 fs/namespace.c:3162
+ do_syscall_64+0xbc/0xf0 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+
+Local variable description: ----addr@rpcb_getport_async
+Variable was created at:
+ rpcb_getport_async+0xb3/0x1790 net/sunrpc/rpcb_clnt.c:673
+ call_bind net/sunrpc/clnt.c:1879 [inline]
+ call_encode+0xba0/0x1650 net/sunrpc/clnt.c:1832
+==================================================================

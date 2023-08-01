@@ -1,0 +1,79 @@
+bond1888 (unregistering): (slave veth75): Releasing active interface
+bond1888 (unregistering): Released all slaves
+bond1887 (unregistering): (slave veth73): Releasing active interface
+bond1887 (unregistering): Released all slaves
+bond1886 (unregistering): (slave veth71): Releasing active interface
+general protection fault, probably for non-canonical address 0xdffffc0000000002: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000010-0x0000000000000017]
+CPU: 0 PID: 12276 Comm: kworker/u4:10 Not tainted 5.19.0-rc3-syzkaller-00132-g3b89b511ea0c #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+RIP: 0010:rlb_clear_slave+0x10e/0x690 drivers/net/bonding/bond_alb.c:393
+Code: 8e fc 83 fb ff 0f 84 74 02 00 00 e8 cc 2a 8e fc 48 8b 44 24 08 89 dd 48 c1 e5 06 4c 8d 34 28 49 8d 7e 14 48 89 f8 48 c1 e8 03 <42> 0f b6 14 20 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85
+RSP: 0018:ffffc90018a8f678 EFLAGS: 00010203
+RAX: 0000000000000002 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff88803375bb00 RSI: ffffffff84ec4ac4 RDI: 0000000000000014
+RBP: 0000000000000000 R08: 0000000000000005 R09: 00000000ffffffff
+R10: 0000000000000000 R11: 0000000000000000 R12: dffffc0000000000
+R13: ffff8880ac889000 R14: 0000000000000000 R15: ffff88815a668c80
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005597077e10b0 CR3: 0000000026668000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ bond_alb_deinit_slave+0x43c/0x6b0 drivers/net/bonding/bond_alb.c:1663
+ __bond_release_one.cold+0x383/0xd53 drivers/net/bonding/bond_main.c:2370
+ bond_slave_netdev_event drivers/net/bonding/bond_main.c:3778 [inline]
+ bond_netdev_event+0x993/0xad0 drivers/net/bonding/bond_main.c:3889
+ notifier_call_chain+0xb5/0x200 kernel/notifier.c:87
+ call_netdevice_notifiers_info+0xb5/0x130 net/core/dev.c:1945
+ call_netdevice_notifiers_extack net/core/dev.c:1983 [inline]
+ call_netdevice_notifiers net/core/dev.c:1997 [inline]
+ unregister_netdevice_many+0x948/0x18b0 net/core/dev.c:10839
+ default_device_exit_batch+0x449/0x590 net/core/dev.c:11333
+ ops_exit_list+0x125/0x170 net/core/net_namespace.c:167
+ cleanup_net+0x4ea/0xb00 net/core/net_namespace.c:594
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:rlb_clear_slave+0x10e/0x690 drivers/net/bonding/bond_alb.c:393
+Code: 8e fc 83 fb ff 0f 84 74 02 00 00 e8 cc 2a 8e fc 48 8b 44 24 08 89 dd 48 c1 e5 06 4c 8d 34 28 49 8d 7e 14 48 89 f8 48 c1 e8 03 <42> 0f b6 14 20 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85
+RSP: 0018:ffffc90018a8f678 EFLAGS: 00010203
+RAX: 0000000000000002 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff88803375bb00 RSI: ffffffff84ec4ac4 RDI: 0000000000000014
+RBP: 0000000000000000 R08: 0000000000000005 R09: 00000000ffffffff
+R10: 0000000000000000 R11: 0000000000000000 R12: dffffc0000000000
+R13: ffff8880ac889000 R14: 0000000000000000 R15: ffff88815a668c80
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005597077e10b0 CR3: 0000000026668000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	8e fc                	mov    %esp,%?
+   2:	83 fb ff             	cmp    $0xffffffff,%ebx
+   5:	0f 84 74 02 00 00    	je     0x27f
+   b:	e8 cc 2a 8e fc       	callq  0xfc8e2adc
+  10:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+  15:	89 dd                	mov    %ebx,%ebp
+  17:	48 c1 e5 06          	shl    $0x6,%rbp
+  1b:	4c 8d 34 28          	lea    (%rax,%rbp,1),%r14
+  1f:	49 8d 7e 14          	lea    0x14(%r14),%rdi
+  23:	48 89 f8             	mov    %rdi,%rax
+  26:	48 c1 e8 03          	shr    $0x3,%rax
+* 2a:	42 0f b6 14 20       	movzbl (%rax,%r12,1),%edx <-- trapping instruction
+  2f:	48 89 f8             	mov    %rdi,%rax
+  32:	83 e0 07             	and    $0x7,%eax
+  35:	83 c0 03             	add    $0x3,%eax
+  38:	38 d0                	cmp    %dl,%al
+  3a:	7c 08                	jl     0x44
+  3c:	84 d2                	test   %dl,%dl
+  3e:	0f                   	.byte 0xf
+  3f:	85                   	.byte 0x85

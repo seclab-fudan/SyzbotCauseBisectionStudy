@@ -1,0 +1,70 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in __acct_update_integrals+0x4fe/0x510 kernel/tsacct.c:148
+Read of size 8 at addr ffff880199ec7608 by task syz-executor0/17444
+
+CPU: 1 PID: 17444 Comm: syz-executor0 Not tainted 4.18.0-rc3+ #58
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __acct_update_integrals+0x4fe/0x510 kernel/tsacct.c:148
+ acct_account_cputime+0x63/0x80 kernel/tsacct.c:172
+ account_system_index_time+0x32b/0x5c0 kernel/sched/cputime.c:174
+ account_system_time+0x7f/0xb0 kernel/sched/cputime.c:199
+ account_process_tick+0x76/0x240 kernel/sched/cputime.c:498
+ update_process_times+0x21/0x70 kernel/time/timer.c:1634
+ tick_sched_handle+0x9f/0x180 kernel/time/tick-sched.c:164
+ tick_sched_timer+0x45/0x130 kernel/time/tick-sched.c:1274
+ __run_hrtimer kernel/time/hrtimer.c:1398 [inline]
+ __hrtimer_run_queues+0x3eb/0x10c0 kernel/time/hrtimer.c:1460
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x165/0x730 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+
+Allocated by task 4478:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ dup_mm kernel/fork.c:1234 [inline]
+ copy_mm kernel/fork.c:1297 [inline]
+ copy_process.part.40+0x235f/0x7220 kernel/fork.c:1803
+ copy_process kernel/fork.c:1616 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2099
+ __do_sys_clone kernel/fork.c:2206 [inline]
+ __se_sys_clone kernel/fork.c:2200 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2200
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff880199ec74c0
+ which belongs to the cache mm_struct(102:syz0) of size 1496
+The buggy address is located 328 bytes inside of
+ 1496-byte region [ffff880199ec74c0, ffff880199ec7a98)
+The buggy address belongs to the page:
+page:ffffea000667b180 count:1 mapcount:0 mapping:ffff8801ca964c80 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801a8720b48 ffffea00067afc88 ffff8801ca964c80
+raw: 0000000000000000 ffff880199ec6140 0000000100000004 ffff8801b01f46c0
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff8801b01f46c0
+
+Memory state around the buggy address:
+ ffff880199ec7500: 00 f1 f1 f1 f1 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2
+ ffff880199ec7580: f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2 f8 f2 f2
+>ffff880199ec7600: f2 f2 f2 f2 f2 00 f2 f2 f2 00 00 00 00 00 00 00
+                      ^
+ ffff880199ec7680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1
+ ffff880199ec7700: f1 f1 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2
+==================================================================

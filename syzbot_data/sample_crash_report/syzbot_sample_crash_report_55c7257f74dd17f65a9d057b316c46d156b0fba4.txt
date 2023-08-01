@@ -1,0 +1,127 @@
+IPVS: ftp: loaded support on port[0] = 21
+------------[ cut here ]------------
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+refcount_t: increment on 0; use-after-free.
+WARNING: CPU: 1 PID: 4499 at lib/refcount.c:153 refcount_inc+0x47/0x50 lib/refcount.c:153
+CPU: 0 PID: 4506 Comm: syzkaller824624 Not tainted 4.16.0-rc6+ #42
+Kernel panic - not syncing: panic_on_warn set ...
+
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc mm/slab.c:3365 [inline]
+ kmem_cache_alloc_trace+0x4b/0x740 mm/slab.c:3605
+ kmalloc include/linux/slab.h:512 [inline]
+ __memcg_schedule_kmem_cache_create mm/memcontrol.c:2195 [inline]
+ memcg_schedule_kmem_cache_create mm/memcontrol.c:2223 [inline]
+ memcg_kmem_get_cache+0x4d3/0x890 mm/memcontrol.c:2285
+ slab_pre_alloc_hook mm/slab.h:427 [inline]
+ slab_alloc mm/slab.c:3365 [inline]
+ kmem_cache_alloc+0x186/0x760 mm/slab.c:3539
+ rpc_alloc_inode+0x1a/0x20 net/sunrpc/rpc_pipe.c:198
+ alloc_inode+0x65/0x180 fs/inode.c:209
+ new_inode_pseudo+0x69/0x190 fs/inode.c:890
+ new_inode+0x1c/0x40 fs/inode.c:919
+ rpc_get_inode+0x20/0x1e0 net/sunrpc/rpc_pipe.c:475
+ rpc_fill_super+0x327/0xae0 net/sunrpc/rpc_pipe.c:1400
+ mount_ns+0xc4/0x190 fs/super.c:1036
+ rpc_mount+0x9e/0xd0 net/sunrpc/rpc_pipe.c:1451
+ mount_fs+0x66/0x2d0 fs/super.c:1222
+ vfs_kern_mount.part.26+0xc6/0x4a0 fs/namespace.c:1037
+ vfs_kern_mount fs/namespace.c:2509 [inline]
+ do_new_mount fs/namespace.c:2512 [inline]
+ do_mount+0xea4/0x2bb0 fs/namespace.c:2842
+ SYSC_mount fs/namespace.c:3058 [inline]
+ SyS_mount+0xab/0x120 fs/namespace.c:3035
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x442cf9
+RSP: 002b:00007ffe2ed47348 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000442cf9
+RDX: 0000000020000480 RSI: 0000000020000180 RDI: 0000000020000100
+RBP: 00007ffe2ed47bf0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000200000 R11: 0000000000000246 R12: ffffffffffffffff
+R13: 0000000000000005 R14: 0000000000000000 R15: 00007ffe2ed47488
+CPU: 1 PID: 4499 Comm: syzkaller824624 Not tainted 4.16.0-rc6+ #42
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ panic+0x1e4/0x41c kernel/panic.c:183
+IPVS: ftp: loaded support on port[0] = 21
+ __warn+0x1dc/0x200 kernel/panic.c:547
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+ report_bug+0x1f4/0x2b0 lib/bug.c:186
+ fixup_bug.part.10+0x37/0x80 arch/x86/kernel/traps.c:178
+ fixup_bug arch/x86/kernel/traps.c:247 [inline]
+ do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:296
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+ invalid_op+0x1b/0x40 arch/x86/entry/entry_64.S:986
+RIP: 0010:refcount_inc+0x47/0x50 lib/refcount.c:153
+RSP: 0018:ffff8801add17860 EFLAGS: 00010286
+RAX: dffffc0000000008 RBX: ffff8801aea28144 RCX: ffffffff815b421e
+RDX: 0000000000000000 RSI: 1ffff10035ba2ebc RDI: 0000000000000293
+RBP: ffff8801add17868 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801add17af8
+R13: ffff8801b45cca93 R14: ffff8801aea28140 R15: ffff8801b45ccb01
+ get_net include/net/net_namespace.h:204 [inline]
+ sk_alloc+0x3f9/0x1440 net/core/sock.c:1540
+ inet_create+0x47c/0xf50 net/ipv4/af_inet.c:320
+ __sock_create+0x4d4/0x850 net/socket.c:1285
+ sock_create net/socket.c:1325 [inline]
+ SYSC_socket net/socket.c:1355 [inline]
+ SyS_socket+0xeb/0x1d0 net/socket.c:1335
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x445777
+RSP: 002b:00007ffe2ed47348 EFLAGS: 00000206 ORIG_RAX: 0000000000000029
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000445777
+RDX: 0000000000000006 RSI: 0000000000000001 RDI: 0000000000000002
+RBP: 00007ffe2ed47460 R08: 0000000000000000 R09: 0000000000000001
+R10: 000000000000000a R11: 0000000000000206 R12: 0000000000000002
+R13: 0000000000000002 R14: 000000000000636e R15: 00007ffe2ed47488
+CPU: 0 PID: 4509 Comm: syzkaller824624 Not tainted 4.16.0-rc6+ #42
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc mm/slab.c:3365 [inline]
+ __do_kmalloc mm/slab.c:3703 [inline]
+ __kmalloc+0x63/0x760 mm/slab.c:3714
+ kmalloc include/linux/slab.h:517 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ register_shrinker+0x10e/0x2d0 mm/vmscan.c:268
+ sget_userns+0xbbf/0xe40 fs/super.c:520
+ mount_ns+0x6d/0x190 fs/super.c:1029
+ rpc_mount+0x9e/0xd0 net/sunrpc/rpc_pipe.c:1451
+ mount_fs+0x66/0x2d0 fs/super.c:1222
+ vfs_kern_mount.part.26+0xc6/0x4a0 fs/namespace.c:1037
+ vfs_kern_mount fs/namespace.c:2509 [inline]
+ do_new_mount fs/namespace.c:2512 [inline]
+ do_mount+0xea4/0x2bb0 fs/namespace.c:2842
+ SYSC_mount fs/namespace.c:3058 [inline]
+ SyS_mount+0xab/0x120 fs/namespace.c:3035
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x442cf9
+RSP: 002b:00007ffe2ed47348 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000442cf9
+RDX: 0000000020000480 RSI: 0000000020000180 RDI: 0000000020000100
+RBP: 00007ffe2ed47bf0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000200000 R11: 0000000000000246 R12: ffffffffffffffff
+R13: 0000000000000005 R14: 0000000000000000 R15: 00007ffe2ed47488
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

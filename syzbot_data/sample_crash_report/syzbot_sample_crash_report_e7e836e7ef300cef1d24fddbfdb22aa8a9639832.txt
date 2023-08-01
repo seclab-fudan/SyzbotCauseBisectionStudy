@@ -1,0 +1,83 @@
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000006
+R13: 000000000000004f R14: 00000000004c2eb1 R15: 00007f5dfb0196d4
+==================================================================
+BUG: KASAN: use-after-free in atomic64_dec_and_test include/asm-generic/atomic-instrumented.h:1557 [inline]
+BUG: KASAN: use-after-free in bpf_link_put+0x19/0x1b0 kernel/bpf/syscall.c:2255
+Write of size 8 at addr ffff888093bb2200 by task syz-executor.0/19108
+
+CPU: 1 PID: 19108 Comm: syz-executor.0 Not tainted 5.7.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x188/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd3/0x315 mm/kasan/report.c:382
+ __kasan_report.cold+0x35/0x4d mm/kasan/report.c:511
+ kasan_report+0x33/0x50 mm/kasan/common.c:625
+ check_memory_region_inline mm/kasan/generic.c:187 [inline]
+ check_memory_region+0x141/0x190 mm/kasan/generic.c:193
+ atomic64_dec_and_test include/asm-generic/atomic-instrumented.h:1557 [inline]
+ bpf_link_put+0x19/0x1b0 kernel/bpf/syscall.c:2255
+ bpf_link_release+0x33/0x40 kernel/bpf/syscall.c:2270
+ __fput+0x33e/0x880 fs/file_table.c:280
+ task_work_run+0xf4/0x1b0 kernel/task_work.c:123
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x2fa/0x360 arch/x86/entry/common.c:165
+ prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:279 [inline]
+ do_syscall_64+0x6b1/0x7d0 arch/x86/entry/common.c:305
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x45c829
+Code: 0d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f5dfb018c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: fffffffffffffff4 RBX: 00000000004d9f00 RCX: 000000000045c829
+RDX: 0000000000000010 RSI: 0000000020000100 RDI: 000000000000001c
+RBP: 000000000078bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000006
+R13: 000000000000004f R14: 00000000004c2eb1 R15: 00007f5dfb0196d4
+
+Allocated by task 19108:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ __kasan_kmalloc mm/kasan/common.c:495 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:468
+ kmem_cache_alloc_trace+0x153/0x7d0 mm/slab.c:3551
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ cgroup_bpf_link_attach+0x13d/0x5b0 kernel/bpf/cgroup.c:894
+ link_create kernel/bpf/syscall.c:3765 [inline]
+ __do_sys_bpf+0x27ca/0x4760 kernel/bpf/syscall.c:4041
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+Freed by task 19108:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ kasan_set_free_info mm/kasan/common.c:317 [inline]
+ __kasan_slab_free+0xf7/0x140 mm/kasan/common.c:456
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x109/0x2b0 mm/slab.c:3757
+ cgroup_bpf_link_attach+0x2bc/0x5b0 kernel/bpf/cgroup.c:906
+ link_create kernel/bpf/syscall.c:3765 [inline]
+ __do_sys_bpf+0x27ca/0x4760 kernel/bpf/syscall.c:4041
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+The buggy address belongs to the object at ffff888093bb2200
+ which belongs to the cache kmalloc-128 of size 128
+The buggy address is located 0 bytes inside of
+ 128-byte region [ffff888093bb2200, ffff888093bb2280)
+The buggy address belongs to the page:
+page:ffffea00024eec80 refcount:1 mapcount:0 mapping:00000000e494b715 index:0x0
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea0002792708 ffffea0002835408 ffff8880aa000700
+raw: 0000000000000000 ffff888093bb2000 0000000100000010 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888093bb2100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff888093bb2180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888093bb2200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff888093bb2280: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888093bb2300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

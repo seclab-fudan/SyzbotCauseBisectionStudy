@@ -1,0 +1,127 @@
+=====================================================
+BUG: KMSAN: uninit-value in u128_xor include/crypto/b128ops.h:66 [inline]
+BUG: KMSAN: uninit-value in be128_xor include/crypto/b128ops.h:72 [inline]
+BUG: KMSAN: uninit-value in gf128mul_4k_lle+0x1fb/0x2b0 crypto/gf128mul.c:394
+CPU: 1 PID: 12578 Comm: syz-executor941 Not tainted 5.4.0-rc5+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x191/0x1f0 lib/dump_stack.c:113
+ kmsan_report+0x128/0x220 mm/kmsan/kmsan_report.c:108
+ __msan_warning+0x73/0xe0 mm/kmsan/kmsan_instr.c:245
+ u128_xor include/crypto/b128ops.h:66 [inline]
+ be128_xor include/crypto/b128ops.h:72 [inline]
+ gf128mul_4k_lle+0x1fb/0x2b0 crypto/gf128mul.c:394
+ ghash_update+0x9db/0x1130 crypto/ghash-generic.c:103
+ crypto_shash_update crypto/shash.c:107 [inline]
+ shash_ahash_update+0x53a/0x650 crypto/shash.c:247
+ shash_async_update+0x50/0x60 crypto/shash.c:255
+ crypto_ahash_update include/crypto/hash.h:534 [inline]
+ gcm_hash_update crypto/gcm.c:219 [inline]
+ gcm_hash_assoc_remain_continue crypto/gcm.c:328 [inline]
+ gcm_hash_assoc_continue crypto/gcm.c:359 [inline]
+ gcm_hash_init_continue crypto/gcm.c:384 [inline]
+ gcm_hash+0x15d8/0x2400 crypto/gcm.c:414
+ gcm_encrypt_continue crypto/gcm.c:439 [inline]
+ crypto_gcm_encrypt+0x710/0x9e0 crypto/gcm.c:468
+ crypto_aead_encrypt+0xf2/0x180 crypto/aead.c:99
+ tls_do_encryption net/tls/tls_sw.c:521 [inline]
+ tls_push_record+0x341e/0x4e50 net/tls/tls_sw.c:730
+ bpf_exec_tx_verdict+0x1454/0x1c80 net/tls/tls_sw.c:770
+ tls_sw_sendmsg+0x158d/0x2710 net/tls/tls_sw.c:1033
+ inet6_sendmsg+0x2d8/0x2e0 net/ipv6/af_inet6.c:576
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg net/socket.c:657 [inline]
+ __sys_sendto+0x8fc/0xc70 net/socket.c:1952
+ __do_sys_sendto net/socket.c:1964 [inline]
+ __se_sys_sendto+0x107/0x130 net/socket.c:1960
+ __x64_sys_sendto+0x6e/0x90 net/socket.c:1960
+ do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x441469
+Code: e8 ac e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffd5fe92c98 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000441469
+RDX: ffffffffffffffc1 RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 00000000006cb018 R08: 0000000000000000 R09: fffffffffffffe5b
+R10: 0000000000000040 R11: 0000000000000246 R12: 00000000004021e0
+R13: 0000000000402270 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:151 [inline]
+ kmsan_internal_chain_origin+0xbd/0x180 mm/kmsan/kmsan.c:319
+ __msan_chain_origin+0x6b/0xd0 mm/kmsan/kmsan_instr.c:179
+ crypto_xor include/crypto/algapi.h:209 [inline]
+ ghash_update+0xa83/0x1130 crypto/ghash-generic.c:102
+ crypto_shash_update crypto/shash.c:107 [inline]
+ shash_ahash_update+0x53a/0x650 crypto/shash.c:247
+ shash_async_update+0x50/0x60 crypto/shash.c:255
+ crypto_ahash_update include/crypto/hash.h:534 [inline]
+ gcm_hash_update crypto/gcm.c:219 [inline]
+ gcm_hash_assoc_remain_continue crypto/gcm.c:328 [inline]
+ gcm_hash_assoc_continue crypto/gcm.c:359 [inline]
+ gcm_hash_init_continue crypto/gcm.c:384 [inline]
+ gcm_hash+0x15d8/0x2400 crypto/gcm.c:414
+ gcm_encrypt_continue crypto/gcm.c:439 [inline]
+ crypto_gcm_encrypt+0x710/0x9e0 crypto/gcm.c:468
+ crypto_aead_encrypt+0xf2/0x180 crypto/aead.c:99
+ tls_do_encryption net/tls/tls_sw.c:521 [inline]
+ tls_push_record+0x341e/0x4e50 net/tls/tls_sw.c:730
+ bpf_exec_tx_verdict+0x1454/0x1c80 net/tls/tls_sw.c:770
+ tls_sw_sendmsg+0x158d/0x2710 net/tls/tls_sw.c:1033
+ inet6_sendmsg+0x2d8/0x2e0 net/ipv6/af_inet6.c:576
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg net/socket.c:657 [inline]
+ __sys_sendto+0x8fc/0xc70 net/socket.c:1952
+ __do_sys_sendto net/socket.c:1964 [inline]
+ __se_sys_sendto+0x107/0x130 net/socket.c:1960
+ __x64_sys_sendto+0x6e/0x90 net/socket.c:1960
+ do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:151 [inline]
+ kmsan_internal_chain_origin+0xbd/0x180 mm/kmsan/kmsan.c:319
+ __msan_chain_origin+0x6b/0xd0 mm/kmsan/kmsan_instr.c:179
+ __crypto_xor+0x1e8/0x1470 crypto/algapi.c:992
+ crypto_xor include/crypto/algapi.h:213 [inline]
+ crypto_ctr_crypt_inplace crypto/ctr.c:87 [inline]
+ crypto_ctr_crypt+0x613/0xaf0 crypto/ctr.c:111
+ crypto_skcipher_encrypt+0xd2/0x150 crypto/skcipher.c:855
+ crypto_gcm_encrypt+0x4a5/0x9e0 crypto/gcm.c:467
+ crypto_aead_encrypt+0xf2/0x180 crypto/aead.c:99
+ tls_do_encryption net/tls/tls_sw.c:521 [inline]
+ tls_push_record+0x341e/0x4e50 net/tls/tls_sw.c:730
+ bpf_exec_tx_verdict+0x1454/0x1c80 net/tls/tls_sw.c:770
+ tls_sw_sendmsg+0x158d/0x2710 net/tls/tls_sw.c:1033
+ inet6_sendmsg+0x2d8/0x2e0 net/ipv6/af_inet6.c:576
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg net/socket.c:657 [inline]
+ __sys_sendto+0x8fc/0xc70 net/socket.c:1952
+ __do_sys_sendto net/socket.c:1964 [inline]
+ __se_sys_sendto+0x107/0x130 net/socket.c:1960
+ __x64_sys_sendto+0x6e/0x90 net/socket.c:1960
+ do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+
+Uninit was created at:
+ kmsan_save_stack_with_flags+0x3f/0x90 mm/kmsan/kmsan.c:151
+ kmsan_internal_alloc_meta_for_pages mm/kmsan/kmsan_shadow.c:362 [inline]
+ kmsan_alloc_page+0x153/0x360 mm/kmsan/kmsan_shadow.c:391
+ __alloc_pages_nodemask+0x149d/0x60c0 mm/page_alloc.c:4796
+ alloc_pages_current+0x68d/0x9a0 mm/mempolicy.c:2188
+ alloc_pages include/linux/gfp.h:511 [inline]
+ skb_page_frag_refill+0x2b0/0x580 net/core/sock.c:2376
+ sk_page_frag_refill+0xa4/0x330 net/core/sock.c:2396
+ tcp_sendmsg_locked+0x29e2/0x6a00 net/ipv4/tcp.c:1320
+ tcp_sendmsg+0xb2/0x100 net/ipv4/tcp.c:1436
+ inet6_sendmsg+0x178/0x2e0 net/ipv6/af_inet6.c:576
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg net/socket.c:657 [inline]
+ __sys_sendto+0x8fc/0xc70 net/socket.c:1952
+ __do_sys_sendto net/socket.c:1964 [inline]
+ __se_sys_sendto+0x107/0x130 net/socket.c:1960
+ __x64_sys_sendto+0x6e/0x90 net/socket.c:1960
+ do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+=====================================================

@@ -1,0 +1,43 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/l1tf.html for details.
+kvm: KVM_SET_TSS_ADDR need to be called before entering vcpu
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 3611 at arch/x86/kvm/x86.c:10047 kvm_check_and_inject_events arch/x86/kvm/x86.c:10047 [inline]
+WARNING: CPU: 0 PID: 3611 at arch/x86/kvm/x86.c:10047 vcpu_enter_guest+0x92c/0x5a10 arch/x86/kvm/x86.c:10649
+Modules linked in:
+CPU: 0 PID: 3611 Comm: syz-executor332 Not tainted 6.1.0-rc2-syzkaller-00078-g98555239e4c3 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/11/2022
+RIP: 0010:kvm_check_and_inject_events arch/x86/kvm/x86.c:10047 [inline]
+RIP: 0010:vcpu_enter_guest+0x92c/0x5a10 arch/x86/kvm/x86.c:10649
+Code: c0 74 06 0f 8e d2 4f 00 00 45 0f b6 b4 24 e8 08 00 00 31 ff 44 89 f6 e8 72 db 6a 00 45 84 f6 0f 84 d4 41 00 00 e8 d4 de 6a 00 <0f> 0b e9 1e 11 00 00 e8 c8 de 6a 00 be 08 00 00 00 4c 89 ff e8 4b
+RSP: 0018:ffffc90003c2fb60 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888020a18000 RSI: ffffffff8111bdac RDI: 0000000000000001
+RBP: ffffc90003c2fc80 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000001 R11: 000000000008c07e R12: ffff88801d78c000
+R13: 0000000000000000 R14: 0000000000000001 R15: ffff88801d78c038
+FS:  0000555555616300(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000056393be9d068 CR3: 0000000079c45000 CR4: 00000000003526e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ vcpu_run arch/x86/kvm/x86.c:10951 [inline]
+ kvm_arch_vcpu_ioctl_run+0xa5e/0x2b30 arch/x86/kvm/x86.c:11172
+ kvm_vcpu_ioctl+0x570/0xfc0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:4065
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f9e964a4289
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffc22de45d8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f9e964a4289
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000005
+RBP: 00007f9e96467ce0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f9e96467d70
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>

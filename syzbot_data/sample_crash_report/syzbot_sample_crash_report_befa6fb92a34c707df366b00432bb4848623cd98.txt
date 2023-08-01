@@ -1,0 +1,50 @@
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 3501 Comm: syzkaller212264 Not tainted 4.15.0-rc5+ #244
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:nf_tables_dump_obj_done+0x3d/0x70 net/netfilter/nf_tables_api.c:4668
+RSP: 0018:ffff8801d0b8f2a0 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff845f488d
+RDX: 0000000000000000 RSI: 0000000000000003 RDI: ffff8801bda6bc30
+RBP: ffff8801d0b8f2a8 R08: 0000000000000000 R09: 1ffff1003a171e0d
+R10: ffff8801d0b8f030 R11: 0000000000000002 R12: 1ffff1003a171e5d
+R13: ffffffff845f4880 R14: ffff8801bda6bc01 R15: ffff8801bda6bc80
+FS:  00000000011a6880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020a35000 CR3: 00000001bdee6003 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ netlink_dump+0x97a/0xcf0 net/netlink/af_netlink.c:2218
+ __netlink_dump_start+0x4f0/0x6d0 net/netlink/af_netlink.c:2286
+ netlink_dump_start include/linux/netlink.h:214 [inline]
+ nf_tables_getobj+0x401/0xa00 net/netfilter/nf_tables_api.c:4728
+ nfnetlink_rcv_msg+0xbf0/0xd70 net/netfilter/nfnetlink.c:214
+ netlink_rcv_skb+0x224/0x470 net/netlink/af_netlink.c:2408
+ nfnetlink_rcv+0x200/0x1920 net/netfilter/nfnetlink.c:515
+ netlink_unicast_kernel net/netlink/af_netlink.c:1275 [inline]
+ netlink_unicast+0x4ee/0x700 net/netlink/af_netlink.c:1301
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1864
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:646
+ sock_write_iter+0x31a/0x5d0 net/socket.c:915
+ call_write_iter include/linux/fs.h:1772 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x43fc89
+RSP: 002b:00007ffee6b98458 EFLAGS: 00000203 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fc89
+RDX: 000000000000009c RSI: 0000000020a35000 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000203 R12: 00000000004015f0
+R13: 0000000000401680 R14: 0000000000000000 R15: 0000000000000000
+Code: b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 30 48 8b 5b 28 48 b8 00 00 00 00 00 fc ff df 48 89 da 48 c1 ea 03 <80> 3c 02 00 75 1c 48 8b 3b e8 45 89 47 fd 48 89 df e8 3d 89 47 
+RIP: nf_tables_dump_obj_done+0x3d/0x70 net/netfilter/nf_tables_api.c:4668 RSP: ffff8801d0b8f2a0
+---[ end trace 52d06264c0f7361a ]---

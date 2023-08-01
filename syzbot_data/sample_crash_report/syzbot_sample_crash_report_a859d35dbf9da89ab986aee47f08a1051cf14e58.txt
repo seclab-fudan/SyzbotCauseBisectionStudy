@@ -1,0 +1,112 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in __bfs+0x154/0x394 kernel/locking/lockdep.c:1708
+Read of size 8 at addr ffffaf800ee87b70 by task syz-executor.1/2059
+
+CPU: 0 PID: 2059 Comm: syz-executor.1 Not tainted 5.17.0-rc1-syzkaller-00002-g0966d385830d #0
+Hardware name: riscv-virtio,qemu (DT)
+Call Trace:
+[<ffffffff8000a228>] dump_backtrace+0x2e/0x3c arch/riscv/kernel/stacktrace.c:113
+[<ffffffff831668cc>] show_stack+0x34/0x40 arch/riscv/kernel/stacktrace.c:119
+[<ffffffff831756ba>] __dump_stack lib/dump_stack.c:88 [inline]
+[<ffffffff831756ba>] dump_stack_lvl+0xe4/0x150 lib/dump_stack.c:106
+[<ffffffff8047479e>] print_address_description.constprop.0+0x2a/0x330 mm/kasan/report.c:255
+[<ffffffff80474d4c>] __kasan_report mm/kasan/report.c:442 [inline]
+[<ffffffff80474d4c>] kasan_report+0x184/0x1e0 mm/kasan/report.c:459
+[<ffffffff80475b20>] check_region_inline mm/kasan/generic.c:183 [inline]
+[<ffffffff80475b20>] __asan_load8+0x6e/0x96 mm/kasan/generic.c:256
+[<ffffffff8010dd9a>] __bfs+0x154/0x394 kernel/locking/lockdep.c:1708
+[<ffffffff8010e52a>] __bfs_forwards kernel/locking/lockdep.c:1803 [inline]
+[<ffffffff8010e52a>] check_path.constprop.0+0x24/0x46 kernel/locking/lockdep.c:2104
+[<ffffffff8010f95c>] check_noncircular+0x11a/0x1fe kernel/locking/lockdep.c:2131
+[<ffffffff80113c26>] check_prev_add kernel/locking/lockdep.c:3063 [inline]
+[<ffffffff80113c26>] check_prevs_add kernel/locking/lockdep.c:3186 [inline]
+[<ffffffff80113c26>] validate_chain kernel/locking/lockdep.c:3801 [inline]
+[<ffffffff80113c26>] __lock_acquire+0x19a4/0x333e kernel/locking/lockdep.c:5027
+[<ffffffff80116582>] lock_acquire.part.0+0x1d0/0x424 kernel/locking/lockdep.c:5639
+[<ffffffff8011682a>] lock_acquire+0x54/0x6a kernel/locking/lockdep.c:5612
+[<ffffffff831af892>] __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+[<ffffffff831af892>] _raw_spin_lock+0x32/0x48 kernel/locking/spinlock.c:154
+[<ffffffff80413afe>] spin_lock include/linux/spinlock.h:349 [inline]
+[<ffffffff80413afe>] rmqueue_bulk+0xae/0x5e8 mm/page_alloc.c:3033
+
+Allocated by task 1:
+ stack_trace_save+0xa6/0xd8 kernel/stacktrace.c:122
+ kasan_save_stack+0x2c/0x58 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:436 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:515 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:474 [inline]
+ __kasan_kmalloc+0x80/0xb2 mm/kasan/common.c:524
+ kasan_kmalloc include/linux/kasan.h:270 [inline]
+ kmem_cache_alloc_trace+0x178/0x2e0 mm/slub.c:3257
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ usb_serial_register_drivers+0x56/0x924 drivers/usb/serial/usb-serial.c:1491
+ usb_serial_module_init+0x30/0x38 drivers/usb/serial/aircable.c:157
+ do_one_initcall+0x13a/0x7ea init/main.c:1300
+ do_initcall_level init/main.c:1373 [inline]
+ do_initcalls init/main.c:1389 [inline]
+ do_basic_setup init/main.c:1408 [inline]
+ kernel_init_freeable+0x510/0x5b4 init/main.c:1613
+ kernel_init+0x28/0x21c init/main.c:1502
+ ret_from_exception+0x0/0x10
+
+The buggy address belongs to the object at ffffaf800ee87800
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 368 bytes to the right of
+ 512-byte region [ffffaf800ee87800, ffffaf800ee87a00)
+The buggy address belongs to the page:
+page:ffffaf807aa7a520 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x8f084
+head:ffffaf807aa7a520 order:2 compound_mapcount:0 compound_pincount:0
+flags: 0x8800010200(slab|head|section=17|node=0|zone=0)
+raw: 0000008800010200 0000000000000000 0000000000000001 ffffaf8007201c80
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+raw: 00000000000007ff
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 2, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 1149, ts 61307429600, free_ts 61298961500
+ __set_page_owner+0x48/0x136 mm/page_owner.c:183
+ set_page_owner include/linux/page_owner.h:31 [inline]
+ post_alloc_hook+0xd0/0x10a mm/page_alloc.c:2427
+ prep_new_page mm/page_alloc.c:2434 [inline]
+ get_page_from_freelist+0x8da/0x12d8 mm/page_alloc.c:4165
+ __alloc_pages+0x150/0x3b6 mm/page_alloc.c:5389
+ alloc_pages+0x132/0x2a6 mm/mempolicy.c:2271
+ alloc_slab_page.constprop.0+0xc2/0xfa mm/slub.c:1799
+ allocate_slab mm/slub.c:1944 [inline]
+ new_slab+0x25a/0x2cc mm/slub.c:2004
+ ___slab_alloc+0x56e/0x918 mm/slub.c:3018
+ __slab_alloc.constprop.0+0x50/0x8c mm/slub.c:3105
+ slab_alloc_node mm/slub.c:3196 [inline]
+ slab_alloc mm/slub.c:3238 [inline]
+ kmem_cache_alloc_trace+0x2a2/0x2e0 mm/slub.c:3255
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ alloc_bprm+0x48/0x4b6 fs/exec.c:1507
+ kernel_execve+0x54/0x288 fs/exec.c:1947
+ call_usermodehelper_exec_async+0x1c0/0x2dc kernel/umh.c:112
+ ret_from_exception+0x0/0x10
+page last free stack trace:
+ __reset_page_owner+0x4a/0xea mm/page_owner.c:142
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1352 [inline]
+ free_pcp_prepare+0x29c/0x45e mm/page_alloc.c:1404
+ free_unref_page_prepare mm/page_alloc.c:3325 [inline]
+ free_unref_page+0x6a/0x31e mm/page_alloc.c:3404
+ free_the_page mm/page_alloc.c:706 [inline]
+ __free_pages+0xe2/0x112 mm/page_alloc.c:5474
+ free_thread_stack kernel/fork.c:297 [inline]
+ release_task_stack kernel/fork.c:434 [inline]
+ put_task_stack+0x1d0/0x2b0 kernel/fork.c:445
+ finish_task_switch.isra.0+0x3ce/0x420 kernel/sched/core.c:4898
+ schedule_tail+0xe/0xc8 kernel/sched/core.c:4922
+ ret_from_kernel_thread+0x4/0x10 arch/riscv/kernel/entry.S:494
+
+Memory state around the buggy address:
+ ffffaf800ee87a00: fc fc fc fc f1 f1 f1 f1 00 f3 f3 f3 fc fc fc fc
+ ffffaf800ee87a80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffffaf800ee87b00: 00 00 00 00 f1 f1 f1 f1 00 f2 f2 f2 fc fc fc fc
+                                                             ^
+ ffffaf800ee87b80: 00 00 00 f3 f3 f3 f3 f3 fc fc fc fc fc fc fc fc
+ ffffaf800ee87c00: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

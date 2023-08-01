@@ -1,0 +1,51 @@
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 0 PID: 3081 at lib/refcount.c:28 refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+Modules linked in:
+CPU: 0 PID: 3081 Comm: syz-executor209 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+lr : refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+sp : ffff80000fba3b90
+x29: ffff80000fba3b90 x28: 00000000000a201d x27: 0000000000002000
+x26: dead000000000100 x25: 0000000000000000 x24: 0000000000000001
+x23: 0000000000000001 x22: 0000000000000000 x21: 0000000000000000
+x20: 0000000000000003 x19: ffff80000d95e000 x18: 00000000000000c0
+x17: ffff80000dda8198 x16: ffff80000dbe6158 x15: ffff0000c97b1a40
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c97b1a40
+x11: ff808000081c4d64 x10: 0000000000000000 x9 : fbf8080e62680f00
+x8 : fbf8080e62680f00 x7 : ffff80000c091ebc x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000000 x0 : 0000000000000026
+Call trace:
+ refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+ __refcount_sub_and_test include/linux/refcount.h:283 [inline]
+ __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ kref_put include/linux/kref.h:64 [inline]
+ __drm_gem_object_put include/drm/drm_gem.h:430 [inline]
+ drm_gem_object_put include/drm/drm_gem.h:443 [inline]
+ drm_gem_object_handle_put_unlocked+0x178/0x1a0 drivers/gpu/drm/drm_gem.c:226
+ drm_gem_object_release_handle+0x68/0x80 drivers/gpu/drm/drm_gem.c:245
+ idr_for_each+0xf0/0x174 lib/idr.c:208
+ drm_gem_release+0x30/0x48 drivers/gpu/drm/drm_gem.c:918
+ drm_file_free+0x224/0x2d0 drivers/gpu/drm/drm_file.c:276
+ drm_close_helper drivers/gpu/drm/drm_file.c:303 [inline]
+ drm_release+0x10c/0x24c drivers/gpu/drm/drm_file.c:490
+ __fput+0x198/0x3e4 fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:348
+ task_work_run+0x100/0x148 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ do_notify_resume+0x174/0x1f0 arch/arm64/kernel/signal.c:1132
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:638
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+irq event stamp: 1292988
+hardirqs last  enabled at (1292987): [<ffff8000081c3048>] __up_console_sem+0xb0/0xfc kernel/printk/printk.c:261
+hardirqs last disabled at (1292988): [<ffff80000c084084>] el1_dbg+0x24/0x80 arch/arm64/kernel/entry-common.c:405
+softirqs last  enabled at (1289522): [<ffff8000080102e4>] _stext+0x2e4/0x37c
+softirqs last disabled at (1289513): [<ffff800008017c88>] ____do_softirq+0x14/0x20 arch/arm64/kernel/irq.c:80
+---[ end trace 0000000000000000 ]---

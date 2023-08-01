@@ -1,0 +1,66 @@
+Unable to handle kernel paging request at virtual address 00480000001a0040
+Mem abort info:
+  ESR = 0x0000000096000004
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000004
+  CM = 0, WnR = 0
+[00480000001a0040] address between user and kernel address ranges
+Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 3263 Comm: syz-executor425 Not tainted 6.1.0-rc6-syzkaller-32653-g65762d97e6fa #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __kmem_cache_alloc_node+0x17c/0x350 mm/slub.c:3437
+lr : slab_pre_alloc_hook mm/slab.h:712 [inline]
+lr : slab_alloc_node mm/slub.c:3318 [inline]
+lr : __kmem_cache_alloc_node+0x80/0x350 mm/slub.c:3437
+sp : ffff80000ff3b990
+x29: ffff80000ff3b9a0 x28: ffff0000c681b480 x27: 0000000000000006
+x26: 000000000000001d x25: 00000000ffffffff x24: ffff800009443294
+x23: 0000000000000011 x22: 00480000001a0000 x21: 0000000000000000
+x20: 0000000000000d40 x19: ffff0000c0001200 x18: 0000000000000000
+x17: 0000000000000000 x16: ffff80000dbe6158 x15: ffff0000c681b480
+x14: 0000000000000010 x13: 0000000000000000 x12: ffff0000c681b480
+x11: 0000000000000001 x10: 0000000000000000 x9 : 0000000000000040
+x8 : 00000000000a8cb9 x7 : ffff8000084bf248 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 00000000000a8cc1
+x2 : 0000000000000000 x1 : 0000000000000d40 x0 : fffffc00031ee180
+Call trace:
+ next_tid mm/slub.c:2349 [inline]
+ slab_alloc_node mm/slub.c:3382 [inline]
+ __kmem_cache_alloc_node+0x17c/0x350 mm/slub.c:3437
+ __do_kmalloc_node mm/slab_common.c:954 [inline]
+ __kmalloc+0xb4/0x140 mm/slab_common.c:968
+ kmalloc include/linux/slab.h:558 [inline]
+ kzalloc include/linux/slab.h:689 [inline]
+ tomoyo_encode2 security/tomoyo/realpath.c:45 [inline]
+ tomoyo_encode+0x1d8/0x2d0 security/tomoyo/realpath.c:80
+ tomoyo_mount_acl security/tomoyo/mount.c:150 [inline]
+ tomoyo_mount_permission+0x2c8/0x5ac security/tomoyo/mount.c:237
+ tomoyo_sb_mount+0x48/0x60 security/tomoyo/tomoyo.c:401
+ security_sb_mount+0x5c/0xb8 security/security.c:979
+ path_mount+0xa0/0x890 fs/namespace.c:3312
+ do_mount fs/namespace.c:3383 [inline]
+ __do_sys_mount fs/namespace.c:3591 [inline]
+ __se_sys_mount fs/namespace.c:3568 [inline]
+ __arm64_sys_mount+0x2c4/0x3c4 fs/namespace.c:3568
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 54000ee1 34000eeb b9402a69 91002103 (f8696ada) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	54000ee1 	b.ne	0x1dc  // b.any
+   4:	34000eeb 	cbz	w11, 0x1e0
+   8:	b9402a69 	ldr	w9, [x19, #40]
+   c:	91002103 	add	x3, x8, #0x8
+* 10:	f8696ada 	ldr	x26, [x22, x9] <-- trapping instruction

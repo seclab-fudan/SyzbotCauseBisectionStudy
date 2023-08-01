@@ -1,0 +1,139 @@
+IPVS: ftp: loaded support on port[0] = 21
+
+
+=============================
+=============================
+WARNING: suspicious RCU usage
+WARNING: suspicious RCU usage
+4.19.0-rc1+ #218 Not tainted
+4.19.0-rc1+ #218 Not tainted
+-----------------------------
+-----------------------------
+include/linux/rcupdate.h:631 rcu_read_lock() used illegally while idle!
+kernel/trace/bpf_trace.c:72 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+other info that might help us debug this:
+
+
+RCU used illegally from idle CPU!
+rcu_scheduler_active = 2, debug_locks = 1
+
+RCU used illegally from idle CPU!
+rcu_scheduler_active = 2, debug_locks = 1
+RCU used illegally from extended quiescent state!
+RCU used illegally from extended quiescent state!
+1 lock held by swapper/1/0:
+1 lock held by swapper/0/0:
+ #0: 
+ #0: 
+00000000c56a0d6a
+00000000c56a0d6a
+ (
+ (
+rcu_read_lock
+rcu_read_lock
+){....}
+){....}
+, at: trace_call_bpf+0xf8/0x640 kernel/trace/bpf_trace.c:46
+, at: trace_call_bpf+0xf8/0x640 kernel/trace/bpf_trace.c:46
+
+stack backtrace:
+
+stack backtrace:
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.19.0-rc1+ #218
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ lockdep_rcu_suspicious+0x14a/0x153 kernel/locking/lockdep.c:4537
+ rcu_read_lock include/linux/rcupdate.h:630 [inline]
+ trace_call_bpf+0x533/0x640 kernel/trace/bpf_trace.c:72
+ perf_trace_run_bpf_submit+0x15c/0x3b0 kernel/events/core.c:8264
+ perf_trace_preemptirq_template+0x3dd/0x650 include/trace/events/preemptirq.h:14
+ trace_irq_enable_rcuidle include/trace/events/preemptirq.h:40 [inline]
+ trace_hardirqs_on+0x22e/0x2c0 kernel/trace/trace_preemptirq.c:25
+ default_idle+0x8d/0x410 arch/x86/kernel/process.c:498
+ arch_cpu_idle+0x10/0x20 arch/x86/kernel/process.c:489
+ default_idle_call+0x6d/0x90 kernel/sched/idle.c:93
+ cpuidle_idle_call kernel/sched/idle.c:153 [inline]
+ do_idle+0x3aa/0x580 kernel/sched/idle.c:262
+ cpu_startup_entry+0x10c/0x120 kernel/sched/idle.c:368
+ start_secondary+0x433/0x5d0 arch/x86/kernel/smpboot.c:271
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:242
+
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.19.0-rc1+ #218
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=============================
+WARNING: suspicious RCU usage
+Call Trace:
+4.19.0-rc1+ #218 Not tainted
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+-----------------------------
+include/linux/rcupdate.h:680 rcu_read_unlock() used illegally while idle!
+
+other info that might help us debug this:
+
+ lockdep_rcu_suspicious+0x14a/0x153 kernel/locking/lockdep.c:4537
+
+RCU used illegally from idle CPU!
+rcu_scheduler_active = 2, debug_locks = 1
+ trace_call_bpf+0x4cb/0x640 kernel/trace/bpf_trace.c:72
+RCU used illegally from extended quiescent state!
+1 lock held by swapper/1/0:
+ #0: 
+00000000c56a0d6a
+ perf_trace_run_bpf_submit+0x15c/0x3b0 kernel/events/core.c:8264
+ (
+rcu_read_lock
+){....}
+, at: trace_call_bpf+0xf8/0x640 kernel/trace/bpf_trace.c:46
+
+stack backtrace:
+ perf_trace_preemptirq_template+0x3dd/0x650 include/trace/events/preemptirq.h:14
+ trace_irq_enable_rcuidle include/trace/events/preemptirq.h:40 [inline]
+ trace_hardirqs_on_caller+0x227/0x2b0 kernel/trace/trace_preemptirq.c:51
+ trace_hardirqs_on_thunk+0x1a/0x1c
+ retint_kernel+0x10/0x10
+RIP: 0010:native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:56
+Code: c7 48 89 45 d8 e8 ca 39 e7 fa 48 8b 45 d8 e9 d2 fe ff ff 48 89 df e8 b9 39 e7 fa eb 8a 90 90 90 90 90 90 90 55 48 89 e5 fb f4 <5d> c3 0f 1f 84 00 00 00 00 00 55 48 89 e5 f4 5d c3 90 90 90 90 90
+RSP: 0018:ffffffff88007bb8 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: 1ffffffff1000f7b RCX: 0000000000000000
+RDX: 1ffffffff10237b8 RSI: 0000000000000001 RDI: ffffffff8811bdc0
+RBP: ffffffff88007bb8 R08: ffffffff88075e00 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: ffffffff88007c78 R14: 0000000000000000 R15: 0000000000000000
+ arch_safe_halt arch/x86/include/asm/paravirt.h:94 [inline]
+ default_idle+0xc2/0x410 arch/x86/kernel/process.c:498
+ arch_cpu_idle+0x10/0x20 arch/x86/kernel/process.c:489
+ default_idle_call+0x6d/0x90 kernel/sched/idle.c:93
+ cpuidle_idle_call kernel/sched/idle.c:153 [inline]
+ do_idle+0x3aa/0x580 kernel/sched/idle.c:262
+ cpu_startup_entry+0x10c/0x120 kernel/sched/idle.c:368
+ rest_init+0xe1/0xe4 init/main.c:442
+ start_kernel+0x913/0x94e init/main.c:739
+ x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:452
+ x86_64_start_kernel+0x76/0x79 arch/x86/kernel/head64.c:433
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:242
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.19.0-rc1+ #218
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ lockdep_rcu_suspicious+0x14a/0x153 kernel/locking/lockdep.c:4537
+ rcu_read_unlock include/linux/rcupdate.h:679 [inline]
+ trace_call_bpf+0x579/0x640 kernel/trace/bpf_trace.c:72
+ perf_trace_run_bpf_submit+0x15c/0x3b0 kernel/events/core.c:8264
+ perf_trace_preemptirq_template+0x3dd/0x650 include/trace/events/preemptirq.h:14
+ trace_irq_enable_rcuidle include/trace/events/preemptirq.h:40 [inline]
+ trace_hardirqs_on+0x22e/0x2c0 kernel/trace/trace_preemptirq.c:25
+ default_idle+0x8d/0x410 arch/x86/kernel/process.c:498
+ arch_cpu_idle+0x10/0x20 arch/x86/kernel/process.c:489
+ default_idle_call+0x6d/0x90 kernel/sched/idle.c:93
+ cpuidle_idle_call kernel/sched/idle.c:153 [inline]
+ do_idle+0x3aa/0x580 kernel/sched/idle.c:262
+ cpu_startup_entry+0x10c/0x120 kernel/sched/idle.c:368
+ st

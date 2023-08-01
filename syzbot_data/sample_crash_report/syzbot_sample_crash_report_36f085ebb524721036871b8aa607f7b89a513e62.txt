@@ -1,0 +1,57 @@
+loop0: detected capacity change from 0 to 2048
+UDF-fs: INFO Mounting volume 'LinuxUDF', timestamp 2022/09/12 12:00 (1000)
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000020
+Mem abort info:
+  ESR = 0x0000000096000046
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000046
+  CM = 0, WnR = 1
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000000109085000
+[0000000000000020] pgd=0800000106b68003, p4d=0800000106b68003, pud=0800000106b69003, pmd=0000000000000000
+Internal error: Oops: 0000000096000046 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 3036 Comm: syz-executor863 Not tainted 6.0.0-rc7-syzkaller-18095-gbbed346d5a96 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __memset+0x84/0x188 arch/arm64/lib/memset.S:100
+lr : udf_write_fi+0x268/0x4e0
+sp : ffff800012a53a50
+x29: ffff800012a53a70 x28: 00000000000000d6 x27: 00000000000000d6
+x26: 00000000fffffff0 x25: 0000000000000000 x24: 0000000000000006
+x23: 00000000ffffffd4 x22: fffffffffffffff4 x21: ffff800012a53b40
+x20: ffff800012a53b00 x19: 0000000000000003 x18: 0000000000000021
+x17: 0000000000000000 x16: ffff80000db49158 x15: ffff0000c6401a80
+x14: 0000000000000010 x13: 0000000000000000 x12: ffff0000c6401a80
+x11: ff80800008d1bd1c x10: 0000000000000000 x9 : ffff800008d1bd1c
+x8 : 0000000000000020 x7 : 0000000000000000 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000000 x3 : 0000000000000010
+x2 : ffffffffffffffd4 x1 : 0000000000000000 x0 : 0000000000000020
+Call trace:
+ __memset+0x84/0x188 arch/arm64/lib/memset.S:98
+ udf_delete_entry fs/udf/namei.c:577 [inline]
+ udf_rename+0x47c/0x6d0 fs/udf/namei.c:1173
+ vfs_rename+0x59c/0x7f8 fs/namei.c:4756
+ do_renameat2+0x490/0x758 fs/namei.c:4907
+ __do_sys_renameat2 fs/namei.c:4940 [inline]
+ __se_sys_renameat2 fs/namei.c:4937 [inline]
+ __arm64_sys_renameat2+0x6c/0x88 fs/namei.c:4937
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:636
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+Code: 54000060 5400006b a8811d07 a8811d07 (a8811d07) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	54000060 	b.eq	0xc  // b.none
+   4:	5400006b 	b.lt	0x10  // b.tstop
+   8:	a8811d07 	stp	x7, x7, [x8], #16
+   c:	a8811d07 	stp	x7, x7, [x8], #16
+* 10:	a8811d07 	stp	x7, x7, [x8], #16 <-- trapping instruction

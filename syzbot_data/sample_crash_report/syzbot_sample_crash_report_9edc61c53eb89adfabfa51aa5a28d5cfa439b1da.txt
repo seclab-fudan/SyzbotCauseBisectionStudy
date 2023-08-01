@@ -1,0 +1,168 @@
+==================================================================
+BUG: KASAN: use-after-free in notifier_call_chain kernel/notifier.c:75 [inline]
+BUG: KASAN: use-after-free in raw_notifier_call_chain+0x3e/0x170 kernel/notifier.c:455
+Read of size 8 at addr ffff88804abd8268 by task syz-executor.4/18571
+
+CPU: 0 PID: 18571 Comm: syz-executor.4 Not tainted 6.1.0-rc7-syzkaller-00012-gca57f02295f1 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ print_address_description+0x74/0x340 mm/kasan/report.c:284
+ print_report+0x107/0x220 mm/kasan/report.c:395
+ kasan_report+0x139/0x170 mm/kasan/report.c:495
+ notifier_call_chain kernel/notifier.c:75 [inline]
+ raw_notifier_call_chain+0x3e/0x170 kernel/notifier.c:455
+ call_netdevice_notifiers_info net/core/dev.c:1942 [inline]
+ call_netdevice_notifiers_extack net/core/dev.c:1983 [inline]
+ call_netdevice_notifiers net/core/dev.c:1997 [inline]
+ netdev_wait_allrefs_any net/core/dev.c:10237 [inline]
+ netdev_run_todo+0x8ce/0x1090 net/core/dev.c:10351
+ tun_detach drivers/net/tun.c:704 [inline]
+ tun_chr_close+0x11f/0x130 drivers/net/tun.c:3467
+ __fput+0x3ba/0x880 fs/file_table.c:320
+ task_work_run+0x243/0x300 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x664/0x2070 kernel/exit.c:820
+ do_group_exit+0x1fd/0x2b0 kernel/exit.c:950
+ get_signal+0x1743/0x1810 kernel/signal.c:2858
+ arch_do_signal_or_restart+0x8d/0x750 arch/x86/kernel/signal.c:869
+ exit_to_user_mode_loop+0x74/0x160 kernel/entry/common.c:168
+ exit_to_user_mode_prepare+0xad/0x110 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x2e/0x60 kernel/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f52c82b0e01
+Code: Unable to access opcode bytes at 0x7f52c82b0dd7.
+RSP: 002b:00007f52c8f9e0b0 EFLAGS: 00000293 ORIG_RAX: 00000000000000e6
+RAX: fffffffffffffdfc RBX: 00007f52c83abf80 RCX: 00007f52c82b0e01
+RDX: 00007f52c8f9e0f0 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 00007f52c82e7ae9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000293 R12: 0000000000000000
+R13: 00007ffe17db70df R14: 00007f52c8f9e300 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 3675:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4c/0x70 mm/kasan/common.c:52
+ __kasan_slab_alloc+0x65/0x70 mm/kasan/common.c:325
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook mm/slab.h:737 [inline]
+ slab_alloc_node mm/slub.c:3398 [inline]
+ slab_alloc mm/slub.c:3406 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3413 [inline]
+ kmem_cache_alloc+0x1cc/0x300 mm/slub.c:3422
+ kmem_cache_zalloc include/linux/slab.h:679 [inline]
+ net_alloc net/core/net_namespace.c:410 [inline]
+ copy_net_ns+0x13c/0x5b0 net/core/net_namespace.c:465
+ create_new_namespaces+0x4db/0x8e0 kernel/nsproxy.c:110
+ unshare_nsproxy_namespaces+0x11e/0x180 kernel/nsproxy.c:226
+ ksys_unshare+0x57f/0xb30 kernel/fork.c:3188
+ __do_sys_unshare kernel/fork.c:3259 [inline]
+ __se_sys_unshare kernel/fork.c:3257 [inline]
+ __x64_sys_unshare+0x34/0x40 kernel/fork.c:3257
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 3727:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4c/0x70 mm/kasan/common.c:52
+ kasan_save_free_info+0x27/0x40 mm/kasan/generic.c:511
+ ____kasan_slab_free+0xd6/0x120 mm/kasan/common.c:236
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ slab_free_hook mm/slub.c:1724 [inline]
+ slab_free_freelist_hook+0x12e/0x1a0 mm/slub.c:1750
+ slab_free mm/slub.c:3661 [inline]
+ kmem_cache_free+0x94/0x1d0 mm/slub.c:3683
+ net_free net/core/net_namespace.c:439 [inline]
+ cleanup_net+0xb8b/0xc50 net/core/net_namespace.c:622
+ process_one_work+0x81c/0xd10 kernel/workqueue.c:2289
+ worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Last potentially related work creation:
+ kasan_save_stack+0x3b/0x60 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xb0/0xc0 mm/kasan/generic.c:481
+ insert_work+0x54/0x3e0 kernel/workqueue.c:1358
+ __queue_work+0xaaa/0xd60 kernel/workqueue.c:1517
+ call_timer_fn+0xf5/0x210 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1514 [inline]
+ __run_timers+0x7a2/0x980 kernel/time/timer.c:1790
+ __do_softirq+0x277/0x75b kernel/softirq.c:571
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x3b/0x60 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xb0/0xc0 mm/kasan/generic.c:481
+ insert_work+0x54/0x3e0 kernel/workqueue.c:1358
+ __queue_work+0xaaa/0xd60 kernel/workqueue.c:1517
+ call_timer_fn+0xf5/0x210 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1514 [inline]
+ __run_timers+0x7a2/0x980 kernel/time/timer.c:1790
+ __do_softirq+0x277/0x75b kernel/softirq.c:571
+
+The buggy address belongs to the object at ffff88804abd8000
+ which belongs to the cache net_namespace of size 6976
+The buggy address is located 616 bytes inside of
+ 6976-byte region [ffff88804abd8000, ffff88804abd9b40)
+
+The buggy address belongs to the physical page:
+page:ffffea00012af600 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff88804abd9c40 pfn:0x4abd8
+head:ffffea00012af600 order:3 compound_mapcount:0 compound_pincount:0
+memcg:ffff888078cb3c81
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffff8880129e1408 ffffea00010bbe08 ffff8880129e0640
+raw: ffff88804abd9c40 0000000000040001 00000001ffffffff ffff888078cb3c81
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 3675, tgid 3675 (syz-executor.4), ts 102438604718, free_ts 10782019942
+ prep_new_page mm/page_alloc.c:2539 [inline]
+ get_page_from_freelist+0x72b/0x7a0 mm/page_alloc.c:4291
+ __alloc_pages+0x259/0x560 mm/page_alloc.c:5558
+ alloc_slab_page+0x70/0xf0 mm/slub.c:1794
+ allocate_slab+0x5e/0x4b0 mm/slub.c:1939
+ new_slab mm/slub.c:1992 [inline]
+ ___slab_alloc+0x7f4/0xeb0 mm/slub.c:3180
+ __slab_alloc mm/slub.c:3279 [inline]
+ slab_alloc_node mm/slub.c:3364 [inline]
+ slab_alloc mm/slub.c:3406 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3413 [inline]
+ kmem_cache_alloc+0x24c/0x300 mm/slub.c:3422
+ kmem_cache_zalloc include/linux/slab.h:679 [inline]
+ net_alloc net/core/net_namespace.c:410 [inline]
+ copy_net_ns+0x13c/0x5b0 net/core/net_namespace.c:465
+ create_new_namespaces+0x4db/0x8e0 kernel/nsproxy.c:110
+ unshare_nsproxy_namespaces+0x11e/0x180 kernel/nsproxy.c:226
+ ksys_unshare+0x57f/0xb30 kernel/fork.c:3188
+ __do_sys_unshare kernel/fork.c:3259 [inline]
+ __se_sys_unshare kernel/fork.c:3257 [inline]
+ __x64_sys_unshare+0x34/0x40 kernel/fork.c:3257
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1459 [inline]
+ free_pcp_prepare+0x80c/0x8f0 mm/page_alloc.c:1509
+ free_unref_page_prepare mm/page_alloc.c:3387 [inline]
+ free_unref_page+0x7d/0x630 mm/page_alloc.c:3483
+ free_contig_range+0xa3/0x160 mm/page_alloc.c:9496
+ destroy_args+0xfe/0x989 mm/debug_vm_pgtable.c:1031
+ debug_vm_pgtable+0x463/0x4bc mm/debug_vm_pgtable.c:1354
+ do_one_initcall+0xbd/0x2b0 init/main.c:1303
+ do_initcall_level+0x168/0x218 init/main.c:1376
+ do_initcalls+0x4b/0x8c init/main.c:1392
+ kernel_init_freeable+0x471/0x61d init/main.c:1631
+ kernel_init+0x19/0x2b0 init/main.c:1519
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Memory state around the buggy address:
+ ffff88804abd8100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88804abd8180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88804abd8200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                          ^
+ ffff88804abd8280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88804abd8300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,43 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc1-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+no locks held by syz-executor.3/13043.
+
+stack backtrace:
+CPU: 0 PID: 13043 Comm: syz-executor.3 Not tainted 5.13.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ exit_mmap+0x355/0x590 mm/mmap.c:3220
+ __mmput+0x122/0x470 kernel/fork.c:1096
+ mmput+0x58/0x60 kernel/fork.c:1117
+ exit_mm kernel/exit.c:502 [inline]
+ do_exit+0xb0a/0x2a60 kernel/exit.c:813
+ do_group_exit+0x125/0x310 kernel/exit.c:923
+ get_signal+0x47f/0x2150 kernel/signal.c:2818
+ arch_do_signal_or_restart+0x2a8/0x1eb0 arch/x86/kernel/signal.c:789
+ handle_signal_work kernel/entry/common.c:147 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x171/0x280 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:301
+ do_syscall_64+0x47/0xb0 arch/x86/entry/common.c:57
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4665d9
+Code: Unable to access opcode bytes at RIP 0x4665af.
+RSP: 002b:00007fb7e54a9188 EFLAGS: 00000246
+ ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 000000000056bf60 RCX: 00000000004665d9
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 00000000004bfcb9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056bf60
+R13: 0000000000a9fb1f R14: 00007fb7e54a9300 R15: 0000000000022000

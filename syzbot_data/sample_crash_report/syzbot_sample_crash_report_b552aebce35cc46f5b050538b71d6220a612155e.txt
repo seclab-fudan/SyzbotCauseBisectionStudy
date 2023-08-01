@@ -1,0 +1,103 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in netlink_is_kernel net/netlink/af_netlink.c:85 [inline]
+BUG: KASAN: stack-out-of-bounds in netlink_has_listeners+0x438/0x4a0 net/netlink/af_netlink.c:1360
+Read of size 4 at addr ffff8801a1fa2824 by task syz-executor5/4469
+PANIC: double fault, error_code: 0x0
+
+CPU: 1 PID: 21133 Comm: syz-executor3 Not tainted 4.18.0-rc3+ #55
+CPU: 0 PID: 4469 Comm: syz-executor5 Not tainted 4.18.0-rc3+ #55
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__lock_acquire+0x2e/0x5020 kernel/locking/lockdep.c:3294
+Call Trace:
+Code: 41 57 41 89 
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+cf 41 
+56 41 
+55 
+49 
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+89 
+fd 41 
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+54 45 
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+89 cc 
+ netlink_is_kernel net/netlink/af_netlink.c:85 [inline]
+ netlink_has_listeners+0x438/0x4a0 net/netlink/af_netlink.c:1360
+53 
+65 4c 
+8b 34 
+25 
+40 ee 
+01 
+ sock_diag_has_destroy_listeners include/linux/sock_diag.h:76 [inline]
+ __sk_free+0x1fa/0x300 net/core/sock.c:1648
+00 
+ sk_free+0x42/0x50 net/core/sock.c:1662
+48 
+ sock_put include/net/sock.h:1685 [inline]
+ tcp_close+0xd20/0x12d0 net/ipv4/tcp.c:2491
+83 
+e4 
+f0 
+48 
+81 ec 
+ inet_release+0x104/0x1f0 net/ipv4/af_inet.c:428
+60 03 
+ __sock_release+0xd7/0x260 net/socket.c:599
+00 
+00 48 
+ sock_close+0x19/0x20 net/socket.c:1150
+8b 
+ __fput+0x355/0x8b0 fs/file_table.c:209
+45 
+10 <89> 
+94 24 
+80 00 
+ ____fput+0x15/0x20 fs/file_table.c:243
+00 
+ task_work_run+0x1ec/0x2a0 kernel/task_work.c:113
+00 48 
+ba 
+00 
+ tracehook_notify_resume include/linux/tracehook.h:192 [inline]
+ exit_to_usermode_loop+0x313/0x370 arch/x86/entry/common.c:166
+00 00 
+00 
+00 
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+fc 
+ff 
+df 48 
+89 
+84 
+24 
+98 
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RSP: 0018:ffff8801a03bcf60 EFLAGS: 00010086
+RIP: 0033:0x40fb70
+Code: 
+RAX: 0000000000000000 RBX: 1ffff10034077a69 RCX: 0000000000000002
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff88f92620
+01 
+RBP: ffff8801a03bd2f0 R08: 0000000000000000 R09: 0000000000000000
+f0 
+R10: ffff8801a20dfbe0 R11: ffff8801ca440abb R12: 0000000000000000
+R13: ffffffff88f92620 R14: ffff8801ca440340 R15: 0000000000000002
+ff 
+FS:  00000000010db940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+ff 
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+0f 
+CR2: ffff8801a03bcf58 CR3: 00000001cf607000 CR4: 00000000001406e0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+83 
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+60 
+Call Trace:
+19 00 00 

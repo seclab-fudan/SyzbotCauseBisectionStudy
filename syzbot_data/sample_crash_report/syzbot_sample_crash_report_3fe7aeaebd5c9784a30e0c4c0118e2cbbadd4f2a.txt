@@ -1,0 +1,186 @@
+======================================================
+WARNING: possible circular locking dependency detected
+5.3.0+ #0 Not tainted
+------------------------------------------------------
+sshd/8762 is trying to acquire lock:
+ffff888098218200 (&(&sch->q.lock)->rlock){+.-.}, at: spin_lock include/linux/spinlock.h:338 [inline]
+ffff888098218200 (&(&sch->q.lock)->rlock){+.-.}, at: pie_timer+0x9e/0x830 net/sched/sch_pie.c:449
+
+but task is already holding lock:
+ffff8880ae809da0 ((&q->adapt_timer)){+.-.}, at: lockdep_copy_map include/linux/lockdep.h:172 [inline]
+ffff8880ae809da0 ((&q->adapt_timer)){+.-.}, at: call_timer_fn+0xe0/0x780 kernel/time/timer.c:1394
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 ((&q->adapt_timer)){+.-.}:
+       del_timer_sync+0xb0/0x2a0 kernel/time/timer.c:1354
+       pie_destroy+0x47/0x60 net/sched/sch_pie.c:554
+       qdisc_destroy+0x11f/0x630 net/sched/sch_generic.c:968
+       qdisc_put+0x85/0xa0 net/sched/sch_generic.c:995
+       sfb_change+0x3d8/0xe90 net/sched/sch_sfb.c:522
+       qdisc_change net/sched/sch_api.c:1321 [inline]
+       tc_modify_qdisc+0xfcf/0x1c50 net/sched/sch_api.c:1623
+       rtnetlink_rcv_msg+0x463/0xb00 net/core/rtnetlink.c:5223
+       netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+       rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5241
+       netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+       netlink_unicast+0x531/0x710 net/netlink/af_netlink.c:1328
+       netlink_sendmsg+0x8a5/0xd60 net/netlink/af_netlink.c:1917
+       sock_sendmsg_nosec net/socket.c:637 [inline]
+       sock_sendmsg+0xd7/0x130 net/socket.c:657
+       ___sys_sendmsg+0x803/0x920 net/socket.c:2311
+       __sys_sendmsg+0x105/0x1d0 net/socket.c:2356
+       __do_sys_sendmsg net/socket.c:2365 [inline]
+       __se_sys_sendmsg net/socket.c:2363 [inline]
+       __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2363
+       do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&(&sch->q.lock)->rlock){+.-.}:
+       check_prev_add kernel/locking/lockdep.c:2476 [inline]
+       check_prevs_add kernel/locking/lockdep.c:2581 [inline]
+       validate_chain kernel/locking/lockdep.c:2971 [inline]
+       __lock_acquire+0x2596/0x4a00 kernel/locking/lockdep.c:3955
+       lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4487
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:151
+       spin_lock include/linux/spinlock.h:338 [inline]
+       pie_timer+0x9e/0x830 net/sched/sch_pie.c:449
+       call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+       expire_timers kernel/time/timer.c:1449 [inline]
+       __run_timers kernel/time/timer.c:1773 [inline]
+       __run_timers kernel/time/timer.c:1740 [inline]
+       run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+       __do_softirq+0x262/0x98c kernel/softirq.c:292
+       do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1082
+       do_softirq.part.0+0x11a/0x170 kernel/softirq.c:337
+       do_softirq kernel/softirq.c:329 [inline]
+       __local_bh_enable_ip+0x211/0x270 kernel/softirq.c:189
+       local_bh_enable include/linux/bottom_half.h:32 [inline]
+       rcu_read_unlock_bh include/linux/rcupdate.h:688 [inline]
+       ip_finish_output2+0x8f8/0x2590 net/ipv4/ip_output.c:229
+       __ip_finish_output net/ipv4/ip_output.c:308 [inline]
+       __ip_finish_output+0x5fc/0xbc0 net/ipv4/ip_output.c:290
+       ip_finish_output+0x38/0x1f0 net/ipv4/ip_output.c:318
+       NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+       ip_output+0x21f/0x670 net/ipv4/ip_output.c:432
+       dst_output include/net/dst.h:436 [inline]
+       ip_local_out+0xbb/0x1b0 net/ipv4/ip_output.c:125
+       __ip_queue_xmit+0x86f/0x1c00 net/ipv4/ip_output.c:532
+       ip_queue_xmit+0x5a/0x70 include/net/ip.h:237
+       __tcp_transmit_skb+0x1a6b/0x3820 net/ipv4/tcp_output.c:1169
+       tcp_transmit_skb net/ipv4/tcp_output.c:1185 [inline]
+       tcp_write_xmit+0xf0f/0x5910 net/ipv4/tcp_output.c:2440
+       __tcp_push_pending_frames+0xb4/0x350 net/ipv4/tcp_output.c:2616
+       tcp_push+0x488/0x700 net/ipv4/tcp.c:724
+       tcp_sendmsg_locked+0x2876/0x3220 net/ipv4/tcp.c:1403
+       tcp_sendmsg+0x30/0x50 net/ipv4/tcp.c:1434
+       inet_sendmsg+0x9e/0xe0 net/ipv4/af_inet.c:807
+       sock_sendmsg_nosec net/socket.c:637 [inline]
+       sock_sendmsg+0xd7/0x130 net/socket.c:657
+       sock_write_iter+0x27c/0x3e0 net/socket.c:989
+       call_write_iter include/linux/fs.h:1895 [inline]
+       new_sync_write+0x4d3/0x770 fs/read_write.c:483
+       __vfs_write+0xe1/0x110 fs/read_write.c:496
+       vfs_write+0x268/0x5d0 fs/read_write.c:558
+       ksys_write+0x14f/0x290 fs/read_write.c:611
+       __do_sys_write fs/read_write.c:623 [inline]
+       __se_sys_write fs/read_write.c:620 [inline]
+       __x64_sys_write+0x73/0xb0 fs/read_write.c:620
+       do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock((&q->adapt_timer));
+                               lock(&(&sch->q.lock)->rlock);
+                               lock((&q->adapt_timer));
+  lock(&(&sch->q.lock)->rlock);
+
+ *** DEADLOCK ***
+
+3 locks held by sshd/8762:
+ #0: ffff88808a7dc150 (sk_lock-AF_INET){+.+.}, at: lock_sock include/net/sock.h:1522 [inline]
+ #0: ffff88808a7dc150 (sk_lock-AF_INET){+.+.}, at: tcp_sendmsg+0x22/0x50 net/ipv4/tcp.c:1433
+ #1: ffffffff88faacc0 (rcu_read_lock){....}, at: sock_net include/net/sock.h:2454 [inline]
+ #1: ffffffff88faacc0 (rcu_read_lock){....}, at: __ip_queue_xmit+0x42/0x1c00 net/ipv4/ip_output.c:457
+ #2: ffff8880ae809da0 ((&q->adapt_timer)){+.-.}, at: lockdep_copy_map include/linux/lockdep.h:172 [inline]
+ #2: ffff8880ae809da0 ((&q->adapt_timer)){+.-.}, at: call_timer_fn+0xe0/0x780 kernel/time/timer.c:1394
+
+stack backtrace:
+CPU: 0 PID: 8762 Comm: sshd Not tainted 5.3.0+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_circular_bug.isra.0.cold+0x163/0x172 kernel/locking/lockdep.c:1685
+ check_noncircular+0x32e/0x3e0 kernel/locking/lockdep.c:1809
+ check_prev_add kernel/locking/lockdep.c:2476 [inline]
+ check_prevs_add kernel/locking/lockdep.c:2581 [inline]
+ validate_chain kernel/locking/lockdep.c:2971 [inline]
+ __lock_acquire+0x2596/0x4a00 kernel/locking/lockdep.c:3955
+ lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4487
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:151
+ spin_lock include/linux/spinlock.h:338 [inline]
+ pie_timer+0x9e/0x830 net/sched/sch_pie.c:449
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1082
+ </IRQ>
+ do_softirq.part.0+0x11a/0x170 kernel/softirq.c:337
+ do_softirq kernel/softirq.c:329 [inline]
+ __local_bh_enable_ip+0x211/0x270 kernel/softirq.c:189
+ local_bh_enable include/linux/bottom_half.h:32 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:688 [inline]
+ ip_finish_output2+0x8f8/0x2590 net/ipv4/ip_output.c:229
+ __ip_finish_output net/ipv4/ip_output.c:308 [inline]
+ __ip_finish_output+0x5fc/0xbc0 net/ipv4/ip_output.c:290
+ ip_finish_output+0x38/0x1f0 net/ipv4/ip_output.c:318
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip_output+0x21f/0x670 net/ipv4/ip_output.c:432
+ dst_output include/net/dst.h:436 [inline]
+ ip_local_out+0xbb/0x1b0 net/ipv4/ip_output.c:125
+ __ip_queue_xmit+0x86f/0x1c00 net/ipv4/ip_output.c:532
+ ip_queue_xmit+0x5a/0x70 include/net/ip.h:237
+ __tcp_transmit_skb+0x1a6b/0x3820 net/ipv4/tcp_output.c:1169
+ tcp_transmit_skb net/ipv4/tcp_output.c:1185 [inline]
+ tcp_write_xmit+0xf0f/0x5910 net/ipv4/tcp_output.c:2440
+ __tcp_push_pending_frames+0xb4/0x350 net/ipv4/tcp_output.c:2616
+ tcp_push+0x488/0x700 net/ipv4/tcp.c:724
+ tcp_sendmsg_locked+0x2876/0x3220 net/ipv4/tcp.c:1403
+ tcp_sendmsg+0x30/0x50 net/ipv4/tcp.c:1434
+ inet_sendmsg+0x9e/0xe0 net/ipv4/af_inet.c:807
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:657
+ sock_write_iter+0x27c/0x3e0 net/socket.c:989
+ call_write_iter include/linux/fs.h:1895 [inline]
+ new_sync_write+0x4d3/0x770 fs/read_write.c:483
+ __vfs_write+0xe1/0x110 fs/read_write.c:496
+ vfs_write+0x268/0x5d0 fs/read_write.c:558
+ ksys_write+0x14f/0x290 fs/read_write.c:611
+ __do_sys_write fs/read_write.c:623 [inline]
+ __se_sys_write fs/read_write.c:620 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:620
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x7f6c76f9d370
+Code: 73 01 c3 48 8b 0d c8 4a 2b 00 31 d2 48 29 c2 64 89 11 48 83 c8 ff eb ea 90 90 83 3d 85 a2 2b 00 00 75 10 b8 01 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 0e 8a 01 00 48 89 04 24
+RSP: 002b:00007ffec05a4428 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000038 RCX: 00007f6c76f9d370
+RDX: 0000000000000038 RSI: 000055602f514460 RDI: 0000000000000003
+RBP: 000055602f514460 R08: 0000000000000001 R09: 0101010101010101
+R10: 0000000000000008 R11: 0000000000000246 R12: 00007ffec05a448c
+R13: 000055602e43ffb4 R14: 0000000000000028 R15: 000055602e441ca0

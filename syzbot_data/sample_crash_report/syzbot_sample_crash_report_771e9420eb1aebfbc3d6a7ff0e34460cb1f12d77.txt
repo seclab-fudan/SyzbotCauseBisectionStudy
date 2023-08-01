@@ -1,0 +1,37 @@
+INFO: trying to register non-static key.
+The code is fine but needs lockdep annotation, or maybe
+you didn't initialize this object before use?
+turning off the locking correctness validator.
+CPU: 1 PID: 8 Comm: kworker/u4:0 Not tainted 5.19.0-rc8-syzkaller-00025-g6e7765cb477a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 06/29/2022
+Workqueue: netns cleanup_net
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ assign_lock_key kernel/locking/lockdep.c:979 [inline]
+ register_lock_class+0xf30/0x1130 kernel/locking/lockdep.c:1292
+ __lock_acquire+0x10a/0x5660 kernel/locking/lockdep.c:4932
+ lock_acquire kernel/locking/lockdep.c:5665 [inline]
+ lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5630
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+ _raw_spin_lock_bh+0x2f/0x40 kernel/locking/spinlock.c:178
+ spin_lock_bh include/linux/spinlock.h:354 [inline]
+ ieee80211_do_stop+0xc3/0x1ff0 net/mac80211/iface.c:380
+ ieee80211_stop+0xc5/0x610 net/mac80211/iface.c:680
+ __dev_close_many+0x1b6/0x2e0 net/core/dev.c:1516
+ dev_close_many+0x22c/0x630 net/core/dev.c:1541
+ dev_close net/core/dev.c:1567 [inline]
+ dev_close+0x16d/0x210 net/core/dev.c:1561
+ cfg80211_shutdown_all_interfaces+0x96/0x1f0 net/wireless/core.c:273
+ ieee80211_remove_interfaces+0xed/0x820 net/mac80211/iface.c:2212
+ ieee80211_unregister_hw+0x47/0x1f0 net/mac80211/main.c:1400
+ mac80211_hwsim_del_radio drivers/net/wireless/mac80211_hwsim.c:3964 [inline]
+ hwsim_exit_net+0x50e/0xca0 drivers/net/wireless/mac80211_hwsim.c:4731
+ ops_exit_list+0xb0/0x170 net/core/net_namespace.c:162
+ cleanup_net+0x4ea/0xb00 net/core/net_namespace.c:594
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>

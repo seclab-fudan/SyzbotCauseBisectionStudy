@@ -1,0 +1,163 @@
+================================
+WARNING: inconsistent lock state
+6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0 Not tainted
+--------------------------------
+inconsistent {IN-HARDIRQ-W} -> {HARDIRQ-ON-W} usage.
+syz-executor.1/7757 [HC0[0]:SC0[0]:HE1:SE1] takes:
+ffff0001188cffa8 (&irq_desc_lock_class){?.-.}-{2:2}, at: ext4_write_lock_xattr fs/ext4/xattr.h:155 [inline]
+ffff0001188cffa8 (&irq_desc_lock_class){?.-.}-{2:2}, at: ext4_xattr_set_handle+0xd0/0x9a0 fs/ext4/xattr.c:2309
+{IN-HARDIRQ-W} state was registered at:
+  lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5668
+  __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+  _raw_spin_lock+0x54/0x6c kernel/locking/spinlock.c:154
+  handle_fasteoi_irq+0x38/0x324 kernel/irq/chip.c:693
+  generic_handle_irq_desc include/linux/irqdesc.h:158 [inline]
+  handle_irq_desc kernel/irq/irqdesc.c:648 [inline]
+  generic_handle_domain_irq+0x4c/0x6c kernel/irq/irqdesc.c:704
+  __gic_handle_irq drivers/irqchip/irq-gic-v3.c:695 [inline]
+  __gic_handle_irq_from_irqson drivers/irqchip/irq-gic-v3.c:746 [inline]
+  gic_handle_irq+0x78/0x1b4 drivers/irqchip/irq-gic-v3.c:790
+  call_on_irq_stack+0x2c/0x54 arch/arm64/kernel/entry.S:892
+  do_interrupt_handler+0x7c/0xc0 arch/arm64/kernel/entry-common.c:274
+  __el1_irq arch/arm64/kernel/entry-common.c:471 [inline]
+  el1_interrupt+0x34/0x68 arch/arm64/kernel/entry-common.c:486
+  el1h_64_irq_handler+0x18/0x24 arch/arm64/kernel/entry-common.c:491
+  el1h_64_irq+0x64/0x68 arch/arm64/kernel/entry.S:580
+  arch_local_irq_restore arch/arm64/include/asm/irqflags.h:122 [inline]
+  ___slab_alloc+0x2ec/0x91c mm/slub.c:3113
+  __slab_alloc mm/slub.c:3279 [inline]
+  slab_alloc_node mm/slub.c:3364 [inline]
+  slab_alloc mm/slub.c:3406 [inline]
+  __kmem_cache_alloc_lru mm/slub.c:3413 [inline]
+  kmem_cache_alloc_lru+0x2ac/0x310 mm/slub.c:3429
+  __d_alloc+0x3c/0x28c fs/dcache.c:1769
+  d_alloc fs/dcache.c:1849 [inline]
+  d_alloc_parallel+0x54/0xae0 fs/dcache.c:2638
+  __lookup_slow+0x8c/0x204 fs/namei.c:1670
+  lookup_one_len+0x29c/0x384 fs/namei.c:2711
+  start_creating+0xb8/0x16c fs/tracefs/inode.c:426
+  __create_dir+0x30/0x1a0 fs/tracefs/inode.c:515
+  tracefs_create_dir+0x30/0x40 fs/tracefs/inode.c:559
+  event_create_dir+0x324/0x5b4 kernel/trace/trace_events.c:2418
+  __trace_early_add_event_dirs+0x44/0xf8 kernel/trace/trace_events.c:3488
+  early_event_add_tracer+0x70/0x9c kernel/trace/trace_events.c:3649
+  event_trace_init+0xa4/0x10c kernel/trace/trace_events.c:3806
+  tracer_init_tracefs_work_func+0x18/0x150 kernel/trace/trace.c:9798
+  process_one_work+0x2d8/0x504 kernel/workqueue.c:2289
+  worker_thread+0x340/0x610 kernel/workqueue.c:2436
+  kthread+0x12c/0x158 kernel/kthread.c:376
+  ret_from_fork+0x10/0x20 arch/arm64/kernel/entry.S:863
+irq event stamp: 3063
+hardirqs last  enabled at (3063): [<ffff80000c096f4c>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+hardirqs last  enabled at (3063): [<ffff80000c096f4c>] _raw_spin_unlock_irqrestore+0x48/0x8c kernel/locking/spinlock.c:194
+hardirqs last disabled at (3062): [<ffff80000c096d88>] __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:108 [inline]
+hardirqs last disabled at (3062): [<ffff80000c096d88>] _raw_spin_lock_irqsave+0xa4/0xb4 kernel/locking/spinlock.c:162
+softirqs last  enabled at (3052): [<ffff80000801c82c>] local_bh_enable+0x10/0x34 include/linux/bottom_half.h:32
+softirqs last disabled at (3050): [<ffff80000801c7f8>] local_bh_disable+0x10/0x34 include/linux/bottom_half.h:19
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&irq_desc_lock_class);
+  <Interrupt>
+    lock(&irq_desc_lock_class);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor.1/7757:
+ #0: ffff0001157a8460 (sb_writers#3){.+.+}-{0:0}, at: mnt_want_write+0x20/0x64 fs/namespace.c:393
+ #1: ffff0001188d02e0 (&type->i_mutex_dir_key#23){++++}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #1: ffff0001188d02e0 (&type->i_mutex_dir_key#23){++++}-{3:3}, at: vfs_setxattr+0xd4/0x1f4 fs/xattr.c:308
+
+stack backtrace:
+CPU: 0 PID: 7757 Comm: syz-executor.1 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ print_usage_bug+0x39c/0x3cc kernel/locking/lockdep.c:3963
+ mark_lock_irq+0x4a8/0x4b4
+ mark_lock+0x154/0x1b4 kernel/locking/lockdep.c:4634
+ mark_usage kernel/locking/lockdep.c:4543 [inline]
+ __lock_acquire+0x5f8/0x3084 kernel/locking/lockdep.c:5009
+ lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5668
+ down_write+0x5c/0x88 kernel/locking/rwsem.c:1562
+ ext4_write_lock_xattr fs/ext4/xattr.h:155 [inline]
+ ext4_xattr_set_handle+0xd0/0x9a0 fs/ext4/xattr.c:2309
+ ext4_xattr_set+0x100/0x1d0 fs/ext4/xattr.c:2496
+ ext4_xattr_user_set+0x78/0x90 fs/ext4/xattr_user.c:41
+ __vfs_setxattr+0x250/0x260 fs/xattr.c:182
+ __vfs_setxattr_noperm+0xcc/0x320 fs/xattr.c:216
+ __vfs_setxattr_locked+0x16c/0x194 fs/xattr.c:277
+ vfs_setxattr+0xf4/0x1f4 fs/xattr.c:309
+ do_setxattr fs/xattr.c:594 [inline]
+ setxattr fs/xattr.c:617 [inline]
+ path_setxattr+0x354/0x414 fs/xattr.c:636
+ __do_sys_setxattr fs/xattr.c:652 [inline]
+ __se_sys_setxattr fs/xattr.c:648 [inline]
+ __arm64_sys_setxattr+0x2c/0x40 fs/xattr.c:648
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+list_add corruption. prev->next should be next (ffff0001188cff90), but was 0000000000000000. (prev=ffff80000ef2a260).
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:32!
+Internal error: Oops - BUG: 00000000f2000800 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 7757 Comm: syz-executor.1 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 604000c5 (nZCv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __list_add_valid+0xb4/0xb8 lib/list_debug.c:30
+lr : __list_add_valid+0xb4/0xb8 lib/list_debug.c:30
+sp : ffff80001463b7e0
+x29: ffff80001463b7e0 x28: ffff0001188cfee0 x27: 0000000000000000
+x26: ffff80001463b808 x25: ffff80000d37c000 x24: ffff000116110000
+x23: ffff80000ef2a260 x22: ffff0001188cff90 x21: ffff0001188cff50
+x20: 0000000000000002 x19: ffff0001188cff38 x18: 00000000000000c0
+x17: 3039666663383831 x16: 3130303066666666 x15: 28207478656e2065
+x14: 6220646c756f6873 x13: 205d373537375420 x12: 0000000000040000
+x11: 000000000002229a x10: ffff80001358c000 x9 : e4662402a6c09e00
+x8 : e4662402a6c09e00 x7 : 205b5d3032343830 x6 : ffff80000c091ebc
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0001fefbecd0 x1 : 0000000100000001 x0 : 0000000000000075
+Call trace:
+ __list_add_valid+0xb4/0xb8 lib/list_debug.c:30
+ __list_add include/linux/list.h:69 [inline]
+ list_add_tail include/linux/list.h:102 [inline]
+ rwsem_add_waiter kernel/locking/rwsem.c:376 [inline]
+ rwsem_down_write_slowpath+0x114/0x468 kernel/locking/rwsem.c:1137
+ __down_write_common kernel/locking/rwsem.c:1305 [inline]
+ __down_write kernel/locking/rwsem.c:1314 [inline]
+ down_write+0x84/0x88 kernel/locking/rwsem.c:1563
+ ext4_write_lock_xattr fs/ext4/xattr.h:155 [inline]
+ ext4_xattr_set_handle+0xd0/0x9a0 fs/ext4/xattr.c:2309
+ ext4_xattr_set+0x100/0x1d0 fs/ext4/xattr.c:2496
+ ext4_xattr_user_set+0x78/0x90 fs/ext4/xattr_user.c:41
+ __vfs_setxattr+0x250/0x260 fs/xattr.c:182
+ __vfs_setxattr_noperm+0xcc/0x320 fs/xattr.c:216
+ __vfs_setxattr_locked+0x16c/0x194 fs/xattr.c:277
+ vfs_setxattr+0xf4/0x1f4 fs/xattr.c:309
+ do_setxattr fs/xattr.c:594 [inline]
+ setxattr fs/xattr.c:617 [inline]
+ path_setxattr+0x354/0x414 fs/xattr.c:636
+ __do_sys_setxattr fs/xattr.c:652 [inline]
+ __se_sys_setxattr fs/xattr.c:648 [inline]
+ __arm64_sys_setxattr+0x2c/0x40 fs/xattr.c:648
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 913f1400 aa0303e1 aa0803e3 94aa8a17 (d4210000) 
+---[ end trace 0000000000000000 ]---

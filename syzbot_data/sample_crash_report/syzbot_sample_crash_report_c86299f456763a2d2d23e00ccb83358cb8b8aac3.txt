@@ -1,0 +1,90 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	0-...!: (10499 ticks this GP) idle=cf6/1/0x4000000000000002 softirq=8359/8359 fqs=3 
+	(t=10500 jiffies g=8089 q=64)
+rcu: rcu_preempt kthread starved for 10494 jiffies! g8089 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402 ->cpu=1
+rcu: RCU grace-period kthread stack dump:
+rcu_preempt     I29328    10      2 0x80004000
+Call Trace:
+ context_switch kernel/sched/core.c:3254 [inline]
+ __schedule+0x755/0x1580 kernel/sched/core.c:3880
+ schedule+0xd9/0x260 kernel/sched/core.c:3947
+ schedule_timeout+0x486/0xc50 kernel/time/timer.c:1807
+ rcu_gp_fqs_loop kernel/rcu/tree.c:1611 [inline]
+ rcu_gp_kthread+0x9b2/0x18c0 kernel/rcu/tree.c:1768
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+NMI backtrace for cpu 0
+CPU: 0 PID: 5 Comm: kworker/0:0 Not tainted 5.3.0-rc8+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: ipv6_addrconf addrconf_dad_work
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold+0x70/0xb2 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x23b/0x28b lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x183/0x1cf kernel/rcu/tree_stall.h:254
+ print_cpu_stall kernel/rcu/tree_stall.h:455 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:529 [inline]
+ rcu_pending kernel/rcu/tree.c:2736 [inline]
+ rcu_sched_clock_irq.cold+0x4dd/0xc13 kernel/rcu/tree.c:2183
+ update_process_times+0x32/0x80 kernel/time/timer.c:1639
+ tick_sched_handle+0xa2/0x190 kernel/time/tick-sched.c:167
+ tick_sched_timer+0x53/0x140 kernel/time/tick-sched.c:1296
+ __run_hrtimer kernel/time/hrtimer.c:1389 [inline]
+ __hrtimer_run_queues+0x364/0xe40 kernel/time/hrtimer.c:1451
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1110 [inline]
+ smp_apic_timer_interrupt+0x160/0x610 arch/x86/kernel/apic/apic.c:1135
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+ </IRQ>
+RIP: 0010:__list_add_valid+0xb/0xa0 lib/list_debug.c:22
+Code: 3f d8 1d fe e8 36 47 f9 03 e9 87 fe ff ff e8 fc 46 6e fe eb 9e 90 90 90 90 90 90 90 90 90 90 48 b8 00 00 00 00 00 fc ff df 55 <48> 89 e5 41 55 49 89 fd 48 8d 7a 08 41 54 49 89 d4 48 89 fa 48 83
+RSP: 0018:ffff8880a9886d48 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: ffff8880968cf4f8 RCX: ffffffff85c67051
+RDX: ffff8880968cf590 RSI: ffff8880968cf590 RDI: ffff8880968cf4f8
+RBP: ffff8880a9886da8 R08: ffff8880a9876140 R09: 0000000000000000
+R10: fffffbfff134afaf R11: ffff8880a9876140 R12: dffffc0000000000
+R13: ffff8880968cf200 R14: ffff8880968cf598 R15: ffff8880968cf590
+ dequeue_skb net/sched/sch_generic.c:258 [inline]
+ qdisc_restart net/sched/sch_generic.c:361 [inline]
+ __qdisc_run+0x1e7/0x19d0 net/sched/sch_generic.c:379
+ __dev_xmit_skb net/core/dev.c:3533 [inline]
+ __dev_queue_xmit+0x16f1/0x3650 net/core/dev.c:3838
+ dev_queue_xmit+0x18/0x20 net/core/dev.c:3902
+ br_dev_queue_push_xmit+0x3f3/0x5c0 net/bridge/br_forward.c:52
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ br_forward_finish+0xfa/0x400 net/bridge/br_forward.c:65
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ __br_forward+0x641/0xb00 net/bridge/br_forward.c:109
+ deliver_clone+0x61/0xc0 net/bridge/br_forward.c:125
+ maybe_deliver+0x2c7/0x390 net/bridge/br_forward.c:181
+ br_flood+0x13a/0x3d0 net/bridge/br_forward.c:223
+ br_dev_xmit+0x98c/0x15a0 net/bridge/br_device.c:100
+ __netdev_start_xmit include/linux/netdevice.h:4406 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4420 [inline]
+ xmit_one net/core/dev.c:3280 [inline]
+ dev_hard_start_xmit+0x1a3/0x9c0 net/core/dev.c:3296
+ __dev_queue_xmit+0x2b15/0x3650 net/core/dev.c:3869
+ dev_queue_xmit+0x18/0x20 net/core/dev.c:3902
+ neigh_resolve_output net/core/neighbour.c:1490 [inline]
+ neigh_resolve_output+0x5a5/0x970 net/core/neighbour.c:1470
+ neigh_output include/net/neighbour.h:511 [inline]
+ ip6_finish_output2+0x1034/0x2520 net/ipv6/ip6_output.c:116
+ __ip6_finish_output+0x444/0xa50 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x38/0x1f0 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0x235/0x7c0 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ndisc_send_skb+0xf29/0x1450 net/ipv6/ndisc.c:504
+ ndisc_send_ns+0x3a9/0x850 net/ipv6/ndisc.c:646
+ addrconf_dad_work+0xb88/0x1150 net/ipv6/addrconf.c:4120
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352

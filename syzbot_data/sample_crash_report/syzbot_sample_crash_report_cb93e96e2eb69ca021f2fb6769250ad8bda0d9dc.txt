@@ -1,0 +1,35 @@
+==================================================================
+BUG: KCSAN: data-race in inet_putpeer / inet_putpeer
+
+write to 0xffff8881083c8a50 of 4 bytes by interrupt on cpu 1:
+ inet_putpeer+0x37/0xa0 net/ipv4/inetpeer.c:240
+ ip4_frag_free+0x3d/0x50 net/ipv4/ip_fragment.c:102
+ inet_frag_destroy_rcu+0x58/0x80 net/ipv4/inet_fragment.c:228
+ __rcu_reclaim kernel/rcu/rcu.h:222 [inline]
+ rcu_do_batch+0x256/0x5b0 kernel/rcu/tree.c:2157
+ rcu_core+0x369/0x4d0 kernel/rcu/tree.c:2377
+ rcu_core_si+0x12/0x20 kernel/rcu/tree.c:2386
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ run_ksoftirqd+0x46/0x60 kernel/softirq.c:603
+ smpboot_thread_fn+0x37d/0x4a0 kernel/smpboot.c:165
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+write to 0xffff8881083c8a50 of 4 bytes by interrupt on cpu 0:
+ inet_putpeer+0x37/0xa0 net/ipv4/inetpeer.c:240
+ ip4_frag_free+0x3d/0x50 net/ipv4/ip_fragment.c:102
+ inet_frag_destroy_rcu+0x58/0x80 net/ipv4/inet_fragment.c:228
+ __rcu_reclaim kernel/rcu/rcu.h:222 [inline]
+ rcu_do_batch+0x256/0x5b0 kernel/rcu/tree.c:2157
+ rcu_core+0x369/0x4d0 kernel/rcu/tree.c:2377
+ rcu_core_si+0x12/0x20 kernel/rcu/tree.c:2386
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ run_ksoftirqd+0x46/0x60 kernel/softirq.c:603
+ smpboot_thread_fn+0x37d/0x4a0 kernel/smpboot.c:165
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 9 Comm: ksoftirqd/0 Not tainted 5.4.0-rc6+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

@@ -1,0 +1,43 @@
+Bluetooth: hci0: failed to register connection device
+list_add corruption. prev->next should be next (ffff0000c94de240), but was 623d4d4554535953. (prev=ffff0000c957fe68).
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:32!
+Internal error: Oops - BUG: 00000000f2000800 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 3060 Comm: kworker/u5:1 Not tainted 6.0.0-rc6-syzkaller-17739-g16c9f284e746 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+Workqueue: hci0 hci_rx_work
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __list_add_valid+0xb4/0xb8 lib/list_debug.c:30
+lr : __list_add_valid+0xb4/0xb8 lib/list_debug.c:30
+sp : ffff8000126f3ad0
+x29: ffff8000126f3ad0 x28: ffff0000c9208000 x27: 0000000000000000
+x26: 0000000000000000 x25: ffff0000caae5014 x24: 0000000000000000
+x23: ffff0000c94de240 x22: ffff0000c957fe68 x21: ffff0000c0c03e68
+x20: ffff0000c0c03e60 x19: ffff0000c94de200 x18: 00000000000000c0
+x17: 3034326564343963 x16: ffff80000db59158 x15: ffff0000c596b500
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c596b500
+x11: ff808000081c30a4 x10: 0000000000000000 x9 : 007b181e3ceb7100
+x8 : 007b181e3ceb7100 x7 : ffff8000081976e4 x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0001fefbecd0 x1 : 0000000100000001 x0 : 0000000000000075
+Call trace:
+ __list_add_valid+0xb4/0xb8 lib/list_debug.c:30
+ __list_add include/linux/list.h:69 [inline]
+ list_add_tail include/linux/list.h:102 [inline]
+ add_tail lib/klist.c:104 [inline]
+ klist_add_tail+0x9c/0xd8 lib/klist.c:137
+ device_add+0x7a8/0x958 drivers/base/core.c:3528
+ hci_conn_add_sysfs+0x4c/0xf4 net/bluetooth/hci_sysfs.c:53
+ le_conn_complete_evt+0x858/0xae0 net/bluetooth/hci_event.c:5917
+ hci_le_conn_complete_evt+0x58/0xa4 net/bluetooth/hci_event.c:5966
+ hci_le_meta_evt+0x1e4/0x230 net/bluetooth/hci_event.c:7110
+ hci_event_func net/bluetooth/hci_event.c:7440 [inline]
+ hci_event_packet+0x4e0/0x60c net/bluetooth/hci_event.c:7495
+ hci_rx_work+0x1a4/0x2f4 net/bluetooth/hci_core.c:4007
+ process_one_work+0x2d8/0x504 kernel/workqueue.c:2289
+ worker_thread+0x340/0x610 kernel/workqueue.c:2436
+ kthread+0x12c/0x158 kernel/kthread.c:376
+ ret_from_fork+0x10/0x20
+Code: 91257400 aa0303e1 aa0803e3 94a78613 (d4210000) 
+---[ end trace 0000000000000000 ]---

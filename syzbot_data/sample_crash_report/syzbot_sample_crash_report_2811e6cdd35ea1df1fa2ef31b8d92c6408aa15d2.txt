@@ -1,0 +1,69 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000005: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000028-0x000000000000002f]
+CPU: 0 PID: 5127 Comm: syz-executor298 Not tainted 6.2.0-rc3-next-20230112-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:udf_fiiter_write_fi+0x14e/0x9d0 fs/udf/directory.c:402
+Code: 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 1b 08 00 00 48 b8 00 00 00 00 00 fc ff df 4c 8b 63 10 49 8d 7c 24 28 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 ed 07 00 00 49 8b 44 24 28 48 8d 7b 18 48 89 fa
+RSP: 0018:ffffc90003daf818 EFLAGS: 00010206
+RAX: dffffc0000000000 RBX: ffffc90003dafad0 RCX: 0000000000000000
+RDX: 0000000000000005 RSI: ffffffff82deb2c5 RDI: 0000000000000028
+RBP: 0000000000000200 R08: 0000000000000001 R09: 0000000000000003
+R10: 0000000000000001 R11: 0000000000094001 R12: 0000000000000000
+R13: ffff888072c92e30 R14: ffffc90003dafad0 R15: ffff888072c93498
+FS:  00007f1256075700(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f1256075718 CR3: 00000000204a4000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ udf_rename+0x69d/0xb80 fs/udf/namei.c:874
+ vfs_rename+0x1162/0x1a90 fs/namei.c:4780
+ do_renameat2+0xb22/0xc30 fs/namei.c:4931
+ __do_sys_rename fs/namei.c:4977 [inline]
+ __se_sys_rename fs/namei.c:4975 [inline]
+ __x64_sys_rename+0x81/0xa0 fs/namei.c:4975
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f125e4da5b9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 71 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f12560752f8 EFLAGS: 00000246 ORIG_RAX: 0000000000000052
+RAX: ffffffffffffffda RBX: 00007f125e55f7b0 RCX: 00007f125e4da5b9
+RDX: 00007f1256075700 RSI: 0000000020000100 RDI: 0000000020000040
+RBP: 0030656c69662f2e R08: 00007f1256075700 R09: 0000000000000000
+R10: 00007f1256075700 R11: 0000000000000246 R12: 00007f125e52c0c0
+R13: 0000000020000580 R14: f6f2cbf92df09e20 R15: 00007f125e55f7b8
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:udf_fiiter_write_fi+0x14e/0x9d0 fs/udf/directory.c:402
+Code: 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 1b 08 00 00 48 b8 00 00 00 00 00 fc ff df 4c 8b 63 10 49 8d 7c 24 28 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 ed 07 00 00 49 8b 44 24 28 48 8d 7b 18 48 89 fa
+RSP: 0018:ffffc90003daf818 EFLAGS: 00010206
+RAX: dffffc0000000000 RBX: ffffc90003dafad0 RCX: 0000000000000000
+RDX: 0000000000000005 RSI: ffffffff82deb2c5 RDI: 0000000000000028
+RBP: 0000000000000200 R08: 0000000000000001 R09: 0000000000000003
+R10: 0000000000000001 R11: 0000000000094001 R12: 0000000000000000
+R13: ffff888072c92e30 R14: ffffc90003dafad0 R15: ffff888072c93498
+FS:  00007f1256075700(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f125e51bc90 CR3: 00000000204a4000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	89 fa                	mov    %edi,%edx
+   2:	48 c1 ea 03          	shr    $0x3,%rdx
+   6:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+   a:	0f 85 1b 08 00 00    	jne    0x82b
+  10:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  17:	fc ff df
+  1a:	4c 8b 63 10          	mov    0x10(%rbx),%r12
+  1e:	49 8d 7c 24 28       	lea    0x28(%r12),%rdi
+  23:	48 89 fa             	mov    %rdi,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	0f 85 ed 07 00 00    	jne    0x821
+  34:	49 8b 44 24 28       	mov    0x28(%r12),%rax
+  39:	48 8d 7b 18          	lea    0x18(%rbx),%rdi
+  3d:	48 89 fa             	mov    %rdi,%rdx

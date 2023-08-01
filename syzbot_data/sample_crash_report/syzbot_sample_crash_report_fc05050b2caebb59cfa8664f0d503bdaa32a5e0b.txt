@@ -1,0 +1,29 @@
+=====================================================
+BUG: KMSAN: kernel-infoleak in instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+BUG: KMSAN: kernel-infoleak in _copy_to_user+0x1c5/0x270 lib/usercopy.c:33
+ instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+ _copy_to_user+0x1c5/0x270 lib/usercopy.c:33
+ copy_to_user include/linux/uaccess.h:169 [inline]
+ iommufd_vfio_iommu_get_info drivers/iommu/iommufd/vfio_compat.c:437 [inline]
+ iommufd_vfio_ioctl+0x1e57/0x2330 drivers/iommu/iommufd/vfio_compat.c:462
+ iommufd_fops_ioctl+0x254/0xb10 drivers/iommu/iommufd/main.c:315
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl+0x2dd/0x4b0 fs/ioctl.c:856
+ __x64_sys_ioctl+0xdc/0x120 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Local variable info.i created at:
+ iommufd_vfio_iommu_get_info drivers/iommu/iommufd/vfio_compat.c:384 [inline]
+ iommufd_vfio_ioctl+0x423/0x2330 drivers/iommu/iommufd/vfio_compat.c:462
+ iommufd_fops_ioctl+0x254/0xb10 drivers/iommu/iommufd/main.c:315
+
+Bytes 20-23 of 24 are uninitialized
+Memory access of size 24 starts at ffff88810ed3bcb0
+Data copied to user address 0000000020000100
+
+CPU: 0 PID: 5039 Comm: syz-executor178 Not tainted 6.2.0-rc8-syzkaller-80994-gda13c00eebfb #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+=====================================================

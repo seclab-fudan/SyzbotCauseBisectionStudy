@@ -1,0 +1,112 @@
+PANIC: double fault, error_code: 0x0
+==================================================================
+CPU: 0 PID: 10117 Comm: syz-executor7 Not tainted 4.18.0-rc3+ #55
+BUG: KASAN: stack-out-of-bounds in debug_spin_lock_before kernel/locking/spinlock_debug.c:83 [inline]
+BUG: KASAN: stack-out-of-bounds in do_raw_spin_lock+0x1c0/0x200 kernel/locking/spinlock_debug.c:112
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Read of size 4 at addr ffff88019b92614c by task syz-executor5/4481
+RIP: 0010:__lock_acquire+0x2e/0x5020 kernel/locking/lockdep.c:3294
+
+Code: 41 57 
+CPU: 1 PID: 4481 Comm: syz-executor5 Not tainted 4.18.0-rc3+ #55
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+41 89 
+Call Trace:
+cf 
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+41 
+56 41 
+55 
+49 
+89 fd 
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+41 
+54 
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+45 
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+89 cc 
+ debug_spin_lock_before kernel/locking/spinlock_debug.c:83 [inline]
+ do_raw_spin_lock+0x1c0/0x200 kernel/locking/spinlock_debug.c:112
+53 
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:136 [inline]
+ _raw_spin_lock_bh+0x39/0x40 kernel/locking/spinlock.c:168
+65 
+4c 8b 
+ spin_lock_bh include/linux/spinlock.h:315 [inline]
+ lock_sock_nested+0x46/0x120 net/core/sock.c:2877
+34 25 
+ lock_sock include/net/sock.h:1491 [inline]
+ tcp_close+0x83/0x12d0 net/ipv4/tcp.c:2324
+40 ee 
+01 00 
+48 83 
+e4 
+f0 
+ inet_release+0x104/0x1f0 net/ipv4/af_inet.c:428
+48 81 
+ __sock_release+0xd7/0x260 net/socket.c:599
+ec 60 
+03 00 
+ sock_close+0x19/0x20 net/socket.c:1150
+00 48 
+ __fput+0x355/0x8b0 fs/file_table.c:209
+8b 
+45 10 
+<89> 94 
+24 
+ ____fput+0x15/0x20 fs/file_table.c:243
+80 
+ task_work_run+0x1ec/0x2a0 kernel/task_work.c:113
+00 
+00 
+00 
+ tracehook_notify_resume include/linux/tracehook.h:192 [inline]
+ exit_to_usermode_loop+0x313/0x370 arch/x86/entry/common.c:166
+48 
+ba 00 
+00 
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+00 
+00 
+00 
+fc 
+ff df 
+48 
+89 
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+84 
+RIP: 0033:0x40fb70
+24 
+Code: 
+98 
+01 
+f0 
+RSP: 0018:ffff88019b3b3e90 EFLAGS: 00010086
+ff 
+ff 
+RAX: 0000000000000000 RBX: 1ffff1003367684f RCX: 0000000000000002
+0f 
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff88f92620
+83 
+RBP: ffff88019b3b4220 R08: 0000000000000000 R09: 0000000000000000
+60 
+R10: ffff88019c1d7be0 R11: ffff8801981e2ebb R12: 0000000000000000
+19 
+R13: ffffffff88f92620 R14: ffff8801981e2740 R15: 0000000000000002
+00 
+FS:  00000000020fe940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+00 
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+c3 
+CR2: ffff88019b3b3e88 CR3: 00000001ca16d000 CR4: 00000000001406f0
+DR0: 0000000020000000 DR1: 00000000200001c0 DR2: 0000000000000000
+66 
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+2e 
+Call Trace:
+0f 

@@ -1,0 +1,152 @@
+INFO: task syz-executor467:4507 blocked for more than 120 seconds.
+      Not tainted 4.17.0-rc4+ #39
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor467 D15848  4507   4502 0x00000000
+Call Trace:
+ context_switch kernel/sched/core.c:2848 [inline]
+ __schedule+0x801/0x1e30 kernel/sched/core.c:3490
+ schedule+0xef/0x430 kernel/sched/core.c:3549
+ blk_queue_enter+0x8da/0xdf0 block/blk-core.c:953
+ generic_make_request+0x144/0x1510 block/blk-core.c:2395
+ blk_queue_split+0x374/0x2090 block/blk-merge.c:215
+ blk_mq_make_request+0x2d0/0x25c0 block/blk-mq.c:1861
+ generic_make_request+0x795/0x1510 block/blk-core.c:2460
+ submit_bio+0xba/0x460 block/blk-core.c:2568
+ mpage_bio_submit fs/mpage.c:66 [inline]
+ mpage_readpages+0x6d7/0x970 fs/mpage.c:393
+ blkdev_readpages+0x2c/0x40 fs/block_dev.c:577
+ read_pages mm/readahead.c:121 [inline]
+ __do_page_cache_readahead+0x79a/0xdc0 mm/readahead.c:199
+ ra_submit mm/internal.h:66 [inline]
+ ondemand_readahead+0x550/0xc40 mm/readahead.c:478
+ page_cache_sync_readahead+0xd1/0x110 mm/readahead.c:510
+ generic_file_buffered_read mm/filemap.c:2092 [inline]
+ generic_file_read_iter+0x1a74/0x2f00 mm/filemap.c:2362
+ blkdev_read_iter+0x120/0x190 fs/block_dev.c:1930
+ call_read_iter include/linux/fs.h:1778 [inline]
+ generic_file_splice_read+0x552/0x910 fs/splice.c:307
+ do_splice_to+0x12e/0x190 fs/splice.c:880
+ splice_direct_to_actor+0x268/0x8d0 fs/splice.c:952
+ do_splice_direct+0x2cc/0x400 fs/splice.c:1061
+ do_sendfile+0x60f/0xe00 fs/read_write.c:1440
+ __do_sys_sendfile64 fs/read_write.c:1495 [inline]
+ __se_sys_sendfile64 fs/read_write.c:1487 [inline]
+ __x64_sys_sendfile64+0x155/0x240 fs/read_write.c:1487
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4493e9
+RSP: 002b:00007f797bbf3da8 EFLAGS: 00000293 ORIG_RAX: 0000000000000028
+RAX: ffffffffffffffda RBX: 00000000006dac3c RCX: 00000000004493e9
+RDX: 0000000020000240 RSI: 0000000000000003 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0020000102000007 R11: 0000000000000293 R12: 00000000006dac38
+R13: 6f6f6c2f7665642f R14: 0020000102000007 R15: 0000000000000008
+
+Showing all locks held in the system:
+2 locks held by khungtaskd/892:
+ #0: 00000000a17c7b71 (rcu_read_lock){....}, at: check_hung_uninterruptible_tasks kernel/hung_task.c:175 [inline]
+ #0: 00000000a17c7b71 (rcu_read_lock){....}, at: watchdog+0x1ff/0xf60 kernel/hung_task.c:249
+ #1: 00000000e4d61928 (tasklist_lock){.+.+}, at: debug_show_all_locks+0xde/0x34a kernel/locking/lockdep.c:4470
+2 locks held by getty/4477:
+ #0: 000000005e94c04d (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000e390507c (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4478:
+ #0: 00000000cff31727 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 0000000056d3de1e (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4479:
+ #0: 00000000639bec5d (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000e2655391 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4480:
+ #0: 0000000035846f68 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000945d2479 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4481:
+ #0: 00000000e2adb7df (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 000000003e8c10b1 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4482:
+ #0: 0000000092744a17 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 0000000088f89dd8 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4483:
+ #0: 000000008472d87f (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000babf978d (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+1 lock held by syz-executor467/4505:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/4511:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/4514:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/4515:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/4517:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/4518:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/4520:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/4521:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/4523:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/4524:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by syz-executor467/5371:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+1 lock held by blkid/5374:
+ #0: 000000001dd8ac7f (&lo->lo_ctl_mutex/1){+.+.}, at: lo_ioctl+0x8d/0x2130 drivers/block/loop.c:1391
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 892 Comm: khungtaskd Not tainted 4.17.0-rc4+ #39
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.4+0x19/0xce lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x151/0x192 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:138 [inline]
+ check_hung_task kernel/hung_task.c:132 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:190 [inline]
+ watchdog+0xc10/0xf60 kernel/hung_task.c:249
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 4504 Comm: syz-executor467 Not tainted 4.17.0-rc4+ #39
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:debug_lockdep_rcu_enabled+0x53/0x90 kernel/rcu/update.c:300
+RSP: 0018:ffff8801ac9e7908 EFLAGS: 00000802
+RAX: dffffc0000000000 RBX: 1ffff1003593cf28 RCX: 0000000000000000
+RDX: 1ffffffff1213998 RSI: 0000000000000000 RDI: ffffffff8909ccc0
+RBP: ffff8801ac9e7908 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffed0035cd2618 R11: ffff8801ae6930c3 R12: 0000000000000000
+R13: 0000000000000002 R14: 0000000000000000 R15: 0000000000000000
+FS:  00000000019e6880(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000001d97000 CR3: 00000001aca17000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ trace_lock_acquire include/trace/events/lock.h:13 [inline]
+ lock_acquire+0x3f9/0x520 kernel/locking/lockdep.c:3919
+ rcu_lock_acquire include/linux/rcupdate.h:246 [inline]
+ rcu_read_lock include/linux/rcupdate.h:632 [inline]
+ __fget+0xf5/0x650 fs/file.c:684
+ __fget_light+0x342/0x430 fs/file.c:741
+ __fdget fs/file.c:749 [inline]
+ __fdget_pos+0x6e/0x1e0 fs/file.c:760
+ fdget_pos include/linux/file.h:67 [inline]
+ ksys_write+0x77/0x250 fs/read_write.c:593
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4493e9
+RSP: 002b:00007ffcc9c13198 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 00000000004493e9
+RDX: 0000000000000012 RSI: 00000000004adebd RDI: 0000000000000001
+RBP: 00000000006d9018 R08: 00000000004002e0 R09: 00000000004002e0
+R10: 00000000004002e0 R11: 0000000000000202 R12: 0000000000406ec0
+R13: 0000000000406f50 R14: 0000000000000000 R15: 0000000000000000
+Code: 03 38 d0 7c 04 84 d2 75 4c 8b 15 19 3d 18 08 85 d2 74 3e 48 c7 c7 c0 cc 09 89 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 04 84 d2 75 1c 

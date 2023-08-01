@@ -1,0 +1,72 @@
+audit: type=1400 audit(1513266534.650:7): avc:  denied  { map } for  pid=3116 comm="syzkaller511820" path="/root/syzkaller511820982" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+IP: scatterwalk_start include/crypto/scatterwalk.h:85 [inline]
+IP: scatterwalk_pagedone include/crypto/scatterwalk.h:111 [inline]
+IP: scatterwalk_done include/crypto/scatterwalk.h:119 [inline]
+IP: blkcipher_walk_done+0xe7/0x360 crypto/blkcipher.c:123
+PGD 213656067 P4D 213656067 PUD 21371f067 PMD 0 
+Oops: 0000 [#1] SMP
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 3116 Comm: syzkaller511820 Not tainted 4.15.0-rc3-next-20171214+ #67
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:scatterwalk_start include/crypto/scatterwalk.h:85 [inline]
+RIP: 0010:scatterwalk_pagedone include/crypto/scatterwalk.h:111 [inline]
+RIP: 0010:scatterwalk_done include/crypto/scatterwalk.h:119 [inline]
+RIP: 0010:blkcipher_walk_done+0xe7/0x360 crypto/blkcipher.c:123
+RSP: 0018:ffffc900018bb828 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: ffffc900018bb8b0 RCX: ffffffff81739c3b
+RDX: 0000000000000000 RSI: ffffc900018bb8b0 RDI: ffff8802136d4810
+RBP: ffffc900018bb850 R08: a458311a4890bbbc R09: 0000000000000001
+R10: ffffc900018bb980 R11: ffff88020c2a8f50 R12: 0000000060453082
+R13: ffffc900018bb9b0 R14: ffff8802136d4810 R15: 0000000000000f60
+FS:  000000000114c880(0000) GS:ffff88021fc00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000008 CR3: 00000002134ee000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ glue_ctr_crypt_128bit+0x1ef/0x390 arch/x86/crypto/glue_helper.c:289
+ ctr_crypt+0x34/0x40 arch/x86/crypto/serpent_avx2_glue.c:168
+ __ablk_encrypt+0x43/0x50 crypto/ablk_helper.c:61
+ ablk_encrypt+0xd9/0xf0 crypto/ablk_helper.c:81
+ skcipher_crypt_ablkcipher crypto/skcipher.c:712 [inline]
+ skcipher_decrypt_ablkcipher+0x6d/0x70 crypto/skcipher.c:730
+ crypto_skcipher_decrypt include/crypto/skcipher.h:463 [inline]
+ chacha_decrypt crypto/chacha20poly1305.c:152 [inline]
+ poly_tail_continue+0x128/0x170 crypto/chacha20poly1305.c:167
+ poly_tail+0x128/0x160 crypto/chacha20poly1305.c:201
+ poly_cipherpad+0x126/0x160 crypto/chacha20poly1305.c:231
+ poly_cipher+0xb9/0xd0 crypto/chacha20poly1305.c:262
+ poly_adpad+0x126/0x160 crypto/chacha20poly1305.c:292
+ poly_ad+0x7d/0x90 crypto/chacha20poly1305.c:316
+ poly_setkey+0x107/0x130 crypto/chacha20poly1305.c:343
+ poly_init+0x5a/0x70 crypto/chacha20poly1305.c:366
+ poly_genkey+0x181/0x1c0 crypto/chacha20poly1305.c:406
+ chacha_encrypt crypto/chacha20poly1305.c:446 [inline]
+ chachapoly_encrypt+0x10c/0x130 crypto/chacha20poly1305.c:467
+ crypto_aead_encrypt include/crypto/aead.h:330 [inline]
+ _aead_recvmsg crypto/algif_aead.c:314 [inline]
+ aead_recvmsg+0x758/0x8c0 crypto/algif_aead.c:335
+ sock_recvmsg_nosec net/socket.c:809 [inline]
+ sock_recvmsg+0x4d/0x70 net/socket.c:816
+ ___sys_recvmsg+0x118/0x2b0 net/socket.c:2185
+ __sys_recvmsg+0x4d/0x90 net/socket.c:2230
+ SYSC_recvmsg net/socket.c:2242 [inline]
+ SyS_recvmsg+0x2d/0x50 net/socket.c:2237
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x43ff89
+RSP: 002b:00007ffd01b31518 EFLAGS: 00000217 ORIG_RAX: 000000000000002f
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043ff89
+RDX: 0000000000000002 RSI: 000000002022efc8 RDI: 0000000000000004
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 00000000004018f0
+R13: 0000000000401980 R14: 0000000000000000 R15: 0000000000000000
+Code: e8 8f fc c3 ff 4c 8b 73 20 44 8b 7b 28 41 8b 46 0c 41 03 46 08 41 39 c7 72 4f e8 75 fc c3 ff 4c 89 f7 e8 3d f5 0b 00 48 89 43 20 <8b> 40 08 89 43 28 e8 5e fc c3 ff 4c 8b 73 38 44 8b 7b 40 41 8b 
+RIP: scatterwalk_start include/crypto/scatterwalk.h:85 [inline] RSP: ffffc900018bb828
+RIP: scatterwalk_pagedone include/crypto/scatterwalk.h:111 [inline] RSP: ffffc900018bb828
+RIP: scatterwalk_done include/crypto/scatterwalk.h:119 [inline] RSP: ffffc900018bb828
+RIP: blkcipher_walk_done+0xe7/0x360 crypto/blkcipher.c:123 RSP: ffffc900018bb828
+CR2: 0000000000000008
+---[ end trace 5b734bd48ad16447 ]---

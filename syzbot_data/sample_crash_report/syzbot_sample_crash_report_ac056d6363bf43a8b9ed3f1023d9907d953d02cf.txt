@@ -1,0 +1,44 @@
+usb 1-1: USB disconnect, device number 2
+general protection fault, probably for non-canonical address 0xdffffc00000000b3: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000598-0x000000000000059f]
+CPU: 1 PID: 2922 Comm: kworker/1:2 Not tainted 5.11.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+RIP: 0010:__list_del_entry_valid+0x1f/0x100 lib/list_debug.c:42
+Code: fd 0f 0b 0f 1f 84 00 00 00 00 00 41 57 41 56 41 54 53 49 89 fe 49 bc 00 00 00 00 00 fc ff df 48 83 c7 08 48 89 f8 48 c1 e8 03 <42> 80 3c 20 00 74 05 e8 05 81 ec fd 4d 8b 7e 08 4c 89 f0 48 c1 e8
+RSP: 0018:ffffc900014ef318 EFLAGS: 00010202
+RAX: 00000000000000b3 RBX: 0000000000000000 RCX: ffff88801acb1bc0
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000598
+RBP: dffffc0000000000 R08: dffffc0000000000 R09: fffffbfff1f28ab6
+R10: fffffbfff1f28ab6 R11: 0000000000000000 R12: dffffc0000000000
+R13: dffffc0000000000 R14: 0000000000000590 R15: 1ffff110023f3601
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000004d5800 CR3: 000000000c48e000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:132 [inline]
+ list_del include/linux/list.h:146 [inline]
+ gpiodevice_release+0x48/0x1b0 drivers/gpio/gpiolib.c:479
+ device_release+0x98/0x1c0 drivers/base/core.c:2104
+ kobject_cleanup+0x1c9/0x280 lib/kobject.c:705
+ ftdi_gpio_remove drivers/usb/serial/ftdi_sio.c:2215 [inline]
+ ftdi_sio_port_remove+0x8b/0x2f0 drivers/usb/serial/ftdi_sio.c:2407
+ usb_serial_device_remove+0x126/0x1f0 drivers/usb/serial/bus.c:97
+ __device_release_driver drivers/base/dd.c:1156 [inline]
+ device_release_driver_internal+0x51e/0x7b0 drivers/base/dd.c:1187
+ bus_remove_device+0x300/0x420 drivers/base/bus.c:533
+ device_del+0x5e1/0xa90 drivers/base/core.c:3421
+ usb_serial_disconnect+0x294/0x3c0 drivers/usb/serial/usb-serial.c:1102
+ usb_unbind_interface+0x1f2/0x860 drivers/usb/core/driver.c:458
+ __device_release_driver drivers/base/dd.c:1156 [inline]
+ device_release_driver_internal+0x51e/0x7b0 drivers/base/dd.c:1187
+ bus_remove_device+0x300/0x420 drivers/base/bus.c:533
+ device_del+0x5e1/0xa90 drivers/base/core.c:3421
+ usb_disable_device+0x407/0x800 drivers/usb/core/message.c:1413
+ usb_disconnect+0x33a/0x8a0 drivers/usb/core/hub.c:2218
+ hub_port_connect+0x214/0x25b0 drivers/usb/core/hub.c:5074
+ hub_port_connect_change+0x5c6/0xab0 drivers/usb/core/hub.c:5363
+ port_event+0xa6f/0x10b0 drivers/usb/core/hub.c:5509
+ hub_event+0x417/0xcb0 drivers/usb/core/hub.c:5591

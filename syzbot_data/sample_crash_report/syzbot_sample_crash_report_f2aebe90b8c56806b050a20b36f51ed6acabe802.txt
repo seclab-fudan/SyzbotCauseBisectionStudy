@@ -1,0 +1,45 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in hiddev_ioctl_usage.isra.0+0x1251/0x13b0 drivers/hid/usbhid/hiddev.c:528
+Write of size 4 at addr ffff8881cd03ca58 by task syz-executor227/353
+
+CPU: 1 PID: 353 Comm: syz-executor227 Not tainted 5.7.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xef/0x16e lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd3/0x314 mm/kasan/report.c:382
+ __kasan_report.cold+0x37/0x92 mm/kasan/report.c:511
+ kasan_report+0x33/0x50 mm/kasan/common.c:625
+ hiddev_ioctl_usage.isra.0+0x1251/0x13b0 drivers/hid/usbhid/hiddev.c:528
+ hiddev_ioctl+0x79b/0x1550 drivers/hid/usbhid/hiddev.c:794
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl+0x11a/0x180 fs/ioctl.c:763
+ __do_sys_ioctl fs/ioctl.c:772 [inline]
+ __se_sys_ioctl fs/ioctl.c:770 [inline]
+ __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:770
+ do_syscall_64+0xb6/0x5a0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x444d19
+Code: e8 bc af 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b d8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fff559d6318 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000444d19
+RDX: 0000000020000000 RSI: 000000004018480c RDI: 0000000000000004
+RBP: 00000000006cf018 R08: 9188084ba2bfac07 R09: 00000000004002e0
+R10: 000000000000000f R11: 0000000000000246 R12: 00000000004029c0
+R13: 0000000000402a50 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0007340c00 refcount:1 mapcount:0 mapping:000000009882e140 index:0x0 head:ffffea0007340c00 order:4 compound_mapcount:0 compound_pincount:0
+flags: 0x200000000010000(head)
+raw: 0200000000010000 dead000000000100 dead000000000122 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881cd03c900: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+ ffff8881cd03c980: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+>ffff8881cd03ca00: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+                                                    ^
+ ffff8881cd03ca80: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+ ffff8881cd03cb00: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+==================================================================

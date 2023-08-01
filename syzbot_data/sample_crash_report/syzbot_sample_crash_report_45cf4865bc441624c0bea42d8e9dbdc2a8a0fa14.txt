@@ -1,0 +1,119 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): bond0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+IPv6: IPV6: multipath route replace failed (check consistency of installed routes): :: nexthop :: ifi 1
+IPv6: IPV6: multipath route replace failed (check consistency of installed routes): :: nexthop :: ifi 6
+==================================================================
+BUG: KASAN: use-after-free in ip6_route_mpath_notify+0xe9/0x100 net/ipv6/route.c:4180
+Read of size 4 at addr ffff8801d685f5b0 by task syz-executor800/4495
+
+CPU: 0 PID: 4495 Comm: syz-executor800 Not tainted 4.17.0+ #83
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ ip6_route_mpath_notify+0xe9/0x100 net/ipv6/route.c:4180
+ ip6_route_multipath_add+0x615/0x1910 net/ipv6/route.c:4303
+ inet6_rtm_newroute+0xe3/0x160 net/ipv6/route.c:4391
+ rtnetlink_rcv_msg+0x466/0xc10 net/core/rtnetlink.c:4646
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2448
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4664
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x58b/0x740 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0x9f0/0xfa0 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:639
+ ___sys_sendmsg+0x805/0x940 net/socket.c:2117
+ __sys_sendmsg+0x115/0x270 net/socket.c:2155
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2162
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4411e9
+RSP: 002b:00007ffd95d84ed8 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004411e9
+RDX: 0000000000000000 RSI: 0000000020002fc8 RDI: 0000000000000004
+RBP: 00000000006cc018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 00000000004020f0
+R13: 0000000000402180 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4495:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ dst_alloc+0xbb/0x1d0 net/core/dst.c:104
+ __ip6_dst_alloc+0x35/0xa0 net/ipv6/route.c:361
+ ip6_dst_alloc+0x29/0xb0 net/ipv6/route.c:376
+ ip6_route_info_create+0x4d4/0x3a30 net/ipv6/route.c:2834
+ ip6_route_multipath_add+0xc7e/0x1910 net/ipv6/route.c:4240
+ inet6_rtm_newroute+0xe3/0x160 net/ipv6/route.c:4391
+ rtnetlink_rcv_msg+0x466/0xc10 net/core/rtnetlink.c:4646
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2448
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4664
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x58b/0x740 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0x9f0/0xfa0 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:639
+ ___sys_sendmsg+0x805/0x940 net/socket.c:2117
+ __sys_sendmsg+0x115/0x270 net/socket.c:2155
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2162
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 4495:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+ dst_destroy+0x267/0x3c0 net/core/dst.c:140
+ dst_release_immediate+0x71/0x9e net/core/dst.c:205
+ fib6_add+0xa40/0x1650 net/ipv6/ip6_fib.c:1305
+ __ip6_ins_rt+0x6c/0x90 net/ipv6/route.c:1011
+ ip6_route_multipath_add+0x513/0x1910 net/ipv6/route.c:4267
+ inet6_rtm_newroute+0xe3/0x160 net/ipv6/route.c:4391
+ rtnetlink_rcv_msg+0x466/0xc10 net/core/rtnetlink.c:4646
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2448
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4664
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x58b/0x740 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0x9f0/0xfa0 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:639
+ ___sys_sendmsg+0x805/0x940 net/socket.c:2117
+ __sys_sendmsg+0x115/0x270 net/socket.c:2155
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2162
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801d685f500
+ which belongs to the cache ip6_dst_cache of size 320
+The buggy address is located 176 bytes inside of
+ 320-byte region [ffff8801d685f500, ffff8801d685f640)
+The buggy address belongs to the page:
+page:ffffea00075a17c0 count:1 mapcount:0 mapping:ffff8801d685f080 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d685f080 0000000000000000 000000010000000a
+raw: ffffea00073702e0 ffff8801cdf7a448 ffff8801cdf7b340 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d685f480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801d685f500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801d685f580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff8801d685f600: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801d685f680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

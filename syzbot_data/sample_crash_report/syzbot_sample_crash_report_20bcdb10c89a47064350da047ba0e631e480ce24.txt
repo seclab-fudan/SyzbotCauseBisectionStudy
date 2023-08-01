@@ -1,0 +1,159 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.2.0-rc3-syzkaller-00219-g010a74f52203 #0 Not tainted
+------------------------------------------------------
+syz-executor.2/10095 is trying to acquire lock:
+ffffc90001792af8 (&tcp_hashinfo.bhash[i].lock){+.-.}-{2:2}, at: spin_lock include/linux/spinlock.h:350 [inline]
+ffffc90001792af8 (&tcp_hashinfo.bhash[i].lock){+.-.}-{2:2}, at: __inet_put_port net/ipv4/inet_hashtables.c:186 [inline]
+ffffc90001792af8 (&tcp_hashinfo.bhash[i].lock){+.-.}-{2:2}, at: inet_put_port+0x280/0x940 net/ipv4/inet_hashtables.c:209
+
+but task is already holding lock:
+ffff888053f91a30 (slock-AF_INET6){+.-.}-{2:2}, at: spin_lock include/linux/spinlock.h:350 [inline]
+ffff888053f91a30 (slock-AF_INET6){+.-.}-{2:2}, at: __tcp_close+0x4d7/0xf50 net/ipv4/tcp.c:2954
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (slock-AF_INET6){+.-.}-{2:2}:
+       __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+       _raw_spin_lock_bh+0x33/0x40 kernel/locking/spinlock.c:178
+       spin_lock_bh include/linux/spinlock.h:355 [inline]
+       release_sock+0x1f/0x1b0 net/core/sock.c:3483
+       l2tp_tunnel_register+0x3db/0x11e0 net/l2tp/l2tp_core.c:1487
+       l2tp_nl_cmd_tunnel_create+0x3d6/0x8b0 net/l2tp/l2tp_netlink.c:245
+       genl_family_rcv_msg_doit.isra.0+0x1e6/0x2d0 net/netlink/genetlink.c:968
+       genl_family_rcv_msg net/netlink/genetlink.c:1048 [inline]
+       genl_rcv_msg+0x4ff/0x7e0 net/netlink/genetlink.c:1065
+       netlink_rcv_skb+0x165/0x440 net/netlink/af_netlink.c:2564
+       genl_rcv+0x28/0x40 net/netlink/genetlink.c:1076
+       netlink_unicast_kernel net/netlink/af_netlink.c:1330 [inline]
+       netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1356
+       netlink_sendmsg+0x91b/0xe10 net/netlink/af_netlink.c:1932
+       sock_sendmsg_nosec net/socket.c:714 [inline]
+       sock_sendmsg+0xd3/0x120 net/socket.c:734
+       ____sys_sendmsg+0x712/0x8c0 net/socket.c:2476
+       ___sys_sendmsg+0x110/0x1b0 net/socket.c:2530
+       __sys_sendmsg+0xf7/0x1c0 net/socket.c:2559
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #1 (clock-AF_INET6){++.-}-{2:2}:
+       __raw_read_lock_bh include/linux/rwlock_api_smp.h:176 [inline]
+       _raw_read_lock_bh+0x3f/0x70 kernel/locking/spinlock.c:252
+       sock_i_uid+0x1f/0xb0 net/core/sock.c:2564
+       sk_reuseport_match net/ipv4/inet_connection_sock.c:401 [inline]
+       inet_csk_get_port+0x85f/0x2660 net/ipv4/inet_connection_sock.c:532
+       __inet6_bind+0x625/0x1b20 net/ipv6/af_inet6.c:413
+       inet6_bind+0x177/0x220 net/ipv6/af_inet6.c:472
+       __sys_bind+0x1ed/0x260 net/socket.c:1776
+       __do_sys_bind net/socket.c:1787 [inline]
+       __se_sys_bind net/socket.c:1785 [inline]
+       __x64_sys_bind+0x73/0xb0 net/socket.c:1785
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&tcp_hashinfo.bhash[i].lock){+.-.}-{2:2}:
+       check_prev_add kernel/locking/lockdep.c:3097 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+       validate_chain kernel/locking/lockdep.c:3831 [inline]
+       __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5055
+       lock_acquire kernel/locking/lockdep.c:5668 [inline]
+       lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+       __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+       _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+       spin_lock include/linux/spinlock.h:350 [inline]
+       __inet_put_port net/ipv4/inet_hashtables.c:186 [inline]
+       inet_put_port+0x280/0x940 net/ipv4/inet_hashtables.c:209
+       tcp_v4_destroy_sock+0x319/0x810 net/ipv4/tcp_ipv4.c:2321
+       inet_csk_destroy_sock+0x19a/0x440 net/ipv4/inet_connection_sock.c:1175
+       __tcp_close+0xb96/0xf50 net/ipv4/tcp.c:3020
+       tcp_close+0x2d/0xc0 net/ipv4/tcp.c:3032
+       inet_release+0x132/0x270 net/ipv4/af_inet.c:428
+       inet6_release+0x50/0x70 net/ipv6/af_inet6.c:489
+       __sock_release+0xcd/0x280 net/socket.c:650
+       sock_close+0x1c/0x20 net/socket.c:1365
+       __fput+0x27c/0xa90 fs/file_table.c:320
+       task_work_run+0x16f/0x270 kernel/task_work.c:179
+       get_signal+0x1c7/0x2450 kernel/signal.c:2635
+       arch_do_signal_or_restart+0x79/0x5c0 arch/x86/kernel/signal.c:306
+       exit_to_user_mode_loop kernel/entry/common.c:168 [inline]
+       exit_to_user_mode_prepare+0x15f/0x250 kernel/entry/common.c:203
+       __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+       syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+       do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+other info that might help us debug this:
+
+Chain exists of:
+  &tcp_hashinfo.bhash[i].lock --> clock-AF_INET6 --> slock-AF_INET6
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(slock-AF_INET6);
+                               lock(clock-AF_INET6);
+                               lock(slock-AF_INET6);
+  lock(&tcp_hashinfo.bhash[i].lock);
+
+ *** DEADLOCK ***
+
+3 locks held by syz-executor.2/10095:
+ #0: ffff88804aa74a10 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #0: ffff88804aa74a10 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: __sock_release+0x86/0x280 net/socket.c:649
+ #1: ffff888053f91ab0 (sk_lock-AF_INET6){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ #1: ffff888053f91ab0 (sk_lock-AF_INET6){+.+.}-{0:0}, at: tcp_close+0x22/0xc0 net/ipv4/tcp.c:3031
+ #2: ffff888053f91a30 (slock-AF_INET6){+.-.}-{2:2}, at: spin_lock include/linux/spinlock.h:350 [inline]
+ #2: ffff888053f91a30 (slock-AF_INET6){+.-.}-{2:2}, at: __tcp_close+0x4d7/0xf50 net/ipv4/tcp.c:2954
+
+stack backtrace:
+CPU: 0 PID: 10095 Comm: syz-executor.2 Not tainted 6.2.0-rc3-syzkaller-00219-g010a74f52203 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2177
+ check_prev_add kernel/locking/lockdep.c:3097 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain kernel/locking/lockdep.c:3831 [inline]
+ __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5055
+ lock_acquire kernel/locking/lockdep.c:5668 [inline]
+ lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+ __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+ _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+ spin_lock include/linux/spinlock.h:350 [inline]
+ __inet_put_port net/ipv4/inet_hashtables.c:186 [inline]
+ inet_put_port+0x280/0x940 net/ipv4/inet_hashtables.c:209
+ tcp_v4_destroy_sock+0x319/0x810 net/ipv4/tcp_ipv4.c:2321
+ inet_csk_destroy_sock+0x19a/0x440 net/ipv4/inet_connection_sock.c:1175
+ __tcp_close+0xb96/0xf50 net/ipv4/tcp.c:3020
+ tcp_close+0x2d/0xc0 net/ipv4/tcp.c:3032
+ inet_release+0x132/0x270 net/ipv4/af_inet.c:428
+ inet6_release+0x50/0x70 net/ipv6/af_inet6.c:489
+ __sock_release+0xcd/0x280 net/socket.c:650
+ sock_close+0x1c/0x20 net/socket.c:1365
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ get_signal+0x1c7/0x2450 kernel/signal.c:2635
+ arch_do_signal_or_restart+0x79/0x5c0 arch/x86/kernel/signal.c:306
+ exit_to_user_mode_loop kernel/entry/common.c:168 [inline]
+ exit_to_user_mode_prepare+0x15f/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f3274a8c0c9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f3275746168 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: 0000000000f84538 RBX: 00007f3274bac2c0 RCX: 00007f3274a8c0c9
+RDX: adf29f33fb903ae1 RSI: 00000000200000c0 RDI: 0000000000000004
+RBP: 00007f3274ae7ae9 R08: 0000000020b63fe4 R09: 000000000000001c
+R10: 0000000020000004 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffe3b87702f R14: 00007f3275746300 R15: 0000000000022000
+ </TASK>

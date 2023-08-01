@@ -1,0 +1,100 @@
+==================================================================
+BUG: KASAN: use-after-free in ccid_hc_tx_delete+0xe0/0x100 net/dccp/ccid.c:188
+Read of size 8 at addr ffff8881bd5fcec0 by task ksoftirqd/1/16
+
+CPU: 1 PID: 16 Comm: ksoftirqd/1 Not tainted 4.20.0-rc6+ #152
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ ccid_hc_tx_delete+0xe0/0x100 net/dccp/ccid.c:188
+ dccp_sk_destruct+0x3c/0x80 net/dccp/proto.c:181
+ __sk_destruct+0x107/0xa80 net/core/sock.c:1561
+ __rcu_reclaim kernel/rcu/rcu.h:240 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2437 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2716 [inline]
+ rcu_process_callbacks+0x100a/0x1ac0 kernel/rcu/tree.c:2697
+ __do_softirq+0x308/0xb7e kernel/softirq.c:292
+ run_ksoftirqd+0x5e/0x100 kernel/softirq.c:654
+ smpboot_thread_fn+0x68b/0xa00 kernel/smpboot.c:164
+ kthread+0x35a/0x440 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Allocated by task 16874:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x730 mm/slab.c:3554
+ ccid_new+0x25b/0x3e0 net/dccp/ccid.c:151
+ dccp_hdlr_ccid+0x27/0x150 net/dccp/feat.c:44
+ __dccp_feat_activate+0x188/0x280 net/dccp/feat.c:344
+ dccp_feat_activate_values+0x3c1/0x80a net/dccp/feat.c:1538
+ dccp_rcv_request_sent_state_process net/dccp/input.c:472 [inline]
+ dccp_rcv_state_process+0x1320/0x1b7e net/dccp/input.c:680
+ dccp_v6_do_rcv+0x271/0xbf0 net/dccp/ipv6.c:638
+ sk_backlog_rcv include/net/sock.h:932 [inline]
+ __release_sock+0x12f/0x3a0 net/core/sock.c:2276
+ release_sock+0xad/0x2c0 net/core/sock.c:2789
+ inet_wait_for_connect net/ipv4/af_inet.c:588 [inline]
+ __inet_stream_connect+0x641/0x1150 net/ipv4/af_inet.c:680
+ inet_stream_connect+0x58/0xa0 net/ipv4/af_inet.c:719
+ __sys_connect+0x37d/0x4c0 net/socket.c:1664
+ __do_sys_connect net/socket.c:1675 [inline]
+ __se_sys_connect net/socket.c:1672 [inline]
+ __x64_sys_connect+0x73/0xb0 net/socket.c:1672
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 16877:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x83/0x290 mm/slab.c:3760
+ ccid_hc_tx_delete+0xc3/0x100 net/dccp/ccid.c:190
+ dccp_hdlr_ccid+0x7d/0x150 net/dccp/feat.c:53
+ __dccp_feat_activate+0x188/0x280 net/dccp/feat.c:344
+ dccp_feat_activate_values+0x3c1/0x80a net/dccp/feat.c:1538
+ dccp_create_openreq_child+0x47a/0x630 net/dccp/minisocks.c:127
+ dccp_v6_request_recv_sock+0x278/0x2020 net/dccp/ipv6.c:466
+ dccp_check_req+0x47d/0x6d0 net/dccp/minisocks.c:196
+ dccp_v6_rcv+0x874/0x1ce9 net/dccp/ipv6.c:744
+ ip6_input_finish+0x3fc/0x1aa0 net/ipv6/ip6_input.c:384
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ip6_input+0xe9/0x600 net/ipv6/ip6_input.c:427
+ dst_input include/net/dst.h:450 [inline]
+ ip6_rcv_finish+0x17a/0x330 net/ipv6/ip6_input.c:76
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ipv6_rcv+0x115/0x640 net/ipv6/ip6_input.c:272
+ __netif_receive_skb_one_core+0x14d/0x200 net/core/dev.c:4946
+ __netif_receive_skb+0x2c/0x1e0 net/core/dev.c:5056
+ process_backlog+0x24e/0x7a0 net/core/dev.c:5864
+ napi_poll net/core/dev.c:6287 [inline]
+ net_rx_action+0x7fa/0x19b0 net/core/dev.c:6353
+ __do_softirq+0x308/0xb7e kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff8881bd5fcec0
+ which belongs to the cache ccid2_hc_tx_sock of size 1240
+The buggy address is located 0 bytes inside of
+ 1240-byte region [ffff8881bd5fcec0, ffff8881bd5fd398)
+The buggy address belongs to the page:
+page:ffffea0006f57f00 count:1 mapcount:0 mapping:ffff8881c5bdc980 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000010200(slab|head)
+raw: 02fffc0000010200 ffffea0006f53a08 ffffea0006f41088 ffff8881c5bdc980
+raw: 0000000000000000 ffff8881bd5fc3c0 0000000100000005 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881bd5fcd80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881bd5fce00: fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8881bd5fce80: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                           ^
+ ffff8881bd5fcf00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881bd5fcf80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,50 @@
+watchdog: BUG: soft lockup - CPU#0 stuck for 143s! [kworker/0:0:8570]
+Modules linked in:
+irq event stamp: 55837
+hardirqs last  enabled at (55836): [<ffffffff89400c02>] asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+hardirqs last disabled at (55837): [<ffffffff892a108b>] sysvec_apic_timer_interrupt+0xb/0xc0 arch/x86/kernel/apic/apic.c:1100
+softirqs last  enabled at (7782): [<ffffffff84c04127>] rcu_read_unlock_bh include/linux/rcupdate.h:753 [inline]
+softirqs last  enabled at (7782): [<ffffffff84c04127>] mod_peer_timer drivers/net/wireguard/timers.c:38 [inline]
+softirqs last  enabled at (7782): [<ffffffff84c04127>] wg_timers_any_authenticated_packet_traversal+0x1e7/0x340 drivers/net/wireguard/timers.c:215
+softirqs last disabled at (7786): [<ffffffff84c10dbe>] wg_socket_send_skb_to_peer+0x5e/0x220 drivers/net/wireguard/socket.c:172
+CPU: 0 PID: 8570 Comm: kworker/0:0 Not tainted 5.14.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: wg-crypt-wg1 wg_packet_tx_worker
+RIP: 0010:fq_codel_dequeue+0xaa/0x1f50 net/sched/sch_fq_codel.c:297
+Code: 48 39 c8 0f 84 9e 06 00 00 e8 22 d3 2c fa 48 8b 44 24 08 48 c1 e8 03 42 80 3c 28 00 0f 85 94 19 00 00 48 8b 44 24 08 4c 8b 30 <49> 8d 46 10 48 89 84 24 88 00 00 00 48 c1 e8 03 42 0f b6 04 28 84
+RSP: 0018:ffffc90001a8f5f0 EFLAGS: 00000246
+RAX: ffff888016f56b38 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: ffff8880273b0000 RSI: ffffffff8748c83e RDI: ffff888039b01e98
+RBP: ffff888016f56b40 R08: 0000000000000000 R09: 0000000000000001
+R10: ffffffff8748d01f R11: 0000000000000000 R12: ffff888016f56800
+R13: dffffc0000000000 R14: ffff888039b01e90 R15: ffff888016f56b38
+FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000080 CR3: 0000000036087000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ dequeue_skb net/sched/sch_generic.c:292 [inline]
+ qdisc_restart net/sched/sch_generic.c:397 [inline]
+ __qdisc_run+0x1ae/0x1700 net/sched/sch_generic.c:415
+ __dev_xmit_skb net/core/dev.c:3944 [inline]
+ __dev_queue_xmit+0x1eb6/0x3620 net/core/dev.c:4253
+ neigh_hh_output include/net/neighbour.h:499 [inline]
+ neigh_output include/net/neighbour.h:508 [inline]
+ ip_finish_output2+0xef0/0x2220 net/ipv4/ip_output.c:230
+ __ip_finish_output net/ipv4/ip_output.c:308 [inline]
+ __ip_finish_output+0x396/0x640 net/ipv4/ip_output.c:290
+ ip_finish_output+0x32/0x200 net/ipv4/ip_output.c:318
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip_output+0x196/0x310 net/ipv4/ip_output.c:432
+ dst_output include/net/dst.h:448 [inline]
+ ip_local_out+0xaf/0x1a0 net/ipv4/ip_output.c:126
+ iptunnel_xmit+0x5a3/0x9c0 net/ipv4/ip_tunnel_core.c:82
+ send4+0x421/0xe40 drivers/net/wireguard/socket.c:85
+ wg_socket_send_skb_to_peer+0x192/0x220 drivers/net/wireguard/socket.c:174
+ wg_packet_create_data_done drivers/net/wireguard/send.c:251 [inline]
+ wg_packet_tx_worker+0x1a7/0x720 drivers/net/wireguard/send.c:276
+ process_one_work+0x98d/0x1630 kernel/workqueue.c:2276
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2422
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295

@@ -1,0 +1,51 @@
+=====================================================
+BUG: KMSAN: uninit-value in ieee80211_ac_from_tid net/mac80211/ieee80211_i.h:2217 [inline]
+BUG: KMSAN: uninit-value in ieee80211_sta_tx_wmm_ac_notify net/mac80211/mlme.c:2456 [inline]
+BUG: KMSAN: uninit-value in ieee80211_sta_tx_notify+0x3b8/0x950 net/mac80211/mlme.c:2488
+ ieee80211_ac_from_tid net/mac80211/ieee80211_i.h:2217 [inline]
+ ieee80211_sta_tx_wmm_ac_notify net/mac80211/mlme.c:2456 [inline]
+ ieee80211_sta_tx_notify+0x3b8/0x950 net/mac80211/mlme.c:2488
+ ieee80211_tx_status_ext+0x1234/0x5610 net/mac80211/status.c:1147
+ ieee80211_tx_status+0x228/0x270 net/mac80211/status.c:1090
+ ieee80211_tasklet_handler+0x2fe/0x370 net/mac80211/main.c:239
+ tasklet_action_common+0x515/0x850 kernel/softirq.c:784
+ tasklet_action+0x70/0x80 kernel/softirq.c:805
+ __do_softirq+0x1ee/0x7c5 kernel/softirq.c:558
+ do_softirq+0x16d/0x220 kernel/softirq.c:459
+ __local_bh_enable_ip+0xd5/0xe0 kernel/softirq.c:383
+ local_bh_enable+0x36/0x40 include/linux/bottom_half.h:33
+ __ieee80211_tx_skb_tid_band+0x29c/0x3a0 net/mac80211/tx.c:5702
+ ieee80211_tx_skb_tid net/mac80211/ieee80211_i.h:2186 [inline]
+ ieee80211_tx_skb net/mac80211/ieee80211_i.h:2195 [inline]
+ ieee80211_send_nullfunc+0x525/0x620 net/mac80211/mlme.c:1095
+ ieee80211_mgd_probe_ap_send+0x6f1/0xa40 net/mac80211/mlme.c:2550
+ ieee80211_mgd_probe_ap+0x572/0x610 net/mac80211/mlme.c:2633
+ ieee80211_beacon_connection_loss_work+0x1b0/0x440 net/mac80211/mlme.c:2767
+ process_one_work+0xdb9/0x1820 kernel/workqueue.c:2298
+ worker_thread+0x10bc/0x21f0 kernel/workqueue.c:2445
+ kthread+0x721/0x850 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:524 [inline]
+ slab_alloc_node mm/slub.c:3251 [inline]
+ __kmalloc_node_track_caller+0xe0c/0x1510 mm/slub.c:4974
+ kmalloc_reserve net/core/skbuff.c:354 [inline]
+ __alloc_skb+0x545/0xf90 net/core/skbuff.c:426
+ __netdev_alloc_skb+0x4b9/0x8c0 net/core/skbuff.c:494
+ netdev_alloc_skb include/linux/skbuff.h:2914 [inline]
+ dev_alloc_skb include/linux/skbuff.h:2927 [inline]
+ ieee80211_nullfunc_get+0x2b6/0x820 net/mac80211/tx.c:5416
+ ieee80211_send_nullfunc+0x124/0x620 net/mac80211/mlme.c:1077
+ ieee80211_mgd_probe_ap_send+0x6f1/0xa40 net/mac80211/mlme.c:2550
+ ieee80211_mgd_probe_ap+0x572/0x610 net/mac80211/mlme.c:2633
+ ieee80211_beacon_connection_loss_work+0x1b0/0x440 net/mac80211/mlme.c:2767
+ process_one_work+0xdb9/0x1820 kernel/workqueue.c:2298
+ worker_thread+0x10bc/0x21f0 kernel/workqueue.c:2445
+ kthread+0x721/0x850 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+
+CPU: 0 PID: 52 Comm: kworker/u4:3 Not tainted 5.16.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: phy14 ieee80211_beacon_connection_loss_work
+=====================================================

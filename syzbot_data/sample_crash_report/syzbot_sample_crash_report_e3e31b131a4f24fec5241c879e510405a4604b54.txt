@@ -1,0 +1,37 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 0 PID: 4511 Comm: syz-executor123 Not tainted 4.17.0-rc4+ #46
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ assign_lock_key kernel/locking/lockdep.c:729 [inline]
+ register_lock_class+0x1dd2/0x2630 kernel/locking/lockdep.c:755
+ __lock_acquire+0x1a7/0x5140 kernel/locking/lockdep.c:3319
+ lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:144
+ spin_lock include/linux/spinlock.h:310 [inline]
+ ptr_ring_consume include/linux/ptr_ring.h:335 [inline]
+ tun_ring_recv drivers/net/tun.c:2143 [inline]
+ tun_do_read+0x18b1/0x29f0 drivers/net/tun.c:2182
+ tun_chr_read_iter+0xe5/0x1e0 drivers/net/tun.c:2214
+ call_read_iter include/linux/fs.h:1778 [inline]
+ new_sync_read fs/read_write.c:406 [inline]
+ __vfs_read+0x696/0xa50 fs/read_write.c:418
+ vfs_read+0x17f/0x3d0 fs/read_write.c:452
+ ksys_pread64+0x174/0x1a0 fs/read_write.c:626
+ __do_sys_pread64 fs/read_write.c:636 [inline]
+ __se_sys_pread64 fs/read_write.c:633 [inline]
+ __x64_sys_pread64+0x97/0xf0 fs/read_write.c:633
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x449379
+RSP: 002b:00007ff4b1c4eda8 EFLAGS: 00000293 ORIG_RAX: 0000000000000011
+RAX: ffffffffffffffda RBX: 00000000006dac24 RCX: 0000000000449379
+RDX: 0000000000000062 RSI: 0000000020000080 RDI: 0000000000000029
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000293 R12: 00000000006dac20
+R13: 0001000000000000 R14: 74656e2f7665642f R15: 0000000000000001

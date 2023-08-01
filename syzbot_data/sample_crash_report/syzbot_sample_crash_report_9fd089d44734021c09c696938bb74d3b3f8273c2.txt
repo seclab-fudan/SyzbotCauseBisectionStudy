@@ -1,0 +1,62 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: null-ptr-deref in atomic_fetch_sub_release include/asm-generic/atomic-instrumented.h:220 [inline]
+BUG: KASAN: null-ptr-deref in __refcount_sub_and_test include/linux/refcount.h:272 [inline]
+BUG: KASAN: null-ptr-deref in __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+BUG: KASAN: null-ptr-deref in refcount_dec_and_test include/linux/refcount.h:333 [inline]
+BUG: KASAN: null-ptr-deref in kref_put include/linux/kref.h:64 [inline]
+BUG: KASAN: null-ptr-deref in bdi_put+0x22/0xa0 mm/backing-dev.c:901
+Write of size 4 at addr 0000000000000040 by task syz-executor685/8471
+
+CPU: 1 PID: 8471 Comm: syz-executor685 Not tainted 5.11.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ __kasan_report mm/kasan/report.c:400 [inline]
+ kasan_report.cold+0x5f/0xd5 mm/kasan/report.c:413
+ check_memory_region_inline mm/kasan/generic.c:179 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:185
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_fetch_sub_release include/asm-generic/atomic-instrumented.h:220 [inline]
+ __refcount_sub_and_test include/linux/refcount.h:272 [inline]
+ __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ kref_put include/linux/kref.h:64 [inline]
+ bdi_put+0x22/0xa0 mm/backing-dev.c:901
+ bdev_evict_inode+0x262/0x460 fs/block_dev.c:808
+ evict+0x2ed/0x6b0 fs/inode.c:577
+ iput_final fs/inode.c:1653 [inline]
+ iput.part.0+0x57e/0x810 fs/inode.c:1679
+ iput+0x58/0x70 fs/inode.c:1669
+ dentry_unlink_inode+0x2b1/0x3d0 fs/dcache.c:374
+ __dentry_kill+0x3c0/0x640 fs/dcache.c:579
+ dentry_kill fs/dcache.c:705 [inline]
+ dput+0x725/0xbc0 fs/dcache.c:885
+ do_one_tree fs/dcache.c:1632 [inline]
+ shrink_dcache_for_umount+0x11f/0x330 fs/dcache.c:1646
+ generic_shutdown_super+0x68/0x370 fs/super.c:447
+ kill_anon_super+0x36/0x60 fs/super.c:1055
+ deactivate_locked_super+0x94/0x160 fs/super.c:335
+ deactivate_super+0xad/0xd0 fs/super.c:366
+ put_fs_context+0xaa/0x650 fs/fs_context.c:442
+ fscontext_release+0x4c/0x60 fs/fsopen.c:73
+ __fput+0x283/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x190 kernel/task_work.c:140
+ exit_task_work include/linux/task_work.h:30 [inline]
+ do_exit+0xc5c/0x2ae0 kernel/exit.c:825
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ __do_sys_exit_group kernel/exit.c:933 [inline]
+ __se_sys_exit_group kernel/exit.c:931 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:931
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x43ee78
+Code: Unable to access opcode bytes at RIP 0x43ee4e.
+RSP: 002b:00007fff8a4cc5a8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043ee78
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004be688 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d0180 R14: 0000000000000000 R15: 0000000000000000
+==================================================================

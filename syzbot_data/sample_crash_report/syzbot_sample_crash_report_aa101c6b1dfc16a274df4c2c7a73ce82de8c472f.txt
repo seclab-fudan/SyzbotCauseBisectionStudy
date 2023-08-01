@@ -1,0 +1,94 @@
+chnl_net:caif_netlink_parms(): no params data found
+=============================
+WARNING: suspicious RCU usage
+6.3.0-rc1-syzkaller-00152-g248401cb2c46 #0 Not tainted
+-----------------------------
+drivers/net/veth.c:1265 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by syz-executor.0/5084:
+ #0: ffffffff8e102ec8 (rtnl_mutex){+.+.}-{3:3}, at: rtnl_lock net/core/rtnetlink.c:75 [inline]
+ #0: ffffffff8e102ec8 (rtnl_mutex){+.+.}-{3:3}, at: rtnetlink_rcv_msg+0x3e8/0xd50 net/core/rtnetlink.c:6171
+
+stack backtrace:
+CPU: 1 PID: 5084 Comm: syz-executor.0 Not tainted 6.3.0-rc1-syzkaller-00152-g248401cb2c46 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x136/0x150 lib/dump_stack.c:106
+ lockdep_rcu_suspicious+0x208/0x3a0 kernel/locking/lockdep.c:6599
+ veth_set_xdp_features+0x1c7/0x250 drivers/net/veth.c:1265
+ veth_newlink+0x729/0x9d0 drivers/net/veth.c:1891
+ rtnl_newlink_create net/core/rtnetlink.c:3440 [inline]
+ __rtnl_newlink+0x10c2/0x1840 net/core/rtnetlink.c:3657
+ rtnl_newlink+0x68/0xa0 net/core/rtnetlink.c:3670
+ rtnetlink_rcv_msg+0x43d/0xd50 net/core/rtnetlink.c:6174
+ netlink_rcv_skb+0x165/0x440 net/netlink/af_netlink.c:2574
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1365
+ netlink_sendmsg+0x925/0xe30 net/netlink/af_netlink.c:1942
+ sock_sendmsg_nosec net/socket.c:724 [inline]
+ sock_sendmsg+0xde/0x190 net/socket.c:747
+ __sys_sendto+0x23a/0x340 net/socket.c:2142
+ __do_sys_sendto net/socket.c:2154 [inline]
+ __se_sys_sendto net/socket.c:2150 [inline]
+ __x64_sys_sendto+0xe1/0x1b0 net/socket.c:2150
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fd25883e12c
+Code: fa fa ff ff 44 8b 4c 24 2c 4c 8b 44 24 20 89 c5 44 8b 54 24 28 48 8b 54 24 18 b8 2c 00 00 00 48 8b 74 24 10 8b 7c 24 08 0f 05 <48> 3d 00 f0 ff ff 77 34 89 ef 48 89 44 24 08 e8 20 fb ff ff 48 8b
+RSP: 002b:00007ffe2db19ce0 EFLAGS: 00000293 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 00007fd2594d4620 RCX: 00007fd25883e12c
+RDX: 000000000000002c RSI: 00007fd2594d4670 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 00007ffe2db19d34 R09: 000000000000000c
+R10: 0000000000000000 R11: 0000000000000293 R12: 0000000000000000
+R13: 00007fd2594d4670 R14: 0000000000000003 R15: 0000000000000000
+ </TASK>
+bridge0: port 1(bridge_slave_0) entered blocking state
+bridge0: port 1(bridge_slave_0) entered disabled state
+bridge_slave_0: entered allmulticast mode
+bridge_slave_0: entered promiscuous mode
+bridge0: port 2(bridge_slave_1) entered blocking state
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_1: entered allmulticast mode
+bridge_slave_1: entered promiscuous mode
+bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+team0: Port device team_slave_0 added
+team0: Port device team_slave_1 added
+batman_adv: batadv0: Adding interface: batadv_slave_0
+batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+batman_adv: batadv0: Adding interface: batadv_slave_1
+batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+hsr_slave_0: entered promiscuous mode
+hsr_slave_1: entered promiscuous mode
+netdevsim netdevsim0 netdevsim0: renamed from eth0
+netdevsim netdevsim0 netdevsim1: renamed from eth1
+netdevsim netdevsim0 netdevsim2: renamed from eth2
+netdevsim netdevsim0 netdevsim3: renamed from eth3
+bridge0: port 2(bridge_slave_1) entered blocking state
+bridge0: port 2(bridge_slave_1) entered forwarding state
+bridge0: port 1(bridge_slave_0) entered blocking state
+bridge0: port 1(bridge_slave_0) entered forwarding state
+8021q: adding VLAN 0 to HW filter on device bond0
+8021q: adding VLAN 0 to HW filter on device team0
+hsr0: Slave B (hsr_slave_1) is not up; please bring it up to get a fully working HSR network
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device batadv0
+veth0_vlan: entered promiscuous mode
+veth1_vlan: entered promiscuous mode
+veth0_macvtap: entered promiscuous mode
+veth1_macvtap: entered promiscuous mode
+batman_adv: batadv0: Interface activated: batadv_slave_0
+batman_adv: batadv0: Interface activated: batadv_slave_1
+netdevsim netdevsim0 netdevsim0: set [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim0 netdevsim1: set [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim0 netdevsim2: set [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim0 netdevsim3: set [1, 0] type 2 family 0 port 6081 - 0

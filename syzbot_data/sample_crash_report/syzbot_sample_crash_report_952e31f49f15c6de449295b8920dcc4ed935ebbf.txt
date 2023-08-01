@@ -1,0 +1,115 @@
+binder: 4616:4618 transaction failed 29189/-3, size 0-0 line 2963
+binder: release 4616:4618 transaction 114 in, still active
+binder: send failed reply for transaction 114 to 4616:4618
+binder: 4620:4621 ioctl 400448c8 20000200 returned -22
+==================================================================
+BUG: KASAN: use-after-free in __list_del_entry_valid+0x144/0x150 lib/list_debug.c:54
+Read of size 8 at addr ffff8801d39a4210 by task kworker/1:2/1891
+
+CPU: 1 PID: 1891 Comm: kworker/1:2 Not tainted 4.16.0+ #378
+binder: release 4620:4621 transaction 118 out, still active
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events binder_deferred_func
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x1a7/0x27d lib/dump_stack.c:53
+binder: release 4620:4621 transaction 117 in, still active
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+binder: undelivered TRANSACTION_COMPLETE
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+binder: BINDER_SET_CONTEXT_MGR already set
+ __list_del_entry_valid+0x144/0x150 lib/list_debug.c:54
+binder: 4620:4622 ioctl 40046207 0 returned -16
+ __list_del_entry include/linux/list.h:117 [inline]
+ list_del_init include/linux/list.h:159 [inline]
+ binder_dequeue_work_head_ilocked drivers/android/binder.c:893 [inline]
+ binder_dequeue_work_head drivers/android/binder.c:913 [inline]
+ binder_release_work+0x163/0x4b0 drivers/android/binder.c:4191
+binder: 4620:4621 ioctl c0306201 20004000 returned -14
+binder: 4620:4621 ioctl 400448c8 20000200 returned -22
+ binder_thread_release+0x4e1/0x730 drivers/android/binder.c:4396
+binder_alloc: binder_alloc_mmap_handler: 4620 2000c000-2000e000 already mapped failed -16
+ binder_deferred_release drivers/android/binder.c:4939 [inline]
+ binder_deferred_func+0x4f4/0x1350 drivers/android/binder.c:5022
+binder_alloc: 4620: binder_alloc_buf, no vma
+binder: 4620:4623 transaction failed 29189/-3, size 0-0 line 2963
+ process_one_work+0xc97/0x1c40 kernel/workqueue.c:2113
+binder_alloc: 4620: binder_alloc_buf, no vma
+binder: 4620:4621 transaction failed 29189/-3, size 0-0 line 2963
+binder: release 4620:4622 transaction 118 in, still active
+binder: release 4620:4622 transaction 117 out, still active
+ worker_thread+0x1c3/0x1380 kernel/workqueue.c:2247
+binder: send failed reply for transaction 118, target dead
+binder: send failed reply for transaction 117, target dead
+binder: BINDER_SET_CONTEXT_MGR already set
+binder: 4624:4625 ioctl 40046207 0 returned -16
+ kthread+0x33c/0x400 kernel/kthread.c:238
+binder: 4624:4625 ioctl 400448c8 20000200 returned -22
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+
+binder_alloc: 4620: binder_alloc_buf, no vma
+Allocated by task 4618:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+binder: 4624:4626 transaction failed 29189/-3, size 0-0 line 2963
+ kmem_cache_alloc_trace+0x136/0x740 mm/slab.c:3608
+ kmalloc include/linux/slab.h:512 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ binder_transaction+0x13d2/0x8200 drivers/android/binder.c:2900
+ binder_thread_write+0xcf1/0x38b0 drivers/android/binder.c:3513
+ binder_ioctl_write_read.isra.39+0x261/0xcb0 drivers/android/binder.c:4451
+ binder_ioctl+0xb72/0x1417 drivers/android/binder.c:4591
+binder: undelivered TRANSACTION_ERROR: 29189
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ ksys_ioctl+0x94/0xb0 fs/ioctl.c:701
+ SYSC_ioctl fs/ioctl.c:708 [inline]
+ SyS_ioctl+0x24/0x30 fs/ioctl.c:706
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+binder: 4624:4626 ioctl c0306201 20004000 returned -14
+
+Freed by task 1891:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3486 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3801
+binder: BINDER_SET_CONTEXT_MGR already set
+ binder_free_transaction+0x6a/0xa0 drivers/android/binder.c:1966
+ binder_send_failed_reply+0x1c9/0x380 drivers/android/binder.c:2005
+ binder_thread_release+0x4cc/0x730 drivers/android/binder.c:4395
+ binder_deferred_release drivers/android/binder.c:4939 [inline]
+ binder_deferred_func+0x4f4/0x1350 drivers/android/binder.c:5022
+ process_one_work+0xc97/0x1c40 kernel/workqueue.c:2113
+ worker_thread+0x1c3/0x1380 kernel/workqueue.c:2247
+ kthread+0x33c/0x400 kernel/kthread.c:238
+binder: 4624:4627 ioctl 40046207 0 returned -16
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+
+The buggy address belongs to the object at ffff8801d39a4200
+ which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 16 bytes inside of
+ 192-byte region [ffff8801d39a4200, ffff8801d39a42c0)
+The buggy address belongs to the page:
+page:ffffea00074e6900 count:1 mapcount:0 mapping:ffff8801d39a4000 index:0x0
+binder: 4624:4626 ioctl 400448c8 20000200 returned -22
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d39a4000 0000000000000000 0000000100000010
+raw: ffffea000738fbe0 ffffea00074e6a60 ffff8801dac00040 0000000000000000
+page dumped because: kasan: bad access detected
+
+binder_alloc: binder_alloc_mmap_handler: 4624 2000c000-2000e000 already mapped failed -16
+Memory state around the buggy address:
+ ffff8801d39a4100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801d39a4180: 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc
+>ffff8801d39a4200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                         ^
+ ffff8801d39a4280: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+binder_alloc: 4620: binder_alloc_buf, no vma
+ ffff8801d39a4300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

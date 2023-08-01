@@ -1,0 +1,33 @@
+BUG: sleeping function called from invalid context at crypto/skcipher.c:477
+in_atomic(): 1, irqs_disabled(): 0, pid: 12, name: kworker/0:1
+2 locks held by kworker/0:1/12:
+ #0: 000000000864d9ff ((wq_completion)crypto){+.+.}, at: __write_once_size include/linux/compiler.h:220 [inline]
+ #0: 000000000864d9ff ((wq_completion)crypto){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: 000000000864d9ff ((wq_completion)crypto){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:855 [inline]
+ #0: 000000000864d9ff ((wq_completion)crypto){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:40 [inline]
+ #0: 000000000864d9ff ((wq_completion)crypto){+.+.}, at: set_work_data kernel/workqueue.c:619 [inline]
+ #0: 000000000864d9ff ((wq_completion)crypto){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:646 [inline]
+ #0: 000000000864d9ff ((wq_completion)crypto){+.+.}, at: process_one_work+0x87e/0x1790 kernel/workqueue.c:2240
+ #1: 000000008b3d6218 ((work_completion)(&cpu_queue->work)){+.+.}, at: process_one_work+0x8b4/0x1790 kernel/workqueue.c:2244
+Preemption disabled at:
+[<ffffffff830d4130>] local_bh_disable include/linux/bottom_half.h:19 [inline]
+[<ffffffff830d4130>] cryptd_skcipher_complete+0x90/0x170 crypto/cryptd.c:471
+CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.1.0-rc4+ #135
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: crypto cryptd_queue_worker
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ ___might_sleep.cold+0x1bd/0x1f6 kernel/sched/core.c:6190
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6143
+ skcipher_walk_virt+0x11e/0x150 crypto/skcipher.c:477
+ xor_tweak+0x146/0x350 crypto/xts.c:105
+ xor_tweak_post crypto/xts.c:133 [inline]
+ crypt_done+0x87/0xa0 crypto/xts.c:141
+ cryptd_skcipher_complete+0xbf/0x170 crypto/cryptd.c:472
+ cryptd_skcipher_decrypt+0x2f7/0x420 crypto/cryptd.c:532
+ cryptd_queue_worker+0x126/0x1f0 crypto/cryptd.c:193
+ process_one_work+0x98e/0x1790 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x357/0x430 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352

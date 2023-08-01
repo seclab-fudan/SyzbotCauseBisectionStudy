@@ -1,0 +1,64 @@
+Kernel panic - not syncing: corrupted stack end detected inside scheduler
+CPU: 0 PID: 2743 Comm: syz-executor.1 Not tainted 5.17.0-rc1-syzkaller-00002-g0966d385830d #0
+Hardware name: riscv-virtio,qemu (DT)
+Call Trace:
+[<ffffffff8000a228>] dump_backtrace+0x2e/0x3c arch/riscv/kernel/stacktrace.c:113
+[<ffffffff831668cc>] show_stack+0x34/0x40 arch/riscv/kernel/stacktrace.c:119
+[<ffffffff831756ba>] __dump_stack lib/dump_stack.c:88 [inline]
+[<ffffffff831756ba>] dump_stack_lvl+0xe4/0x150 lib/dump_stack.c:106
+[<ffffffff83175742>] dump_stack+0x1c/0x24 lib/dump_stack.c:113
+[<ffffffff83166fa8>] panic+0x24a/0x634 kernel/panic.c:233
+[<ffffffff831a688a>] schedule_debug kernel/sched/core.c:5541 [inline]
+[<ffffffff831a688a>] schedule+0x0/0x14c kernel/sched/core.c:6187
+[<ffffffff831a6b00>] preempt_schedule_common+0x4e/0xde kernel/sched/core.c:6462
+[<ffffffff831a6bc4>] preempt_schedule+0x34/0x36 kernel/sched/core.c:6487
+[<ffffffff831afd78>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+[<ffffffff831afd78>] _raw_spin_unlock_irqrestore+0x8c/0x98 kernel/locking/spinlock.c:194
+[<ffffffff80b09fdc>] __debug_check_no_obj_freed lib/debugobjects.c:1002 [inline]
+[<ffffffff80b09fdc>] debug_check_no_obj_freed+0x14c/0x24a lib/debugobjects.c:1023
+[<ffffffff80410994>] free_pages_prepare mm/page_alloc.c:1358 [inline]
+[<ffffffff80410994>] free_pcp_prepare+0x24e/0x45e mm/page_alloc.c:1404
+[<ffffffff804142fe>] free_unref_page_prepare mm/page_alloc.c:3325 [inline]
+[<ffffffff804142fe>] free_unref_page+0x6a/0x31e mm/page_alloc.c:3404
+[<ffffffff8041471e>] free_the_page mm/page_alloc.c:706 [inline]
+[<ffffffff8041471e>] __free_pages+0xe2/0x112 mm/page_alloc.c:5474
+[<ffffffff8046d728>] __free_slab+0x122/0x27c mm/slub.c:2028
+[<ffffffff8046d8ce>] free_slab mm/slub.c:2043 [inline]
+[<ffffffff8046d8ce>] discard_slab+0x4c/0x7a mm/slub.c:2049
+[<ffffffff8046d190>] __slab_free+0x20a/0x29c mm/slub.c:3414
+[<ffffffff8047258c>] do_slab_free mm/slub.c:3497 [inline]
+[<ffffffff8047258c>] ___cache_free+0x17c/0x354 mm/slub.c:3516
+[<ffffffff8047692e>] qlink_free mm/kasan/quarantine.c:157 [inline]
+[<ffffffff8047692e>] qlist_free_all+0x7c/0x132 mm/kasan/quarantine.c:176
+[<ffffffff80476ed4>] kasan_quarantine_reduce+0x14c/0x1c8 mm/kasan/quarantine.c:283
+[<ffffffff804742b2>] __kasan_slab_alloc+0x5c/0x98 mm/kasan/common.c:446
+[<ffffffff804709fc>] kasan_slab_alloc include/linux/kasan.h:260 [inline]
+[<ffffffff804709fc>] slab_post_alloc_hook mm/slab.h:732 [inline]
+[<ffffffff804709fc>] slab_alloc_node mm/slub.c:3230 [inline]
+[<ffffffff804709fc>] slab_alloc mm/slub.c:3238 [inline]
+[<ffffffff804709fc>] kmem_cache_alloc+0x338/0x3de mm/slub.c:3243
+[<ffffffff80667162>] kmem_cache_zalloc include/linux/slab.h:705 [inline]
+[<ffffffff80667162>] __kernfs_new_node+0xfc/0x5f2 fs/kernfs/dir.c:585
+[<ffffffff8066a298>] kernfs_new_node+0x66/0xbe fs/kernfs/dir.c:647
+[<ffffffff8066e3fc>] __kernfs_create_file+0x4e/0x1e8 fs/kernfs/file.c:987
+[<ffffffff806700ba>] sysfs_add_file_mode_ns+0x138/0x254 fs/sysfs/file.c:294
+[<ffffffff80671e06>] create_files fs/sysfs/group.c:64 [inline]
+[<ffffffff80671e06>] internal_create_group+0x274/0x722 fs/sysfs/group.c:148
+[<ffffffff80672d12>] internal_create_groups.part.0+0x64/0xe8 fs/sysfs/group.c:188
+[<ffffffff80672dc2>] internal_create_groups fs/sysfs/group.c:184 [inline]
+[<ffffffff80672dc2>] sysfs_create_groups+0x2c/0x48 fs/sysfs/group.c:214
+[<ffffffff813e6dca>] device_add_groups drivers/base/core.c:2471 [inline]
+[<ffffffff813e6dca>] device_add_attrs drivers/base/core.c:2630 [inline]
+[<ffffffff813e6dca>] device_add+0x6d6/0x129e drivers/base/core.c:3356
+[<ffffffff827bdb6e>] netdev_register_kobject+0xcc/0x208 net/core/net-sysfs.c:2008
+[<ffffffff82746298>] register_netdevice+0x8ee/0xc6a net/core/dev.c:9667
+[<ffffffff82f0f872>] register_vlan_dev+0x202/0x578 net/8021q/vlan.c:179
+[<ffffffff82f103e0>] register_vlan_device net/8021q/vlan.c:277 [inline]
+[<ffffffff82f103e0>] vlan_ioctl_handler+0x7f8/0xb76 net/8021q/vlan.c:622
+[<ffffffff826d50ce>] sock_ioctl+0x1a6/0x68c net/socket.c:1203
+[<ffffffff804f6ff8>] vfs_ioctl fs/ioctl.c:51 [inline]
+[<ffffffff804f6ff8>] __do_sys_ioctl fs/ioctl.c:874 [inline]
+[<ffffffff804f6ff8>] sys_ioctl+0x75c/0x139e fs/ioctl.c:860
+[<ffffffff80005716>] ret_from_syscall+0x0/0x2
+SMP: stopping secondary CPUs
+Rebooting in 86400 seconds..

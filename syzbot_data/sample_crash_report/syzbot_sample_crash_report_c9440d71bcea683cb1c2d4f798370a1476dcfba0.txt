@@ -1,0 +1,160 @@
+==================================================================
+BUG: KASAN: double-free in dbUnmount+0xf8/0x110 fs/jfs/jfs_dmap.c:265
+Free of addr ffff88802b198000 by task syz-executor.1/5120
+
+CPU: 0 PID: 5120 Comm: syz-executor.1 Not tainted 6.2.0-syzkaller-13277-g2eb29d59ddf0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/16/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:319 [inline]
+ print_report+0x163/0x540 mm/kasan/report.c:430
+ kasan_report_invalid_free+0x119/0x130 mm/kasan/report.c:501
+ ____kasan_slab_free+0xfb/0x120
+ kasan_slab_free include/linux/kasan.h:162 [inline]
+ slab_free_hook mm/slub.c:1781 [inline]
+ slab_free_freelist_hook mm/slub.c:1807 [inline]
+ slab_free mm/slub.c:3787 [inline]
+ __kmem_cache_free+0x264/0x3c0 mm/slub.c:3800
+ dbUnmount+0xf8/0x110 fs/jfs/jfs_dmap.c:265
+ jfs_umount+0x238/0x3a0 fs/jfs/jfs_umount.c:87
+ jfs_put_super+0x8a/0x190 fs/jfs/super.c:194
+ generic_shutdown_super+0x134/0x340 fs/super.c:491
+ kill_block_super+0x7e/0xe0 fs/super.c:1398
+ deactivate_locked_super+0xa4/0x110 fs/super.c:331
+ cleanup_mnt+0x490/0x520 fs/namespace.c:1177
+ task_work_run+0x24a/0x300 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop+0xd9/0x100 kernel/entry/common.c:171
+ exit_to_user_mode_prepare+0xb1/0x140 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x64/0x2e0 kernel/entry/common.c:296
+ do_syscall_64+0x4d/0xc0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f0023e8d567
+Code: ff ff ff f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 31 f6 e9 09 00 00 00 66 0f 1f 84 00 00 00 00 00 b8 a6 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd5b833c28 EFLAGS: 00000246 ORIG_RAX: 00000000000000a6
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00007f0023e8d567
+RDX: 00007ffd5b833cfa RSI: 000000000000000a RDI: 00007ffd5b833cf0
+RBP: 00007ffd5b833cf0 R08: 00000000ffffffff R09: 00007ffd5b833ac0
+R10: 00005555575228b3 R11: 0000000000000246 R12: 00007f0023ee6b24
+R13: 00007ffd5b834db0 R14: 0000555557522810 R15: 00007ffd5b834df0
+ </TASK>
+
+Allocated by task 5605:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4f/0x70 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:374 [inline]
+ __kasan_kmalloc+0x98/0xb0 mm/kasan/common.c:383
+ kmalloc include/linux/slab.h:580 [inline]
+ dbMount+0x58/0x960 fs/jfs/jfs_dmap.c:164
+ jfs_mount_rw+0x4c4/0x6a0 fs/jfs/jfs_mount.c:248
+ jfs_remount+0x3d1/0x6b0 fs/jfs/super.c:454
+ reconfigure_super+0x3c9/0x7c0 fs/super.c:947
+ vfs_fsconfig_locked fs/fsopen.c:254 [inline]
+ __do_sys_fsconfig fs/fsopen.c:439 [inline]
+ __se_sys_fsconfig+0xa29/0xf70 fs/fsopen.c:314
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 5627:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4f/0x70 mm/kasan/common.c:52
+ kasan_save_free_info+0x2b/0x40 mm/kasan/generic.c:521
+ ____kasan_slab_free+0xd6/0x120 mm/kasan/common.c:236
+ kasan_slab_free include/linux/kasan.h:162 [inline]
+ slab_free_hook mm/slub.c:1781 [inline]
+ slab_free_freelist_hook mm/slub.c:1807 [inline]
+ slab_free mm/slub.c:3787 [inline]
+ __kmem_cache_free+0x264/0x3c0 mm/slub.c:3800
+ dbUnmount+0xf8/0x110 fs/jfs/jfs_dmap.c:265
+ jfs_mount_rw+0x4ac/0x6a0 fs/jfs/jfs_mount.c:247
+ jfs_remount+0x3d1/0x6b0 fs/jfs/super.c:454
+ reconfigure_super+0x3c9/0x7c0 fs/super.c:947
+ vfs_fsconfig_locked fs/fsopen.c:254 [inline]
+ __do_sys_fsconfig fs/fsopen.c:439 [inline]
+ __se_sys_fsconfig+0xa29/0xf70 fs/fsopen.c:314
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff88802b198000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 0 bytes inside of
+ 2048-byte region [ffff88802b198000, ffff88802b198800)
+
+The buggy address belongs to the physical page:
+page:ffffea0000ac6600 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x2b198
+head:ffffea0000ac6600 order:3 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffff888012442000 ffffea0001e01a00 dead000000000002
+raw: 0000000000000000 0000000000080008 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 5122, tgid 5122 (syz-executor.3), ts 439915303918, free_ts 45197454129
+ prep_new_page mm/page_alloc.c:2552 [inline]
+ get_page_from_freelist+0x37e0/0x3970 mm/page_alloc.c:4325
+ __alloc_pages+0x291/0x7f0 mm/page_alloc.c:5591
+ alloc_slab_page+0x6a/0x160 mm/slub.c:1851
+ allocate_slab mm/slub.c:1998 [inline]
+ new_slab+0x84/0x2f0 mm/slub.c:2051
+ ___slab_alloc+0xa85/0x10a0 mm/slub.c:3193
+ __slab_alloc mm/slub.c:3292 [inline]
+ __slab_alloc_node mm/slub.c:3345 [inline]
+ slab_alloc_node mm/slub.c:3442 [inline]
+ __kmem_cache_alloc_node+0x1b8/0x2a0 mm/slub.c:3491
+ kmalloc_trace+0x2a/0x60 mm/slab_common.c:1061
+ kmalloc include/linux/slab.h:580 [inline]
+ rtnl_newlink+0xec/0x2010 net/core/rtnetlink.c:3666
+ rtnetlink_rcv_msg+0x825/0xf40 net/core/rtnetlink.c:6174
+ netlink_rcv_skb+0x1df/0x430 net/netlink/af_netlink.c:2574
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x7c3/0x990 net/netlink/af_netlink.c:1365
+ netlink_sendmsg+0xa2a/0xd60 net/netlink/af_netlink.c:1942
+ sock_sendmsg_nosec net/socket.c:722 [inline]
+ sock_sendmsg net/socket.c:745 [inline]
+ __sys_sendto+0x475/0x630 net/socket.c:2145
+ __do_sys_sendto net/socket.c:2157 [inline]
+ __se_sys_sendto net/socket.c:2153 [inline]
+ __x64_sys_sendto+0xde/0xf0 net/socket.c:2153
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1453 [inline]
+ free_pcp_prepare mm/page_alloc.c:1503 [inline]
+ free_unref_page_prepare+0xf0e/0xf70 mm/page_alloc.c:3387
+ free_unref_page+0x37/0x3f0 mm/page_alloc.c:3482
+ discard_slab mm/slub.c:2098 [inline]
+ __unfreeze_partials+0x1b1/0x1f0 mm/slub.c:2637
+ put_cpu_partial+0x116/0x180 mm/slub.c:2713
+ qlist_free_all+0x22/0x60 mm/kasan/quarantine.c:187
+ kasan_quarantine_reduce+0x15a/0x170 mm/kasan/quarantine.c:294
+ __kasan_slab_alloc+0x23/0x70 mm/kasan/common.c:305
+ kasan_slab_alloc include/linux/kasan.h:186 [inline]
+ slab_post_alloc_hook+0x68/0x3a0 mm/slab.h:769
+ slab_alloc_node mm/slub.c:3452 [inline]
+ slab_alloc mm/slub.c:3460 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+ kmem_cache_alloc_lru+0x127/0x270 mm/slub.c:3483
+ __d_alloc+0x31/0x710 fs/dcache.c:1769
+ d_alloc_anon fs/dcache.c:1868 [inline]
+ d_alloc_cursor+0x44/0xd0 fs/dcache.c:1874
+ dcache_dir_open+0x3b/0x80 fs/libfs.c:83
+ do_dentry_open+0x7f9/0x10f0 fs/open.c:920
+ do_open fs/namei.c:3560 [inline]
+ path_openat+0x27b3/0x3170 fs/namei.c:3715
+ do_filp_open+0x234/0x490 fs/namei.c:3742
+ do_sys_openat2+0x13f/0x500 fs/open.c:1348
+
+Memory state around the buggy address:
+ ffff88802b197f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88802b197f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88802b198000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff88802b198080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88802b198100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

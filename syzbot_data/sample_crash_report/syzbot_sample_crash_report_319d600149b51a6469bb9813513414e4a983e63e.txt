@@ -1,0 +1,72 @@
+8021q: adding VLAN 0 to HW filter on device bond0
+IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+
+=====================================
+WARNING: bad unlock balance detected!
+4.16.0-rc2+ #324 Not tainted
+-------------------------------------
+swapper/0/0 is trying to release lock (rcu_read_lock_bh) at:
+[<ffffffff84a34dcb>] rcu_read_unlock_bh include/linux/rcupdate.h:722 [inline]
+[<ffffffff84a34dcb>] hashlimit_mt_common.isra.10+0x1beb/0x2610 net/netfilter/xt_hashlimit.c:777
+but there are no more locks to release!
+
+other info that might help us debug this:
+3 locks held by swapper/0/0:
+ #0:  ((&idev->mc_ifc_timer)){+.-.}, at: [<000000008bc1a72f>] lockdep_copy_map include/linux/lockdep.h:178 [inline]
+ #0:  ((&idev->mc_ifc_timer)){+.-.}, at: [<000000008bc1a72f>] call_timer_fn+0x1c6/0x820 kernel/time/timer.c:1316
+ #1:  (rcu_read_lock){....}, at: [<00000000913be676>] read_pnet include/net/net_namespace.h:280 [inline]
+ #1:  (rcu_read_lock){....}, at: [<00000000913be676>] dev_net include/linux/netdevice.h:2050 [inline]
+ #1:  (rcu_read_lock){....}, at: [<00000000913be676>] mld_sendpack+0x180/0xe70 net/ipv6/mcast.c:1625
+ #2:  (rcu_read_lock){....}, at: [<00000000adb5bf59>] nf_hook.constprop.37+0x0/0x830 net/ipv6/mcast.c:2795
+
+stack backtrace:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.16.0-rc2+ #324
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_unlock_imbalance_bug+0x12f/0x140 kernel/locking/lockdep.c:3484
+ __lock_release kernel/locking/lockdep.c:3691 [inline]
+ lock_release+0x6fe/0xa40 kernel/locking/lockdep.c:3939
+ rcu_lock_release include/linux/rcupdate.h:249 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:724 [inline]
+ hashlimit_mt_common.isra.10+0x1c08/0x2610 net/netfilter/xt_hashlimit.c:777
+ hashlimit_mt+0x78/0x90 net/netfilter/xt_hashlimit.c:846
+ ip6t_do_table+0x98d/0x1a30 net/ipv6/netfilter/ip6_tables.c:319
+ ip6table_raw_hook+0x65/0x80 net/ipv6/netfilter/ip6table_raw.c:42
+ nf_hook_entry_hookfn include/linux/netfilter.h:120 [inline]
+ nf_hook_slow+0xba/0x1a0 net/netfilter/core.c:483
+ nf_hook.constprop.37+0x3f6/0x830 include/linux/netfilter.h:243
+ NF_HOOK include/linux/netfilter.h:286 [inline]
+ mld_sendpack+0x6c2/0xe70 net/ipv6/mcast.c:1658
+ mld_send_cr net/ipv6/mcast.c:1954 [inline]
+ mld_ifc_timer_expire+0x3d9/0x770 net/ipv6/mcast.c:2451
+ call_timer_fn+0x228/0x820 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0x7ee/0xb70 kernel/time/timer.c:1666
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:541 [inline]
+ smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0x8e/0xa0 arch/x86/entry/entry_64.S:796
+ </IRQ>
+RIP: 0010:native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:54
+RSP: 0018:ffffffff86e07c38 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff12
+RAX: dffffc0000000000 RBX: 1ffffffff0dc0f8a RCX: 0000000000000000
+RDX: 1ffffffff0dd92d8 RSI: 0000000000000001 RDI: ffffffff86ec96c0
+RBP: ffffffff86e07c38 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: ffffffff86e07cf0 R14: ffffffff876df8a0 R15: 0000000000000000
+ arch_safe_halt arch/x86/include/asm/paravirt.h:93 [inline]
+ default_idle+0xbf/0x430 arch/x86/kernel/process.c:354
+ arch_cpu_idle+0xa/0x10 arch/x86/kernel/process.c:345
+ default_idle_call+0x36/0x90 kernel/sched/idle.c:98
+ cpuidle_idle_call kernel/sched/idle.c:156 [inline]
+ do_idle+0x24a/0x3b0 kernel/sched/idle.c:246
+ cpu_startup_entry+0x104/0x120 kernel/sched/idle.c:351
+ rest_init+0xed/0xf0 init/main.c:436
+ start_kernel+0x7f1/0x819 init/main.c:716

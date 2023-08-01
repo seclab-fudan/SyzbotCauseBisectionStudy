@@ -1,0 +1,118 @@
+rio500 6-1:0.110: USB Rio found at address 2
+usb 3-1: USB disconnect, device number 2
+usb 2-1: USB disconnect, device number 2
+rio500 2-1:0.110: USB Rio disconnected.
+==================================================================
+BUG: KASAN: double-free or invalid-free in slab_free mm/slub.c:3003 [inline]
+BUG: KASAN: double-free or invalid-free in kfree+0xce/0x290 mm/slub.c:3958
+
+CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.1.0-rc4-319354-g9a33b36 #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xe8/0x16e lib/dump_stack.c:113
+ print_address_description+0x6c/0x236 mm/kasan/report.c:187
+ kasan_report_invalid_free+0x66/0xa0 mm/kasan/report.c:278
+usb 1-1: USB disconnect, device number 2
+ __kasan_slab_free+0x162/0x180 mm/kasan/common.c:438
+ slab_free_hook mm/slub.c:1429 [inline]
+ slab_free_freelist_hook+0x5e/0x140 mm/slub.c:1456
+usb 5-1: USB disconnect, device number 2
+usb 6-1: USB disconnect, device number 2
+ slab_free mm/slub.c:3003 [inline]
+ kfree+0xce/0x290 mm/slub.c:3958
+ disconnect_rio+0x13b/0x200 drivers/usb/misc/rio500.c:506
+ usb_unbind_interface+0x1c9/0x980 drivers/usb/core/driver.c:423
+ __device_release_driver drivers/base/dd.c:1082 [inline]
+ device_release_driver_internal+0x436/0x4f0 drivers/base/dd.c:1113
+ bus_remove_device+0x302/0x5c0 drivers/base/bus.c:556
+ device_del+0x467/0xb90 drivers/base/core.c:2269
+ usb_disable_device+0x242/0x790 drivers/usb/core/message.c:1235
+ usb_disconnect+0x298/0x870 drivers/usb/core/hub.c:2197
+ hub_port_connect drivers/usb/core/hub.c:4940 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0xcd2/0x3b00 drivers/usb/core/hub.c:5432
+ process_one_work+0x90f/0x1580 kernel/workqueue.c:2269
+ worker_thread+0x9b/0xe20 kernel/workqueue.c:2415
+ kthread+0x313/0x420 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Allocated by task 584:
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:470
+ kmalloc include/linux/slab.h:547 [inline]
+ probe_rio+0x188/0x268 drivers/usb/misc/rio500.c:471
+ usb_probe_interface+0x31d/0x820 drivers/usb/core/driver.c:361
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_set_configuration+0xdf7/0x1740 drivers/usb/core/message.c:2021
+ generic_probe+0xa2/0xda drivers/usb/core/generic.c:210
+ usb_probe_device+0xc0/0x150 drivers/usb/core/driver.c:266
+ really_probe+0x2da/0xb10 drivers/base/dd.c:509
+ driver_probe_device+0x21d/0x350 drivers/base/dd.c:671
+ __device_attach_driver+0x1d8/0x290 drivers/base/dd.c:778
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x223/0x3a0 drivers/base/dd.c:844
+ bus_probe_device+0x1f1/0x2a0 drivers/base/bus.c:514
+ device_add+0xad2/0x16e0 drivers/base/core.c:2106
+ usb_new_device.cold+0x537/0xccf drivers/usb/core/hub.c:2534
+ hub_port_connect drivers/usb/core/hub.c:5089 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0x138e/0x3b00 drivers/usb/core/hub.c:5432
+ process_one_work+0x90f/0x1580 kernel/workqueue.c:2269
+ worker_thread+0x9b/0xe20 kernel/workqueue.c:2415
+ kthread+0x313/0x420 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Freed by task 584:
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x130/0x180 mm/kasan/common.c:459
+ slab_free_hook mm/slub.c:1429 [inline]
+ slab_free_freelist_hook+0x5e/0x140 mm/slub.c:1456
+ slab_free mm/slub.c:3003 [inline]
+ kfree+0xce/0x290 mm/slub.c:3958
+ disconnect_rio+0x13b/0x200 drivers/usb/misc/rio500.c:506
+ usb_unbind_interface+0x1c9/0x980 drivers/usb/core/driver.c:423
+ __device_release_driver drivers/base/dd.c:1082 [inline]
+ device_release_driver_internal+0x436/0x4f0 drivers/base/dd.c:1113
+ bus_remove_device+0x302/0x5c0 drivers/base/bus.c:556
+ device_del+0x467/0xb90 drivers/base/core.c:2269
+ usb_disable_device+0x242/0x790 drivers/usb/core/message.c:1235
+ usb_disconnect+0x298/0x870 drivers/usb/core/hub.c:2197
+ hub_port_connect drivers/usb/core/hub.c:4940 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5204 [inline]
+ port_event drivers/usb/core/hub.c:5350 [inline]
+ hub_event+0xcd2/0x3b00 drivers/usb/core/hub.c:5432
+ process_one_work+0x90f/0x1580 kernel/workqueue.c:2269
+ worker_thread+0x9b/0xe20 kernel/workqueue.c:2415
+ kthread+0x313/0x420 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff88808fe8e600
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 0 bytes inside of
+ 4096-byte region [ffff88808fe8e600, ffff88808fe8f600)
+The buggy address belongs to the page:
+page:ffffea00023fa200 count:1 mapcount:0 mapping:ffff88812c3f4600 index:0x0 compound_mapcount: 0
+flags: 0xfff00000010200(slab|head)
+raw: 00fff00000010200 dead000000000100 dead000000000200 ffff88812c3f4600
+raw: 0000000000000000 0000000000070007 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808fe8e500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88808fe8e580: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88808fe8e600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff88808fe8e680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88808fe8e700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

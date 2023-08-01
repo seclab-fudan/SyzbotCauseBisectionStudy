@@ -1,0 +1,77 @@
+==================================================================
+BUG: KMSAN: uninit-value in ip_vs_lblcr_check_expire+0x1551/0x1600 net/netfilter/ipvs/ip_vs_lblcr.c:479
+CPU: 0 PID: 15651 Comm: syz-executor0 Not tainted 4.17.0+ #22
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:113
+ kmsan_report+0x188/0x2a0 mm/kmsan/kmsan.c:990
+ __msan_warning_32+0x70/0xc0 mm/kmsan/kmsan_instr.c:640
+ ip_vs_lblcr_check_expire+0x1551/0x1600 net/netfilter/ipvs/ip_vs_lblcr.c:479
+ call_timer_fn+0x280/0x5d0 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0xd96/0x11b0 kernel/time/timer.c:1666
+ run_timer_softirq+0x43/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x592/0x979 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:366 [inline]
+ irq_exit+0x207/0x240 kernel/softirq.c:407
+ exiting_irq+0xe/0x10 arch/x86/include/asm/apic.h:525
+ smp_apic_timer_interrupt+0x64/0x90 arch/x86/kernel/apic/apic.c:1055
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:868
+ </IRQ>
+RIP: 0010:memset_erms+0x9/0x10 arch/x86/lib/memset_64.S:65
+RSP: 0018:ffff88010948fa60 EFLAGS: 00010246 ORIG_RAX: ffffffffffffff13
+RAX: ffff880115d0c000 RBX: aaaaaaaaaaaab000 RCX: 0000000000000cc0
+RDX: 0000000000001000 RSI: 0000000000000000 RDI: ffff88010fd0c340
+RBP: ffff88010948fa88 R08: 0000000001080020 R09: ffff88010fd0c000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000160000000000
+R13: ffff8801319e60a0 R14: ffffea000665a480 R15: ffff880000000000
+ clear_page arch/x86/include/asm/page_64.h:60 [inline]
+ clear_user_page arch/x86/include/asm/page.h:28 [inline]
+ clear_user_highpage include/linux/highmem.h:138 [inline]
+ clear_huge_page+0x4fb/0xe40 mm/memory.c:4600
+ __do_huge_pmd_anonymous_page mm/huge_memory.c:570 [inline]
+ do_huge_pmd_anonymous_page+0xf86/0x2540 mm/huge_memory.c:728
+ create_huge_pmd mm/memory.c:3856 [inline]
+ __handle_mm_fault mm/memory.c:4060 [inline]
+ handle_mm_fault+0x44ca/0x7ed0 mm/memory.c:4126
+ __do_page_fault+0xa8f/0x1830 arch/x86/mm/fault.c:1400
+ do_page_fault+0x98/0xd0 arch/x86/mm/fault.c:1477
+ page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1169
+RIP: 0033:0x43d221
+RSP: 002b:0000000000a3e968 EFLAGS: 00010202
+RAX: 0000000020000140 RBX: 0000000000000000 RCX: 000000000000002f
+RDX: 000000000000000d RSI: 0000000000730020 RDI: 0000000020000140
+RBP: 0000000000000000 R08: 0000000000000000 R09: 000000000298d940
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000004d6f3
+R13: 0000000000000002 R14: 0000000000a3f160 R15: 0000000000000001
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:256 [inline]
+ kmsan_internal_alloc_meta_for_pages+0x146/0x700 mm/kmsan/kmsan.c:702
+ kmsan_alloc_page+0x75/0xd0 mm/kmsan/kmsan_hooks.c:250
+ __alloc_pages_nodemask+0xf7b/0x5cc0 mm/page_alloc.c:4404
+ alloc_pages_current+0x6b1/0x970 mm/mempolicy.c:2093
+ alloc_pages include/linux/gfp.h:494 [inline]
+ kmalloc_order mm/slab_common.c:1148 [inline]
+ kmalloc_order_trace+0xbb/0x390 mm/slab_common.c:1159
+ kmalloc_large include/linux/slab.h:446 [inline]
+ __kmalloc+0x335/0x350 mm/slub.c:3805
+ kmalloc include/linux/slab.h:517 [inline]
+ ip_vs_lblcr_init_svc+0x57/0x310 net/netfilter/ipvs/ip_vs_lblcr.c:518
+ ip_vs_bind_scheduler+0xa9/0x1f0 net/netfilter/ipvs/ip_vs_sched.c:51
+ ip_vs_add_service+0xa9d/0x1d90 net/netfilter/ipvs/ip_vs_ctl.c:1265
+ do_ip_vs_set_ctl+0x2aa9/0x2cd0 net/netfilter/ipvs/ip_vs_ctl.c:2462
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x47c/0x4e0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0x24b/0x2b0 net/ipv4/ip_sockglue.c:1251
+ tcp_setsockopt+0x1c0/0x1f0 net/ipv4/tcp.c:2891
+ sock_common_setsockopt+0x13b/0x170 net/core/sock.c:3039
+ __sys_setsockopt+0x496/0x540 net/socket.c:1903
+ __do_sys_setsockopt net/socket.c:1914 [inline]
+ __se_sys_setsockopt net/socket.c:1911 [inline]
+ __x64_sys_setsockopt+0x15c/0x1c0 net/socket.c:1911
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+==================================================================

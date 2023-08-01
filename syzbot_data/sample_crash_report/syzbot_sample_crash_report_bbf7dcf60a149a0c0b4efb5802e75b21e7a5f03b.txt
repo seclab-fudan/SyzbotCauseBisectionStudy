@@ -1,0 +1,70 @@
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 29987 at mm/page_alloc.c:5344 current_gfp_context include/linux/sched/mm.h:195 [inline]
+WARNING: CPU: 0 PID: 29987 at mm/page_alloc.c:5344 __alloc_pages+0x45d/0x500 mm/page_alloc.c:5356
+Modules linked in:
+CPU: 3 PID: 29987 Comm: syz-executor.0 Not tainted 5.16.0-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+RIP: 0010:__alloc_pages+0x45d/0x500 mm/page_alloc.c:5344
+Code: be c9 00 00 00 48 c7 c7 40 7b b7 89 c6 05 c5 68 c8 0b 01 e8 bc dc 4f 07 e9 6a ff ff ff 0f 0b e9 a0 fd ff ff 40 80 e5 3f eb 88 <0f> 0b e9 18 ff ff ff 4c 89 ef 44 89 e6 45 31 ed e8 1e 76 ff ff e9
+RSP: 0018:ffffc90022fbf850 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 1ffff920045f7f0b RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: 0000000000000033 RDI: 0000000000010cc1
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000001
+R10: ffffffff81bba826 R11: 0000000000000001 R12: ffffffff90508b60
+R13: 0000000000000033 R14: 0000000000000000 R15: ffff88801bdade30
+FS:  0000000000000000(0000) GS:ffff88802ca00000(0063) knlGS:00000000f58f2b40
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 00000000202a7000 CR3: 00000000213ae000 CR4: 0000000000152ef0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ alloc_pages+0x1a7/0x300 mm/mempolicy.c:2190
+ __get_free_pages+0x8/0x40 mm/page_alloc.c:5418
+ raw_cmd_copyin drivers/block/floppy.c:3113 [inline]
+ raw_cmd_ioctl drivers/block/floppy.c:3160 [inline]
+ fd_locked_ioctl+0x11e3/0x2820 drivers/block/floppy.c:3528
+ fd_ioctl drivers/block/floppy.c:3555 [inline]
+ fd_compat_ioctl+0x891/0x1b60 drivers/block/floppy.c:3869
+ compat_blkdev_ioctl+0x3b8/0x810 block/ioctl.c:674
+ __do_compat_sys_ioctl+0x1c7/0x290 fs/ioctl.c:972
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0x65/0xf0 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x2f/0x70 arch/x86/entry/common.c:203
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+RIP: 0023:0xf6f19549
+Code: 03 74 c0 01 10 05 03 74 b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 8d b4 26 00 00 00 00 8d b4 26 00 00 00 00
+RSP: 002b:00000000f58f25bc EFLAGS: 00000296 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000000258
+RDX: 0000000020000100 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	03 74 c0 01          	add    0x1(%rax,%rax,8),%esi
+   4:	10 05 03 74 b8 01    	adc    %al,0x1b87403(%rip)        # 0x1b8740d
+   a:	10 06                	adc    %al,(%rsi)
+   c:	03 74 b4 01          	add    0x1(%rsp,%rsi,4),%esi
+  10:	10 07                	adc    %al,(%rdi)
+  12:	03 74 b0 01          	add    0x1(%rax,%rsi,4),%esi
+  16:	10 08                	adc    %cl,(%rax)
+  18:	03 74 d8 01          	add    0x1(%rax,%rbx,8),%esi
+  1c:	00 00                	add    %al,(%rax)
+  1e:	00 00                	add    %al,(%rax)
+  20:	00 51 52             	add    %dl,0x52(%rcx)
+  23:	55                   	push   %rbp
+  24:	89 e5                	mov    %esp,%ebp
+  26:	0f 34                	sysenter
+  28:	cd 80                	int    $0x80
+* 2a:	5d                   	pop    %rbp <-- trapping instruction
+  2b:	5a                   	pop    %rdx
+  2c:	59                   	pop    %rcx
+  2d:	c3                   	retq
+  2e:	90                   	nop
+  2f:	90                   	nop
+  30:	90                   	nop
+  31:	90                   	nop
+  32:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi
+  39:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi

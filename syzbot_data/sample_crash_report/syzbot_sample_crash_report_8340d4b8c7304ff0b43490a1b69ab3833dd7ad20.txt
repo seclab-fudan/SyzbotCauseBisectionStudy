@@ -1,0 +1,143 @@
+==================================================================
+BUG: KASAN: use-after-free in atomic_sub_return include/asm-generic/atomic-instrumented.h:159 [inline]
+BUG: KASAN: use-after-free in skb_release_data+0x11d/0x7a0 net/core/skbuff.c:566
+Write of size 4 at addr ffff8880a95c27a0 by task syz-executor705/7795
+
+CPU: 0 PID: 7795 Comm: syz-executor705 Not tainted 5.0.0+ #108
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x123/0x190 mm/kasan/generic.c:191
+ kasan_check_write+0x14/0x20 mm/kasan/common.c:108
+ atomic_sub_return include/asm-generic/atomic-instrumented.h:159 [inline]
+ skb_release_data+0x11d/0x7a0 net/core/skbuff.c:566
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:631
+ __kfree_skb net/core/skbuff.c:645 [inline]
+ kfree_skb net/core/skbuff.c:663 [inline]
+ kfree_skb+0xe8/0x390 net/core/skbuff.c:657
+ __skb_queue_purge include/linux/skbuff.h:2711 [inline]
+ inet_sock_destruct+0x10b/0x830 net/ipv4/af_inet.c:138
+ __sk_destruct+0x55/0x6d0 net/core/sock.c:1699
+ sk_destruct+0x7b/0x90 net/core/sock.c:1734
+ __sk_free+0xce/0x300 net/core/sock.c:1745
+ sk_free+0x42/0x50 net/core/sock.c:1756
+ sock_put include/net/sock.h:1720 [inline]
+ sk_common_release+0x224/0x330 net/core/sock.c:3171
+ rawv6_close+0x68/0x90 net/ipv6/raw.c:1236
+ inet_release+0x105/0x1f0 net/ipv4/af_inet.c:432
+ inet6_release+0x53/0x80 net/ipv6/af_inet6.c:473
+ __sock_release+0xd3/0x2b0 net/socket.c:599
+ sock_close+0x1b/0x30 net/socket.c:1247
+ __fput+0x2e5/0x8d0 fs/file_table.c:278
+ ____fput+0x16/0x20 fs/file_table.c:309
+ task_work_run+0x14a/0x1c0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x90a/0x2fa0 kernel/exit.c:876
+ do_group_exit+0x135/0x370 kernel/exit.c:980
+ get_signal+0x399/0x1d50 kernel/signal.c:2575
+ do_signal+0x87/0x1940 arch/x86/kernel/signal.c:816
+ exit_to_usermode_loop+0x244/0x2c0 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x52d/0x610 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4459a9
+Code: Bad RIP value.
+RSP: 002b:00007f46bf5d7da8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 00000000006dac48 RCX: 00000000004459a9
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 00000000006dac48
+RBP: 00000000006dac40 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dac4c
+R13: 0000000000000000 R14: 0000000000000000 R15: 20c49ba5e353f7cf
+
+Allocated by task 7795:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:511
+ __do_kmalloc_node mm/slab.c:3686 [inline]
+ __kmalloc_node_track_caller+0x4e/0x70 mm/slab.c:3700
+ __kmalloc_reserve.isra.0+0x40/0xf0 net/core/skbuff.c:140
+ __alloc_skb+0x10b/0x5e0 net/core/skbuff.c:208
+ alloc_skb_fclone include/linux/skbuff.h:1107 [inline]
+ sk_stream_alloc_skb+0x113/0xd10 net/ipv4/tcp.c:889
+ tcp_connect+0xfd8/0x4280 net/ipv4/tcp_output.c:3521
+ tcp_v6_connect+0x150b/0x20a0 net/ipv6/tcp_ipv6.c:330
+ __inet_stream_connect+0x83f/0xea0 net/ipv4/af_inet.c:659
+ tcp_sendmsg_fastopen net/ipv4/tcp.c:1158 [inline]
+ tcp_sendmsg_locked+0x2314/0x34d0 net/ipv4/tcp.c:1200
+ tcp_sendmsg+0x30/0x50 net/ipv4/tcp.c:1434
+ inet_sendmsg+0x147/0x5e0 net/ipv4/af_inet.c:802
+ sock_sendmsg_nosec net/socket.c:651 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:661
+ __sys_sendto+0x262/0x380 net/socket.c:1932
+ __do_sys_sendto net/socket.c:1944 [inline]
+ __se_sys_sendto net/socket.c:1940 [inline]
+ __x64_sys_sendto+0xe1/0x1a0 net/socket.c:1940
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7795:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3821
+ skb_free_head+0x93/0xb0 net/core/skbuff.c:557
+ skb_release_data+0x576/0x7a0 net/core/skbuff.c:577
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:631
+ __kfree_skb net/core/skbuff.c:645 [inline]
+ kfree_skb net/core/skbuff.c:663 [inline]
+ kfree_skb+0xe8/0x390 net/core/skbuff.c:657
+ __skb_queue_purge include/linux/skbuff.h:2711 [inline]
+ inet_sock_destruct+0x10b/0x830 net/ipv4/af_inet.c:138
+ __sk_destruct+0x55/0x6d0 net/core/sock.c:1699
+ sk_destruct+0x7b/0x90 net/core/sock.c:1734
+ __sk_free+0xce/0x300 net/core/sock.c:1745
+ sk_free+0x42/0x50 net/core/sock.c:1756
+ sock_put include/net/sock.h:1720 [inline]
+ sk_common_release+0x224/0x330 net/core/sock.c:3171
+ rawv6_close+0x68/0x90 net/ipv6/raw.c:1236
+ inet_release+0x105/0x1f0 net/ipv4/af_inet.c:432
+ inet6_release+0x53/0x80 net/ipv6/af_inet6.c:473
+ __sock_release+0xd3/0x2b0 net/socket.c:599
+ sock_close+0x1b/0x30 net/socket.c:1247
+ __fput+0x2e5/0x8d0 fs/file_table.c:278
+ ____fput+0x16/0x20 fs/file_table.c:309
+ task_work_run+0x14a/0x1c0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x90a/0x2fa0 kernel/exit.c:876
+ do_group_exit+0x135/0x370 kernel/exit.c:980
+ get_signal+0x399/0x1d50 kernel/signal.c:2575
+ do_signal+0x87/0x1940 arch/x86/kernel/signal.c:816
+ exit_to_usermode_loop+0x244/0x2c0 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x52d/0x610 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8880a95c24c0
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 736 bytes inside of
+ 1024-byte region [ffff8880a95c24c0, ffff8880a95c28c0)
+The buggy address belongs to the page:
+page:ffffea0002a57080 count:1 mapcount:0 mapping:ffff88812c3f0ac0 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea00024cc108 ffffea0002a48a08 ffff88812c3f0ac0
+raw: 0000000000000000 ffff8880a95c2040 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a95c2680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880a95c2700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8880a95c2780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                               ^
+ ffff8880a95c2800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880a95c2880: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================

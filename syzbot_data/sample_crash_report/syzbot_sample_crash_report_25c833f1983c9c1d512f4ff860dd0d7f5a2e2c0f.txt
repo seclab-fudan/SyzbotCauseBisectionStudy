@@ -1,0 +1,63 @@
+INFO: task systemd-shutdow:1 blocked for more than 143 seconds.
+      Not tainted 5.9.0-rc1-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:systemd-shutdow state:D stack:24456 pid:    1 ppid:     0 flags:0x00000000
+Call Trace:
+ context_switch kernel/sched/core.c:3778 [inline]
+ __schedule+0x889/0x1f70 kernel/sched/core.c:4527
+ schedule+0xcd/0x2b0 kernel/sched/core.c:4602
+ wait_for_device_probe+0x1be/0x220 drivers/base/dd.c:702
+ device_shutdown+0x18/0x5b5 drivers/base/core.c:3998
+ kernel_restart_prepare kernel/reboot.c:76 [inline]
+ kernel_restart kernel/reboot.c:246 [inline]
+ __do_sys_reboot.cold+0x5d/0x9d kernel/reboot.c:347
+ do_syscall_64+0x2d/0x40 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7fb9e57828c6
+Code: Bad RIP value.
+RSP: 002b:00007fffa1dec6b8 EFLAGS: 00000206 ORIG_RAX: 00000000000000a9
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fb9e57828c6
+RDX: 0000000001234567 RSI: 0000000028121969 RDI: fffffffffee1dead
+RBP: 00007fffa1dec748 R08: 0000000000000028 R09: 0000000000000005
+R10: 0000000000000002 R11: 0000000000000206 R12: 0000000000000000
+R13: 0000000000000000 R14: 00005585d3d36150 R15: 00007fffa1deca38
+
+Showing all locks held in the system:
+1 lock held by systemd-shutdow/1:
+ #0: ffffffff872ea248 (system_transition_mutex){+.+.}-{3:3}, at: __do_sys_reboot+0x1a4/0x3e0 kernel/reboot.c:344
+1 lock held by khungtaskd/23:
+ #0: ffffffff87313620 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x264 kernel/locking/lockdep.c:5825
+5 locks held by kworker/1:5/3090:
+ #0: ffff8881d8d49938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8881d8d49938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: atomic64_set include/asm-generic/atomic-instrumented.h:856 [inline]
+ #0: ffff8881d8d49938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: atomic_long_set include/asm-generic/atomic-long.h:41 [inline]
+ #0: ffff8881d8d49938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:616 [inline]
+ #0: ffff8881d8d49938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:643 [inline]
+ #0: ffff8881d8d49938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: process_one_work+0x82b/0x15f0 kernel/workqueue.c:2240
+ #1: ffff8881cc597da8 ((work_completion)(&hub->events)){+.+.}-{0:0}, at: process_one_work+0x85f/0x15f0 kernel/workqueue.c:2244
+ #2: ffff8881d44cb218 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:784 [inline]
+ #2: ffff8881d44cb218 (&dev->mutex){....}-{3:3}, at: hub_event+0x1c5/0x4390 drivers/usb/core/hub.c:5522
+ #3: ffff8881ccd54218 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:784 [inline]
+ #3: ffff8881ccd54218 (&dev->mutex){....}-{3:3}, at: __device_attach+0x7a/0x4a0 drivers/base/dd.c:887
+ #4: ffff8881cdf1a1a8 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:784 [inline]
+ #4: ffff8881cdf1a1a8 (&dev->mutex){....}-{3:3}, at: __device_attach+0x7a/0x4a0 drivers/base/dd.c:887
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 23 Comm: khungtaskd Not tainted 5.9.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xf6/0x16e lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x74/0xb6 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x1da/0x1f4 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:209 [inline]
+ watchdog+0xd6a/0xfd0 kernel/hung_task.c:295
+ kthread+0x392/0x470 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1 skipped: idling at native_safe_halt arch/x86/include/asm/irqflags.h:60 [inline]
+NMI backtrace for cpu 1 skipped: idling at arch_safe_halt arch/x86/include/asm/irqflags.h:103 [inline]
+NMI backtrace for cpu 1 skipped: idling at acpi_safe_halt+0x72/0x90 drivers/acpi/processor_idle.c:111

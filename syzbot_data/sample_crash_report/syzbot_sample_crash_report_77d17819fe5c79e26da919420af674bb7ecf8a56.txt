@@ -1,0 +1,54 @@
+BUG: unable to handle page fault for address: fffff52002f00000
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 21ffee067 P4D 21ffee067 PUD aa91b067 PMD 6da73067 PTE 0
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 3639 Comm: ion_system_heap Not tainted 5.4.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:memory_is_nonzero mm/kasan/generic.c:121 [inline]
+RIP: 0010:memory_is_poisoned_n mm/kasan/generic.c:135 [inline]
+RIP: 0010:memory_is_poisoned mm/kasan/generic.c:166 [inline]
+RIP: 0010:check_memory_region_inline mm/kasan/generic.c:182 [inline]
+RIP: 0010:check_memory_region+0x1d0/0x2e0 mm/kasan/generic.c:192
+Code: 00 4d 01 f1 4d 89 d6 4d 29 ce 4c 89 f3 48 c1 fb 3f 48 c1 eb 3d 4c 01 f3 48 c1 eb 03 85 db 74 20 66 2e 0f 1f 84 00 00 00 00 00 <4d> 8b 19 4d 85 db 75 48 49 83 c1 08 ff cb 75 f0 4d 29 ca 4d 89 d6
+RSP: 0018:ffffc9000c367bd0 EFLAGS: 00010206
+RAX: ffffffff85feb701 RBX: 0000000000000800 RCX: ffffffff85feb780
+RDX: 0000000000000001 RSI: 0000000000020000 RDI: ffffc90017800000
+RBP: ffffc9000c367bf8 R08: dffffc0000000000 R09: fffff52002f00000
+R10: fffff52002f04000 R11: 0000000000000000 R12: 1ffff92002f00000
+R13: dffffc0000000001 R14: 0000000000004000 R15: 0000000000020000
+FS:  0000000000000000(0000) GS:ffff8880aec00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffff52002f00000 CR3: 00000000a9614000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ memset+0x23/0x40 mm/kasan/common.c:107
+ ion_heap_clear_pages drivers/staging/android/ion/ion_heap.c:106 [inline]
+ ion_heap_sglist_zero+0x190/0x280 drivers/staging/android/ion/ion_heap.c:123
+ ion_heap_buffer_zero+0xed/0x110 drivers/staging/android/ion/ion_heap.c:145
+ ion_system_heap_free+0xa9/0x3c0 drivers/staging/android/ion/ion_system_heap.c:163
+ ion_buffer_destroy+0x116/0x210 drivers/staging/android/ion/ion.c:93
+ ion_heap_deferred_free+0x73/0x4c0 drivers/staging/android/ion/ion_heap.c:239
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+CR2: fffff52002f00000
+---[ end trace 830937046067ece2 ]---
+RIP: 0010:memory_is_nonzero mm/kasan/generic.c:121 [inline]
+RIP: 0010:memory_is_poisoned_n mm/kasan/generic.c:135 [inline]
+RIP: 0010:memory_is_poisoned mm/kasan/generic.c:166 [inline]
+RIP: 0010:check_memory_region_inline mm/kasan/generic.c:182 [inline]
+RIP: 0010:check_memory_region+0x1d0/0x2e0 mm/kasan/generic.c:192
+Code: 00 4d 01 f1 4d 89 d6 4d 29 ce 4c 89 f3 48 c1 fb 3f 48 c1 eb 3d 4c 01 f3 48 c1 eb 03 85 db 74 20 66 2e 0f 1f 84 00 00 00 00 00 <4d> 8b 19 4d 85 db 75 48 49 83 c1 08 ff cb 75 f0 4d 29 ca 4d 89 d6
+RSP: 0018:ffffc9000c367bd0 EFLAGS: 00010206
+RAX: ffffffff85feb701 RBX: 0000000000000800 RCX: ffffffff85feb780
+RDX: 0000000000000001 RSI: 0000000000020000 RDI: ffffc90017800000
+RBP: ffffc9000c367bf8 R08: dffffc0000000000 R09: fffff52002f00000
+R10: fffff52002f04000 R11: 0000000000000000 R12: 1ffff92002f00000
+R13: dffffc0000000001 R14: 0000000000004000 R15: 0000000000020000
+FS:  0000000000000000(0000) GS:ffff8880aec00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffff52002f00000 CR3: 00000000a9614000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

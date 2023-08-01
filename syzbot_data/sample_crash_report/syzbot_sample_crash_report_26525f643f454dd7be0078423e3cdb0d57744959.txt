@@ -1,0 +1,69 @@
+usb 1-1: string descriptor 0 read error: -71
+usb 1-1: USB disconnect, device number 2
+usb 1-1: Direct firmware load for mrvl/usb8766_uapsta.bin failed with error -2
+usb 1-1: Failed to get firmware mrvl/usb8766_uapsta.bin
+usb 1-1: info: _mwifiex_fw_dpc: unregister device
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 0 PID: 531 Comm: kworker/0:2 Not tainted 5.1.0-rc4-319354-g9a33b36 #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events request_firmware_work_func
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xe8/0x16e lib/dump_stack.c:113
+ assign_lock_key kernel/locking/lockdep.c:786 [inline]
+ register_lock_class+0x11b8/0x1250 kernel/locking/lockdep.c:1095
+ __lock_acquire+0xfb/0x37c0 kernel/locking/lockdep.c:3582
+ lock_acquire+0x10d/0x2f0 kernel/locking/lockdep.c:4211
+ del_timer_sync+0x4c/0x150 kernel/time/timer.c:1282
+ mwifiex_usb_cleanup_tx_aggr drivers/net/wireless/marvell/mwifiex/usb.c:1358 [inline]
+ mwifiex_unregister_dev+0x41b/0x690 drivers/net/wireless/marvell/mwifiex/usb.c:1370
+ _mwifiex_fw_dpc+0x711/0xdd0 drivers/net/wireless/marvell/mwifiex/main.c:651
+ request_firmware_work_func+0x12d/0x249 drivers/base/firmware_loader/main.c:785
+ process_one_work+0x90f/0x1580 kernel/workqueue.c:2269
+ worker_thread+0x9b/0xe20 kernel/workqueue.c:2415
+ kthread+0x313/0x420 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+------------[ cut here ]------------
+ODEBUG: assert_init not available (active state 0) object type: timer_list hint:           (null)
+WARNING: CPU: 0 PID: 531 at lib/debugobjects.c:325 debug_print_object+0x162/0x250 lib/debugobjects.c:325
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 531 Comm: kworker/0:2 Not tainted 5.1.0-rc4-319354-g9a33b36 #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events request_firmware_work_func
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xe8/0x16e lib/dump_stack.c:113
+ panic+0x29d/0x5f2 kernel/panic.c:214
+ __warn.cold+0x20/0x48 kernel/panic.c:571
+ report_bug+0x262/0x2a0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:179 [inline]
+ fixup_bug arch/x86/kernel/traps.c:174 [inline]
+ do_error_trap+0x130/0x1f0 arch/x86/kernel/traps.c:272
+ do_invalid_op+0x37/0x40 arch/x86/kernel/traps.c:291
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:973
+RIP: 0010:debug_print_object+0x162/0x250 lib/debugobjects.c:325
+Code: dd e0 a1 b3 8e 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 bf 00 00 00 48 8b 14 dd e0 a1 b3 8e 48 c7 c7 60 96 b3 8e e8 8e 93 d2 fd <0f> 0b 83 05 e9 d6 59 10 01 48 83 c4 20 5b 5d 41 5c 41 5d c3 48 89
+RSP: 0018:ffff88809faff8d8 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000005 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff815b1e42 RDI: ffffed1013f5ff0d
+RBP: 0000000000000001 R08: ffff88809f8a3100 R09: ffffed1015a04fc9
+R10: ffffed1015a04fc8 R11: ffff8880ad027e47 R12: ffffffff917e7780
+R13: ffffffff8161ec90 R14: 1ffff11013f5ff28 R15: ffff88809ad11c78
+ debug_object_assert_init lib/debugobjects.c:694 [inline]
+ debug_object_assert_init+0x23d/0x2f0 lib/debugobjects.c:665
+ debug_timer_assert_init kernel/time/timer.c:723 [inline]
+ debug_assert_init kernel/time/timer.c:775 [inline]
+ try_to_del_timer_sync+0x72/0x110 kernel/time/timer.c:1222
+ del_timer_sync+0x112/0x150 kernel/time/timer.c:1292
+ mwifiex_usb_cleanup_tx_aggr drivers/net/wireless/marvell/mwifiex/usb.c:1358 [inline]
+ mwifiex_unregister_dev+0x41b/0x690 drivers/net/wireless/marvell/mwifiex/usb.c:1370
+ _mwifiex_fw_dpc+0x711/0xdd0 drivers/net/wireless/marvell/mwifiex/main.c:651
+ request_firmware_work_func+0x12d/0x249 drivers/base/firmware_loader/main.c:785
+ process_one_work+0x90f/0x1580 kernel/workqueue.c:2269
+ worker_thread+0x9b/0xe20 kernel/workqueue.c:2415
+ kthread+0x313/0x420 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

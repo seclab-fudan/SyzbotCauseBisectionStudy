@@ -1,0 +1,43 @@
+==================================================================
+BUG: KMSAN: uninit-value in do_msgrcv+0x8da/0x2580 ipc/msg.c:1056
+CPU: 0 PID: 8871 Comm: syz-executor207 Not tainted 4.18.0-rc4+ #27
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x185/0x1e0 lib/dump_stack.c:113
+ kmsan_report+0x195/0x2c0 mm/kmsan/kmsan.c:982
+ __msan_warning+0x7d/0xe0 mm/kmsan/kmsan_instr.c:645
+ do_msgrcv+0x8da/0x2580 ipc/msg.c:1056
+ ksys_msgrcv ipc/msg.c:1192 [inline]
+ __do_sys_msgrcv ipc/msg.c:1198 [inline]
+ __se_sys_msgrcv ipc/msg.c:1195 [inline]
+ __x64_sys_msgrcv+0x160/0x1b0 ipc/msg.c:1195
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x449be9
+Code: e8 0c e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b d2 fb ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007f92bfd3ada8 EFLAGS: 00000293 ORIG_RAX: 0000000000000046
+RAX: ffffffffffffffda RBX: 00000000006dbc3c RCX: 0000000000449be9
+RDX: 0000000000000001 RSI: 0000000020000200 RDI: 00000000057503c3
+RBP: 0000000000000000 R08: 0000000000000800 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000293 R12: 00000000006dbc38
+R13: 7364612f7665642f R14: 646f6f7774736577 R15: 000000000000000a
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:256 [inline]
+ kmsan_internal_poison_shadow+0xc8/0x1d0 mm/kmsan/kmsan.c:181
+ kmsan_kmalloc+0xa1/0x120 mm/kmsan/kmsan_hooks.c:91
+ __kmalloc_node+0xe5d/0x1240 mm/slub.c:3829
+ kmalloc_node include/linux/slab.h:555 [inline]
+ kvmalloc_node+0x19d/0x370 mm/util.c:423
+ kvmalloc include/linux/mm.h:557 [inline]
+ newque+0xb4/0x7d0 ipc/msg.c:139
+ ipcget_new ipc/util.c:315 [inline]
+ ipcget+0x29f/0xdb0 ipc/util.c:653
+ ksys_msgget ipc/msg.c:289 [inline]
+ __do_sys_msgget ipc/msg.c:294 [inline]
+ __se_sys_msgget ipc/msg.c:292 [inline]
+ __x64_sys_msgget+0x159/0x1f0 ipc/msg.c:292
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+==================================================================

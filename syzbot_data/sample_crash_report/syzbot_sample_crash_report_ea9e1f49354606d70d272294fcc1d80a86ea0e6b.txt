@@ -1,0 +1,272 @@
+WARNING: CPU: 1 PID: 4495 at kernel/events/core.c:331 event_function_local.constprop.113+0x520/0x5c0 kernel/events/core.c:331
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 1 PID: 4495 Comm: syz-executor633 Not tainted 4.17.0-rc2+ #22
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ panic+0x22f/0x4de kernel/panic.c:184
+ __warn.cold.8+0x163/0x1b3 kernel/panic.c:536
+ report_bug+0x252/0x2d0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:178 [inline]
+ do_error_trap+0x1de/0x490 arch/x86/kernel/traps.c:296
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:992
+RIP: 0010:event_function_local.constprop.113+0x520/0x5c0 kernel/events/core.c:331
+RSP: 0018:ffff8801daf07cf8 EFLAGS: 00010006
+RAX: ffff8801ad02c200 RBX: ffff8801ae5bf800 RCX: ffffffff818fe36a
+RDX: 0000000000010000 RSI: ffffffff818fe560 RDI: 0000000000000005
+RBP: ffff8801daf07d98 R08: ffff8801ad02c200 R09: ffffed0035cb7f01
+R10: ffffed0035cb7f01 R11: ffff8801ae5bf80b R12: 1ffff1003b5e0fa2
+R13: ffff8801daf31400 R14: ffff8801d952e300 R15: ffff8801b6a04300
+ perf_event_disable_local kernel/events/core.c:2180 [inline]
+ perf_pending_event+0x242/0x2a0 kernel/events/core.c:5809
+ irq_work_run_list+0x1b4/0x270 kernel/irq_work.c:155
+ irq_work_run+0x1d/0x50 kernel/irq_work.c:170
+ smp_irq_work_interrupt+0x10a/0x650 arch/x86/kernel/irq_work.c:21
+ irq_work_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:894
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+RSP: 0018:ffff8801adbcf708 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff09
+RAX: dffffc0000000000 RBX: 0000000000000286 RCX: 0000000000000000
+RDX: 1ffffffff11a315d RSI: 0000000000000001 RDI: 0000000000000286
+RBP: ffff8801adbcf718 R08: ffffed003b2a5d50 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801d952ea78
+R13: ffff8801d952e300 R14: 0000000000000001 R15: 1ffff10035b79f15
+ try_to_wake_up+0x102/0x1190 kernel/sched/core.c:2057
+ wake_up_process kernel/sched/core.c:2126 [inline]
+ wake_up_q+0xa4/0x100 kernel/sched/core.c:443
+ __mutex_unlock_slowpath+0x422/0x8a0 kernel/locking/mutex.c:1070
+ mutex_unlock+0xd/0x10 kernel/locking/mutex.c:614
+ __pipe_unlock fs/pipe.c:88 [inline]
+ pipe_write+0xc64/0xeb0 fs/pipe.c:475
+ call_write_iter include/linux/fs.h:1784 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x64d/0x960 fs/read_write.c:487
+ vfs_write+0x1f8/0x560 fs/read_write.c:549
+ ksys_write+0xf9/0x250 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4401e9
+RSP: 002b:00007ffc40f4d9e8 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000100000001 RCX: 00000000004401e9
+RDX: 0000000000000012 RSI: 00000000004a1764 RDI: 0000000000000001
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000217 R12: 0000000000401710
+R13: 00000000004017a0 R14: 0000000000000000 R15: 0000000000000000
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.17.0-rc2+ #22 Not tainted
+------------------------------------------------------
+syz-executor633/4495 is trying to acquire lock:
+        (ptrval) ((console_sem).lock){-...}, at: down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+
+but task is already holding lock:
+        (ptrval) (&ctx->lock){-.-.}, at: perf_ctx_lock kernel/events/core.c:157 [inline]
+        (ptrval) (&ctx->lock){-.-.}, at: event_function_local.constprop.113+0x2a3/0x5c0 kernel/events/core.c:318
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #3 (&ctx->lock){-.-.}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:144
+       perf_event_context_sched_out kernel/events/core.c:3129 [inline]
+       __perf_event_task_sched_out+0x12df/0x1a30 kernel/events/core.c:3221
+       perf_event_task_sched_out include/linux/perf_event.h:1103 [inline]
+       prepare_task_switch kernel/sched/core.c:2636 [inline]
+       context_switch kernel/sched/core.c:2813 [inline]
+       __schedule+0xfed/0x1e30 kernel/sched/core.c:3490
+       schedule+0xef/0x430 kernel/sched/core.c:3549
+       exit_to_usermode_loop+0x220/0x310 arch/x86/entry/common.c:152
+       prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+       syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+       do_syscall_64+0x6ac/0x800 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #2 (&rq->lock){-.-.}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:144
+       rq_lock kernel/sched/sched.h:1799 [inline]
+       task_fork_fair+0x8a/0x660 kernel/sched/fair.c:9967
+       sched_fork+0x43e/0xb30 kernel/sched/core.c:2379
+       copy_process.part.38+0x1c13/0x6e90 kernel/fork.c:1764
+       copy_process kernel/fork.c:1607 [inline]
+       _do_fork+0x291/0x12a0 kernel/fork.c:2088
+       kernel_thread+0x34/0x40 kernel/fork.c:2147
+       rest_init+0x22/0xe4 init/main.c:407
+       start_kernel+0x906/0x92d init/main.c:737
+       x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:445
+       x86_64_start_kernel+0x76/0x79 arch/x86/kernel/head64.c:426
+       secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:242
+
+-> #1 (&p->pi_lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       try_to_wake_up+0xca/0x1190 kernel/sched/core.c:1963
+       wake_up_process+0x10/0x20 kernel/sched/core.c:2126
+       __up.isra.1+0x1b8/0x290 kernel/locking/semaphore.c:262
+       up+0x12f/0x1b0 kernel/locking/semaphore.c:187
+       __up_console_sem+0xbe/0x1b0 kernel/printk/printk.c:242
+       console_unlock+0x7d6/0x1100 kernel/printk/printk.c:2417
+       do_con_write+0x12b2/0x2280 drivers/tty/vt/vt.c:2437
+       con_write+0x25/0xc0 drivers/tty/vt/vt.c:2786
+       process_output_block drivers/tty/n_tty.c:579 [inline]
+       n_tty_write+0x6b9/0x1180 drivers/tty/n_tty.c:2308
+       do_tty_write drivers/tty/tty_io.c:958 [inline]
+       tty_write+0x3f1/0x880 drivers/tty/tty_io.c:1042
+       __vfs_write+0x10b/0x960 fs/read_write.c:485
+       vfs_write+0x1f8/0x560 fs/read_write.c:549
+       ksys_write+0xf9/0x250 fs/read_write.c:598
+       __do_sys_write fs/read_write.c:610 [inline]
+       __se_sys_write fs/read_write.c:607 [inline]
+       __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+       do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 ((console_sem).lock){-...}:
+       lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+       __down_trylock_console_sem+0xae/0x200 kernel/printk/printk.c:225
+       console_trylock+0x15/0xa0 kernel/printk/printk.c:2229
+       console_trylock_spinning kernel/printk/printk.c:1643 [inline]
+       vprintk_emit+0x694/0xdd0 kernel/printk/printk.c:1906
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1947
+       vprintk_func+0x7a/0xe7 kernel/printk/printk_safe.c:379
+       printk+0x9e/0xba kernel/printk/printk.c:1980
+       __warn.cold.8+0x73/0x1b3 kernel/panic.c:518
+       report_bug+0x252/0x2d0 lib/bug.c:186
+       fixup_bug arch/x86/kernel/traps.c:178 [inline]
+       do_error_trap+0x1de/0x490 arch/x86/kernel/traps.c:296
+       do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+       invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:992
+       event_function_local.constprop.113+0x520/0x5c0 kernel/events/core.c:331
+       perf_event_disable_local kernel/events/core.c:2180 [inline]
+       perf_pending_event+0x242/0x2a0 kernel/events/core.c:5809
+       irq_work_run_list+0x1b4/0x270 kernel/irq_work.c:155
+       irq_work_run+0x1d/0x50 kernel/irq_work.c:170
+       smp_irq_work_interrupt+0x10a/0x650 arch/x86/kernel/irq_work.c:21
+       irq_work_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:894
+       arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+       __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+       _raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+       try_to_wake_up+0x102/0x1190 kernel/sched/core.c:2057
+       wake_up_process kernel/sched/core.c:2126 [inline]
+       wake_up_q+0xa4/0x100 kernel/sched/core.c:443
+       __mutex_unlock_slowpath+0x422/0x8a0 kernel/locking/mutex.c:1070
+       mutex_unlock+0xd/0x10 kernel/locking/mutex.c:614
+       __pipe_unlock fs/pipe.c:88 [inline]
+       pipe_write+0xc64/0xeb0 fs/pipe.c:475
+       call_write_iter include/linux/fs.h:1784 [inline]
+       new_sync_write fs/read_write.c:474 [inline]
+       __vfs_write+0x64d/0x960 fs/read_write.c:487
+       vfs_write+0x1f8/0x560 fs/read_write.c:549
+       ksys_write+0xf9/0x250 fs/read_write.c:598
+       __do_sys_write fs/read_write.c:610 [inline]
+       __se_sys_write fs/read_write.c:607 [inline]
+       __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+       do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+  (console_sem).lock --> &rq->lock --> &ctx->lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&ctx->lock);
+                               lock(&rq->lock);
+                               lock(&ctx->lock);
+  lock((console_sem).lock);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor633/4495:
+ #0:         (ptrval) (&cpuctx_lock){-.-.}, at: perf_ctx_lock kernel/events/core.c:155 [inline]
+ #0:         (ptrval) (&cpuctx_lock){-.-.}, at: event_function_local.constprop.113+0x282/0x5c0 kernel/events/core.c:318
+ #1:         (ptrval) (&ctx->lock){-.-.}, at: perf_ctx_lock kernel/events/core.c:157 [inline]
+ #1:         (ptrval) (&ctx->lock){-.-.}, at: event_function_local.constprop.113+0x2a3/0x5c0 kernel/events/core.c:318
+
+stack backtrace:
+CPU: 1 PID: 4495 Comm: syz-executor633 Not tainted 4.17.0-rc2+ #22
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_circular_bug.isra.36.cold.54+0x1bd/0x27d kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x343e/0x5140 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+ down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+ __down_trylock_console_sem+0xae/0x200 kernel/printk/printk.c:225
+ console_trylock+0x15/0xa0 kernel/printk/printk.c:2229
+ console_trylock_spinning kernel/printk/printk.c:1643 [inline]
+ vprintk_emit+0x694/0xdd0 kernel/printk/printk.c:1906
+ vprintk_default+0x28/0x30 kernel/printk/printk.c:1947
+ vprintk_func+0x7a/0xe7 kernel/printk/printk_safe.c:379
+ printk+0x9e/0xba kernel/printk/printk.c:1980
+ __warn.cold.8+0x73/0x1b3 kernel/panic.c:518
+ report_bug+0x252/0x2d0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:178 [inline]
+ do_error_trap+0x1de/0x490 arch/x86/kernel/traps.c:296
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:992
+RIP: 0010:event_function_local.constprop.113+0x520/0x5c0 kernel/events/core.c:331
+RSP: 0018:ffff8801daf07cf8 EFLAGS: 00010006
+RAX: ffff8801ad02c200 RBX: ffff8801ae5bf800 RCX: ffffffff818fe36a
+RDX: 0000000000010000 RSI: ffffffff818fe560 RDI: 0000000000000005
+RBP: ffff8801daf07d98 R08: ffff8801ad02c200 R09: ffffed0035cb7f01
+R10: ffffed0035cb7f01 R11: ffff8801ae5bf80b R12: 1ffff1003b5e0fa2
+R13: ffff8801daf31400 R14: ffff8801d952e300 R15: ffff8801b6a04300
+ perf_event_disable_local kernel/events/core.c:2180 [inline]
+ perf_pending_event+0x242/0x2a0 kernel/events/core.c:5809
+ irq_work_run_list+0x1b4/0x270 kernel/irq_work.c:155
+ irq_work_run+0x1d/0x50 kernel/irq_work.c:170
+ smp_irq_work_interrupt+0x10a/0x650 arch/x86/kernel/irq_work.c:21
+ irq_work_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:894
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+RSP: 0018:ffff8801adbcf708 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff09
+RAX: dffffc0000000000 RBX: 0000000000000286 RCX: 0000000000000000
+RDX: 1ffffffff11a315d RSI: 0000000000000001 RDI: 0000000000000286
+RBP: ffff8801adbcf718 R08: ffffed003b2a5d50 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801d952ea78
+R13: ffff8801d952e300 R14: 0000000000000001 R15: 1ffff10035b79f15
+ try_to_wake_up+0x102/0x1190 kernel/sched/core.c:2057
+ wake_up_process kernel/sched/core.c:2126 [inline]
+ wake_up_q+0xa4/0x100 kernel/sched/core.c:443
+ __mutex_unlock_slowpath+0x422/0x8a0 kernel/locking/mutex.c:1070
+ mutex_unlock+0xd/0x10 kernel/locking/mutex.c:614
+ __pipe_unlock fs/pipe.c:88 [inline]
+ pipe_write+0xc64/0xeb0 fs/pipe.c:475
+ call_write_iter include/linux/fs.h:1784 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x64d/0x960 fs/read_write.c:487
+Lost 22 message(s)!
+Shutting down cpus with NMI
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,48 @@
+==================================================================
+BUG: KASAN: use-after-free in erspan_build_header+0x3bf/0x3d0 net/ipv4/ip_gre.c:698
+Read of size 2 at addr ffff8801d85ca28b by task syzkaller325844/3653
+
+CPU: 1 PID: 3653 Comm: syzkaller325844 Not tainted 4.15.0-rc9+ #274
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load_n_noabort+0xf/0x20 mm/kasan/report.c:440
+ erspan_build_header+0x3bf/0x3d0 net/ipv4/ip_gre.c:698
+ erspan_xmit+0x3b8/0x13b0 net/ipv4/ip_gre.c:740
+ __netdev_start_xmit include/linux/netdevice.h:4042 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4051 [inline]
+ packet_direct_xmit+0x315/0x6b0 net/packet/af_packet.c:266
+ packet_snd net/packet/af_packet.c:2943 [inline]
+ packet_sendmsg+0x3aed/0x60b0 net/packet/af_packet.c:2968
+ sock_sendmsg_nosec net/socket.c:638 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:648
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1729
+ SyS_sendto+0x40/0x50 net/socket.c:1697
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x445579
+RSP: 002b:00007ffefb59c4b8 EFLAGS: 00000217 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000445579
+RDX: 0000000000000000 RSI: 0000000020003fd9 RDI: 0000000000000004
+RBP: 00000000004a7113 R08: 0000000020008000 R09: 000000000000001c
+R10: 0000000000000000 R11: 0000000000000217 R12: 00007ffefb59c568
+R13: 0000000000402740 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0007617280 count:0 mapcount:0 mapping:          (null) index:0xffff8801d85cad40
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 ffff8801d85cad40 00000000ffffffff
+raw: dead000000000100 dead000000000200 ffff8801dae2c600 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d85ca180: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801d85ca200: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8801d85ca280: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                      ^
+ ffff8801d85ca300: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801d85ca380: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

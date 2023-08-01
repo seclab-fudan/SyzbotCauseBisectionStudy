@@ -1,0 +1,89 @@
+audit: type=1800 audit(1541644536.564:30): pid=5568 uid=0 auid=4294967295 ses=4294967295 subj=_ op=collect_data cause=failed(directio) comm="startpar" name="rmnologin" dev="sda1" ino=2423 res=0
+sshd (5709) used greatest stack depth: 15744 bytes left
+==================================================================
+BUG: KASAN: use-after-free in memcpy include/linux/string.h:352 [inline]
+BUG: KASAN: use-after-free in crypto_gcm_init_common+0xe2/0x710 crypto/gcm.c:181
+Read of size 12 at addr ffff8801d2c05b00 by task kworker/1:2/2856
+
+CPU: 1 PID: 2856 Comm: kworker/1:2 Not tainted 4.20.0-rc1+ #102
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: pencrypt padata_parallel_worker
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ memcpy+0x23/0x50 mm/kasan/kasan.c:302
+ memcpy include/linux/string.h:352 [inline]
+ crypto_gcm_init_common+0xe2/0x710 crypto/gcm.c:181
+ crypto_gcm_encrypt+0xe2/0x6b0 crypto/gcm.c:479
+ crypto_aead_encrypt include/crypto/aead.h:364 [inline]
+ pcrypt_aead_enc+0xd6/0x340 crypto/pcrypt.c:143
+ padata_parallel_worker+0x49d/0x760 kernel/padata.c:86
+ process_one_work+0xc90/0x1c40 kernel/workqueue.c:2153
+ worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+ kthread+0x35a/0x440 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Allocated by task 5737:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x750 mm/slab.c:3620
+ kmalloc include/linux/slab.h:546 [inline]
+ tls_set_sw_offload+0xcb3/0x1390 net/tls/tls_sw.c:1945
+ do_tls_setsockopt_conf net/tls/tls_main.c:467 [inline]
+ do_tls_setsockopt net/tls/tls_main.c:514 [inline]
+ tls_setsockopt+0x689/0x770 net/tls/tls_main.c:533
+ sock_common_setsockopt+0x9a/0xe0 net/core/sock.c:2978
+ __sys_setsockopt+0x1ba/0x3c0 net/socket.c:1902
+ __do_sys_setsockopt net/socket.c:1913 [inline]
+ __se_sys_setsockopt net/socket.c:1910 [inline]
+ __x64_sys_setsockopt+0xbe/0x150 net/socket.c:1910
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 5737:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3817
+ tls_sk_proto_close+0x5fa/0x750 net/tls/tls_main.c:277
+ inet_release+0x104/0x1f0 net/ipv4/af_inet.c:428
+ inet6_release+0x50/0x70 net/ipv6/af_inet6.c:458
+ __sock_release+0xd7/0x250 net/socket.c:579
+ sock_close+0x19/0x20 net/socket.c:1141
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801d2c05b00
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8801d2c05b00, ffff8801d2c05b20)
+The buggy address belongs to the page:
+page:ffffea00074b0140 count:1 mapcount:0 mapping:ffff8801da8001c0 index:0xffff8801d2c05fc1
+flags: 0x2fffc0000000200(slab)
+raw: 02fffc0000000200 ffffea00074b04c8 ffffea000755e548 ffff8801da8001c0
+raw: ffff8801d2c05fc1 ffff8801d2c05000 000000010000002e 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d2c05a00: 06 fc fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801d2c05a80: fb fb fb fb fc fc fc fc 00 00 01 fc fc fc fc fc
+>ffff8801d2c05b00: fb fb fb fb fc fc fc fc 05 fc fc fc fc fc fc fc
+                   ^
+ ffff8801d2c05b80: 06 fc fc fc fc fc fc fc 06 fc fc fc fc fc fc fc
+ ffff8801d2c05c00: 06 fc fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

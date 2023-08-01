@@ -1,0 +1,52 @@
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 3 PID: 0 Comm: swapper/3 Not tainted 4.13.0-next-20170915+ #5
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+task: ffff88006dace080 task.stack: ffff88006dad8000
+RIP: 0010:tun_flow_cleanup+0x16e/0x300 drivers/net/tun.c:388
+RSP: 0018:ffff88006df076a8 EFLAGS: 00010203
+RAX: 000040020000009e RBX: dffffc0000000000 RCX: ffffffff836ad0c2
+RDX: 0000000000000100 RSI: 0000000000000008 RDI: ffff88004e2fad40
+RBP: ffff88006df07778 R08: ffff88006df06ff8 R09: ffff88006df06ff0
+R10: ffff88006df06f68 R11: 1ffff1000db59ea3 R12: 0000000000000000
+R13: 1ffffffff0b41200 R14: 00000001000123fa R15: 00020010000004f4
+FS:  0000000000000000(0000) GS:ffff88006df00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020001fe8 CR3: 00000000500cb000 CR4: 00000000000026e0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+ <IRQ>
+ call_timer_fn+0x246/0x850 kernel/time/timer.c:1281
+ expire_timers kernel/time/timer.c:1320 [inline]
+ __run_timers+0x7fd/0xb90 kernel/time/timer.c:1620
+ run_timer_softirq+0x4c/0xb0 kernel/time/timer.c:1646
+ __do_softirq+0x2bb/0xbd0 kernel/softirq.c:284
+ invoke_softirq kernel/softirq.c:364 [inline]
+ irq_exit+0x1d3/0x210 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:638 [inline]
+ smp_apic_timer_interrupt+0x177/0x710 arch/x86/kernel/apic/apic.c:1048
+ apic_timer_interrupt+0x9d/0xb0 arch/x86/entry/entry_64.S:577
+ </IRQ>
+RIP: 0010:native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:53
+RSP: 0018:ffff88006dadfdb0 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff10
+RAX: dffffc0000000000 RBX: 1ffff1000db5bfb9 RCX: 0000000000000000
+RDX: 1ffffffff0b59340 RSI: 0000000000000001 RDI: ffffffff85ac9a00
+RBP: ffff88006dadfdb0 R08: ffffffff8161bd49 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffffffff85ac99f0
+R13: ffff88006dadfe68 R14: 0000000000000000 R15: ffff88006dace080
+ arch_safe_halt arch/x86/include/asm/paravirt.h:93 [inline]
+ default_idle+0xbf/0x460 arch/x86/kernel/process.c:341
+ arch_cpu_idle+0xa/0x10 arch/x86/kernel/process.c:332
+ default_idle_call+0x36/0x90 kernel/sched/idle.c:98
+ cpuidle_idle_call kernel/sched/idle.c:156 [inline]
+ do_idle+0x256/0x3b0 kernel/sched/idle.c:246
+ cpu_startup_entry+0x18/0x20 kernel/sched/idle.c:351
+ start_secondary+0x2ea/0x3f0 arch/x86/kernel/smpboot.c:277
+ secondary_startup_64+0xa5/0xa5 arch/x86/kernel/head_64.S:235
+Code: e8 03 80 3c 18 00 0f 85 87 01 00 00 48 8b 85 50 ff ff ff 4c 8b 38 4d 85 ff 0f 84 93 00 00 00 e8 e9 00 03 fe 4c 89 f8 48 c1 e8 03 <80> 3c 18 00 0f 85 6f 01 00 00 49 8d 7f 38 49 83 c4 01 4d 8b 2f 
+RIP: tun_flow_cleanup+0x16e/0x300 drivers/net/tun.c:388 RSP: ffff88006df076a8
+---[ end trace 63440d38ceb8bb21 ]---

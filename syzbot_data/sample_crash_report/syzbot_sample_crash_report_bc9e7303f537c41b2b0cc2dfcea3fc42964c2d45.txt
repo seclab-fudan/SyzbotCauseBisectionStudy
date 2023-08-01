@@ -1,0 +1,162 @@
+======================================================
+WARNING: possible circular locking dependency detected
+5.8.0-rc4-syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor.1/4807 is trying to acquire lock:
+ffffffff89c3a988 (delayed_uprobe_lock){+.+.}-{3:3}, at: uprobe_clear_state+0x47/0x3b0 kernel/events/uprobes.c:1550
+
+but task is already holding lock:
+ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: fs_reclaim_release mm/page_alloc.c:4202 [inline]
+ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: fs_reclaim_release mm/page_alloc.c:4198 [inline]
+ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:4227 [inline]
+ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4244 [inline]
+ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_slowpath.constprop.0+0x1554/0x2780 mm/page_alloc.c:4650
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (fs_reclaim){+.+.}-{0:0}:
+       __fs_reclaim_acquire mm/page_alloc.c:4183 [inline]
+       fs_reclaim_acquire+0x2f/0x40 mm/page_alloc.c:4194
+       slab_pre_alloc_hook mm/slab.h:564 [inline]
+       slab_alloc mm/slab.c:3306 [inline]
+       kmem_cache_alloc_trace+0x29/0x2d0 mm/slab.c:3549
+       kmalloc include/linux/slab.h:555 [inline]
+       kzalloc include/linux/slab.h:669 [inline]
+       delayed_uprobe_add kernel/events/uprobes.c:304 [inline]
+       update_ref_ctr+0x4b6/0x700 kernel/events/uprobes.c:438
+       uprobe_write_opcode+0xe07/0x1650 kernel/events/uprobes.c:497
+       install_breakpoint kernel/events/uprobes.c:915 [inline]
+       install_breakpoint.isra.0+0x5a5/0x7c0 kernel/events/uprobes.c:897
+       uprobe_mmap+0x5d7/0x1050 kernel/events/uprobes.c:1394
+       mmap_region+0x5cf/0x1590 mm/mmap.c:1818
+       do_mmap+0xca8/0x1170 mm/mmap.c:1545
+       do_mmap_pgoff include/linux/mm.h:2596 [inline]
+       vm_mmap_pgoff+0x197/0x200 mm/util.c:506
+       ksys_mmap_pgoff+0x455/0x5a0 mm/mmap.c:1595
+       do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+       entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+-> #0 (delayed_uprobe_lock){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:2496 [inline]
+       check_prevs_add kernel/locking/lockdep.c:2601 [inline]
+       validate_chain kernel/locking/lockdep.c:3218 [inline]
+       __lock_acquire+0x2acb/0x56e0 kernel/locking/lockdep.c:4380
+       lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:4959
+       __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+       __mutex_lock+0x134/0x10d0 kernel/locking/mutex.c:1103
+       uprobe_clear_state+0x47/0x3b0 kernel/events/uprobes.c:1550
+       __mmput+0x73/0x470 kernel/fork.c:1089
+       mmput+0x53/0x60 kernel/fork.c:1114
+       binder_alloc_free_page+0x441/0xf90 drivers/android/binder_alloc.c:950
+       __list_lru_walk_one+0x178/0x5c0 mm/list_lru.c:222
+       list_lru_walk_one mm/list_lru.c:266 [inline]
+       list_lru_walk_node+0x67/0x2a0 mm/list_lru.c:295
+       list_lru_walk include/linux/list_lru.h:215 [inline]
+       binder_shrink_scan+0x123/0x190 drivers/android/binder_alloc.c:984
+       do_shrink_slab+0x3c6/0xab0 mm/vmscan.c:518
+       shrink_slab+0x16f/0x5c0 mm/vmscan.c:679
+       shrink_node_memcgs mm/vmscan.c:2658 [inline]
+       shrink_node+0x519/0x1b60 mm/vmscan.c:2770
+       shrink_zones mm/vmscan.c:2973 [inline]
+       do_try_to_free_pages+0x38b/0x1340 mm/vmscan.c:3026
+       try_to_free_pages+0x29a/0x8b0 mm/vmscan.c:3265
+       __perform_reclaim mm/page_alloc.c:4223 [inline]
+       __alloc_pages_direct_reclaim mm/page_alloc.c:4244 [inline]
+       __alloc_pages_slowpath.constprop.0+0x949/0x2780 mm/page_alloc.c:4650
+       __alloc_pages_nodemask+0x68f/0x930 mm/page_alloc.c:4863
+       alloc_pages_current+0x187/0x280 mm/mempolicy.c:2292
+       alloc_pages include/linux/gfp.h:545 [inline]
+       alloc_mmu_pages+0x7f/0x170 arch/x86/kvm/mmu/mmu.c:5671
+       kvm_mmu_create+0x3cb/0x560 arch/x86/kvm/mmu/mmu.c:5704
+       kvm_arch_vcpu_create+0x16d/0xb70 arch/x86/kvm/x86.c:9433
+       kvm_vm_ioctl_create_vcpu arch/x86/kvm/../../../virt/kvm/kvm_main.c:3060 [inline]
+       kvm_vm_ioctl+0x1547/0x23c0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3621
+       vfs_ioctl fs/ioctl.c:48 [inline]
+       ksys_ioctl+0x11a/0x180 fs/ioctl.c:753
+       __do_sys_ioctl fs/ioctl.c:762 [inline]
+       __se_sys_ioctl fs/ioctl.c:760 [inline]
+       __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:760
+       do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+       entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(fs_reclaim);
+                               lock(delayed_uprobe_lock);
+                               lock(fs_reclaim);
+  lock(delayed_uprobe_lock);
+
+ *** DEADLOCK ***
+
+3 locks held by syz-executor.1/4807:
+ #0: ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: fs_reclaim_release mm/page_alloc.c:4202 [inline]
+ #0: ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: fs_reclaim_release mm/page_alloc.c:4198 [inline]
+ #0: ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: __perform_reclaim mm/page_alloc.c:4227 [inline]
+ #0: ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_direct_reclaim mm/page_alloc.c:4244 [inline]
+ #0: ffffffff89c6c360 (fs_reclaim){+.+.}-{0:0}, at: __alloc_pages_slowpath.constprop.0+0x1554/0x2780 mm/page_alloc.c:4650
+ #1: ffffffff89c46b90 (shrinker_rwsem){++++}-{3:3}, at: shrink_slab+0xc7/0x5c0 mm/vmscan.c:669
+ #2: ffff88808ea481e0 (&alloc->mutex){+.+.}-{3:3}, at: binder_alloc_free_page+0x4f/0xf90 drivers/android/binder_alloc.c:923
+
+stack backtrace:
+CPU: 0 PID: 4807 Comm: syz-executor.1 Not tainted 5.8.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ check_noncircular+0x324/0x3e0 kernel/locking/lockdep.c:1827
+ check_prev_add kernel/locking/lockdep.c:2496 [inline]
+ check_prevs_add kernel/locking/lockdep.c:2601 [inline]
+ validate_chain kernel/locking/lockdep.c:3218 [inline]
+ __lock_acquire+0x2acb/0x56e0 kernel/locking/lockdep.c:4380
+ lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:4959
+ __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+ __mutex_lock+0x134/0x10d0 kernel/locking/mutex.c:1103
+ uprobe_clear_state+0x47/0x3b0 kernel/events/uprobes.c:1550
+ __mmput+0x73/0x470 kernel/fork.c:1089
+ mmput+0x53/0x60 kernel/fork.c:1114
+ binder_alloc_free_page+0x441/0xf90 drivers/android/binder_alloc.c:950
+ __list_lru_walk_one+0x178/0x5c0 mm/list_lru.c:222
+ list_lru_walk_one mm/list_lru.c:266 [inline]
+ list_lru_walk_node+0x67/0x2a0 mm/list_lru.c:295
+ list_lru_walk include/linux/list_lru.h:215 [inline]
+ binder_shrink_scan+0x123/0x190 drivers/android/binder_alloc.c:984
+ do_shrink_slab+0x3c6/0xab0 mm/vmscan.c:518
+ shrink_slab+0x16f/0x5c0 mm/vmscan.c:679
+ shrink_node_memcgs mm/vmscan.c:2658 [inline]
+ shrink_node+0x519/0x1b60 mm/vmscan.c:2770
+ shrink_zones mm/vmscan.c:2973 [inline]
+ do_try_to_free_pages+0x38b/0x1340 mm/vmscan.c:3026
+ try_to_free_pages+0x29a/0x8b0 mm/vmscan.c:3265
+ __perform_reclaim mm/page_alloc.c:4223 [inline]
+ __alloc_pages_direct_reclaim mm/page_alloc.c:4244 [inline]
+ __alloc_pages_slowpath.constprop.0+0x949/0x2780 mm/page_alloc.c:4650
+ __alloc_pages_nodemask+0x68f/0x930 mm/page_alloc.c:4863
+ alloc_pages_current+0x187/0x280 mm/mempolicy.c:2292
+ alloc_pages include/linux/gfp.h:545 [inline]
+ alloc_mmu_pages+0x7f/0x170 arch/x86/kvm/mmu/mmu.c:5671
+ kvm_mmu_create+0x3cb/0x560 arch/x86/kvm/mmu/mmu.c:5704
+ kvm_arch_vcpu_create+0x16d/0xb70 arch/x86/kvm/x86.c:9433
+ kvm_vm_ioctl_create_vcpu arch/x86/kvm/../../../virt/kvm/kvm_main.c:3060 [inline]
+ kvm_vm_ioctl+0x1547/0x23c0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3621
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ ksys_ioctl+0x11a/0x180 fs/ioctl.c:753
+ __do_sys_ioctl fs/ioctl.c:762 [inline]
+ __se_sys_ioctl fs/ioctl.c:760 [inline]
+ __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:760
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x45cba9
+Code: Bad RIP value.
+RSP: 002b:00007f45444f8c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004e85c0 RCX: 000000000045cba9
+RDX: 0000000000000000 RSI: 000000000000ae41 RDI: 0000000000000004
+RBP: 000000000078bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000000003a3 R14: 00000000004c652f R15: 00007f45444f96d4

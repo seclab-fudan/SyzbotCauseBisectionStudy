@@ -1,0 +1,98 @@
+audit: type=1400 audit(1541599844.544:36): avc:  denied  { map } for  pid=5838 comm="syz-executor611" path="/root/syz-executor611813425" dev="sda1" ino=1426 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+INFO: task syz-executor611:5839 blocked for more than 140 seconds.
+      Not tainted 4.20.0-rc1+ #102
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor611 D24216  5839   5838 0x00000004
+Call Trace:
+ context_switch kernel/sched/core.c:2831 [inline]
+ __schedule+0x8cf/0x21d0 kernel/sched/core.c:3472
+ schedule+0xfe/0x460 kernel/sched/core.c:3516
+ schedule_timeout+0x1cc/0x260 kernel/time/timer.c:1780
+ do_wait_for_common kernel/sched/completion.c:83 [inline]
+ __wait_for_common kernel/sched/completion.c:104 [inline]
+ wait_for_common kernel/sched/completion.c:115 [inline]
+ wait_for_completion+0x427/0x8a0 kernel/sched/completion.c:136
+ flush_workqueue+0x742/0x1e10 kernel/workqueue.c:2707
+ flush_scheduled_work include/linux/workqueue.h:599 [inline]
+ vim2m_stop_streaming+0x7c/0x2c0 drivers/media/platform/vim2m.c:811
+ __vb2_queue_cancel+0x171/0xd20 drivers/media/common/videobuf2/videobuf2-core.c:1823
+ vb2_core_queue_release+0x26/0x80 drivers/media/common/videobuf2/videobuf2-core.c:2229
+ vb2_queue_release+0x15/0x20 drivers/media/common/videobuf2/videobuf2-v4l2.c:837
+ v4l2_m2m_ctx_release+0x1e/0x35 drivers/media/v4l2-core/v4l2-mem2mem.c:930
+ vim2m_release+0xe6/0x150 drivers/media/platform/vim2m.c:977
+ v4l2_release+0x224/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:456
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x401010
+Code: 00 00 00 00 00 00 00 00 00 00 c4 04 00 00 12 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 cd 01 00 00 12 00 00 00 <00> 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02 00 00 12 00
+RSP: 002b:00007fff234b5948 EFLAGS: 00000246 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000003 RCX: 0000000000401010
+RDX: 0000000000444bb9 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 00000000004002e0 R09: 00000000004002e0
+R10: 00000000004002e0 R11: 0000000000000246 R12: 0000000000401f20
+R13: 0000000000401fb0 R14: 0000000000000000 R15: 0000000000000000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1007:
+ #0: 000000002e0331b1 (rcu_read_lock){....}, at: debug_show_all_locks+0xd0/0x424 kernel/locking/lockdep.c:4379
+2 locks held by kworker/0:2/2881:
+ #0: 00000000078d9039 ((wq_completion)"events"){+.+.}, at: __write_once_size include/linux/compiler.h:209 [inline]
+ #0: 00000000078d9039 ((wq_completion)"events"){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: 00000000078d9039 ((wq_completion)"events"){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:40 [inline]
+ #0: 00000000078d9039 ((wq_completion)"events"){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:59 [inline]
+ #0: 00000000078d9039 ((wq_completion)"events"){+.+.}, at: set_work_data kernel/workqueue.c:617 [inline]
+ #0: 00000000078d9039 ((wq_completion)"events"){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+ #0: 00000000078d9039 ((wq_completion)"events"){+.+.}, at: process_one_work+0xb43/0x1c40 kernel/workqueue.c:2124
+ #1: 00000000f078aaa2 ((work_completion)(&smc->tcp_listen_work)){+.+.}, at: process_one_work+0xb9a/0x1c40 kernel/workqueue.c:2128
+1 lock held by rsyslogd/5687:
+ #0: 00000000c647e6e7 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0x1bb/0x200 fs/file.c:766
+2 locks held by getty/5810:
+ #0: 000000003d7d6040 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 000000008ac92458 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/5811:
+ #0: 000000009b7104d4 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 0000000016c3d5ed (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/5812:
+ #0: 000000009123291c (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 00000000aea2787f (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/5813:
+ #0: 00000000992b284e (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 000000009bdfd77d (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/5814:
+ #0: 00000000837c3129 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 00000000c2dc8f22 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/5815:
+ #0: 0000000045e1641d (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 00000000cadbf83b (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/5816:
+ #0: 00000000f27b6290 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 0000000084a243bb (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by syz-executor611/5839:
+ #0: 00000000356ef51e (&mdev->req_queue_mutex){+.+.}, at: v4l2_release+0x1d7/0x3a0 drivers/media/v4l2-core/v4l2-dev.c:455
+ #1: 000000006a8dd9f3 (&dev->dev_mutex){+.+.}, at: vim2m_release+0xbc/0x150 drivers/media/platform/vim2m.c:976
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1007 Comm: khungtaskd Not tainted 4.20.0-rc1+ #102
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.2+0x5c/0xa1 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x1e8/0x22a lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:144 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:205 [inline]
+ watchdog+0xb51/0x1060 kernel/hung_task.c:289
+ kthread+0x35a/0x440 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1 skipped: idling at native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:57

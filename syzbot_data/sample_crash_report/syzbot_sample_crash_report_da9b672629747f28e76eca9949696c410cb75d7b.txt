@@ -1,0 +1,41 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 4788 Comm: kworker/u4:3 Not tainted 4.17.0-rc7+ #74
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: kstrp strp_work
+RIP: 0010:__skb_unlink include/linux/skbuff.h:1844 [inline]
+RIP: 0010:__skb_dequeue include/linux/skbuff.h:1861 [inline]
+RIP: 0010:requeue_rx_msgs+0x14d/0x620 net/kcm/kcmsock.c:226
+RSP: 0018:ffff8801aa97f0b8 EFLAGS: 00010202
+RAX: 0000000000000000 RBX: dffffc0000000000 RCX: ffffffff86d54ed3
+RDX: 0000000000000001 RSI: ffffffff86d531e2 RDI: 0000000000000008
+RBP: ffff8801aa97f1b8 R08: ffff8801aaa8e3c0 R09: ffffed0035f0a0e8
+R10: ffffed0035f0a0e8 R11: ffff8801af850743 R12: ffff8801d4407000
+R13: ffffed003552fe22 R14: 0000000000000000 R15: ffff8801a6bb06c0
+FS:  0000000000000000(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fba7c5099a0 CR3: 00000001af6f6000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ unreserve_rx_kcm+0x471/0x520 net/kcm/kcmsock.c:334
+ kcm_rcv_strparser+0x109/0x8d0 net/kcm/kcmsock.c:375
+ __strp_recv+0x34b/0x2130 net/strparser/strparser.c:328
+ strp_recv+0xcf/0x110 net/strparser/strparser.c:362
+ tcp_read_sock+0x2aa/0x810 net/ipv4/tcp.c:1652
+ strp_read_sock+0x1a1/0x2d0 net/strparser/strparser.c:385
+ do_strp_work net/strparser/strparser.c:440 [inline]
+ strp_work+0xcd/0x120 net/strparser/strparser.c:449
+ process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+ worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+ kthread+0x345/0x410 kernel/kthread.c:240
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+Code: 80 3c 1a 00 0f 85 70 04 00 00 48 8d 78 08 4d 8b 74 24 08 49 c7 04 24 00 00 00 00 49 c7 44 24 08 00 00 00 00 48 89 fa 48 c1 ea 03 <80> 3c 1a 00 0f 85 a7 04 00 00 4c 89 f2 4c 89 70 08 48 c1 ea 03 
+RIP: __skb_unlink include/linux/skbuff.h:1844 [inline] RSP: ffff8801aa97f0b8
+RIP: __skb_dequeue include/linux/skbuff.h:1861 [inline] RSP: ffff8801aa97f0b8
+RIP: requeue_rx_msgs+0x14d/0x620 net/kcm/kcmsock.c:226 RSP: ffff8801aa97f0b8
+---[ end trace e4c0e45094907eaa ]---

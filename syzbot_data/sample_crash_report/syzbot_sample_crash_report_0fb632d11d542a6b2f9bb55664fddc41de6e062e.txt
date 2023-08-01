@@ -1,0 +1,127 @@
+INFO: task syz-executor103:5127 blocked for more than 143 seconds.
+      Not tainted 6.3.0-rc4-syzkaller-00199-g7b50567bdcad #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor103 state:D stack:28248 pid:5127  ppid:5105   flags:0x00000004
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5307 [inline]
+ __schedule+0xc91/0x5770 kernel/sched/core.c:6625
+ schedule+0xde/0x1a0 kernel/sched/core.c:6701
+ schedule_preempt_disabled+0x13/0x20 kernel/sched/core.c:6760
+ __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+ __mutex_lock+0xa3b/0x1350 kernel/locking/mutex.c:747
+ device_lock include/linux/device.h:832 [inline]
+ usbdev_open+0x1a1/0x990 drivers/usb/core/devio.c:1041
+ chrdev_open+0x26a/0x770 fs/char_dev.c:414
+ do_dentry_open+0x6cc/0x13f0 fs/open.c:920
+ do_open fs/namei.c:3560 [inline]
+ path_openat+0x1baa/0x2750 fs/namei.c:3715
+ do_filp_open+0x1ba/0x410 fs/namei.c:3742
+ do_sys_openat2+0x16d/0x4c0 fs/open.c:1348
+ do_sys_open fs/open.c:1364 [inline]
+ __do_sys_openat fs/open.c:1380 [inline]
+ __se_sys_openat fs/open.c:1375 [inline]
+ __x64_sys_openat+0x143/0x1f0 fs/open.c:1375
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fb492d72f47
+RSP: 002b:00007ffcd22a6be0 EFLAGS: 00000246 ORIG_RAX: 0000000000000101
+RAX: ffffffffffffffda RBX: 0000000000000286 RCX: 00007fb492d72f47
+RDX: 0000000000000000 RSI: 00007ffcd22a6c60 RDI: 00000000ffffff9c
+RBP: 00007ffcd22a6c60 R08: 000000000000fff3 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 431bde82d7b634db R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/12:
+ #0: ffffffff8c794a70 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+1 lock held by rcu_tasks_trace/13:
+ #0: ffffffff8c794770 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+1 lock held by khungtaskd/28:
+ #0: ffffffff8c7955c0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x55/0x340 kernel/locking/lockdep.c:6495
+5 locks held by kworker/0:2/1122:
+ #0: ffff888017c43938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888017c43938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888017c43938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888017c43938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:639 [inline]
+ #0: ffff888017c43938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:666 [inline]
+ #0: ffff888017c43938 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: process_one_work+0x87a/0x15c0 kernel/workqueue.c:2361
+ #1: ffffc9000583fda8 ((work_completion)(&hub->events)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x15c0 kernel/workqueue.c:2365
+ #2: ffff888021783190 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:832 [inline]
+ #2: ffff888021783190 (&dev->mutex){....}-{3:3}, at: hub_event+0x1c0/0x4e40 drivers/usb/core/hub.c:5739
+ #3: ffff888017cee190 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:832 [inline]
+ #3: ffff888017cee190 (&dev->mutex){....}-{3:3}, at: __device_attach+0x76/0x4b0 drivers/base/dd.c:973
+ #4: ffff888023a23118 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:832 [inline]
+ #4: ffff888023a23118 (&dev->mutex){....}-{3:3}, at: __device_attach+0x76/0x4b0 drivers/base/dd.c:973
+2 locks held by getty/4761:
+ #0: ffff88802bbec098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x26/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc900015a02f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xef4/0x13e0 drivers/tty/n_tty.c:2177
+4 locks held by udevd/5123:
+ #0: ffff88801d6921c8 (&p->lock){+.+.}-{3:3}, at: seq_read_iter+0xe3/0x12d0 fs/seq_file.c:182
+ #1: ffff88801d75e888 (&of->mutex){+.+.}-{3:3}, at: kernfs_seq_start+0x4b/0x450 fs/kernfs/file.c:154
+ #2: ffff888146ac8cb8 (kn->active#30){.+.+}-{0:0}, at: kernfs_seq_start+0x75/0x450 fs/kernfs/file.c:155
+ #3: ffff888017cee190 (&dev->mutex){....}-{3:3}, at: device_lock_interruptible include/linux/device.h:837 [inline]
+ #3: ffff888017cee190 (&dev->mutex){....}-{3:3}, at: manufacturer_show+0x26/0xa0 drivers/usb/core/sysfs.c:142
+1 lock held by syz-executor103/5127:
+ #0: ffff888021783190 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:832 [inline]
+ #0: ffff888021783190 (&dev->mutex){....}-{3:3}, at: usbdev_open+0x1a1/0x990 drivers/usb/core/devio.c:1041
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 28 Comm: khungtaskd Not tainted 6.3.0-rc4-syzkaller-00199-g7b50567bdcad #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ nmi_cpu_backtrace+0x29c/0x350 lib/nmi_backtrace.c:113
+ nmi_trigger_cpumask_backtrace+0x2a4/0x300 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:222 [inline]
+ watchdog+0xe16/0x1090 kernel/hung_task.c:379
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 11 Comm: kworker/u4:1 Not tainted 6.3.0-rc4-syzkaller-00199-g7b50567bdcad #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Workqueue: events_unbound toggle_allocation_gate
+RIP: 0010:match_held_lock+0x77/0xc0 kernel/locking/lockdep.c:5146
+Code: 53 20 81 e2 ff 1f 00 00 48 39 d0 0f 94 c0 48 83 c4 08 0f b6 c0 5b c3 31 f6 e8 65 fe ff ff 48 85 c0 75 b2 31 c0 48 83 c4 08 5b <c3> 48 83 c4 08 b8 01 00 00 00 5b c3 e8 28 9b 0a fa 85 c0 74 e4 8b
+RSP: 0018:ffffc90000107a70 EFLAGS: 00000082
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000001
+RDX: 0000000000000000 RSI: ffffffff8c65b9c8 RDI: ffff88801678c4b8
+RBP: ffffffff8c65b9c8 R08: ffffffff81d37d71 R09: ffff888012466063
+R10: ffffed100248cc0c R11: 0000000000000000 R12: ffff88801678ba80
+R13: ffff88801678c4b8 R14: 00000000ffffffff R15: ffff88801678c4b8
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005630562659b0 CR3: 000000000c571000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __lock_is_held kernel/locking/lockdep.c:5410 [inline]
+ lock_is_held_type+0xab/0x140 kernel/locking/lockdep.c:5712
+ lock_is_held include/linux/lockdep.h:283 [inline]
+ text_poke arch/x86/kernel/alternative.c:1667 [inline]
+ text_poke_bp_batch+0x550/0x770 arch/x86/kernel/alternative.c:2048
+ text_poke_flush arch/x86/kernel/alternative.c:2161 [inline]
+ text_poke_flush arch/x86/kernel/alternative.c:2158 [inline]
+ text_poke_finish+0x1a/0x30 arch/x86/kernel/alternative.c:2168
+ arch_jump_label_transform_apply+0x17/0x30 arch/x86/kernel/jump_label.c:146
+ jump_label_update+0x32f/0x410 kernel/jump_label.c:829
+ static_key_disable_cpuslocked+0x156/0x1b0 kernel/jump_label.c:235
+ static_key_disable+0x1a/0x20 kernel/jump_label.c:243
+ toggle_allocation_gate mm/kfence/core.c:808 [inline]
+ toggle_allocation_gate+0x143/0x230 mm/kfence/core.c:795
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 1.261 msecs

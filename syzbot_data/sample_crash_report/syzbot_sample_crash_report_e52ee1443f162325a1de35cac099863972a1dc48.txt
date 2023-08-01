@@ -1,0 +1,248 @@
+======================================================
+WARNING: possible circular locking dependency detected
+5.13.0-rc7-syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor.0/7200 is trying to acquire lock:
+ffff888011069818 (&pool->lock/1){-.-.}-{2:2}, at: __queue_work+0x366/0xed0 kernel/workqueue.c:1455
+
+but task is already holding lock:
+ffffffff90a3d5d0 (&port_lock_key){-.-.}-{2:2}, at: spin_lock include/linux/spinlock.h:354 [inline]
+ffffffff90a3d5d0 (&port_lock_key){-.-.}-{2:2}, at: serial8250_handle_irq.part.0+0x1d/0x3a0 drivers/tty/serial/8250/8250_port.c:1900
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #3 (&port_lock_key){-.-.}-{2:2}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x39/0x50 kernel/locking/spinlock.c:159
+       serial8250_console_write+0x8b2/0xae0 drivers/tty/serial/8250/8250_port.c:3298
+       call_console_drivers kernel/printk/printk.c:1938 [inline]
+       console_unlock+0x859/0xc40 kernel/printk/printk.c:2643
+       vprintk_emit+0x1ca/0x560 kernel/printk/printk.c:2174
+       vprintk+0x8d/0x260 kernel/printk/printk_safe.c:392
+       printk+0xba/0xed kernel/printk/printk.c:2216
+       register_console kernel/printk/printk.c:2991 [inline]
+       register_console+0x55f/0x780 kernel/printk/printk.c:2870
+       univ8250_console_init+0x3a/0x46 drivers/tty/serial/8250/8250_core.c:690
+       console_init+0x3c7/0x596 kernel/printk/printk.c:3091
+       start_kernel+0x306/0x496 init/main.c:1016
+       secondary_startup_64_no_verify+0xb0/0xbb
+
+-> #2 (console_owner){-.-.}-{0:0}:
+       console_lock_spinning_enable kernel/printk/printk.c:1790 [inline]
+       console_unlock+0x359/0xc40 kernel/printk/printk.c:2640
+       vprintk_emit+0x1ca/0x560 kernel/printk/printk.c:2174
+       vprintk+0x8d/0x260 kernel/printk/printk_safe.c:392
+       printk+0xba/0xed kernel/printk/printk.c:2216
+       show_pwq+0x15b/0x7e5 kernel/workqueue.c:4702
+       show_workqueue_state kernel/workqueue.c:4798 [inline]
+       show_workqueue_state.cold+0x18f/0x773 kernel/workqueue.c:4769
+       try_to_freeze_tasks.cold+0x77/0x44b kernel/power/process.c:97
+       freeze_kernel_threads+0x53/0xd1 kernel/power/process.c:177
+       suspend_freeze_processes kernel/power/power.h:261 [inline]
+       suspend_prepare kernel/power/suspend.c:359 [inline]
+       enter_state kernel/power/suspend.c:576 [inline]
+       pm_suspend kernel/power/suspend.c:613 [inline]
+       pm_suspend+0x30e/0x890 kernel/power/suspend.c:605
+       state_store+0xe5/0x240 kernel/power/main.c:658
+       kobj_attr_store+0x50/0x80 lib/kobject.c:856
+       sysfs_kf_write+0x110/0x160 fs/sysfs/file.c:139
+       kernfs_fop_write_iter+0x342/0x500 fs/kernfs/file.c:296
+       call_write_iter include/linux/fs.h:2114 [inline]
+       do_iter_readv_writev+0x46f/0x740 fs/read_write.c:740
+       do_iter_write+0x188/0x670 fs/read_write.c:866
+       vfs_iter_write+0x70/0xa0 fs/read_write.c:907
+       iter_file_splice_write+0x723/0xc70 fs/splice.c:689
+       do_splice_from fs/splice.c:767 [inline]
+       direct_splice_actor+0x110/0x180 fs/splice.c:936
+       splice_direct_to_actor+0x34b/0x8c0 fs/splice.c:891
+       do_splice_direct+0x1b3/0x280 fs/splice.c:979
+       do_sendfile+0x9f0/0x1110 fs/read_write.c:1260
+       __do_sys_sendfile64 fs/read_write.c:1319 [inline]
+       __se_sys_sendfile64 fs/read_write.c:1311 [inline]
+       __x64_sys_sendfile64+0x149/0x210 fs/read_write.c:1311
+       do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #1 (&pool->lock){-.-.}-{2:2}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+       __queue_work+0x366/0xed0 kernel/workqueue.c:1455
+       queue_work_on+0xee/0x110 kernel/workqueue.c:1525
+       queue_work include/linux/workqueue.h:507 [inline]
+       schedule_work include/linux/workqueue.h:568 [inline]
+       put_pwq+0x161/0x1b0 kernel/workqueue.c:1117
+       put_pwq_unlocked kernel/workqueue.c:1134 [inline]
+       put_pwq_unlocked kernel/workqueue.c:1126 [inline]
+       apply_wqattrs_cleanup+0x1e9/0x2d0 kernel/workqueue.c:3909
+       apply_workqueue_attrs_locked+0xe1/0x140 kernel/workqueue.c:4046
+       apply_workqueue_attrs+0x2c/0x50 kernel/workqueue.c:4077
+       padata_setup_cpumasks+0x57/0x80 kernel/padata.c:435
+       padata_alloc+0x171/0x310 kernel/padata.c:1014
+       pcrypt_init_padata+0x1b/0xf5 crypto/pcrypt.c:319
+       pcrypt_init+0x70/0xef crypto/pcrypt.c:344
+       do_one_initcall+0x103/0x650 init/main.c:1249
+       do_initcall_level init/main.c:1322 [inline]
+       do_initcalls init/main.c:1338 [inline]
+       do_basic_setup init/main.c:1358 [inline]
+       kernel_init_freeable+0x6c4/0x74d init/main.c:1560
+       kernel_init+0xd/0x1b8 init/main.c:1447
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+-> #0 (&pool->lock/1){-.-.}-{2:2}:
+       check_prev_add kernel/locking/lockdep.c:2940 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3063 [inline]
+       validate_chain kernel/locking/lockdep.c:3678 [inline]
+       __lock_acquire+0x2a17/0x5230 kernel/locking/lockdep.c:4904
+       lock_acquire kernel/locking/lockdep.c:5514 [inline]
+       lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5479
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+       __queue_work+0x366/0xed0 kernel/workqueue.c:1455
+       queue_work_on+0xee/0x110 kernel/workqueue.c:1525
+       serial8250_rx_chars+0xcc/0xf0 drivers/tty/serial/8250/8250_port.c:1783
+       serial8250_handle_irq.part.0+0x26e/0x3a0 drivers/tty/serial/8250/8250_port.c:1919
+       serial8250_handle_irq drivers/tty/serial/8250/8250_port.c:1897 [inline]
+       serial8250_default_handle_irq+0xb2/0x220 drivers/tty/serial/8250/8250_port.c:1941
+       serial8250_interrupt+0xfd/0x200 drivers/tty/serial/8250/8250_core.c:126
+       __handle_irq_event_percpu+0x303/0x8f0 kernel/irq/handle.c:156
+       handle_irq_event_percpu kernel/irq/handle.c:196 [inline]
+       handle_irq_event+0x102/0x290 kernel/irq/handle.c:213
+       handle_edge_irq+0x25f/0xd00 kernel/irq/chip.c:819
+       generic_handle_irq_desc include/linux/irqdesc.h:158 [inline]
+       handle_irq arch/x86/kernel/irq.c:231 [inline]
+       __common_interrupt+0x9e/0x200 arch/x86/kernel/irq.c:250
+       common_interrupt+0x9f/0xd0 arch/x86/kernel/irq.c:240
+       asm_common_interrupt+0x1e/0x40 arch/x86/include/asm/idtentry.h:638
+       lock_page_memcg+0x1c8/0x7d0 mm/memcontrol.c:1997
+       page_remove_rmap+0x25/0x1430 mm/rmap.c:1345
+       zap_pte_range mm/memory.c:1270 [inline]
+       zap_pmd_range mm/memory.c:1385 [inline]
+       zap_pud_range mm/memory.c:1414 [inline]
+       zap_p4d_range mm/memory.c:1435 [inline]
+       unmap_page_range+0xea6/0x2890 mm/memory.c:1456
+       unmap_single_vma+0x198/0x300 mm/memory.c:1501
+       unmap_vmas+0x16d/0x2f0 mm/memory.c:1533
+       exit_mmap+0x2a8/0x590 mm/mmap.c:3208
+       __mmput+0x122/0x470 kernel/fork.c:1096
+       mmput+0x58/0x60 kernel/fork.c:1117
+       exit_mm kernel/exit.c:502 [inline]
+       do_exit+0xb0a/0x2a60 kernel/exit.c:813
+       do_group_exit+0x125/0x310 kernel/exit.c:923
+       get_signal+0x47f/0x2150 kernel/signal.c:2850
+       arch_do_signal_or_restart+0x2a8/0x1eb0 arch/x86/kernel/signal.c:789
+       handle_signal_work kernel/entry/common.c:148 [inline]
+       exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+       exit_to_user_mode_prepare+0x180/0x290 kernel/entry/common.c:209
+       __syscall_exit_to_user_mode_work kernel/entry/common.c:291 [inline]
+       syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:302
+       do_syscall_64+0x47/0xb0 arch/x86/entry/common.c:57
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+other info that might help us debug this:
+
+Chain exists of:
+  &pool->lock/1 --> console_owner --> &port_lock_key
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&port_lock_key);
+                               lock(console_owner);
+                               lock(&port_lock_key);
+  lock(&pool->lock/1);
+
+ *** DEADLOCK ***
+
+5 locks held by syz-executor.0/7200:
+ #0: ffff8880194afe58 (ptlock_ptr(page)#2){+.+.}-{2:2}, at: spin_lock include/linux/spinlock.h:354 [inline]
+ #0: ffff8880194afe58 (ptlock_ptr(page)#2){+.+.}-{2:2}, at: zap_pte_range mm/memory.c:1228 [inline]
+ #0: ffff8880194afe58 (ptlock_ptr(page)#2){+.+.}-{2:2}, at: zap_pmd_range mm/memory.c:1385 [inline]
+ #0: ffff8880194afe58 (ptlock_ptr(page)#2){+.+.}-{2:2}, at: zap_pud_range mm/memory.c:1414 [inline]
+ #0: ffff8880194afe58 (ptlock_ptr(page)#2){+.+.}-{2:2}, at: zap_p4d_range mm/memory.c:1435 [inline]
+ #0: ffff8880194afe58 (ptlock_ptr(page)#2){+.+.}-{2:2}, at: unmap_page_range+0x874/0x2890 mm/memory.c:1456
+ #1: ffffffff8bf79660 (rcu_read_lock){....}-{1:2}, at: compound_head include/linux/page-flags.h:184 [inline]
+ #1: ffffffff8bf79660 (rcu_read_lock){....}-{1:2}, at: lock_page_memcg+0x33/0x7d0 mm/memcontrol.c:1973
+ #2: ffff888017c961b0 (&i->lock){-.-.}-{2:2}, at: spin_lock include/linux/spinlock.h:354 [inline]
+ #2: ffff888017c961b0 (&i->lock){-.-.}-{2:2}, at: serial8250_interrupt+0x3a/0x200 drivers/tty/serial/8250/8250_core.c:116
+ #3: ffffffff90a3d5d0 (&port_lock_key){-.-.}-{2:2}, at: spin_lock include/linux/spinlock.h:354 [inline]
+ #3: ffffffff90a3d5d0 (&port_lock_key){-.-.}-{2:2}, at: serial8250_handle_irq.part.0+0x1d/0x3a0 drivers/tty/serial/8250/8250_port.c:1900
+ #4: ffffffff8bf79660 (rcu_read_lock){....}-{1:2}, at: __queue_work+0xd0/0xed0 kernel/workqueue.c:1418
+
+stack backtrace:
+CPU: 1 PID: 7200 Comm: syz-executor.0 Not tainted 5.13.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2131
+ check_prev_add kernel/locking/lockdep.c:2940 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3063 [inline]
+ validate_chain kernel/locking/lockdep.c:3678 [inline]
+ __lock_acquire+0x2a17/0x5230 kernel/locking/lockdep.c:4904
+ lock_acquire kernel/locking/lockdep.c:5514 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5479
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+ __queue_work+0x366/0xed0 kernel/workqueue.c:1455
+ queue_work_on+0xee/0x110 kernel/workqueue.c:1525
+ serial8250_rx_chars+0xcc/0xf0 drivers/tty/serial/8250/8250_port.c:1783
+ serial8250_handle_irq.part.0+0x26e/0x3a0 drivers/tty/serial/8250/8250_port.c:1919
+ serial8250_handle_irq drivers/tty/serial/8250/8250_port.c:1897 [inline]
+ serial8250_default_handle_irq+0xb2/0x220 drivers/tty/serial/8250/8250_port.c:1941
+ serial8250_interrupt+0xfd/0x200 drivers/tty/serial/8250/8250_core.c:126
+ __handle_irq_event_percpu+0x303/0x8f0 kernel/irq/handle.c:156
+ handle_irq_event_percpu kernel/irq/handle.c:196 [inline]
+ handle_irq_event+0x102/0x290 kernel/irq/handle.c:213
+ handle_edge_irq+0x25f/0xd00 kernel/irq/chip.c:819
+ generic_handle_irq_desc include/linux/irqdesc.h:158 [inline]
+ handle_irq arch/x86/kernel/irq.c:231 [inline]
+ __common_interrupt+0x9e/0x200 arch/x86/kernel/irq.c:250
+ common_interrupt+0x9f/0xd0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ asm_common_interrupt+0x1e/0x40 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:instrument_atomic_read include/linux/instrumented.h:71 [inline]
+RIP: 0010:atomic_read include/asm-generic/atomic-instrumented.h:27 [inline]
+RIP: 0010:lock_page_memcg+0x1c8/0x7d0 mm/memcontrol.c:1997
+Code: e8 bf 81 58 e8 f9 97 9a ff 4d 85 ed 0f 85 9a 03 00 00 9c 58 f6 c4 02 0f 85 ef 03 00 00 4d 85 ed 74 01 fb 4c 8d ab 80 10 00 00 <be> 04 00 00 00 4c 89 ef e8 3b 16 fa ff 4c 89 e8 48 be 00 00 00 00
+RSP: 0018:ffffc9000c96f6d8 EFLAGS: 00000206
+RAX: 0000000000000006 RBX: ffff88801232c000 RCX: 1ffffffff2045f0a
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
+RBP: ffffc9000c96f720 R08: 0000000000000001 R09: ffffffff902288b7
+R10: 0000000000000001 R11: 0000000000000000 R12: ffffea0001c00008
+R13: ffff88801232d080 R14: fffff94000380001 R15: ffffea0001c00000
+ page_remove_rmap+0x25/0x1430 mm/rmap.c:1345
+ zap_pte_range mm/memory.c:1270 [inline]
+ zap_pmd_range mm/memory.c:1385 [inline]
+ zap_pud_range mm/memory.c:1414 [inline]
+ zap_p4d_range mm/memory.c:1435 [inline]
+ unmap_page_range+0xea6/0x2890 mm/memory.c:1456
+ unmap_single_vma+0x198/0x300 mm/memory.c:1501
+ unmap_vmas+0x16d/0x2f0 mm/memory.c:1533
+ exit_mmap+0x2a8/0x590 mm/mmap.c:3208
+ __mmput+0x122/0x470 kernel/fork.c:1096
+ mmput+0x58/0x60 kernel/fork.c:1117
+ exit_mm kernel/exit.c:502 [inline]
+ do_exit+0xb0a/0x2a60 kernel/exit.c:813
+ do_group_exit+0x125/0x310 kernel/exit.c:923
+ get_signal+0x47f/0x2150 kernel/signal.c:2850
+ arch_do_signal_or_restart+0x2a8/0x1eb0 arch/x86/kernel/signal.c:789
+ handle_signal_work kernel/entry/common.c:148 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x180/0x290 kernel/entry/common.c:209
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:291 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:302
+ do_syscall_64+0x47/0xb0 arch/x86/entry/common.c:57
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4665d9
+Code: Unable to access opcode bytes at RIP 0x4665af.
+RSP: 002b:00007f1b0dc14218 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000000 RBX: 000000000056bf88 RCX: 00000000004665d9
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 000000000056bf88
+RBP: 000000000056bf80 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056bf8c
+R13: 0000000000a9fb1f R14: 00007f1b0dc14300 R15: 0000000000022000

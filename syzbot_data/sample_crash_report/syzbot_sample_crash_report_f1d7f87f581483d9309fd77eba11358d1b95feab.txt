@@ -1,0 +1,88 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in qrtr_endpoint_post+0xeeb/0x1010 net/qrtr/qrtr.c:462
+Read of size 2 at addr ffff88809e5d4a48 by task syz-executor050/6970
+
+CPU: 0 PID: 6970 Comm: syz-executor050 Not tainted 5.8.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xae/0x436 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ qrtr_endpoint_post+0xeeb/0x1010 net/qrtr/qrtr.c:462
+ qrtr_tun_write_iter+0xf5/0x180 net/qrtr/tun.c:92
+ call_write_iter include/linux/fs.h:1907 [inline]
+ do_iter_readv_writev+0x567/0x780 fs/read_write.c:694
+ do_iter_write+0x188/0x5f0 fs/read_write.c:999
+ vfs_writev+0x1aa/0x2e0 fs/read_write.c:1072
+ do_pwritev fs/read_write.c:1169 [inline]
+ __do_sys_pwritev fs/read_write.c:1216 [inline]
+ __se_sys_pwritev fs/read_write.c:1211 [inline]
+ __x64_sys_pwritev+0x231/0x310 fs/read_write.c:1211
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:359
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x4401d9
+Code: Bad RIP value.
+RSP: 002b:00007fffc542c7a8 EFLAGS: 00000246 ORIG_RAX: 0000000000000128
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004401d9
+RDX: 0000000000000001 RSI: 0000000020000440 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401a60
+R13: 0000000000401af0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 6970:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc.constprop.0+0xc2/0xd0 mm/kasan/common.c:494
+ __do_kmalloc mm/slab.c:3656 [inline]
+ __kmalloc+0x17a/0x340 mm/slab.c:3665
+ kmalloc include/linux/slab.h:560 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ qrtr_tun_write_iter+0x8a/0x180 net/qrtr/tun.c:83
+ call_write_iter include/linux/fs.h:1907 [inline]
+ do_iter_readv_writev+0x567/0x780 fs/read_write.c:694
+ do_iter_write+0x188/0x5f0 fs/read_write.c:999
+ vfs_writev+0x1aa/0x2e0 fs/read_write.c:1072
+ do_pwritev fs/read_write.c:1169 [inline]
+ __do_sys_pwritev fs/read_write.c:1216 [inline]
+ __se_sys_pwritev fs/read_write.c:1211 [inline]
+ __x64_sys_pwritev+0x231/0x310 fs/read_write.c:1211
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:359
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 4969:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ kasan_set_free_info mm/kasan/common.c:316 [inline]
+ __kasan_slab_free+0xf5/0x140 mm/kasan/common.c:455
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x103/0x2c0 mm/slab.c:3757
+ tomoyo_path_perm+0x234/0x3f0 security/tomoyo/file.c:842
+ security_inode_getattr+0xcf/0x140 security/security.c:1278
+ vfs_getattr fs/stat.c:121 [inline]
+ vfs_statx+0x170/0x390 fs/stat.c:206
+ vfs_lstat include/linux/fs.h:3301 [inline]
+ __do_sys_newlstat+0x91/0x110 fs/stat.c:374
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:359
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The buggy address belongs to the object at ffff88809e5d4a40
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 8 bytes inside of
+ 32-byte region [ffff88809e5d4a40, ffff88809e5d4a60)
+The buggy address belongs to the page:
+page:ffffea0002797500 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff88809e5d4fc1
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea000278cfc8 ffffea0002793548 ffff8880aa0001c0
+raw: ffff88809e5d4fc1 ffff88809e5d4000 000000010000003f 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809e5d4900: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff88809e5d4980: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff88809e5d4a00: fb fb fb fb fc fc fc fc 04 fc fc fc fc fc fc fc
+                                              ^
+ ffff88809e5d4a80: fb fb fb fb fc fc fc fc 00 00 fc fc fc fc fc fc
+ ffff88809e5d4b00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

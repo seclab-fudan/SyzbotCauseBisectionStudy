@@ -1,0 +1,127 @@
+==================================================================
+BUG: KASAN: use-after-free in br_ip4_multicast_igmp3_report net/bridge/br_multicast.c:947 [inline]
+BUG: KASAN: use-after-free in br_multicast_ipv4_rcv net/bridge/br_multicast.c:1631 [inline]
+BUG: KASAN: use-after-free in br_multicast_rcv+0x3cd8/0x4440 net/bridge/br_multicast.c:1741
+Read of size 4 at addr ffff88820a4084ee by task syz-executor.2/11183
+
+CPU: 1 PID: 11183 Comm: syz-executor.2 Not tainted 5.0.0+ #14
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:131
+ br_ip4_multicast_igmp3_report net/bridge/br_multicast.c:947 [inline]
+ br_multicast_ipv4_rcv net/bridge/br_multicast.c:1631 [inline]
+ br_multicast_rcv+0x3cd8/0x4440 net/bridge/br_multicast.c:1741
+ br_handle_frame_finish+0xa3a/0x14c0 net/bridge/br_input.c:108
+ br_nf_hook_thresh+0x2ec/0x380 net/bridge/br_netfilter_hooks.c:1005
+ br_nf_pre_routing_finish+0x8e2/0x1750 net/bridge/br_netfilter_hooks.c:410
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ br_nf_pre_routing+0x7e7/0x13a0 net/bridge/br_netfilter_hooks.c:506
+ nf_hook_entry_hookfn include/linux/netfilter.h:119 [inline]
+ nf_hook_slow+0xbf/0x1f0 net/netfilter/core.c:511
+ nf_hook include/linux/netfilter.h:244 [inline]
+ NF_HOOK include/linux/netfilter.h:287 [inline]
+ br_handle_frame+0x95b/0x1450 net/bridge/br_input.c:305
+ __netif_receive_skb_core+0xa96/0x3040 net/core/dev.c:4902
+ __netif_receive_skb_one_core+0xa8/0x1a0 net/core/dev.c:4971
+ __netif_receive_skb+0x2c/0x1c0 net/core/dev.c:5083
+ netif_receive_skb_internal+0x117/0x660 net/core/dev.c:5186
+ netif_receive_skb+0x6e/0x5a0 net/core/dev.c:5261
+kobject: 'queues' (000000006f671765): kobject_uevent_env: filter function caused the event to drop!
+ tun_rx_batched.isra.0+0x4f7/0x840 drivers/net/tun.c:1562
+kobject: 'rx-0' (00000000683c403f): kobject_add_internal: parent: 'queues', set: 'queues'
+ tun_get_user+0x296d/0x3d70 drivers/net/tun.c:1991
+kobject: 'rx-0' (00000000683c403f): kobject_uevent_env
+kobject: 'rx-0' (00000000683c403f): fill_kobj_path: path = '/devices/virtual/mac80211_hwsim/hwsim3244/net/wlan1540/queues/rx-0'
+ tun_chr_write_iter+0xbd/0x160 drivers/net/tun.c:2019
+ call_write_iter include/linux/fs.h:1860 [inline]
+ do_iter_readv_writev+0x5e1/0x8e0 fs/read_write.c:680
+ do_iter_write fs/read_write.c:956 [inline]
+ do_iter_write+0x184/0x610 fs/read_write.c:937
+kobject: 'tx-0' (0000000007db4ba1): kobject_add_internal: parent: 'queues', set: 'queues'
+ vfs_writev+0x1b3/0x2f0 fs/read_write.c:1001
+kobject: 'tx-0' (0000000007db4ba1): kobject_uevent_env
+ do_writev+0xf6/0x290 fs/read_write.c:1036
+ __do_sys_writev fs/read_write.c:1109 [inline]
+ __se_sys_writev fs/read_write.c:1106 [inline]
+ __x64_sys_writev+0x75/0xb0 fs/read_write.c:1106
+kobject: 'tx-0' (0000000007db4ba1): fill_kobj_path: path = '/devices/virtual/mac80211_hwsim/hwsim3244/net/wlan1540/queues/tx-0'
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457de1
+Code: 75 14 b8 14 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 e4 b9 fb ff c3 48 83 ec 08 e8 1a 2d 00 00 48 89 04 24 b8 14 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 63 2d 00 00 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007ff088045ba0 EFLAGS: 00000293 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 000000000000002b RCX: 0000000000457de1
+RDX: 0000000000000001 RSI: 00007ff088045bf0 RDI: 00000000000000f0
+kobject: 'tx-1' (00000000ee64ef6b): kobject_add_internal: parent: 'queues', set: 'queues'
+RBP: 0000000020000000 R08: 00000000000000f0 R09: 0000000000000000
+R10: 00007ff0880469d0 R11: 0000000000000293 R12: 00007ff0880466d4
+R13: 00000000004c65e1 R14: 00000000004dbac0 R15: 00000000ffffffff
+
+Allocated by task 7199:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:505
+kobject: 'tx-1' (00000000ee64ef6b): kobject_uevent_env
+ slab_post_alloc_hook mm/slab.h:436 [inline]
+ slab_alloc_node mm/slab.c:3335 [inline]
+ kmem_cache_alloc_node+0x131/0x710 mm/slab.c:3645
+ alloc_task_struct_node kernel/fork.c:157 [inline]
+ dup_task_struct kernel/fork.c:844 [inline]
+ copy_process.part.0+0x1d08/0x7980 kernel/fork.c:1752
+ copy_process kernel/fork.c:1709 [inline]
+ _do_fork+0x257/0xfd0 kernel/fork.c:2226
+ __do_sys_clone kernel/fork.c:2333 [inline]
+ __se_sys_clone kernel/fork.c:2327 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2327
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+kobject: 'tx-1' (00000000ee64ef6b): fill_kobj_path: path = '/devices/virtual/mac80211_hwsim/hwsim3244/net/wlan1540/queues/tx-1'
+Freed by task 7987:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x260 mm/slab.c:3764
+ free_task_struct kernel/fork.c:162 [inline]
+ free_task+0xdd/0x120 kernel/fork.c:457
+ __put_task_struct+0x1fd/0x4e0 kernel/fork.c:730
+ put_task_struct include/linux/sched/task.h:98 [inline]
+ delayed_put_task_struct+0x1ec/0x340 kernel/exit.c:181
+kobject: 'tx-2' (000000007b6df29b): kobject_add_internal: parent: 'queues', set: 'queues'
+ __rcu_reclaim kernel/rcu/rcu.h:227 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2475 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2788 [inline]
+ rcu_core+0x928/0x1390 kernel/rcu/tree.c:2769
+ __do_softirq+0x266/0x95a kernel/softirq.c:293
+
+The buggy address belongs to the object at ffff88820a408240
+ which belongs to the cache task_struct(17:syz1) of size 6080
+The buggy address is located 686 bytes inside of
+ 6080-byte region [ffff88820a408240, ffff88820a409a00)
+The buggy address belongs to the page:
+page:ffffea0008290200 count:1 mapcount:0 mapping:ffff88809a8de380 index:0x0 compound_mapcount: 0
+flags: 0x6fffc0000010200(slab|head)
+kobject: 'tx-2' (000000007b6df29b): kobject_uevent_env
+raw: 06fffc0000010200 ffffea00081c2a08 ffffea0008254588 ffff88809a8de380
+raw: 0000000000000000 ffff88820a408240 0000000100000001 ffff88805a8a40c0
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff88805a8a40c0
+
+Memory state around the buggy address:
+ ffff88820a408380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88820a408400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+kobject: 'tx-2' (000000007b6df29b): fill_kobj_path: path = '/devices/virtual/mac80211_hwsim/hwsim3244/net/wlan1540/queues/tx-2'
+>ffff88820a408480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                          ^
+ ffff88820a408500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88820a408580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

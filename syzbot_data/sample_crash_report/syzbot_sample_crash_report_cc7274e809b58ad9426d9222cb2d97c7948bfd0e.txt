@@ -1,0 +1,71 @@
+ubi: mtd0 is already attached to ubi0
+============================================
+WARNING: possible recursive locking detected
+5.16.0-rc2-syzkaller #0 Not tainted
+--------------------------------------------
+syz-executor.3/16931 is trying to acquire lock:
+ffff888089eac418 (&ctx->timeout_lock){+.+.}-{2:2}, at: spin_lock_irq include/linux/spinlock.h:374 [inline]
+ffff888089eac418 (&ctx->timeout_lock){+.+.}-{2:2}, at: io_flush_timeouts+0x80/0x34c fs/io_uring.c:1587
+
+but task is already holding lock:
+ffff888089eac418 (&ctx->timeout_lock){+.+.}-{2:2}, at: spin_lock_irq include/linux/spinlock.h:374 [inline]
+ffff888089eac418 (&ctx->timeout_lock){+.+.}-{2:2}, at: io_poll_remove_all+0x49/0x319 fs/io_uring.c:5702
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&ctx->timeout_lock);
+  lock(&ctx->timeout_lock);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+2 locks held by syz-executor.3/16931:
+ #0: ffff888089eac3d8 (&ctx->completion_lock){+.+.}-{2:2}, at: spin_lock include/linux/spinlock.h:349 [inline]
+ #0: ffff888089eac3d8 (&ctx->completion_lock){+.+.}-{2:2}, at: io_poll_remove_all+0x38/0x319 fs/io_uring.c:5701
+ #1: ffff888089eac418 (&ctx->timeout_lock){+.+.}-{2:2}, at: spin_lock_irq include/linux/spinlock.h:374 [inline]
+ #1: ffff888089eac418 (&ctx->timeout_lock){+.+.}-{2:2}, at: io_poll_remove_all+0x49/0x319 fs/io_uring.c:5702
+
+stack backtrace:
+CPU: 1 PID: 16931 Comm: syz-executor.3 Not tainted 5.16.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1dc/0x2d8 lib/dump_stack.c:106
+ print_deadlock_bug kernel/locking/lockdep.c:2956 [inline]
+ check_deadlock kernel/locking/lockdep.c:2999 [inline]
+ validate_chain+0x5984/0x8240 kernel/locking/lockdep.c:3788
+ __lock_acquire+0x1382/0x2b00 kernel/locking/lockdep.c:5027
+ lock_acquire+0x19f/0x4d0 kernel/locking/lockdep.c:5637
+ __raw_spin_lock_irq include/linux/spinlock_api_smp.h:119 [inline]
+ _raw_spin_lock_irq+0xcf/0x110 kernel/locking/spinlock.c:170
+ spin_lock_irq include/linux/spinlock.h:374 [inline]
+ io_flush_timeouts+0x80/0x34c fs/io_uring.c:1587
+ __io_commit_cqring_flush+0x80/0xbf fs/io_uring.c:1618
+ io_commit_cqring fs/io_uring.c:1626 [inline]
+ io_poll_remove_one+0x4bd/0x610 fs/io_uring.c:5684
+ io_poll_remove_all+0x24c/0x319 fs/io_uring.c:5709
+ io_ring_ctx_wait_and_kill+0x22c/0x36a fs/io_uring.c:9534
+ io_uring_release+0x59/0x63 fs/io_uring.c:9554
+ __fput+0x3fc/0x870 fs/file_table.c:280
+ task_work_run+0x146/0x1c0 kernel/task_work.c:164
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:175 [inline]
+ exit_to_user_mode_prepare+0x209/0x220 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x2e/0x70 kernel/entry/common.c:300
+ do_syscall_64+0x53/0xd0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7fe5fdfc5b32
+Code: 00 00 00 00 00 0f 1f 00 41 f7 c1 ff 0f 00 00 75 27 55 48 89 fd 53 89 cb 48 85 ff 74 3b 41 89 da 48 89 ef b8 09 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 66 5b 5d c3 0f 1f 00 48 c7 c0 bc ff ff ff 64
+RSP: 002b:00007fe5fb53b0f8 EFLAGS: 00000206 ORIG_RAX: 0000000000000009
+RAX: 00000000206d4000 RBX: 0000000000008011 RCX: 00007fe5fdfc5b32
+RDX: 0000000000000003 RSI: 0000000000004000 RDI: 00000000206d4000
+RBP: 00000000206d4000 R08: 0000000000000004 R09: 0000000010000000
+R10: 0000000000008011 R11: 0000000000000206 R12: 0000000020000140
+R13: 00000000206d4000 R14: 0000000020000000 R15: 0000000020ee7000
+ </TASK>

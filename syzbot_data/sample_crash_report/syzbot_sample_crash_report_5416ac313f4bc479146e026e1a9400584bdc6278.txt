@@ -1,0 +1,77 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+IPVS: ftp: loaded support on port[0] = 21
+==================================================================
+BUG: KASAN: stack-out-of-bounds in __lock_acquire+0x3829/0x5020 kernel/locking/lockdep.c:3314
+Read of size 8 at addr ffff8801a91dc738 by task syz-executor471/4532
+
+CPU: 0 PID: 4532 Comm: syz-executor471 Not tainted 4.18.0-rc3+ #137
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __lock_acquire+0x3829/0x5020 kernel/locking/lockdep.c:3314
+ lock_acquire+0x1e4/0x540 kernel/locking/lockdep.c:3924
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+ add_wait_queue+0x92/0x2b0 kernel/sched/wait.c:22
+ do_wait+0x1bf/0xb80 kernel/exit.c:1505
+ kernel_wait4+0x247/0x3f0 kernel/exit.c:1665
+ __do_sys_wait4+0x137/0x150 kernel/exit.c:1677
+ __se_sys_wait4 kernel/exit.c:1673 [inline]
+ __x64_sys_wait4+0x97/0xf0 kernel/exit.c:1673
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x405faa
+Code: c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 8b 05 0e cc 2d 00 85 c0 75 36 45 31 d2 48 63 d2 48 63 ff b8 3d 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 06 c3 0f 1f 44 00 00 48 c7 c2 d0 ff ff ff f7 
+RSP: 002b:00007fff2e852408 EFLAGS: 00000246 ORIG_RAX: 000000000000003d
+RAX: ffffffffffffffda RBX: 00000000000007b5 RCX: 0000000000405faa
+RDX: 0000000040000001 RSI: 00007fff2e85241c RDI: ffffffffffffffff
+RBP: 00000000000007b5 R08: 0000000000000001 R09: 00000000023e4880
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000291
+R13: 000000000001b4c3 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4531:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ kmem_cache_zalloc include/linux/slab.h:697 [inline]
+ copy_signal+0x175/0xc10 kernel/fork.c:1443
+ copy_process.part.39+0x2137/0x7220 kernel/fork.c:1800
+ copy_process kernel/fork.c:1616 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2099
+ __do_sys_clone kernel/fork.c:2206 [inline]
+ __se_sys_clone kernel/fork.c:2200 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2200
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801a91dc700
+ which belongs to the cache signal_cache of size 1296
+The buggy address is located 56 bytes inside of
+ 1296-byte region [ffff8801a91dc700, ffff8801a91dcc10)
+The buggy address belongs to the page:
+page:ffffea0006a47700 count:1 mapcount:0 mapping:ffff8801da97be40 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffffea0006b3ca88 ffffea0006b2f888 ffff8801da97be40
+raw: 0000000000000000 ffff8801a91dc140 0000000100000005 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801a91dc600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801a91dc680: 00 00 00 00 f1 f1 f1 f1 00 f2 f2 f2 f2 f2 f2 f2
+>ffff8801a91dc700: 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2
+                                        ^
+ ffff8801a91dc780: f8 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 00 00 00 00
+ ffff8801a91dc800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

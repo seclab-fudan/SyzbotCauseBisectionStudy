@@ -1,0 +1,104 @@
+INFO: task syz-executor297:5064 blocked for more than 143 seconds.
+      Not tainted 6.2.0-rc7-syzkaller-00002-gd2d11f342b17 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor297 state:D stack:26552 pid:5064  ppid:5061   flags:0x00004002
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5293 [inline]
+ __schedule+0xb8a/0x5450 kernel/sched/core.c:6606
+ schedule+0xde/0x1b0 kernel/sched/core.c:6682
+ xlog_grant_head_wait+0x159/0xe00 fs/xfs/xfs_log.c:307
+ xlog_grant_head_check+0x3d9/0x420 fs/xfs/xfs_log.c:369
+ xfs_log_reserve+0x39d/0xb50 fs/xfs/xfs_log.c:486
+ xfs_trans_reserve+0x479/0x670 fs/xfs/xfs_trans.c:194
+ xfs_trans_alloc+0x336/0x9b0 fs/xfs/xfs_trans.c:283
+ xfs_sync_sb+0x83/0x140 fs/xfs/libxfs/xfs_sb.c:1005
+ xfs_log_cover fs/xfs/xfs_log.c:1300 [inline]
+ xfs_log_quiesce+0x24d/0x320 fs/xfs/xfs_log.c:1109
+ xfs_log_clean fs/xfs/xfs_log.c:1116 [inline]
+ xfs_log_unmount+0x22/0x270 fs/xfs/xfs_log.c:1131
+ xfs_unmountfs+0x151/0x290 fs/xfs/xfs_mount.c:1096
+ xfs_fs_put_super+0x7b/0x3b0 fs/xfs/xfs_super.c:1115
+ generic_shutdown_super+0x158/0x410 fs/super.c:492
+ kill_block_super+0x9b/0xf0 fs/super.c:1386
+ deactivate_locked_super+0x98/0x160 fs/super.c:332
+ deactivate_super+0xb1/0xd0 fs/super.c:363
+ cleanup_mnt+0x2ae/0x3d0 fs/namespace.c:1291
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ ptrace_notify+0x118/0x140 kernel/signal.c:2354
+ ptrace_report_syscall include/linux/ptrace.h:411 [inline]
+ ptrace_report_syscall_exit include/linux/ptrace.h:473 [inline]
+ syscall_exit_work kernel/entry/common.c:251 [inline]
+ syscall_exit_to_user_mode_prepare+0x129/0x280 kernel/entry/common.c:278
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:283 [inline]
+ syscall_exit_to_user_mode+0xd/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fcf43980c47
+RSP: 002b:00007ffde0b82d28 EFLAGS: 00000206 ORIG_RAX: 00000000000000a6
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00007fcf43980c47
+RDX: 00007ffde0b82de9 RSI: 000000000000000a RDI: 00007ffde0b82de0
+RBP: 00007ffde0b82de0 R08: 00000000ffffffff R09: 00007ffde0b82bc0
+R10: 0000555556cff653 R11: 0000000000000206 R12: 00007ffde0b83e40
+R13: 0000555556cff5f0 R14: 00007ffde0b82d50 R15: 0000000000000001
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/12:
+ #0: ffffffff8c78f7b0 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x26/0xc70 kernel/rcu/tasks.h:507
+1 lock held by rcu_tasks_trace/13:
+ #0: ffffffff8c78f4b0 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x26/0xc70 kernel/rcu/tasks.h:507
+1 lock held by khungtaskd/27:
+ #0: ffffffff8c790300 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x57/0x264 kernel/locking/lockdep.c:6494
+2 locks held by getty/4748:
+ #0: ffff88802c15b098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x26/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc900015902f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xef4/0x13e0 drivers/tty/n_tty.c:2177
+1 lock held by syz-executor297/5064:
+ #0: ffff88802a9080e0 (&type->s_umount_key#42){+.+.}-{3:3}, at: deactivate_super+0xa9/0xd0 fs/super.c:362
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 27 Comm: khungtaskd Not tainted 6.2.0-rc7-syzkaller-00002-gd2d11f342b17 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x24/0x18a lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x333/0x3c0 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:220 [inline]
+ watchdog+0xc75/0xfc0 kernel/hung_task.c:377
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 2805 Comm: kworker/u4:5 Not tainted 6.2.0-rc7-syzkaller-00002-gd2d11f342b17 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+Workqueue:  0x0 (events_unbound)
+RIP: 0010:detach_tasks kernel/sched/fair.c:8373 [inline]
+RIP: 0010:load_balance+0x167f/0x2e30 kernel/sched/fair.c:10574
+Code: 9d a0 00 00 00 e9 b5 f9 ff ff 83 a4 24 48 01 00 00 fe c7 84 24 c0 00 00 00 00 00 00 00 e9 9d f9 ff ff 4c 8b ac 24 10 01 00 00 <e9> 62 f6 ff ff 49 8d 7c 24 50 48 89 f8 48 c1 e8 03 42 80 3c 30 00
+RSP: 0018:ffffc9000b687930 EFLAGS: 00000002
+RAX: 0000000000000001 RBX: ffff8880b993b580 RCX: 0000000000000001
+RDX: 0000000000000000 RSI: 0000000000000002 RDI: 0000000000000000
+RBP: ffffc9000b687b10 R08: ffff8880b993bfc8 R09: ffff8880b993c000
+R10: fffffbfff1ce6772 R11: ffff8880b993c158 R12: ffff8880b993b580
+R13: ffff8880b993b580 R14: dffffc0000000000 R15: ffff8880126bea20
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055d9772caa40 CR3: 000000000c48e000 CR4: 0000000000350ef0
+Call Trace:
+ <TASK>
+ newidle_balance+0x72b/0x11d0 kernel/sched/fair.c:11584
+ pick_next_task_fair+0x9a/0x12e0 kernel/sched/fair.c:7821
+ __pick_next_task kernel/sched/core.c:5916 [inline]
+ pick_next_task kernel/sched/core.c:5991 [inline]
+ __schedule+0x405/0x5450 kernel/sched/core.c:6570
+ schedule+0xde/0x1b0 kernel/sched/core.c:6682
+ worker_thread+0x160/0x1090 kernel/workqueue.c:2457
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>

@@ -1,0 +1,42 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr0: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): team0: link becomes ready
+IPv6: ADDRCONF(NETDEV_UP): vxcan1: link is not ready
+8021q: adding VLAN 0 to HW filter on device batadv0
+==================================================================
+BUG: KASAN: use-after-free in tick_sched_handle+0x16f/0x190 kernel/time/tick-sched.c:161
+Read of size 8 at addr ffff88808de26030 by task syz-executor447/8097
+
+CPU: 0 PID: 8097 Comm: syz-executor447 Not tainted 5.0.0-rc2 #24
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ tick_sched_handle+0x16f/0x190 kernel/time/tick-sched.c:161
+ tick_sched_timer+0x47/0x130 kernel/time/tick-sched.c:1271
+ __run_hrtimer kernel/time/hrtimer.c:1389 [inline]
+ __hrtimer_run_queues+0x3a7/0x1050 kernel/time/hrtimer.c:1451
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1035 [inline]
+ smp_apic_timer_interrupt+0x18d/0x760 arch/x86/kernel/apic/apic.c:1060
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+
+The buggy address belongs to the page:
+page:ffffea0002378980 count:0 mapcount:0 mapping:0000000000000000 index:0xffff88808de26d00
+flags: 0x1fffc0000000000()
+raw: 01fffc0000000000 dead000000000100 dead000000000200 0000000000000000
+raw: ffff88808de26d00 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808de25f00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88808de25f80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff88808de26000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                     ^
+ ffff88808de26080: f1 f1 f1 f1 04 f3 f3 f3 ff 00 00 00 00 00 00 00
+ ffff88808de26100: 00 00 00 00 00 00 00 f1 f1 f1 f1 f8 f3 f3 f3 ff
+==================================================================

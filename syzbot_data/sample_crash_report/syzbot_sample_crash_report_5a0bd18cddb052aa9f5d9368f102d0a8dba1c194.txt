@@ -1,0 +1,55 @@
+A link change request failed with some changes committed already. Interface syz0 may have been left with an inconsistent configuration, please check.
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 3657 Comm: syzkaller812634 Not tainted 4.15.0-rc9+ #206
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__ptr_ring_peek include/linux/ptr_ring.h:190 [inline]
+RIP: 0010:__ptr_ring_consume include/linux/ptr_ring.h:286 [inline]
+RIP: 0010:ptr_ring_consume include/linux/ptr_ring.h:322 [inline]
+RIP: 0010:tun_queue_purge+0x1c1/0x410 drivers/net/tun.c:675
+RSP: 0018:ffff8801d99b7650 EFLAGS: 00010202
+RAX: 0000000000000010 RBX: ffff8801d99f5340 RCX: 0000000000000002
+RDX: 0000000000000000 RSI: 00000000f1d68e87 RDI: ffff8801d99f5a0c
+RBP: ffff8801d99b76d0 R08: 1ffff1003b336e09 R09: 00000000000016d6
+R10: ffff8801d99b7508 R11: 1ffff1003b336fe8 R12: 0000000000000000
+R13: 00000000ffffffff R14: 0000000000000010 R15: dffffc0000000000
+FS:  0000000001bf2880(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000006d00a8 CR3: 0000000006822003 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __tun_detach+0xa58/0x10b0 drivers/net/tun.c:722
+ tun_detach drivers/net/tun.c:745 [inline]
+ tun_chr_close+0x44/0x60 drivers/net/tun.c:3164
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x443ec8
+RSP: 002b:00007fffe43a8278 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000443ec8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000006d00a8 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 000000000000834c R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d6180 R14: 0000000000000000 R15: 0000000000000000
+Code: 07 00 00 48 89 45 a0 48 c1 e8 03 42 80 3c 38 00 0f 85 2c 02 00 00 48 8b 83 08 07 00 00 49 63 d4 4c 8d 34 d0 4c 89 f1 48 c1 e9 03 <42> 80 3c 39 00 0f 85 ef 01 00 00 4d 8b 36 48 89 55 b8 48 89 45 
+RIP: __ptr_ring_peek include/linux/ptr_ring.h:190 [inline] RSP: ffff8801d99b7650
+RIP: __ptr_ring_consume include/linux/ptr_ring.h:286 [inline] RSP: ffff8801d99b7650
+RIP: ptr_ring_consume include/linux/ptr_ring.h:322 [inline] RSP: ffff8801d99b7650
+RIP: tun_queue_purge+0x1c1/0x410 drivers/net/tun.c:675 RSP: ffff8801d99b7650
+---[ end trace 98a4d9eae850a03e ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

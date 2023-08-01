@@ -1,0 +1,48 @@
+==================================================================
+BUG: KCSAN: data-race in __rcu_read_unlock / rcu_report_exp_cpu_mult
+
+read to 0xffffffff85c7d080 of 8 bytes by task 26168 on cpu 0:
+ rcu_read_unlock_special kernel/rcu/tree_plugin.h:615 [inline]
+ __rcu_read_unlock+0x392/0x3d0 kernel/rcu/tree_plugin.h:383
+ rcu_read_unlock include/linux/rcupdate.h:670 [inline]
+ __unlock_page_memcg+0x42/0xa0 mm/memcontrol.c:2019
+ unlock_page_memcg+0x23/0x30 mm/memcontrol.c:2028
+ page_remove_file_rmap mm/rmap.c:1273 [inline]
+ page_remove_rmap+0x371/0x7a0 mm/rmap.c:1330
+ zap_pte_range mm/memory.c:1080 [inline]
+ zap_pmd_range mm/memory.c:1184 [inline]
+ zap_pud_range mm/memory.c:1213 [inline]
+ zap_p4d_range mm/memory.c:1234 [inline]
+ unmap_page_range+0xb31/0x1940 mm/memory.c:1255
+ unmap_single_vma+0x144/0x200 mm/memory.c:1300
+ unmap_vmas+0xda/0x1a0 mm/memory.c:1332
+ exit_mmap+0x13e/0x300 mm/mmap.c:3140
+ __mmput kernel/fork.c:1082 [inline]
+ mmput+0xea/0x280 kernel/fork.c:1103
+ exit_mm kernel/exit.c:485 [inline]
+ do_exit+0x4ac/0x18c0 kernel/exit.c:784
+ do_group_exit+0xb4/0x1c0 kernel/exit.c:895
+ get_signal+0x2a2/0x1320 kernel/signal.c:2734
+ do_signal+0x2f/0x6c0 arch/x86/kernel/signal.c:815
+ exit_to_usermode_loop+0x250/0x2c0 arch/x86/entry/common.c:160
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:278 [inline]
+ do_syscall_64+0x384/0x3a0 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+write to 0xffffffff85c7d080 of 8 bytes by task 3255 on cpu 1:
+ rcu_report_exp_cpu_mult+0x4f/0xa0 kernel/rcu/tree_exp.h:244
+ sync_rcu_exp_select_node_cpus+0x478/0x510 kernel/rcu/tree_exp.h:414
+ sync_rcu_exp_select_cpus+0x30c/0x590 kernel/rcu/tree_exp.h:439
+ rcu_exp_sel_wait_wake kernel/rcu/tree_exp.h:575 [inline]
+ wait_rcu_exp_gp+0x25/0x40 kernel/rcu/tree_exp.h:589
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2264
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2410
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 3255 Comm: kworker/1:0 Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: rcu_gp wait_rcu_exp_gp
+==================================================================

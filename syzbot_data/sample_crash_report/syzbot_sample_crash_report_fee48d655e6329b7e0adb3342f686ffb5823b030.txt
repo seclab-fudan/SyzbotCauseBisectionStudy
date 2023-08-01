@@ -1,0 +1,50 @@
+==================================================================
+binder: 24501:24514 ioctl 40046207 0 returned -16
+BUG: KASAN: stack-out-of-bounds in keyctl_pkey_params_parse security/keys/keyctl_pkey.c:56 [inline]
+BUG: KASAN: stack-out-of-bounds in keyctl_pkey_params_get+0x4c7/0x550 security/keys/keyctl_pkey.c:96
+Read of size 1 at addr ffff888057a2fc90 by task syz-executor5/24519
+
+CPU: 1 PID: 24519 Comm: syz-executor5 Not tainted 4.20.0+ #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ keyctl_pkey_params_parse security/keys/keyctl_pkey.c:56 [inline]
+ keyctl_pkey_params_get+0x4c7/0x550 security/keys/keyctl_pkey.c:96
+ keyctl_pkey_query+0xb8/0x2a0 security/keys/keyctl_pkey.c:173
+ __do_compat_sys_keyctl security/keys/compat.c:147 [inline]
+ __se_compat_sys_keyctl security/keys/compat.c:59 [inline]
+ __ia32_compat_sys_keyctl+0x152/0x420 security/keys/compat.c:59
+ do_syscall_32_irqs_on arch/x86/entry/common.c:326 [inline]
+ do_fast_syscall_32+0x333/0xf98 arch/x86/entry/common.c:397
+binder: BINDER_SET_CONTEXT_MGR already set
+ entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7f02869
+Code: 85 d2 74 02 89 0a 5b 5d c3 8b 04 24 c3 8b 14 24 c3 8b 3c 24 c3 90 90 90 90 90 90 90 90 90 90 90 90 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000f5efe0cc EFLAGS: 00000296 ORIG_RAX: 0000000000000120
+RAX: ffffffffffffffda RBX: 0000000000000018 RCX: 000000000c5e95a8
+binder: 24526:24528 ioctl 40046207 0 returned -16
+RDX: 0000000000000000 RSI: 0000000020000200 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea00015e8bc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+binder: 24526:24528 ioctl c018620c 200001c0 returned -1
+flags: 0x1fffc0000000000()
+raw: 01fffc0000000000 0000000000000000 ffffffff015e0101 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888057a2fb80: 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1
+ ffff888057a2fc00: 00 00 00 f2 00 00 00 f2 f2 f2 00 00 00 00 00 00
+>ffff888057a2fc80: f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00 00
+                         ^
+ ffff888057a2fd00: 00 f1 f1 f1 f1 f1 f1 00 00 f2 f2 00 00 00 00 00
+ ffff888057a2fd80: 00 f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

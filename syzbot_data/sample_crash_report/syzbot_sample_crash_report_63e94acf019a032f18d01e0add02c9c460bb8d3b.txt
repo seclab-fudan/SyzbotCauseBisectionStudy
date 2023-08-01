@@ -1,0 +1,88 @@
+==================================================================
+BUG: KASAN: use-after-free in __hlist_del include/linux/list.h:826 [inline]
+BUG: KASAN: use-after-free in hlist_del_rcu include/linux/rculist.h:514 [inline]
+BUG: KASAN: use-after-free in afs_deactivate_cell+0x165/0x1a0 fs/afs/cell.c:647
+Read of size 8 at addr ffff888093021080 by task kworker/0:3/2653
+
+CPU: 0 PID: 2653 Comm: kworker/0:3 Not tainted 5.9.0-rc7-next-20200929-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: afs afs_manage_cell
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fb lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xae/0x497 mm/kasan/report.c:385
+ __kasan_report mm/kasan/report.c:545 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:562
+ __hlist_del include/linux/list.h:826 [inline]
+ hlist_del_rcu include/linux/rculist.h:514 [inline]
+ afs_deactivate_cell+0x165/0x1a0 fs/afs/cell.c:647
+ afs_manage_cell+0x326/0x11c0 fs/afs/cell.c:721
+ process_one_work+0x933/0x15a0 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3af/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+Allocated by task 7905:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:48
+ kasan_set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:461
+ kmem_cache_alloc_trace+0x1a0/0x480 mm/slab.c:3552
+ kmalloc include/linux/slab.h:554 [inline]
+ kzalloc include/linux/slab.h:666 [inline]
+ afs_alloc_cell fs/afs/cell.c:151 [inline]
+ afs_lookup_cell+0x5b8/0x1450 fs/afs/cell.c:262
+ afs_parse_source fs/afs/super.c:290 [inline]
+ afs_parse_param+0x404/0x8c0 fs/afs/super.c:326
+ vfs_parse_fs_param fs/fs_context.c:117 [inline]
+ vfs_parse_fs_param+0x203/0x550 fs/fs_context.c:98
+ vfs_parse_fs_string+0xe6/0x150 fs/fs_context.c:161
+ generic_parse_monolithic+0x16f/0x1f0 fs/fs_context.c:201
+ do_new_mount fs/namespace.c:2892 [inline]
+ path_mount+0x1266/0x1e70 fs/namespace.c:3227
+ __do_sys_mount fs/namespace.c:3438 [inline]
+ __se_sys_mount fs/namespace.c:3411 [inline]
+ __x64_sys_mount+0x278/0x2f0 fs/namespace.c:3411
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 2653:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:48
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:56
+ kasan_set_free_info+0x1b/0x30 mm/kasan/generic.c:355
+ __kasan_slab_free+0xd8/0x120 mm/kasan/common.c:422
+ __cache_free mm/slab.c:3420 [inline]
+ kfree+0x10e/0x2a0 mm/slab.c:3758
+ rcu_do_batch kernel/rcu/tree.c:2481 [inline]
+ rcu_core+0x645/0x1240 kernel/rcu/tree.c:2715
+ __do_softirq+0x203/0xab6 kernel/softirq.c:298
+
+Last call_rcu():
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:48
+ kasan_record_aux_stack+0x82/0xb0 mm/kasan/generic.c:346
+ __call_rcu kernel/rcu/tree.c:2957 [inline]
+ call_rcu+0x15e/0x7d0 kernel/rcu/tree.c:3030
+ afs_manage_cell+0x250/0x11c0 fs/afs/cell.c:751
+ process_one_work+0x933/0x15a0 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3af/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+The buggy address belongs to the object at ffff888093021000
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 128 bytes inside of
+ 1024-byte region [ffff888093021000, ffff888093021400)
+The buggy address belongs to the page:
+page:00000000fb0f011a refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x93021
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea0002992c48 ffffea000249fd08 ffff8880aa040700
+raw: 0000000000000000 ffff888093021000 0000000100000002 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888093020f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888093021000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888093021080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff888093021100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888093021180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

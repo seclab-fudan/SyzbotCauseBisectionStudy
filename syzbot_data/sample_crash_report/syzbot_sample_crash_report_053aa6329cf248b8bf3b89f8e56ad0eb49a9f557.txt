@@ -1,0 +1,103 @@
+==================================================================
+BUG: KASAN: use-after-free in neigh_forced_gc net/core/neighbour.c:208 [inline]
+BUG: KASAN: use-after-free in neigh_alloc net/core/neighbour.c:365 [inline]
+BUG: KASAN: use-after-free in ___neigh_create+0x21fd/0x2600 net/core/neighbour.c:553
+Read of size 8 at addr ffff8881b3566b70 by task syz-executor075/6593
+
+CPU: 1 PID: 6593 Comm: syz-executor075 Not tainted 4.20.0-rc6-next-20181210+ #164
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.4+0x9/0x1ff mm/kasan/report.c:187
+ kasan_report.cold.5+0x1b/0x39 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ neigh_forced_gc net/core/neighbour.c:208 [inline]
+ neigh_alloc net/core/neighbour.c:365 [inline]
+ ___neigh_create+0x21fd/0x2600 net/core/neighbour.c:553
+ __neigh_create+0x30/0x40 net/core/neighbour.c:640
+ neigh_create include/net/neighbour.h:319 [inline]
+ __neigh_lookup_errno include/net/neighbour.h:529 [inline]
+ arp_req_set+0x59d/0xaa0 net/ipv4/arp.c:1066
+ arp_ioctl+0x48b/0xae0 net/ipv4/arp.c:1230
+ inet_ioctl+0x237/0x360 net/ipv4/af_inet.c:932
+ sock_do_ioctl+0xeb/0x420 net/socket.c:951
+ sock_ioctl+0x313/0x690 net/socket.c:1075
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0x1de/0x1790 fs/ioctl.c:696
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440e39
+Code: e8 cc ab 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 bb 0a fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffea8160338 EFLAGS: 00000213 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000440e39
+RDX: 0000000020000000 RSI: 0000000000008955 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 0000000001fe3880 R11: 0000000000000213 R12: 000000000000d704
+R13: 0000000000401e10 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 6083:
+ save_stack+0x43/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ kasan_kmalloc+0xcb/0xd0 mm/kasan/common.c:482
+ __do_kmalloc mm/slab.c:3709 [inline]
+ __kmalloc+0x15d/0x760 mm/slab.c:3718
+ kmalloc include/linux/slab.h:550 [inline]
+ kzalloc include/linux/slab.h:740 [inline]
+ neigh_alloc net/core/neighbour.c:375 [inline]
+ ___neigh_create+0x13fc/0x2600 net/core/neighbour.c:553
+ __neigh_create+0x30/0x40 net/core/neighbour.c:640
+ neigh_create include/net/neighbour.h:319 [inline]
+ __neigh_lookup_errno include/net/neighbour.h:529 [inline]
+ arp_req_set+0x59d/0xaa0 net/ipv4/arp.c:1066
+ arp_ioctl+0x48b/0xae0 net/ipv4/arp.c:1230
+ inet_ioctl+0x237/0x360 net/ipv4/af_inet.c:932
+ sock_do_ioctl+0xeb/0x420 net/socket.c:951
+ sock_ioctl+0x313/0x690 net/socket.c:1075
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0x1de/0x1790 fs/ioctl.c:696
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 0:
+ save_stack+0x43/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:444
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:452
+ __cache_free mm/slab.c:3485 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3804
+ __rcu_reclaim kernel/rcu/rcu.h:233 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2452 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2773 [inline]
+ rcu_process_callbacks+0xd91/0x15f0 kernel/rcu/tree.c:2754
+ __do_softirq+0x308/0xb7e kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff8881b3566900
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 624 bytes inside of
+ 1024-byte region [ffff8881b3566900, ffff8881b3566d00)
+The buggy address belongs to the page:
+page:ffffea0006cd5980 count:1 mapcount:0 mapping:ffff8881da800ac0 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000010200(slab|head)
+raw: 02fffc0000010200 ffffea0007354b88 ffffea000704b308 ffff8881da800ac0
+raw: 0000000000000000 ffff8881b3566000 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881b3566a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881b3566a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881b3566b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff8881b3566b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881b3566c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

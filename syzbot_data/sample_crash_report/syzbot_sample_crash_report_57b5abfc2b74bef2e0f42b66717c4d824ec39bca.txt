@@ -1,0 +1,36 @@
+==================================================================
+BUG: KCSAN: data-race in __snd_rawmidi_transmit_ack / snd_rawmidi_write
+
+write to 0xffff8880a8acc1b8 of 8 bytes by task 2521 on cpu 0:
+ __snd_rawmidi_transmit_ack+0xcc/0x1c0 sound/core/rawmidi.c:1234
+ snd_rawmidi_transmit+0x91/0xc0 sound/core/rawmidi.c:1293
+ snd_vmidi_output_work+0xaf/0x1f0 sound/core/seq/seq_virmidi.c:143
+ process_one_work+0x424/0x930 kernel/workqueue.c:2264
+ worker_thread+0x9a/0x7e0 kernel/workqueue.c:2410
+ kthread+0x1cb/0x1f0 kernel/kthread.c:255
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+read to 0xffff8880a8acc1b8 of 8 bytes by task 4301 on cpu 1:
+ snd_rawmidi_write+0x311/0x740 sound/core/rawmidi.c:1452
+ __vfs_write+0x58/0xb0 fs/read_write.c:494
+ __kernel_write+0xb0/0x230 fs/read_write.c:515
+ write_pipe_buf+0xad/0xe0 fs/splice.c:809
+ splice_from_pipe_feed fs/splice.c:512 [inline]
+ __splice_from_pipe+0x298/0x4a0 fs/splice.c:636
+ splice_from_pipe+0xc2/0x100 fs/splice.c:671
+ default_file_splice_write+0x41/0x90 fs/splice.c:821
+ do_splice_from fs/splice.c:863 [inline]
+ direct_splice_actor+0x97/0xb0 fs/splice.c:1037
+ splice_direct_to_actor+0x22f/0x540 fs/splice.c:992
+ do_splice_direct+0x152/0x1d0 fs/splice.c:1080
+ do_sendfile+0x396/0x810 fs/read_write.c:1520
+ __do_sys_sendfile64 fs/read_write.c:1581 [inline]
+ __se_sys_sendfile64 fs/read_write.c:1567 [inline]
+ __x64_sys_sendfile64+0x121/0x140 fs/read_write.c:1567
+ do_syscall_64+0xc7/0x390 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 4301 Comm: syz-executor.3 Not tainted 5.6.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

@@ -1,0 +1,126 @@
+audit: type=1400 audit(1518410311.940:7): avc:  denied  { map } for  pid=4188 comm="syzkaller369898" path="/root/syzkaller369898959" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.16.0-rc1+ #309 Not tainted
+------------------------------------------------------
+syzkaller369898/4188 is trying to acquire lock:
+ (rtnl_mutex){+.+.}, at: [<00000000faaaedc0>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+
+but task is already holding lock:
+ (&xt[i].mutex){+.+.}, at: [<000000001fb5a34e>] xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1046
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&xt[i].mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1046
+       xt_request_find_table_lock+0x28/0xc0 net/netfilter/x_tables.c:1093
+       get_info+0x154/0x690 net/ipv6/netfilter/ip6_tables.c:989
+       do_ip6t_get_ctl+0x159/0xaf0 net/ipv6/netfilter/ip6_tables.c:1710
+       nf_sockopt net/netfilter/nf_sockopt.c:104 [inline]
+       nf_getsockopt+0x6a/0xc0 net/netfilter/nf_sockopt.c:122
+       ipv6_getsockopt+0x1df/0x2e0 net/ipv6/ipv6_sockglue.c:1371
+       tcp_getsockopt+0x82/0xd0 net/ipv4/tcp.c:3359
+       sock_common_getsockopt+0x95/0xd0 net/core/sock.c:2934
+       SYSC_getsockopt net/socket.c:1880 [inline]
+       SyS_getsockopt+0x178/0x340 net/socket.c:1862
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+-> #1 (sk_lock-AF_INET6){+.+.}:
+       lock_sock_nested+0xc2/0x110 net/core/sock.c:2777
+       lock_sock include/net/sock.h:1463 [inline]
+       do_ipv6_setsockopt.isra.8+0x3c5/0x39d0 net/ipv6/ipv6_sockglue.c:167
+       ipv6_setsockopt+0xd7/0x130 net/ipv6/ipv6_sockglue.c:922
+       sctp_setsockopt+0x2b6/0x61d0 net/sctp/socket.c:4104
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+       SYSC_setsockopt net/socket.c:1849 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1828
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+-> #0 (rtnl_mutex){+.+.}:
+       lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+       unregister_netdevice_notifier+0x91/0x4e0 net/core/dev.c:1673
+       tee_tg_destroy+0x61/0xc0 net/netfilter/xt_TEE.c:123
+       cleanup_entry+0x242/0x380 net/ipv6/netfilter/ip6_tables.c:673
+       __do_replace+0x7ac/0xa70 net/ipv6/netfilter/ip6_tables.c:1108
+       do_replace net/ipv6/netfilter/ip6_tables.c:1164 [inline]
+       do_ip6t_set_ctl+0x40f/0x5f0 net/ipv6/netfilter/ip6_tables.c:1686
+       nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+       nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+       ipv6_setsockopt+0x10b/0x130 net/ipv6/ipv6_sockglue.c:927
+       tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2905
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+       SYSC_setsockopt net/socket.c:1849 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1828
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+other info that might help us debug this:
+
+Chain exists of:
+  rtnl_mutex --> sk_lock-AF_INET6 --> &xt[i].mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&xt[i].mutex);
+                               lock(sk_lock-AF_INET6);
+                               lock(&xt[i].mutex);
+  lock(rtnl_mutex);
+
+ *** DEADLOCK ***
+
+1 lock held by syzkaller369898/4188:
+ #0:  (&xt[i].mutex){+.+.}, at: [<000000001fb5a34e>] xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1046
+
+stack backtrace:
+CPU: 0 PID: 4188 Comm: syzkaller369898 Not tainted 4.16.0-rc1+ #309
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_circular_bug.isra.38+0x2cd/0x2dc kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x30a8/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+ __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+ rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+ unregister_netdevice_notifier+0x91/0x4e0 net/core/dev.c:1673
+ tee_tg_destroy+0x61/0xc0 net/netfilter/xt_TEE.c:123
+ cleanup_entry+0x242/0x380 net/ipv6/netfilter/ip6_tables.c:673
+ __do_replace+0x7ac/0xa70 net/ipv6/netfilter/ip6_tables.c:1108
+ do_replace net/ipv6/netfilter/ip6_tables.c:1164 [inline]
+ do_ip6t_set_ctl+0x40f/0x5f0 net/ipv6/netfilter/ip6_tables.c:1686
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ipv6_setsockopt+0x10b/0x130 net/ipv6/ipv6_sockglue.c:927
+ tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2905
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+ SYSC_setsockopt net/socket.c:1849 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1828
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x444f3a
+RSP: 002b:00007ffc45dd74f8 EFLAGS: 00000206 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000006cd800 RCX: 0000000000444f3a
+RDX: 0000000000000040 RSI: 0000000000000029 RDI: 0000000000000003
+RBP: 00000000006cd800 R08: 00000000000003b8 R09: 0000000000004000
+R10: 00000000006cd7a0 R11: 0000000000000206 R12: 00007ffc45dd7520
+R13: 00000000006cf9c0 R14: 0000000000000003 R15: 0000000000000029

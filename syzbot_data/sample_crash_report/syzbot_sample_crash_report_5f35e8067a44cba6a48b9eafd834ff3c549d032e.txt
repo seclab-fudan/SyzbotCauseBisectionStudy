@@ -1,0 +1,308 @@
+================================
+WARNING: inconsistent lock state
+5.16.0-rc4-next-20211210-syzkaller #0 Not tainted
+--------------------------------
+inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
+udevd/2973 [HC0[0]:SC1[7]:HE1:SE0] takes:
+ffffffff8bca9b40 (fs_reclaim){+.?.}-{0:0}, at: might_alloc include/linux/sched/mm.h:253 [inline]
+ffffffff8bca9b40 (fs_reclaim){+.?.}-{0:0}, at: slab_pre_alloc_hook mm/slab.h:739 [inline]
+ffffffff8bca9b40 (fs_reclaim){+.?.}-{0:0}, at: slab_alloc_node mm/slub.c:3145 [inline]
+ffffffff8bca9b40 (fs_reclaim){+.?.}-{0:0}, at: slab_alloc mm/slub.c:3239 [inline]
+ffffffff8bca9b40 (fs_reclaim){+.?.}-{0:0}, at: kmem_cache_alloc_trace+0x3b/0x2c0 mm/slub.c:3256
+{SOFTIRQ-ON-W} state was registered at:
+  lock_acquire kernel/locking/lockdep.c:5639 [inline]
+  lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5604
+  __fs_reclaim_acquire mm/page_alloc.c:4550 [inline]
+  fs_reclaim_acquire+0x115/0x160 mm/page_alloc.c:4564
+  might_alloc include/linux/sched/mm.h:253 [inline]
+  slab_pre_alloc_hook mm/slab.h:739 [inline]
+  slab_alloc_node mm/slub.c:3145 [inline]
+  slab_alloc mm/slub.c:3239 [inline]
+  kmem_cache_alloc_trace+0x3b/0x2c0 mm/slub.c:3256
+  kmalloc include/linux/slab.h:581 [inline]
+  kzalloc include/linux/slab.h:715 [inline]
+  alloc_workqueue_attrs+0x38/0x80 kernel/workqueue.c:3405
+  wq_numa_init kernel/workqueue.c:5972 [inline]
+  workqueue_init+0x12f/0x9e3 kernel/workqueue.c:6099
+  kernel_init_freeable+0x3fb/0x73a init/main.c:1602
+  kernel_init+0x1a/0x1d0 init/main.c:1507
+  ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+irq event stamp: 4252880
+hardirqs last  enabled at (4252880): [<ffffffff8956e2b0>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+hardirqs last  enabled at (4252880): [<ffffffff8956e2b0>] _raw_spin_unlock_irqrestore+0x50/0x70 kernel/locking/spinlock.c:194
+hardirqs last disabled at (4252879): [<ffffffff8956e06e>] __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:108 [inline]
+hardirqs last disabled at (4252879): [<ffffffff8956e06e>] _raw_spin_lock_irqsave+0x4e/0x50 kernel/locking/spinlock.c:162
+softirqs last  enabled at (4251816): [<ffffffff8146ca83>] invoke_softirq kernel/softirq.c:432 [inline]
+softirqs last  enabled at (4251816): [<ffffffff8146ca83>] __irq_exit_rcu+0x123/0x180 kernel/softirq.c:637
+softirqs last disabled at (4252409): [<ffffffff8146ca83>] invoke_softirq kernel/softirq.c:432 [inline]
+softirqs last disabled at (4252409): [<ffffffff8146ca83>] __irq_exit_rcu+0x123/0x180 kernel/softirq.c:637
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(fs_reclaim);
+  <Interrupt>
+    lock(fs_reclaim);
+
+ *** DEADLOCK ***
+
+9 locks held by udevd/2973:
+ #0: ffffffff8c362df8 (tomoyo_ss){....}-{0:0}, at: tomoyo_path_perm+0x1c1/0x400 security/tomoyo/file.c:847
+ #1: ffffc90000dc0d70 ((&ndev->rs_timer)){+.-.}-{0:0}, at: lockdep_copy_map include/linux/lockdep.h:35 [inline]
+ #1: ffffc90000dc0d70 ((&ndev->rs_timer)){+.-.}-{0:0}, at: call_timer_fn+0xd5/0x6b0 kernel/time/timer.c:1411
+ #2: ffffffff8bb818a0 (rcu_read_lock){....}-{1:2}, at: ip6_nd_hdr net/ipv6/ndisc.c:466 [inline]
+ #2: ffffffff8bb818a0 (rcu_read_lock){....}-{1:2}, at: ndisc_send_skb+0x84b/0x17f0 net/ipv6/ndisc.c:502
+ #3: ffffffff8bb81840 (rcu_read_lock_bh){....}-{1:2}, at: lwtunnel_xmit_redirect include/net/lwtunnel.h:95 [inline]
+ #3: ffffffff8bb81840 (rcu_read_lock_bh){....}-{1:2}, at: ip6_finish_output2+0x2ad/0x14f0 net/ipv6/ip6_output.c:112
+ #4: ffffffff8bb81840 (rcu_read_lock_bh){....}-{1:2}, at: __dev_queue_xmit+0x1e3/0x3640 net/core/dev.c:4036
+ #5: ffffffff8bb818a0 (rcu_read_lock){....}-{1:2}, at: geneve_xmit+0xde/0x3530 drivers/net/geneve.c:1068
+ #6: ffffffff8bb818a0 (rcu_read_lock){....}-{1:2}, at: ip6_route_output_flags+0x0/0x320 net/ipv6/route.c:778
+ #7: ffffffff8bb818a0 (rcu_read_lock){....}-{1:2}, at: ip6_pol_route+0x156/0x11e0 net/ipv6/route.c:2217
+ #8: ffffffff8bb81840 (rcu_read_lock_bh){....}-{1:2}, at: rt6_probe net/ipv6/route.c:632 [inline]
+ #8: ffffffff8bb81840 (rcu_read_lock_bh){....}-{1:2}, at: find_match.part.0+0x35a/0xd00 net/ipv6/route.c:752
+
+stack backtrace:
+CPU: 1 PID: 2973 Comm: udevd Not tainted 5.16.0-rc4-next-20211210-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_usage_bug kernel/locking/lockdep.c:203 [inline]
+ valid_state kernel/locking/lockdep.c:3945 [inline]
+ mark_lock_irq kernel/locking/lockdep.c:4148 [inline]
+ mark_lock.cold+0x61/0x8e kernel/locking/lockdep.c:4605
+ mark_usage kernel/locking/lockdep.c:4500 [inline]
+ __lock_acquire+0x11d5/0x54a0 kernel/locking/lockdep.c:4981
+ lock_acquire kernel/locking/lockdep.c:5639 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5604
+ __fs_reclaim_acquire mm/page_alloc.c:4550 [inline]
+ fs_reclaim_acquire+0x115/0x160 mm/page_alloc.c:4564
+ might_alloc include/linux/sched/mm.h:253 [inline]
+ slab_pre_alloc_hook mm/slab.h:739 [inline]
+ slab_alloc_node mm/slub.c:3145 [inline]
+ slab_alloc mm/slub.c:3239 [inline]
+ kmem_cache_alloc_trace+0x3b/0x2c0 mm/slub.c:3256
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ ref_tracker_alloc+0xe1/0x430 lib/ref_tracker.c:74
+ netdev_tracker_alloc include/linux/netdevice.h:3860 [inline]
+ dev_hold_track include/linux/netdevice.h:3877 [inline]
+ rt6_probe net/ipv6/route.c:661 [inline]
+ find_match.part.0+0xac9/0xd00 net/ipv6/route.c:752
+ find_match net/ipv6/route.c:825 [inline]
+ __find_rr_leaf+0x17f/0xd20 net/ipv6/route.c:826
+ find_rr_leaf net/ipv6/route.c:847 [inline]
+ rt6_select net/ipv6/route.c:891 [inline]
+ fib6_table_lookup+0x649/0xa20 net/ipv6/route.c:2185
+ ip6_pol_route+0x1c5/0x11e0 net/ipv6/route.c:2221
+ pol_lookup_func include/net/ip6_fib.h:580 [inline]
+ fib6_rule_lookup+0x52a/0x6f0 net/ipv6/fib6_rules.c:120
+ ip6_route_output_flags_noref+0x2e2/0x380 net/ipv6/route.c:2629
+ ip6_route_output_flags+0x72/0x320 net/ipv6/route.c:2642
+ ip6_route_output include/net/ip6_route.h:98 [inline]
+ ip6_dst_lookup_tail+0x5ab/0x1620 net/ipv6/ip6_output.c:1070
+ ip6_dst_lookup_flow+0x8c/0x1d0 net/ipv6/ip6_output.c:1200
+ geneve_get_v6_dst+0x46f/0x9a0 drivers/net/geneve.c:858
+ geneve6_xmit_skb drivers/net/geneve.c:991 [inline]
+ geneve_xmit+0x520/0x3530 drivers/net/geneve.c:1074
+ __netdev_start_xmit include/linux/netdevice.h:4685 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4699 [inline]
+ xmit_one net/core/dev.c:3473 [inline]
+ dev_hard_start_xmit+0x1eb/0x920 net/core/dev.c:3489
+ __dev_queue_xmit+0x2983/0x3640 net/core/dev.c:4112
+ neigh_resolve_output net/core/neighbour.c:1522 [inline]
+ neigh_resolve_output+0x50e/0x820 net/core/neighbour.c:1502
+ neigh_output include/net/neighbour.h:541 [inline]
+ ip6_finish_output2+0x56e/0x14f0 net/ipv6/ip6_output.c:126
+ __ip6_finish_output net/ipv6/ip6_output.c:191 [inline]
+ __ip6_finish_output+0x61e/0xe80 net/ipv6/ip6_output.c:170
+ ip6_finish_output+0x32/0x200 net/ipv6/ip6_output.c:201
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x1e4/0x530 net/ipv6/ip6_output.c:224
+ dst_output include/net/dst.h:451 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ndisc_send_skb+0xa99/0x17f0 net/ipv6/ndisc.c:508
+ ndisc_send_rs+0x12e/0x6f0 net/ipv6/ndisc.c:702
+ addrconf_rs_timer+0x3f2/0x820 net/ipv6/addrconf.c:3898
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1421
+ expire_timers kernel/time/timer.c:1466 [inline]
+ __run_timers.part.0+0x675/0xa20 kernel/time/timer.c:1734
+ __run_timers kernel/time/timer.c:1715 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1747
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:637
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:649
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:check_kcov_mode+0x2e/0x40 kernel/kcov.c:177
+Code: 79 8a 7e 89 c2 81 e2 00 01 00 00 a9 00 01 ff 00 74 10 31 c0 85 d2 74 15 8b 96 ac 15 00 00 85 d2 74 0b 8b 86 88 15 00 00 39 f8 <0f> 94 c0 c3 66 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 31 c0 65 8b
+RSP: 0018:ffffc9000c82f850 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: 000000000000000d RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff88807d039d40 RDI: 0000000000000003
+RBP: ffff888079431580 R08: 0000000000000000 R09: 000000000000000d
+R10: ffffffff83b012d7 R11: 0000000000000010 R12: 0000000000000002
+R13: 00000000000000f7 R14: dffffc0000000000 R15: 0000000000000000
+ write_comp_data kernel/kcov.c:221 [inline]
+ __sanitizer_cov_trace_const_cmp4+0x1c/0x70 kernel/kcov.c:287
+ tomoyo_domain_quota_is_ok+0x307/0x550 security/tomoyo/util.c:1093
+ tomoyo_supervisor+0x2f2/0xf00 security/tomoyo/common.c:2089
+ tomoyo_audit_path_log security/tomoyo/file.c:168 [inline]
+ tomoyo_path_permission security/tomoyo/file.c:587 [inline]
+ tomoyo_path_permission+0x270/0x3a0 security/tomoyo/file.c:573
+ tomoyo_path_perm+0x2f0/0x400 security/tomoyo/file.c:838
+ security_inode_getattr+0xcf/0x140 security/security.c:1326
+ vfs_getattr fs/stat.c:157 [inline]
+ vfs_statx+0x164/0x390 fs/stat.c:225
+ vfs_fstatat fs/stat.c:243 [inline]
+ __do_sys_newfstatat+0x96/0x120 fs/stat.c:412
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7fc7d89f61da
+Code: 48 89 f2 b9 00 01 00 00 48 89 fe bf 9c ff ff ff e9 0b 00 00 00 66 2e 0f 1f 84 00 00 00 00 00 90 41 89 ca b8 06 01 00 00 0f 05 <3d> 00 f0 ff ff 77 07 31 c0 c3 0f 1f 40 00 48 8b 15 69 fc 0c 00 f7
+RSP: 002b:00007fff0c59f9e8 EFLAGS: 00000206 ORIG_RAX: 0000000000000106
+RAX: ffffffffffffffda RBX: 00005644f06758e0 RCX: 00007fc7d89f61da
+RDX: 00007fff0c59f9f0 RSI: 00007fc7d8a8c75a RDI: 000000000000000f
+RBP: 000000000000000f R08: 0000000000090800 R09: 00005644f06a7860
+R10: 0000000000001000 R11: 0000000000000206 R12: 00007fff0c59f9f0
+R13: 00000000000000fd R14: 00007fff0c59fae0 R15: 0000000000000000
+ </TASK>
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:256
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 2973, name: udevd
+preempt_count: 700, expected: 0
+RCU nest depth: 4, expected: 0
+INFO: lockdep is turned off.
+Preemption disabled at:
+[<ffffffff898000e1>] softirq_handle_begin kernel/softirq.c:396 [inline]
+[<ffffffff898000e1>] __do_softirq+0xe1/0x9c2 kernel/softirq.c:534
+CPU: 1 PID: 2973 Comm: udevd Not tainted 5.16.0-rc4-next-20211210-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __might_resched.cold+0x222/0x26b kernel/sched/core.c:9583
+ might_alloc include/linux/sched/mm.h:256 [inline]
+ slab_pre_alloc_hook mm/slab.h:739 [inline]
+ slab_alloc_node mm/slub.c:3145 [inline]
+ slab_alloc mm/slub.c:3239 [inline]
+ kmem_cache_alloc_trace+0x25d/0x2c0 mm/slub.c:3256
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ ref_tracker_alloc+0xe1/0x430 lib/ref_tracker.c:74
+ netdev_tracker_alloc include/linux/netdevice.h:3860 [inline]
+ dev_hold_track include/linux/netdevice.h:3877 [inline]
+ rt6_probe net/ipv6/route.c:661 [inline]
+ find_match.part.0+0xac9/0xd00 net/ipv6/route.c:752
+ find_match net/ipv6/route.c:825 [inline]
+ __find_rr_leaf+0x17f/0xd20 net/ipv6/route.c:826
+ find_rr_leaf net/ipv6/route.c:847 [inline]
+ rt6_select net/ipv6/route.c:891 [inline]
+ fib6_table_lookup+0x649/0xa20 net/ipv6/route.c:2185
+ ip6_pol_route+0x1c5/0x11e0 net/ipv6/route.c:2221
+ pol_lookup_func include/net/ip6_fib.h:580 [inline]
+ fib6_rule_lookup+0x52a/0x6f0 net/ipv6/fib6_rules.c:120
+ ip6_route_output_flags_noref+0x2e2/0x380 net/ipv6/route.c:2629
+ ip6_route_output_flags+0x72/0x320 net/ipv6/route.c:2642
+ ip6_route_output include/net/ip6_route.h:98 [inline]
+ ip6_dst_lookup_tail+0x5ab/0x1620 net/ipv6/ip6_output.c:1070
+ ip6_dst_lookup_flow+0x8c/0x1d0 net/ipv6/ip6_output.c:1200
+ geneve_get_v6_dst+0x46f/0x9a0 drivers/net/geneve.c:858
+ geneve6_xmit_skb drivers/net/geneve.c:991 [inline]
+ geneve_xmit+0x520/0x3530 drivers/net/geneve.c:1074
+ __netdev_start_xmit include/linux/netdevice.h:4685 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4699 [inline]
+ xmit_one net/core/dev.c:3473 [inline]
+ dev_hard_start_xmit+0x1eb/0x920 net/core/dev.c:3489
+ __dev_queue_xmit+0x2983/0x3640 net/core/dev.c:4112
+ neigh_resolve_output net/core/neighbour.c:1522 [inline]
+ neigh_resolve_output+0x50e/0x820 net/core/neighbour.c:1502
+ neigh_output include/net/neighbour.h:541 [inline]
+ ip6_finish_output2+0x56e/0x14f0 net/ipv6/ip6_output.c:126
+ __ip6_finish_output net/ipv6/ip6_output.c:191 [inline]
+ __ip6_finish_output+0x61e/0xe80 net/ipv6/ip6_output.c:170
+ ip6_finish_output+0x32/0x200 net/ipv6/ip6_output.c:201
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x1e4/0x530 net/ipv6/ip6_output.c:224
+ dst_output include/net/dst.h:451 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ndisc_send_skb+0xa99/0x17f0 net/ipv6/ndisc.c:508
+ ndisc_send_rs+0x12e/0x6f0 net/ipv6/ndisc.c:702
+ addrconf_rs_timer+0x3f2/0x820 net/ipv6/addrconf.c:3898
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1421
+ expire_timers kernel/time/timer.c:1466 [inline]
+ __run_timers.part.0+0x675/0xa20 kernel/time/timer.c:1734
+ __run_timers kernel/time/timer.c:1715 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1747
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:637
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:649
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:check_kcov_mode+0x2e/0x40 kernel/kcov.c:177
+Code: 79 8a 7e 89 c2 81 e2 00 01 00 00 a9 00 01 ff 00 74 10 31 c0 85 d2 74 15 8b 96 ac 15 00 00 85 d2 74 0b 8b 86 88 15 00 00 39 f8 <0f> 94 c0 c3 66 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 31 c0 65 8b
+RSP: 0018:ffffc9000c82f850 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: 000000000000000d RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff88807d039d40 RDI: 0000000000000003
+RBP: ffff888079431580 R08: 0000000000000000 R09: 000000000000000d
+R10: ffffffff83b012d7 R11: 0000000000000010 R12: 0000000000000002
+R13: 00000000000000f7 R14: dffffc0000000000 R15: 0000000000000000
+ write_comp_data kernel/kcov.c:221 [inline]
+ __sanitizer_cov_trace_const_cmp4+0x1c/0x70 kernel/kcov.c:287
+ tomoyo_domain_quota_is_ok+0x307/0x550 security/tomoyo/util.c:1093
+ tomoyo_supervisor+0x2f2/0xf00 security/tomoyo/common.c:2089
+ tomoyo_audit_path_log security/tomoyo/file.c:168 [inline]
+ tomoyo_path_permission security/tomoyo/file.c:587 [inline]
+ tomoyo_path_permission+0x270/0x3a0 security/tomoyo/file.c:573
+ tomoyo_path_perm+0x2f0/0x400 security/tomoyo/file.c:838
+ security_inode_getattr+0xcf/0x140 security/security.c:1326
+ vfs_getattr fs/stat.c:157 [inline]
+ vfs_statx+0x164/0x390 fs/stat.c:225
+ vfs_fstatat fs/stat.c:243 [inline]
+ __do_sys_newfstatat+0x96/0x120 fs/stat.c:412
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7fc7d89f61da
+Code: 48 89 f2 b9 00 01 00 00 48 89 fe bf 9c ff ff ff e9 0b 00 00 00 66 2e 0f 1f 84 00 00 00 00 00 90 41 89 ca b8 06 01 00 00 0f 05 <3d> 00 f0 ff ff 77 07 31 c0 c3 0f 1f 40 00 48 8b 15 69 fc 0c 00 f7
+RSP: 002b:00007fff0c59f9e8 EFLAGS: 00000206 ORIG_RAX: 0000000000000106
+RAX: ffffffffffffffda RBX: 00005644f06758e0 RCX: 00007fc7d89f61da
+RDX: 00007fff0c59f9f0 RSI: 00007fc7d8a8c75a RDI: 000000000000000f
+RBP: 000000000000000f R08: 0000000000090800 R09: 00005644f06a7860
+R10: 0000000000001000 R11: 0000000000000206 R12: 00007fff0c59f9f0
+R13: 00000000000000fd R14: 00007fff0c59fae0 R15: 0000000000000000
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	79 8a                	jns    0xffffff8c
+   2:	7e 89                	jle    0xffffff8d
+   4:	c2 81 e2             	retq   $0xe281
+   7:	00 01                	add    %al,(%rcx)
+   9:	00 00                	add    %al,(%rax)
+   b:	a9 00 01 ff 00       	test   $0xff0100,%eax
+  10:	74 10                	je     0x22
+  12:	31 c0                	xor    %eax,%eax
+  14:	85 d2                	test   %edx,%edx
+  16:	74 15                	je     0x2d
+  18:	8b 96 ac 15 00 00    	mov    0x15ac(%rsi),%edx
+  1e:	85 d2                	test   %edx,%edx
+  20:	74 0b                	je     0x2d
+  22:	8b 86 88 15 00 00    	mov    0x1588(%rsi),%eax
+  28:	39 f8                	cmp    %edi,%eax
+* 2a:	0f 94 c0             	sete   %al <-- trapping instruction
+  2d:	c3                   	retq
+  2e:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
+  35:	00 00 00 00
+  39:	0f 1f 00             	nopl   (%rax)
+  3c:	31 c0                	xor    %eax,%eax
+  3e:	65                   	gs
+  3f:	8b                   	.byte 0x8b

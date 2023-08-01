@@ -1,0 +1,36 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: use-after-free in ____bpf_csum_update net/core/filter.c:1907 [inline]
+BUG: KASAN: use-after-free in bpf_csum_update+0xb4/0xc0 net/core/filter.c:1901
+Read of size 1 at addr ffff8801ad062f10 by task syz-executor354/4488
+
+CPU: 1 PID: 4488 Comm: syz-executor354 Not tainted 4.17.0-rc6+ #29
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+ ____bpf_csum_update net/core/filter.c:1907 [inline]
+ bpf_csum_update+0xb4/0xc0 net/core/filter.c:1901
+
+The buggy address belongs to the page:
+page:ffffea0006b41880 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: ffffea0006b41820 ffffea0006b671a0 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ad062e00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801ad062e80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8801ad062f00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                         ^
+ ffff8801ad062f80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801ad063000: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

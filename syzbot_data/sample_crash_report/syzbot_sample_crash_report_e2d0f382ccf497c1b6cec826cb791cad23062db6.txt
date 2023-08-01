@@ -1,0 +1,88 @@
+audit: type=1400 audit(1513632854.976:7): avc:  denied  { map } for  pid=3149 comm="syzkaller213261" path="/root/syzkaller213261263" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: use-after-free in handle_userfault+0x21c1/0x24c0 fs/userfaultfd.c:371
+Read of size 8 at addr ffff8801ca0f4da0 by task syzkaller213261/3156
+
+CPU: 1 PID: 3156 Comm: syzkaller213261 Not tainted 4.15.0-rc4+ #227
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ handle_userfault+0x21c1/0x24c0 fs/userfaultfd.c:371
+ do_huge_pmd_anonymous_page+0xe2c/0x1b00 mm/huge_memory.c:707
+ create_huge_pmd mm/memory.c:3828 [inline]
+ __handle_mm_fault+0x1a0c/0x3ce0 mm/memory.c:4032
+ handle_mm_fault+0x334/0x8d0 mm/memory.c:4098
+ __do_page_fault+0x5c9/0xc90 arch/x86/mm/fault.c:1429
+ do_page_fault+0xee/0x720 arch/x86/mm/fault.c:1504
+ page_fault+0x22/0x30 arch/x86/entry/entry_64.S:1094
+RIP: 0033:0x4453e5
+RSP: 002b:0000000020687000 EFLAGS: 00010217
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00000000004453d9
+RDX: 0000000020b4c000 RSI: 0000000020687000 RDI: 0000000000000600
+RBP: 0000000000000000 R08: 00000000207a4f71 R09: 00007fb416266700
+R10: 0000000020552ffc R11: 0000000000000202 R12: 0000000000000000
+R13: 00007ffe289b94df R14: 00007fb4162669c0 R15: 0000000000000000
+
+Allocated by task 3154:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3544
+ dup_userfaultfd+0x21c/0x890 fs/userfaultfd.c:659
+ dup_mmap kernel/fork.c:662 [inline]
+ dup_mm kernel/fork.c:1197 [inline]
+ copy_mm+0xa38/0x1310 kernel/fork.c:1251
+ copy_process.part.38+0x1eb9/0x4ac0 kernel/fork.c:1753
+ copy_process kernel/fork.c:1566 [inline]
+ _do_fork+0x1ef/0xfb0 kernel/fork.c:2045
+ SYSC_clone kernel/fork.c:2155 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2149
+ do_syscall_64+0x26c/0x920 arch/x86/entry/common.c:285
+ return_from_SYSCALL_64+0x0/0x75
+
+Freed by task 3154:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kmem_cache_free+0x77/0x280 mm/slab.c:3746
+ userfaultfd_ctx_put+0x50c/0x740 fs/userfaultfd.c:165
+ userfaultfd_event_wait_completion+0x86d/0xae0 fs/userfaultfd.c:605
+ dup_fctx fs/userfaultfd.c:693 [inline]
+ dup_userfaultfd_complete+0x2de/0x480 fs/userfaultfd.c:701
+ dup_mmap kernel/fork.c:730 [inline]
+ dup_mm kernel/fork.c:1197 [inline]
+ copy_mm+0xe9b/0x1310 kernel/fork.c:1251
+ copy_process.part.38+0x1eb9/0x4ac0 kernel/fork.c:1753
+ copy_process kernel/fork.c:1566 [inline]
+ _do_fork+0x1ef/0xfb0 kernel/fork.c:2045
+ SYSC_clone kernel/fork.c:2155 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2149
+ do_syscall_64+0x26c/0x920 arch/x86/entry/common.c:285
+ return_from_SYSCALL_64+0x0/0x75
+
+The buggy address belongs to the object at ffff8801ca0f4c40
+ which belongs to the cache userfaultfd_ctx_cache of size 360
+The buggy address is located 352 bytes inside of
+ 360-byte region [ffff8801ca0f4c40, ffff8801ca0f4da8)
+The buggy address belongs to the page:
+page:000000003fea5f5a count:1 mapcount:0 mapping:00000000e8b86b1a index:0xffff8801ca0f4ff7
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801ca0f4000 ffff8801ca0f4ff7 0000000100000009
+raw: ffff8801d6b32a48 ffff8801d6b32a48 ffff8801d6a7c000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ca0f4c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ca0f4d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801ca0f4d80: fb fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc
+                               ^
+ ffff8801ca0f4e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ca0f4e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

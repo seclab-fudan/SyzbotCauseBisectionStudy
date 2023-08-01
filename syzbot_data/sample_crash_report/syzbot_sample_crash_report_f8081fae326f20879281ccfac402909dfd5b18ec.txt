@@ -1,0 +1,55 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 17658 Comm: syzkaller625686 Not tainted 4.14.0-mm1+ #25
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801c734e280 task.stack: ffff8801c5f10000
+RIP: 0010:scatterwalk_start include/crypto/scatterwalk.h:86 [inline]
+RIP: 0010:scatterwalk_pagedone include/crypto/scatterwalk.h:111 [inline]
+RIP: 0010:scatterwalk_copychunks+0x337/0x480 crypto/scatterwalk.c:55
+RSP: 0018:ffff8801c5f175c8 EFLAGS: 00010202
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff82502da9
+RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000008
+RBP: ffff8801c5f17628 R08: ffff8801c5f177c0 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: ffff8801c5f177c0 R14: dffffc0000000000 R15: 0000000000000000
+FS:  00007f8ce5e49700(0000) GS:ffff8801db400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020284000 CR3: 00000001ce96c000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ blkcipher_next_slow crypto/blkcipher.c:175 [inline]
+ blkcipher_walk_next+0xca0/0x13d0 crypto/blkcipher.c:255
+ blkcipher_walk_first+0x261/0x570 crypto/blkcipher.c:346
+ blkcipher_walk_virt+0x219/0x2a0 crypto/blkcipher.c:308
+ skcipher_null_crypt+0x10e/0x2d0 crypto/crypto_null.c:85
+ skcipher_crypt_blkcipher crypto/skcipher.c:619 [inline]
+ skcipher_encrypt_blkcipher+0x213/0x310 crypto/skcipher.c:628
+ crypto_skcipher_encrypt include/crypto/skcipher.h:445 [inline]
+ crypto_aead_copy_sgl crypto/algif_aead.c:90 [inline]
+ _aead_recvmsg crypto/algif_aead.c:228 [inline]
+ aead_recvmsg+0xc96/0x1970 crypto/algif_aead.c:313
+ aead_recvmsg_nokey+0x60/0x80 crypto/algif_aead.c:431
+ sock_recvmsg_nosec net/socket.c:805 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:812
+ ___sys_recvmsg+0x29b/0x630 net/socket.c:2207
+ __sys_recvmsg+0xe2/0x210 net/socket.c:2252
+ SYSC_recvmsg net/socket.c:2264 [inline]
+ SyS_recvmsg+0x2d/0x50 net/socket.c:2259
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x4466c9
+RSP: 002b:00007f8ce5e48dc8 EFLAGS: 00000202 ORIG_RAX: 000000000000002f
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004466c9
+RDX: 0000000000002000 RSI: 0000000020222fc8 RDI: 0000000000000006
+RBP: 0000000000000086 R08: 00007f8ce5e49700 R09: 00007f8ce5e49700
+R10: 00007f8ce5e49700 R11: 0000000000000202 R12: 0000000000000000
+R13: 00007ffe3cc2e51f R14: 00007f8ce5e499c0 R15: 0000000000000000
+Code: 89 ff e8 6d 6f 2a 00 4c 89 ea 49 89 c7 48 c1 ea 03 42 80 3c 32 00 0f 85 c9 00 00 00 49 8d 7f 08 4d 89 7d 00 48 89 fa 48 c1 ea 03 <42> 0f b6 14 32 84 d2 74 09 80 fa 03 0f 8e 9e 00 00 00 48 8b 45 
+RIP: scatterwalk_start include/crypto/scatterwalk.h:86 [inline] RSP: ffff8801c5f175c8
+RIP: scatterwalk_pagedone include/crypto/scatterwalk.h:111 [inline] RSP: ffff8801c5f175c8
+RIP: scatterwalk_copychunks+0x337/0x480 crypto/scatterwalk.c:55 RSP: ffff8801c5f175c8
+---[ end trace 52b72f449649c1ea ]---

@@ -1,0 +1,105 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in atomic_sub_return include/asm-generic/atomic-instrumented.h:159 [inline]
+BUG: KASAN: slab-out-of-bounds in skb_release_data+0x11d/0x7a0 net/core/skbuff.c:566
+Write of size 4 at addr ffff88808c2a7e20 by task syz-executor.1/8634
+
+CPU: 0 PID: 8634 Comm: syz-executor.1 Not tainted 5.1.0-rc2-next-20190327 #12
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x123/0x190 mm/kasan/generic.c:191
+ kasan_check_write+0x14/0x20 mm/kasan/common.c:108
+ atomic_sub_return include/asm-generic/atomic-instrumented.h:159 [inline]
+ skb_release_data+0x11d/0x7a0 net/core/skbuff.c:566
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:631
+ __kfree_skb net/core/skbuff.c:645 [inline]
+ kfree_skb net/core/skbuff.c:663 [inline]
+ kfree_skb+0xe8/0x390 net/core/skbuff.c:657
+ skb_queue_purge+0x19/0x40 net/core/skbuff.c:2906
+ packet_release+0x8eb/0xbf0 net/packet/af_packet.c:3026
+ __sock_release+0xd3/0x2b0 net/socket.c:599
+ sock_close+0x1b/0x30 net/socket.c:1247
+ __fput+0x2e5/0x8d0 fs/file_table.c:278
+ ____fput+0x16/0x20 fs/file_table.c:309
+ task_work_run+0x14a/0x1c0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x90a/0x2fa0 kernel/exit.c:876
+ do_group_exit+0x135/0x370 kernel/exit.c:980
+ get_signal+0x399/0x1d50 kernel/signal.c:2577
+ do_signal+0x87/0x1940 arch/x86/kernel/signal.c:816
+ exit_to_usermode_loop+0x244/0x2c0 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x52d/0x610 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x458209
+Code: Bad RIP value.
+RSP: 002b:00007f90be60ccf8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 000000000073bf08 RCX: 0000000000458209
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 000000000073bf08
+RBP: 000000000073bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000073bf0c
+R13: 00007ffc7f44273f R14: 00007f90be60d9c0 R15: 000000000073bf0c
+
+Allocated by task 8017:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:505
+ slab_post_alloc_hook mm/slab.h:436 [inline]
+ slab_alloc_node mm/slab.c:3335 [inline]
+ kmem_cache_alloc_node+0x131/0x710 mm/slab.c:3645
+ alloc_task_struct_node kernel/fork.c:157 [inline]
+ dup_task_struct kernel/fork.c:844 [inline]
+ copy_process.part.0+0x1d35/0x79d0 kernel/fork.c:1753
+ copy_process kernel/fork.c:1710 [inline]
+ _do_fork+0x257/0xfd0 kernel/fork.c:2227
+ __do_sys_clone kernel/fork.c:2334 [inline]
+ __se_sys_clone kernel/fork.c:2328 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2328
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 8017:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x260 mm/slab.c:3764
+ free_task_struct kernel/fork.c:162 [inline]
+ free_task+0xdd/0x120 kernel/fork.c:457
+ copy_process.part.0+0x1a67/0x79d0 kernel/fork.c:2159
+ copy_process kernel/fork.c:1710 [inline]
+ _do_fork+0x257/0xfd0 kernel/fork.c:2227
+ __do_sys_clone kernel/fork.c:2334 [inline]
+ __se_sys_clone kernel/fork.c:2328 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2328
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88808c2a6580
+ which belongs to the cache task_struct(33:syz1) of size 6080
+The buggy address is located 224 bytes to the right of
+ 6080-byte region [ffff88808c2a6580, ffff88808c2a7d40)
+The buggy address belongs to the page:
+page:ffffea000230a980 count:1 mapcount:0 mapping:ffff888092521040 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea000279fd88 ffffea0001995e88 ffff888092521040
+raw: 0000000000000000 ffff88808c2a6580 0000000100000001 ffff888086f8a6c0
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff888086f8a6c0
+
+Memory state around the buggy address:
+ ffff88808c2a7d00: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff88808c2a7d80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88808c2a7e00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                               ^
+ ffff88808c2a7e80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88808c2a7f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

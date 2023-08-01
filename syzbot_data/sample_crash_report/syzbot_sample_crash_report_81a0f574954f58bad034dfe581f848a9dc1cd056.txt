@@ -1,0 +1,88 @@
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 5601 at kernel/workqueue.c:1438 __queue_work+0xf70/0x13b0 kernel/workqueue.c:1438
+Modules linked in:
+CPU: 0 PID: 5601 Comm: syz-executor.0 Not tainted 6.2.0-rc5-syzkaller-00108-g83abd4d4c4be #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+RIP: 0010:__queue_work+0xf70/0x13b0 kernel/workqueue.c:1438
+Code: e0 07 83 c0 03 38 d0 7c 09 84 d2 74 05 e8 08 e2 7c 00 8b 5b 2c 31 ff 83 e3 20 89 de e8 b9 d3 2e 00 85 db 75 42 e8 00 d7 2e 00 <0f> 0b e9 7e f7 ff ff e8 f4 d6 2e 00 0f 0b e9 10 f7 ff ff e8 e8 d6
+RSP: 0018:ffffc90000007c98 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: 0000000000000100 RCX: 0000000000000100
+RDX: ffff88801eb80000 RSI: ffffffff81528af0 RDI: 0000000000000005
+RBP: ffffc90000007d60 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000100 R11: 0000000000000001 R12: ffff8880226e4b30
+R13: ffff8880226e4b78 R14: 0000000000000000 R15: ffff8880752d6800
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 00000000f737b044 CR3: 000000000c48e000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ call_timer_fn+0x1da/0x7c0 kernel/time/timer.c:1700
+ expire_timers+0xbb/0x5c0 kernel/time/timer.c:1746
+ __run_timers kernel/time/timer.c:2022 [inline]
+ __run_timers kernel/time/timer.c:1995 [inline]
+ run_timer_softirq+0x326/0x910 kernel/time/timer.c:2035
+ __do_softirq+0x1fb/0xadc kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x9/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x97/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:lock_acquire+0x227/0x630 kernel/locking/lockdep.c:5636
+Code: 80 9e 7e 83 f8 01 0f 85 3a 03 00 00 9c 58 f6 c4 02 0f 85 25 03 00 00 48 83 7c 24 08 00 74 01 fb 48 b8 00 00 00 00 00 fc ff df <48> 01 c3 48 c7 03 00 00 00 00 48 c7 43 08 00 00 00 00 48 8b 84 24
+RSP: 0018:ffffc9000487f8b0 EFLAGS: 00000206
+RAX: dffffc0000000000 RBX: 1ffff9200090ff19 RCX: 0000000000000001
+RDX: 1ffff11003d70146 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000001 R08: 0000000000000001 R09: ffffffff914c2897
+R10: fffffbfff2298512 R11: 1ffffffff216c6e6 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff8880752d6938 R15: 0000000000000000
+ __flush_workqueue+0x118/0x13a0 kernel/workqueue.c:2809
+ drain_workqueue+0x1a9/0x3c0 kernel/workqueue.c:2974
+ hci_dev_close_sync+0x2f3/0x1200 net/bluetooth/hci_sync.c:4835
+ hci_dev_do_close+0x31/0x70 net/bluetooth/hci_core.c:554
+ hci_unregister_dev+0x1ce/0x580 net/bluetooth/hci_core.c:2702
+ vhci_release+0x80/0xf0 drivers/bluetooth/hci_vhci.c:568
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0xaa8/0x2950 kernel/exit.c:867
+ do_group_exit+0xd4/0x2a0 kernel/exit.c:1012
+ __do_sys_exit_group kernel/exit.c:1023 [inline]
+ __se_sys_exit_group kernel/exit.c:1021 [inline]
+ __ia32_sys_exit_group+0x3e/0x50 kernel/exit.c:1021
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0x65/0xf0 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+RIP: 0023:0xf7fd9549
+Code: Unable to access opcode bytes at 0xf7fd951f.
+RSP: 002b:00000000ffc2aa2c EFLAGS: 00000282 ORIG_RAX: 00000000000000fc
+RAX: ffffffffffffffda RBX: 0000000000000043 RCX: 00000000ffc2aa78
+RDX: 0000000000000000 RSI: 00000000f735322c RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000282 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	80 9e 7e 83 f8 01 0f 	sbbb   $0xf,0x1f8837e(%rsi)
+   7:	85 3a                	test   %edi,(%rdx)
+   9:	03 00                	add    (%rax),%eax
+   b:	00 9c 58 f6 c4 02 0f 	add    %bl,0xf02c4f6(%rax,%rbx,2)
+  12:	85 25 03 00 00 48    	test   %esp,0x48000003(%rip)        # 0x4800001b
+  18:	83 7c 24 08 00       	cmpl   $0x0,0x8(%rsp)
+  1d:	74 01                	je     0x20
+  1f:	fb                   	sti
+  20:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  27:	fc ff df
+* 2a:	48 01 c3             	add    %rax,%rbx <-- trapping instruction
+  2d:	48 c7 03 00 00 00 00 	movq   $0x0,(%rbx)
+  34:	48 c7 43 08 00 00 00 	movq   $0x0,0x8(%rbx)
+  3b:	00
+  3c:	48                   	rex.W
+  3d:	8b                   	.byte 0x8b
+  3e:	84                   	.byte 0x84
+  3f:	24                   	.byte 0x24

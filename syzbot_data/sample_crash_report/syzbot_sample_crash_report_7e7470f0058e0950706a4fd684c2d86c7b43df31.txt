@@ -1,0 +1,60 @@
+------------[ cut here ]------------
+kernel BUG at fs/ext4/extents.c:3190!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 4422 Comm: syzkaller152353 Not tainted 4.16.0-rc7+ #9
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:ext4_split_extent_at+0x75d/0x1160 fs/ext4/extents.c:3190
+RSP: 0018:ffff8801c6b8e290 EFLAGS: 00010293
+RAX: ffff8801acdc0080 RBX: ffff8801b425b018 RCX: ffffffff81e959ad
+RDX: 0000000000000000 RSI: ffff8801a79c11f0 RDI: ffff8801d96ce940
+RBP: ffff8801c6b8e3f8 R08: 0000000000000010 R09: 0000000000000425
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801d96ce930
+R13: 0000000000003010 R14: 1ffff10038d71c5e R15: 0000000000000010
+FS:  00000000014a2880(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f8298ddf000 CR3: 00000001ad57f002 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ ext4_split_extent.isra.36+0x2b6/0x490 fs/ext4/extents.c:3364
+ ext4_ext_convert_to_initialized fs/ext4/extents.c:3619 [inline]
+ ext4_ext_handle_unwritten_extents+0x1acd/0x3940 fs/ext4/extents.c:4081
+ ext4_ext_map_blocks+0x12d1/0x4410 fs/ext4/extents.c:4339
+ ext4_map_blocks+0xc90/0x1830 fs/ext4/inode.c:636
+ mpage_map_one_extent fs/ext4/inode.c:2452 [inline]
+ mpage_map_and_submit_extent fs/ext4/inode.c:2505 [inline]
+ ext4_writepages+0x2035/0x3c30 fs/ext4/inode.c:2875
+ do_writepages+0xff/0x170 mm/page-writeback.c:2340
+ __filemap_fdatawrite_range+0x32f/0x460 mm/filemap.c:444
+ file_write_and_wait_range+0x8a/0x100 mm/filemap.c:752
+ ext4_sync_file+0x4fb/0x1260 fs/ext4/fsync.c:128
+ vfs_fsync_range+0x110/0x260 fs/sync.c:196
+ generic_write_sync include/linux/fs.h:2680 [inline]
+ ext4_file_write_iter+0x919/0x10c0 fs/ext4/file.c:270
+ call_write_iter include/linux/fs.h:1782 [inline]
+ do_iter_readv_writev+0x55c/0x830 fs/read_write.c:653
+ do_iter_write+0x154/0x540 fs/read_write.c:932
+ vfs_iter_write+0x77/0xb0 fs/read_write.c:945
+ iter_file_splice_write+0x7db/0xf30 fs/splice.c:749
+ do_splice_from fs/splice.c:851 [inline]
+ direct_splice_actor+0x125/0x180 fs/splice.c:1018
+ splice_direct_to_actor+0x2c1/0x820 fs/splice.c:973
+ do_splice_direct+0x29b/0x3c0 fs/splice.c:1061
+ do_sendfile+0x5c9/0xe80 fs/read_write.c:1413
+ SYSC_sendfile64 fs/read_write.c:1468 [inline]
+ SyS_sendfile64+0xbd/0x160 fs/read_write.c:1460
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x440029
+RSP: 002b:00007fff87fd7e68 EFLAGS: 00000217 ORIG_RAX: 0000000000000028
+RAX: ffffffffffffffda RBX: 00000fffffeff000 RCX: 0000000000440029
+RDX: 0000000020000000 RSI: 0000000000000004 RDI: 0000000000000003
+RBP: 00000000006cb018 R08: 00007fff87fd7e80 R09: 00007fff87fd7e80
+R10: 0000000100000001 R11: 0000000000000217 R12: 0000000000401860
+R13: 00000000004018f0 R14: 0000000000000000 R15: 0000000000000000
+Code: fe ff ff 48 c7 c7 c0 9c 56 87 0f b7 43 08 4c 8d 04 40 49 c1 e0 04 49 01 d8 e8 a0 66 ff ff 41 89 c7 e9 f8 fd ff ff e8 93 0b 88 ff <0f> 0b e8 8c 0b 88 ff 48 8b 8d b8 fe ff ff 48 b8 00 00 00 00 00 
+RIP: ext4_split_extent_at+0x75d/0x1160 fs/ext4/extents.c:3190 RSP: ffff8801c6b8e290
+---[ end trace d3416668281344cc ]---

@@ -1,0 +1,89 @@
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000008
+Mem abort info:
+  ESR = 0x0000000096000004
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000004
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010c839000
+[0000000000000008] pgd=0000000000000000, p4d=0000000000000000
+Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 2809 Comm: kworker/0:3 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: mld mld_ifc_work
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : em_u32_match+0x64/0xd8 net/sched/em_u32.c:29
+lr : em_u32_match+0x64/0xd8 net/sched/em_u32.c:23
+sp : ffff80000ffb3250
+x29: ffff80000ffb3250 x28: 0000000000000000 x27: 0000000000000000
+x26: ffff80000ffb32a8 x25: ffff0000cbbfe180 x24: 0000000000000001
+x23: ffff0000c9df181e x22: ffff0000c9df1800 x21: 0000000000000000
+x20: 0000000000000000 x19: ffff0000ca551f00 x18: 00000000000000c0
+x17: ffff80000dda8198 x16: ffff80000dbe6158 x15: ffff0000cb163480
+x14: 0000000000000000 x13: 7fffffffffffffff x12: ffff0000cb163480
+x11: ff8080000b40e694 x10: 0000000000000000 x9 : ffff80000b40e694
+x8 : ffff0000cb163480 x7 : ffff80000b26471c x6 : 0000000000000000
+x5 : ffff80000e0d7770 x4 : 0000000000000000 x3 : ffff80000ffb3458
+x2 : 0000000000000000 x1 : ffff0000cbbfe180 x0 : ffff0000ca551f00
+Call trace:
+ em_u32_match+0x64/0xd8 net/sched/em_u32.c:23
+ tcf_em_match net/sched/ematch.c:492 [inline]
+ __tcf_em_tree_match+0xb0/0x340 net/sched/ematch.c:518
+ tcf_em_tree_match include/net/pkt_cls.h:502 [inline]
+ basic_classify+0xa8/0x1d4 net/sched/cls_basic.c:48
+ __tcf_classify net/sched/cls_api.c:1567 [inline]
+ tcf_classify+0x11c/0x4ac net/sched/cls_api.c:1633
+ prio_classify net/sched/sch_prio.c:42 [inline]
+ prio_enqueue+0xd8/0x38c net/sched/sch_prio.c:75
+ dev_qdisc_enqueue net/core/dev.c:3785 [inline]
+ __dev_xmit_skb+0x1b8/0x928 net/core/dev.c:3874
+ __dev_queue_xmit+0x414/0xdb8 net/core/dev.c:4222
+ dev_queue_xmit include/linux/netdevice.h:3008 [inline]
+ neigh_hh_output include/net/neighbour.h:530 [inline]
+ neigh_output include/net/neighbour.h:544 [inline]
+ ip_finish_output2+0x670/0x818 net/ipv4/ip_output.c:228
+ __ip_finish_output+0x108/0x29c
+ ip_finish_output+0x168/0x188 net/ipv4/ip_output.c:316
+ NF_HOOK_COND include/linux/netfilter.h:291 [inline]
+ ip_output+0x1d4/0x234 net/ipv4/ip_output.c:430
+ dst_output include/net/dst.h:445 [inline]
+ ip_local_out+0xc0/0xf0 net/ipv4/ip_output.c:126
+ iptunnel_xmit+0x194/0x314 net/ipv4/ip_tunnel_core.c:82
+ udp_tunnel_xmit_skb+0x108/0x140 net/ipv4/udp_tunnel_core.c:172
+ geneve_xmit_skb drivers/net/geneve.c:996 [inline]
+ geneve_xmit+0x16ac/0x1aac drivers/net/geneve.c:1108
+ __netdev_start_xmit include/linux/netdevice.h:4840 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4854 [inline]
+ xmit_one net/core/dev.c:3590 [inline]
+ dev_hard_start_xmit+0xd4/0x1ec net/core/dev.c:3606
+ __dev_queue_xmit+0x83c/0xdb8 net/core/dev.c:4256
+ dev_queue_xmit include/linux/netdevice.h:3008 [inline]
+ neigh_resolve_output+0x350/0x3bc net/core/neighbour.c:1571
+ neigh_output include/net/neighbour.h:546 [inline]
+ ip6_finish_output2+0x704/0xbec net/ipv6/ip6_output.c:134
+ __ip6_finish_output net/ipv6/ip6_output.c:195 [inline]
+ ip6_finish_output+0x448/0x4c4 net/ipv6/ip6_output.c:206
+ NF_HOOK_COND include/linux/netfilter.h:291 [inline]
+ ip6_output+0x180/0x2dc net/ipv6/ip6_output.c:227
+ dst_output include/net/dst.h:445 [inline]
+ NF_HOOK include/linux/netfilter.h:302 [inline]
+ mld_sendpack+0x514/0x924 net/ipv6/mcast.c:1820
+ mld_send_cr+0x4e8/0x5a8 net/ipv6/mcast.c:2121
+ mld_ifc_work+0x38/0x290 net/ipv6/mcast.c:2653
+ process_one_work+0x2d8/0x504 kernel/workqueue.c:2289
+ worker_thread+0x340/0x610 kernel/workqueue.c:2436
+ kthread+0x12c/0x158 kernel/kthread.c:376
+ ret_from_fork+0x10/0x20 arch/arm64/kernel/entry.S:863
+Code: 0a090149 8b29c117 14000002 973a60e5 (b9800aa8) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	0a090149 	and	w9, w10, w9
+   4:	8b29c117 	add	x23, x8, w9, sxtw
+   8:	14000002 	b	0x10
+   c:	973a60e5 	bl	0xfffffffffce983a0
+* 10:	b9800aa8 	ldrsw	x8, [x21, #8] <-- trapping instruction

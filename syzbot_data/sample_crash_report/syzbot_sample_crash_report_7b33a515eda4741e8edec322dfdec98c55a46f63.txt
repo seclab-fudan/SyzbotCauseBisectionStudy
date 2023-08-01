@@ -1,0 +1,48 @@
+loop4: detected capacity change from 0 to 32768
+XFS (loop4): Mounting V5 Filesystem c496e05e-540d-4c72-b591-04d79d8b4eeb
+XFS (loop4): Ending clean mount
+=====================================================
+BUG: KMSAN: uninit-value in xfs_getfsmap_helper+0xbd5/0x1b20 fs/xfs/xfs_fsmap.c:341
+ xfs_getfsmap_helper+0xbd5/0x1b20 fs/xfs/xfs_fsmap.c:341
+ xfs_getfsmap_datadev_bnobt_helper+0x225/0x2d0 fs/xfs/xfs_fsmap.c:385
+ xfs_getfsmap_datadev_bnobt_query+0xad/0x2e0 fs/xfs/xfs_fsmap.c:744
+ __xfs_getfsmap_datadev+0x13e8/0x1f70 fs/xfs/xfs_fsmap.c:676
+ xfs_getfsmap_datadev_bnobt+0x8a/0xd0 fs/xfs/xfs_fsmap.c:765
+ xfs_getfsmap+0x1690/0x18d0 fs/xfs/xfs_fsmap.c:962
+ xfs_ioc_getfsmap+0x5e6/0x1080 fs/xfs/xfs_ioctl.c:1558
+ xfs_file_ioctl+0x1c5/0x27a0 fs/xfs/xfs_ioctl.c:1952
+ xfs_file_compat_ioctl+0x334/0xbb0
+ __do_compat_sys_ioctl fs/ioctl.c:968 [inline]
+ __se_compat_sys_ioctl+0x781/0xfa0 fs/ioctl.c:910
+ __ia32_compat_sys_ioctl+0x8f/0xd0 fs/ioctl.c:910
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Uninit was stored to memory at:
+ xfs_getfsmap_datadev_bnobt_helper+0x29b/0x2d0 fs/xfs/xfs_fsmap.c:380
+ xfs_getfsmap_datadev_bnobt_query+0xad/0x2e0 fs/xfs/xfs_fsmap.c:744
+ __xfs_getfsmap_datadev+0x13e8/0x1f70 fs/xfs/xfs_fsmap.c:676
+ xfs_getfsmap_datadev_bnobt+0x8a/0xd0 fs/xfs/xfs_fsmap.c:765
+ xfs_getfsmap+0x1690/0x18d0 fs/xfs/xfs_fsmap.c:962
+ xfs_ioc_getfsmap+0x5e6/0x1080 fs/xfs/xfs_ioctl.c:1558
+ xfs_file_ioctl+0x1c5/0x27a0 fs/xfs/xfs_ioctl.c:1952
+ xfs_file_compat_ioctl+0x334/0xbb0
+ __do_compat_sys_ioctl fs/ioctl.c:968 [inline]
+ __se_compat_sys_ioctl+0x781/0xfa0 fs/ioctl.c:910
+ __ia32_compat_sys_ioctl+0x8f/0xd0 fs/ioctl.c:910
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Local variable akeys created at:
+ xfs_getfsmap_datadev_bnobt+0x50/0xd0 fs/xfs/xfs_fsmap.c:762
+ xfs_getfsmap+0x1690/0x18d0 fs/xfs/xfs_fsmap.c:962
+
+CPU: 1 PID: 7205 Comm: syz-executor.4 Not tainted 6.2.0-rc6-syzkaller-80422-geda666ff2276 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+=====================================================

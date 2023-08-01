@@ -1,0 +1,46 @@
+=====================================================
+BUG: KMSAN: kernel-infoleak in instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+BUG: KMSAN: kernel-infoleak in _copy_to_user+0xbc/0x100 lib/usercopy.c:33
+ instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+ _copy_to_user+0xbc/0x100 lib/usercopy.c:33
+ copy_to_user include/linux/uaccess.h:169 [inline]
+ vmci_host_do_receive_datagram drivers/misc/vmw_vmci/vmci_host.c:431 [inline]
+ vmci_host_unlocked_ioctl+0x1cd3/0x5480 drivers/misc/vmw_vmci/vmci_host.c:925
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl+0x222/0x400 fs/ioctl.c:856
+ __x64_sys_ioctl+0x92/0xd0 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was stored to memory at:
+ kmemdup+0x89/0xd0 mm/util.c:131
+ dg_dispatch_as_host drivers/misc/vmw_vmci/vmci_datagram.c:271 [inline]
+ vmci_datagram_dispatch+0x4ee/0x13f0 drivers/misc/vmw_vmci/vmci_datagram.c:339
+ qp_notify_peer+0x1fe/0x310 drivers/misc/vmw_vmci/vmci_queue_pair.c:1479
+ qp_broker_attach drivers/misc/vmw_vmci/vmci_queue_pair.c:1662 [inline]
+ qp_broker_alloc+0x3370/0x3850 drivers/misc/vmw_vmci/vmci_queue_pair.c:1750
+ vmci_qp_broker_alloc+0xdf/0x120 drivers/misc/vmw_vmci/vmci_queue_pair.c:1940
+ vmci_host_do_alloc_queuepair drivers/misc/vmw_vmci/vmci_host.c:488 [inline]
+ vmci_host_unlocked_ioctl+0x3305/0x5480 drivers/misc/vmw_vmci/vmci_host.c:927
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl+0x222/0x400 fs/ioctl.c:856
+ __x64_sys_ioctl+0x92/0xd0 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Local variable ev created at:
+ qp_notify_peer+0x5a/0x310 drivers/misc/vmw_vmci/vmci_queue_pair.c:1456
+ qp_broker_attach drivers/misc/vmw_vmci/vmci_queue_pair.c:1662 [inline]
+ qp_broker_alloc+0x3370/0x3850 drivers/misc/vmw_vmci/vmci_queue_pair.c:1750
+
+Bytes 28-31 of 48 are uninitialized
+Memory access of size 48 starts at ffff88811768de80
+Data copied to user address 0000000020000100
+
+CPU: 0 PID: 3489 Comm: syz-executor851 Not tainted 6.0.0-rc5-syzkaller-48540-g466a27efa4f0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+=====================================================

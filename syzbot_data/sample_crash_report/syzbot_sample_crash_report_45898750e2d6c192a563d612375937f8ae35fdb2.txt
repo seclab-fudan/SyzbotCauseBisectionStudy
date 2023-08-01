@@ -1,0 +1,130 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.1.0-syzkaller-11778-gc183e6c3ec34 #0 Not tainted
+------------------------------------------------------
+syz-executor390/18169 is trying to acquire lock:
+ffff8880763af100 (&rm->m_rs_lock){..-.}-{2:2}, at: rds_message_purge net/rds/message.c:138 [inline]
+ffff8880763af100 (&rm->m_rs_lock){..-.}-{2:2}, at: rds_message_put+0x1dd/0xc20 net/rds/message.c:180
+
+but task is already holding lock:
+ffff88802afafa70 (&rs->rs_recv_lock){...-}-{2:2}, at: rds_clear_recv_queue+0x33/0x350 net/rds/recv.c:761
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&rs->rs_recv_lock){...-}-{2:2}:
+       __raw_read_lock_irqsave include/linux/rwlock_api_smp.h:160 [inline]
+       _raw_read_lock_irqsave+0x49/0x90 kernel/locking/spinlock.c:236
+       rds_wake_sk_sleep+0x23/0xe0 net/rds/af_rds.c:109
+       rds_send_remove_from_sock+0xb9/0x9e0 net/rds/send.c:634
+       rds_send_path_drop_acked+0x2f3/0x3d0 net/rds/send.c:710
+       rds_tcp_write_space+0x1b5/0x690 net/rds/tcp_send.c:198
+       tcp_new_space net/ipv4/tcp_input.c:5483 [inline]
+       tcp_check_space+0x11b/0x810 net/ipv4/tcp_input.c:5502
+       tcp_data_snd_check net/ipv4/tcp_input.c:5511 [inline]
+       tcp_rcv_established+0x93e/0x2230 net/ipv4/tcp_input.c:6019
+       tcp_v4_do_rcv+0x670/0x9b0 net/ipv4/tcp_ipv4.c:1721
+       sk_backlog_rcv include/net/sock.h:1113 [inline]
+       __release_sock+0x133/0x3b0 net/core/sock.c:2928
+       release_sock+0x58/0x1b0 net/core/sock.c:3485
+       rds_send_xmit+0xafc/0x2540 net/rds/send.c:422
+       rds_sendmsg+0x27d3/0x3080 net/rds/send.c:1381
+       sock_sendmsg_nosec net/socket.c:714 [inline]
+       sock_sendmsg+0xd3/0x120 net/socket.c:734
+       __sys_sendto+0x23a/0x340 net/socket.c:2117
+       __do_sys_sendto net/socket.c:2129 [inline]
+       __se_sys_sendto net/socket.c:2125 [inline]
+       __x64_sys_sendto+0xe1/0x1b0 net/socket.c:2125
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&rm->m_rs_lock){..-.}-{2:2}:
+       check_prev_add kernel/locking/lockdep.c:3097 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+       validate_chain kernel/locking/lockdep.c:3831 [inline]
+       __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5055
+       lock_acquire kernel/locking/lockdep.c:5668 [inline]
+       lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x3d/0x60 kernel/locking/spinlock.c:162
+       rds_message_purge net/rds/message.c:138 [inline]
+       rds_message_put+0x1dd/0xc20 net/rds/message.c:180
+       rds_inc_put net/rds/recv.c:82 [inline]
+       rds_inc_put+0x13e/0x1a0 net/rds/recv.c:76
+       rds_clear_recv_queue+0x14b/0x350 net/rds/recv.c:767
+       rds_release+0xd8/0x3c0 net/rds/af_rds.c:73
+       __sock_release+0xcd/0x280 net/socket.c:650
+       sock_close+0x1c/0x20 net/socket.c:1365
+       __fput+0x27c/0xa90 fs/file_table.c:320
+       task_work_run+0x16f/0x270 kernel/task_work.c:179
+       resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+       exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+       exit_to_user_mode_prepare+0x23c/0x250 kernel/entry/common.c:203
+       __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+       syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+       do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&rs->rs_recv_lock);
+                               lock(&rm->m_rs_lock);
+                               lock(&rs->rs_recv_lock);
+  lock(&rm->m_rs_lock);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor390/18169:
+ #0: ffff8880719a3210 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #0: ffff8880719a3210 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: __sock_release+0x86/0x280 net/socket.c:649
+ #1: ffff88802afafa70 (&rs->rs_recv_lock){...-}-{2:2}, at: rds_clear_recv_queue+0x33/0x350 net/rds/recv.c:761
+
+stack backtrace:
+CPU: 0 PID: 18169 Comm: syz-executor390 Not tainted 6.1.0-syzkaller-11778-gc183e6c3ec34 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2177
+ check_prev_add kernel/locking/lockdep.c:3097 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain kernel/locking/lockdep.c:3831 [inline]
+ __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5055
+ lock_acquire kernel/locking/lockdep.c:5668 [inline]
+ lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x3d/0x60 kernel/locking/spinlock.c:162
+ rds_message_purge net/rds/message.c:138 [inline]
+ rds_message_put+0x1dd/0xc20 net/rds/message.c:180
+ rds_inc_put net/rds/recv.c:82 [inline]
+ rds_inc_put+0x13e/0x1a0 net/rds/recv.c:76
+ rds_clear_recv_queue+0x14b/0x350 net/rds/recv.c:767
+ rds_release+0xd8/0x3c0 net/rds/af_rds.c:73
+ __sock_release+0xcd/0x280 net/socket.c:650
+ sock_close+0x1c/0x20 net/socket.c:1365
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x23c/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f4a3a75f5fb
+Code: 0f 05 48 3d 00 f0 ff ff 77 45 c3 0f 1f 40 00 48 83 ec 18 89 7c 24 0c e8 03 fd ff ff 8b 7c 24 0c 41 89 c0 b8 03 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 35 44 89 c7 89 44 24 0c e8 41 fd ff ff 8b 44
+RSP: 002b:00007ffff26fde60 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000005 RCX: 00007f4a3a75f5fb
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000004
+RBP: 0000000000000032 R08: 0000000000000000 R09: 00007f4a3a7f51ae
+R10: 0000000000000000 R11: 0000000000000293 R12: 00007f4a3a8284ec
+R13: 00007ffff26fdeb0 R14: 00007ffff26fded0 R15: 00007ffff26fdf40
+ </TASK>

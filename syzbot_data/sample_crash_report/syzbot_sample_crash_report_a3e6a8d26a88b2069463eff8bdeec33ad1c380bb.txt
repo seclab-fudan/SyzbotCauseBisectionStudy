@@ -1,0 +1,116 @@
+INFO: task syz-executor966:3649 blocked for more than 143 seconds.
+      Tainted: G        W         5.17.0-syzkaller-11138-gf022814633e1 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor966 state:D stack:26552 pid: 3649 ppid:  3643 flags:0x00004006
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5073 [inline]
+ __schedule+0x937/0x1090 kernel/sched/core.c:6382
+ schedule+0xeb/0x1b0 kernel/sched/core.c:6454
+ __lock_sock+0x1cf/0x330 net/core/sock.c:2770
+ lock_sock_nested+0x9f/0x100 net/core/sock.c:3317
+ lock_sock include/net/sock.h:1682 [inline]
+ rfcomm_sk_state_change+0x63/0x300 net/bluetooth/rfcomm/sock.c:73
+ __rfcomm_dlc_close+0x2cc/0x480 net/bluetooth/rfcomm/core.c:489
+ rfcomm_dlc_close+0x10d/0x1c0 net/bluetooth/rfcomm/core.c:520
+ __rfcomm_sock_close+0x101/0x220 net/bluetooth/rfcomm/sock.c:220
+ rfcomm_sock_shutdown+0xa5/0x220 net/bluetooth/rfcomm/sock.c:905
+ rfcomm_sock_release+0x55/0x120 net/bluetooth/rfcomm/sock.c:925
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0xd8/0x260 net/socket.c:1318
+ __fput+0x3f6/0x860 fs/file_table.c:317
+ task_work_run+0x146/0x1c0 kernel/task_work.c:164
+ exit_task_work include/linux/task_work.h:32 [inline]
+ do_exit+0x5e3/0x20f0 kernel/exit.c:794
+ do_group_exit+0x2af/0x2b0 kernel/exit.c:924
+ get_signal+0x1831/0x2330 kernel/signal.c:2903
+ arch_do_signal_or_restart+0x9c/0x730 arch/x86/kernel/signal.c:868
+ handle_signal_work kernel/entry/common.c:149 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:187 [inline]
+ exit_to_user_mode_prepare+0x165/0x200 kernel/entry/common.c:222
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:304 [inline]
+ syscall_exit_to_user_mode+0x2e/0x70 kernel/entry/common.c:315
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7fc460f5f7c9
+RSP: 002b:00007ffd6246dfe8 EFLAGS: 00000246 ORIG_RAX: 000000000000002a
+RAX: fffffffffffffffc RBX: 000055555726a3b8 RCX: 00007fc460f5f7c9
+RDX: 0000000000000080 RSI: 0000000020000000 RDI: 0000000000000004
+RBP: 0000000000000003 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000004
+R13: 0000000000000072 R14: 00007ffd6246e060 R15: 0000000000000000
+ </TASK>
+INFO: lockdep is turned off.
+NMI backtrace for cpu 1
+CPU: 1 PID: 28 Comm: khungtaskd Tainted: G        W         5.17.0-syzkaller-11138-gf022814633e1 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1dc/0x2d8 lib/dump_stack.c:106
+ nmi_cpu_backtrace+0x45f/0x490 lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x16a/0x280 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:212 [inline]
+ watchdog+0xc82/0xcd0 kernel/hung_task.c:369
+ kthread+0x2a3/0x2d0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+ </TASK>
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 11 Comm: kworker/u4:1 Tainted: G        W         5.17.0-syzkaller-11138-gf022814633e1 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound toggle_allocation_gate
+RIP: 0010:memcpy_erms+0x8/0x10
+Code: cc cc eb 1e 0f 1f 00 48 89 f8 48 89 d1 48 c1 e9 03 83 e2 07 f3 48 a5 89 d1 f3 a4 c3 66 0f 1f 44 00 00 48 89 f8 48 89 d1 f3 a4 <c3> 0f 1f 80 00 00 00 00 48 89 f8 48 83 fa 20 72 7e 40 38 fe 7c 35
+RSP: 0018:ffffc900001077d8 EFLAGS: 00000002
+RAX: 00002aaaaaaab9df RBX: ffff88813fe20000 RCX: 0000000000000000
+RDX: 0000000000000001 RSI: ffffffff8f7f944b RDI: 00002aaaaaaab9e0
+RBP: ffffc90000107990 R08: dffffc0000000000 R09: fffffbfff1eff28a
+R10: fffffbfff1eff28a R11: 0000000000000000 R12: ffffc900001078a0
+R13: ffff88813fe9ba00 R14: 8000000000000063 R15: ffff88813fe15558
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000560c5ecff680 CR3: 00000001400fb000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __text_poke+0x606/0x9f0 arch/x86/kernel/alternative.c:1024
+ text_poke arch/x86/kernel/alternative.c:1083 [inline]
+ text_poke_bp_batch+0x680/0x920 arch/x86/kernel/alternative.c:1398
+ text_poke_flush arch/x86/kernel/alternative.c:1504 [inline]
+ text_poke_finish+0x16/0x30 arch/x86/kernel/alternative.c:1511
+ arch_jump_label_transform_apply+0x13/0x20 arch/x86/kernel/jump_label.c:146
+ static_key_enable_cpuslocked+0x12d/0x250 kernel/jump_label.c:177
+ static_key_enable+0x16/0x20 kernel/jump_label.c:190
+ toggle_allocation_gate+0xbf/0x460 mm/kfence/core.c:779
+ process_one_work+0x83c/0x11a0 kernel/workqueue.c:2289
+ worker_thread+0xa6c/0x1290 kernel/workqueue.c:2436
+ kthread+0x2a3/0x2d0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	cc                   	int3
+   1:	cc                   	int3
+   2:	eb 1e                	jmp    0x22
+   4:	0f 1f 00             	nopl   (%rax)
+   7:	48 89 f8             	mov    %rdi,%rax
+   a:	48 89 d1             	mov    %rdx,%rcx
+   d:	48 c1 e9 03          	shr    $0x3,%rcx
+  11:	83 e2 07             	and    $0x7,%edx
+  14:	f3 48 a5             	rep movsq %ds:(%rsi),%es:(%rdi)
+  17:	89 d1                	mov    %edx,%ecx
+  19:	f3 a4                	rep movsb %ds:(%rsi),%es:(%rdi)
+  1b:	c3                   	retq
+  1c:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+  22:	48 89 f8             	mov    %rdi,%rax
+  25:	48 89 d1             	mov    %rdx,%rcx
+  28:	f3 a4                	rep movsb %ds:(%rsi),%es:(%rdi)
+* 2a:	c3                   	retq <-- trapping instruction
+  2b:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+  32:	48 89 f8             	mov    %rdi,%rax
+  35:	48 83 fa 20          	cmp    $0x20,%rdx
+  39:	72 7e                	jb     0xb9
+  3b:	40 38 fe             	cmp    %dil,%sil
+  3e:	7c 35                	jl     0x75

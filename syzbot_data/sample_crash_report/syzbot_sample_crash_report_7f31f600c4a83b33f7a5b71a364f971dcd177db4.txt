@@ -1,0 +1,217 @@
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 1
+======================================================
+WARNING: possible circular locking dependency detected
+5.18.0-rc6-syzkaller-00161-gbc403203d65a #0 Not tainted
+------------------------------------------------------
+syz-executor154/3598 is trying to acquire lock:
+ffffffff8cb0f4a0 (console_owner){....}-{0:0}, at: console_lock_spinning_enable+0x2d/0x60 kernel/printk/printk.c:1791
+
+but task is already holding lock:
+ffff8880201a9958 (&port->lock){-.-.}-{2:2}, at: pty_write+0xc5/0x170 drivers/tty/pty.c:120
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&port->lock){-.-.}-{2:2}:
+       lock_acquire+0x1a7/0x400 kernel/locking/lockdep.c:5641
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0xd1/0x120 kernel/locking/spinlock.c:162
+       tty_port_tty_get drivers/tty/tty_port.c:306 [inline]
+       tty_port_default_wakeup+0x21/0x100 drivers/tty/tty_port.c:48
+       serial8250_tx_chars+0x60e/0x810 drivers/tty/serial/8250/8250_port.c:1866
+       serial8250_handle_irq+0x32f/0x410 drivers/tty/serial/8250/8250_port.c:1953
+       serial8250_default_handle_irq+0xaf/0x190 drivers/tty/serial/8250/8250_port.c:1970
+       serial8250_interrupt+0xa3/0x1e0 drivers/tty/serial/8250/8250_core.c:126
+       __handle_irq_event_percpu+0x200/0x620 kernel/irq/handle.c:158
+       handle_irq_event_percpu kernel/irq/handle.c:193 [inline]
+       handle_irq_event+0x83/0x1e0 kernel/irq/handle.c:210
+       handle_edge_irq+0x245/0xbe0 kernel/irq/chip.c:817
+       generic_handle_irq_desc include/linux/irqdesc.h:158 [inline]
+       handle_irq arch/x86/kernel/irq.c:231 [inline]
+       __common_interrupt+0xce/0x1e0 arch/x86/kernel/irq.c:250
+       common_interrupt+0x9f/0xc0 arch/x86/kernel/irq.c:240
+       asm_common_interrupt+0x1e/0x40
+       native_safe_halt arch/x86/include/asm/irqflags.h:51 [inline]
+       arch_safe_halt arch/x86/include/asm/irqflags.h:89 [inline]
+       acpi_safe_halt drivers/acpi/processor_idle.c:110 [inline]
+       acpi_idle_do_entry drivers/acpi/processor_idle.c:551 [inline]
+       acpi_idle_enter+0x42d/0x790 drivers/acpi/processor_idle.c:686
+       cpuidle_enter_state+0x517/0xed0 drivers/cpuidle/cpuidle.c:237
+       cpuidle_enter+0x59/0x90 drivers/cpuidle/cpuidle.c:351
+       call_cpuidle kernel/sched/idle.c:155 [inline]
+       cpuidle_idle_call kernel/sched/idle.c:236 [inline]
+       do_idle+0x3d2/0x640 kernel/sched/idle.c:303
+       cpu_startup_entry+0x15/0x20 kernel/sched/idle.c:400
+       rest_init+0x24f/0x270 init/main.c:726
+       start_kernel+0x0/0x56e init/main.c:882
+       start_kernel+0x4bf/0x56e init/main.c:1140
+       secondary_startup_64_no_verify+0xc4/0xcb
+
+-> #1 (&port_lock_key){-.-.}-{2:2}:
+       lock_acquire+0x1a7/0x400 kernel/locking/lockdep.c:5641
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0xd1/0x120 kernel/locking/spinlock.c:162
+       serial8250_console_write+0x19c/0xf60 drivers/tty/serial/8250/8250_port.c:3358
+       console_unlock+0xa98/0x1150 kernel/printk/printk.c:2774
+       vprintk_emit+0xd1/0x1e0 kernel/printk/printk.c:2272
+       _printk+0xcf/0x10f kernel/printk/printk.c:2293
+       register_console+0x6e2/0x9c0 kernel/printk/printk.c:3131
+       univ8250_console_init+0x41/0x43 drivers/tty/serial/8250/8250_core.c:679
+       console_init+0x5d/0xa8 kernel/printk/printk.c:3231
+       start_kernel+0x328/0x56e init/main.c:1068
+       secondary_startup_64_no_verify+0xc4/0xcb
+
+-> #0 (console_owner){....}-{0:0}:
+       check_prev_add kernel/locking/lockdep.c:3065 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3188 [inline]
+       validate_chain+0x185c/0x65c0 kernel/locking/lockdep.c:3803
+       __lock_acquire+0x129a/0x1f80 kernel/locking/lockdep.c:5029
+       lock_acquire+0x1a7/0x400 kernel/locking/lockdep.c:5641
+       console_lock_spinning_enable+0x52/0x60 kernel/printk/printk.c:1794
+       console_unlock+0x7f4/0x1150 kernel/printk/printk.c:2771
+       vprintk_emit+0xd1/0x1e0 kernel/printk/printk.c:2272
+       _printk+0xcf/0x10f kernel/printk/printk.c:2293
+       fail_dump lib/fault-inject.c:45 [inline]
+       should_fail+0x366/0x4b0 lib/fault-inject.c:146
+       should_failslab+0x5/0x20 mm/slab_common.c:1313
+       slab_pre_alloc_hook mm/slab.h:724 [inline]
+       slab_alloc_node mm/slub.c:3131 [inline]
+       slab_alloc mm/slub.c:3225 [inline]
+       __kmalloc+0x8b/0x370 mm/slub.c:4410
+       kmalloc include/linux/slab.h:586 [inline]
+       tty_buffer_alloc drivers/tty/tty_buffer.c:178 [inline]
+       __tty_buffer_request_room+0x1f0/0x540 drivers/tty/tty_buffer.c:274
+       tty_insert_flip_string_fixed_flag+0x91/0x2c0 drivers/tty/tty_buffer.c:321
+       tty_insert_flip_string include/linux/tty_flip.h:41 [inline]
+       pty_write+0xe9/0x170 drivers/tty/pty.c:122
+       process_output_block drivers/tty/n_tty.c:581 [inline]
+       n_tty_write+0xe4f/0x13b0 drivers/tty/n_tty.c:2248
+       do_tty_write drivers/tty/tty_io.c:1024 [inline]
+       file_tty_write+0x5a5/0x960 drivers/tty/tty_io.c:1095
+       call_write_iter include/linux/fs.h:2050 [inline]
+       new_sync_write fs/read_write.c:504 [inline]
+       vfs_write+0xa22/0xd40 fs/read_write.c:591
+       ksys_write+0x19b/0x2c0 fs/read_write.c:644
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+other info that might help us debug this:
+
+Chain exists of:
+  console_owner --> &port_lock_key --> &port->lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&port->lock);
+                               lock(&port_lock_key);
+                               lock(&port->lock);
+  lock(console_owner);
+
+ *** DEADLOCK ***
+
+6 locks held by syz-executor154/3598:
+ #0: ffff888020368098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x21/0x70 drivers/tty/tty_ldisc.c:244
+ #1: ffff888020368130 (&tty->atomic_write_lock){+.+.}-{3:3}, at: tty_write_lock drivers/tty/tty_io.c:950 [inline]
+ #1: ffff888020368130 (&tty->atomic_write_lock){+.+.}-{3:3}, at: do_tty_write drivers/tty/tty_io.c:973 [inline]
+ #1: ffff888020368130 (&tty->atomic_write_lock){+.+.}-{3:3}, at: file_tty_write+0x26e/0x960 drivers/tty/tty_io.c:1095
+ #2: ffff8880203682e8 (&o_tty->termios_rwsem/1){++++}-{3:3}, at: n_tty_write+0x244/0x13b0 drivers/tty/n_tty.c:2231
+ #3: ffffc90001c0c378 (&ldata->output_lock){+.+.}-{3:3}, at: process_output_block drivers/tty/n_tty.c:536 [inline]
+ #3: ffffc90001c0c378 (&ldata->output_lock){+.+.}-{3:3}, at: n_tty_write+0x707/0x13b0 drivers/tty/n_tty.c:2248
+ #4: ffff8880201a9958 (&port->lock){-.-.}-{2:2}, at: pty_write+0xc5/0x170 drivers/tty/pty.c:120
+ #5: ffffffff8c9f71a0 (console_lock){+.+.}-{0:0}, at: vprintk_emit+0xb8/0x1e0 kernel/printk/printk.c:2271
+
+stack backtrace:
+CPU: 0 PID: 3598 Comm: syz-executor154 Not tainted 5.18.0-rc6-syzkaller-00161-gbc403203d65a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ check_noncircular+0x2f7/0x3b0 kernel/locking/lockdep.c:2145
+ check_prev_add kernel/locking/lockdep.c:3065 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3188 [inline]
+ validate_chain+0x185c/0x65c0 kernel/locking/lockdep.c:3803
+ __lock_acquire+0x129a/0x1f80 kernel/locking/lockdep.c:5029
+ lock_acquire+0x1a7/0x400 kernel/locking/lockdep.c:5641
+ console_lock_spinning_enable+0x52/0x60 kernel/printk/printk.c:1794
+ console_unlock+0x7f4/0x1150 kernel/printk/printk.c:2771
+ vprintk_emit+0xd1/0x1e0 kernel/printk/printk.c:2272
+ _printk+0xcf/0x10f kernel/printk/printk.c:2293
+ fail_dump lib/fault-inject.c:45 [inline]
+ should_fail+0x366/0x4b0 lib/fault-inject.c:146
+ should_failslab+0x5/0x20 mm/slab_common.c:1313
+ slab_pre_alloc_hook mm/slab.h:724 [inline]
+ slab_alloc_node mm/slub.c:3131 [inline]
+ slab_alloc mm/slub.c:3225 [inline]
+ __kmalloc+0x8b/0x370 mm/slub.c:4410
+ kmalloc include/linux/slab.h:586 [inline]
+ tty_buffer_alloc drivers/tty/tty_buffer.c:178 [inline]
+ __tty_buffer_request_room+0x1f0/0x540 drivers/tty/tty_buffer.c:274
+ tty_insert_flip_string_fixed_flag+0x91/0x2c0 drivers/tty/tty_buffer.c:321
+ tty_insert_flip_string include/linux/tty_flip.h:41 [inline]
+ pty_write+0xe9/0x170 drivers/tty/pty.c:122
+ process_output_block drivers/tty/n_tty.c:581 [inline]
+ n_tty_write+0xe4f/0x13b0 drivers/tty/n_tty.c:2248
+ do_tty_write drivers/tty/tty_io.c:1024 [inline]
+ file_tty_write+0x5a5/0x960 drivers/tty/tty_io.c:1095
+ call_write_iter include/linux/fs.h:2050 [inline]
+ new_sync_write fs/read_write.c:504 [inline]
+ vfs_write+0xa22/0xd40 fs/read_write.c:591
+ ksys_write+0x19b/0x2c0 fs/read_write.c:644
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f667e336919
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffef1700db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007f667e336919
+RDX: 00000000ffffffde RSI: 00000000200001c0 RDI: 0000000000000003
+RBP: 00007ffef1700dd0 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000006
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+CPU: 0 PID: 3598 Comm: syz-executor154 Not tainted 5.18.0-rc6-syzkaller-00161-gbc403203d65a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ fail_dump lib/fault-inject.c:52 [inline]
+ should_fail+0x384/0x4b0 lib/fault-inject.c:146
+ should_failslab+0x5/0x20 mm/slab_common.c:1313
+ slab_pre_alloc_hook mm/slab.h:724 [inline]
+ slab_alloc_node mm/slub.c:3131 [inline]
+ slab_alloc mm/slub.c:3225 [inline]
+ __kmalloc+0x8b/0x370 mm/slub.c:4410
+ kmalloc include/linux/slab.h:586 [inline]
+ tty_buffer_alloc drivers/tty/tty_buffer.c:178 [inline]
+ __tty_buffer_request_room+0x1f0/0x540 drivers/tty/tty_buffer.c:274
+ tty_insert_flip_string_fixed_flag+0x91/0x2c0 drivers/tty/tty_buffer.c:321
+ tty_insert_flip_string include/linux/tty_flip.h:41 [inline]
+ pty_write+0xe9/0x170 drivers/tty/pty.c:122
+ process_output_block drivers/tty/n_tty.c:581 [inline]
+ n_tty_write+0xe4f/0x13b0 drivers/tty/n_tty.c:2248
+ do_tty_write drivers/tty/tty_io.c:1024 [inline]
+ file_tty_write+0x5a5/0x960 drivers/tty/tty_io.c:1095
+ call_write_iter include/linux/fs.h:2050 [inline]
+ new_sync_write fs/read_write.c:504 [inline]
+ vfs_write+0xa22/0xd40 fs/read_write.c:591
+ ksys_write+0x19b/0x2c0 fs/read_write.c:644
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f667e336919
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffef1700db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007f667e336919
+RDX: 00000000ffffffde RSI: 00000000200001c0 RDI: 0000000000000003
+RBP: 00007ffef1700dd0 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000006
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>

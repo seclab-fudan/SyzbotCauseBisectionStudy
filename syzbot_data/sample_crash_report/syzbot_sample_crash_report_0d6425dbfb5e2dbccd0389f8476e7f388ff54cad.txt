@@ -1,0 +1,258 @@
+usb 1-1: USB disconnect, device number 2
+=========================
+WARNING: held lock freed!
+5.15.0-rc6-syzkaller #0 Not tainted
+-------------------------
+kworker/0:3/1275 is freeing memory ffff888078f7c000-ffff888078f7cfff, with a lock still held there!
+ffff888078f7c668 (&ctlr->add_lock){+.+.}-{3:3}, at: spi_unregister_controller+0x57/0x3b0 drivers/spi/spi.c:2964
+8 locks held by kworker/0:3/1275:
+ #0: ffff888141583d38 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888141583d38 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888141583d38 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1198 [inline]
+ #0: ffff888141583d38 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:634 [inline]
+ #0: ffff888141583d38 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:661 [inline]
+ #0: ffff888141583d38 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: process_one_work+0x8a3/0x16b0 kernel/workqueue.c:2268
+ #1: ffffc90004df7db0 ((work_completion)(&hub->events)){+.+.}-{0:0}, at: process_one_work+0x8d7/0x16b0 kernel/workqueue.c:2272
+ #2: ffff88801e713220 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:760 [inline]
+ #2: ffff88801e713220 (&dev->mutex){....}-{3:3}, at: hub_event+0x1c1/0x4330 drivers/usb/core/hub.c:5662
+ #3: ffff88823bd68a20 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:760 [inline]
+ #3: ffff88823bd68a20 (&dev->mutex){....}-{3:3}, at: usb_disconnect.cold+0x43/0x78e drivers/usb/core/hub.c:2216
+ #4: ffff8881401f71a8 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:760 [inline]
+ #4: ffff8881401f71a8 (&dev->mutex){....}-{3:3}, at: __device_driver_lock drivers/base/dd.c:1032 [inline]
+ #4: ffff8881401f71a8 (&dev->mutex){....}-{3:3}, at: device_release_driver_internal drivers/base/dd.c:1233 [inline]
+ #4: ffff8881401f71a8 (&dev->mutex){....}-{3:3}, at: device_release_driver+0x1c/0x40 drivers/base/dd.c:1259
+ #5: ffff888078f7ad38 (&dev->vb_queue_lock){+.+.}-{3:3}, at: msi2500_disconnect+0x5d/0x160 drivers/media/usb/msi2500/msi2500.c:571
+ #6: ffff888078f7aca8 (&dev->v4l2_lock){+.+.}-{3:3}, at: msi2500_disconnect+0x67/0x160 drivers/media/usb/msi2500/msi2500.c:572
+ #7: ffff888078f7c668 (&ctlr->add_lock){+.+.}-{3:3}, at: spi_unregister_controller+0x57/0x3b0 drivers/spi/spi.c:2964
+
+stack backtrace:
+CPU: 0 PID: 1275 Comm: kworker/0:3 Not tainted 5.15.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_freed_lock_bug kernel/locking/lockdep.c:6376 [inline]
+ debug_check_no_locks_freed.cold+0x9d/0xa9 kernel/locking/lockdep.c:6409
+ slab_free_hook mm/slub.c:1672 [inline]
+ slab_free_freelist_hook+0x73/0x1c0 mm/slub.c:1726
+ slab_free mm/slub.c:3492 [inline]
+ kfree+0xf3/0x550 mm/slub.c:4552
+ device_release+0x9f/0x240 drivers/base/core.c:2232
+ kobject_cleanup lib/kobject.c:705 [inline]
+ kobject_release lib/kobject.c:736 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x1c8/0x540 lib/kobject.c:753
+ put_device+0x1b/0x30 drivers/base/core.c:3503
+ spi_unregister_controller+0x2a8/0x3b0 drivers/spi/spi.c:2986
+ msi2500_disconnect+0xd2/0x160 drivers/media/usb/msi2500/msi2500.c:577
+ usb_unbind_interface+0x1d8/0x8d0 drivers/usb/core/driver.c:458
+ __device_release_driver+0x5d7/0x700 drivers/base/dd.c:1205
+ device_release_driver_internal drivers/base/dd.c:1236 [inline]
+ device_release_driver+0x26/0x40 drivers/base/dd.c:1259
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:529
+ device_del+0x502/0xd60 drivers/base/core.c:3583
+ usb_disable_device+0x35b/0x7b0 drivers/usb/core/message.c:1419
+ usb_disconnect.cold+0x27a/0x78e drivers/usb/core/hub.c:2225
+ hub_port_connect drivers/usb/core/hub.c:5199 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5488 [inline]
+ port_event drivers/usb/core/hub.c:5634 [inline]
+ hub_event+0x1c9c/0x4330 drivers/usb/core/hub.c:5716
+ process_one_work+0x9bf/0x16b0 kernel/workqueue.c:2297
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2444
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read include/linux/instrumented.h:71 [inline]
+BUG: KASAN: use-after-free in atomic_long_read include/linux/atomic/atomic-instrumented.h:1183 [inline]
+BUG: KASAN: use-after-free in __mutex_unlock_slowpath+0xa6/0x5e0 kernel/locking/mutex.c:860
+Read of size 8 at addr ffff888078f7c600 by task kworker/0:3/1275
+
+CPU: 0 PID: 1275 Comm: kworker/0:3 Not tainted 5.15.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0x6c/0x309 mm/kasan/report.c:256
+ __kasan_report mm/kasan/report.c:442 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:459
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read include/linux/instrumented.h:71 [inline]
+ atomic_long_read include/linux/atomic/atomic-instrumented.h:1183 [inline]
+ __mutex_unlock_slowpath+0xa6/0x5e0 kernel/locking/mutex.c:860
+ msi2500_disconnect+0xd2/0x160 drivers/media/usb/msi2500/msi2500.c:577
+ usb_unbind_interface+0x1d8/0x8d0 drivers/usb/core/driver.c:458
+ __device_release_driver+0x5d7/0x700 drivers/base/dd.c:1205
+ device_release_driver_internal drivers/base/dd.c:1236 [inline]
+ device_release_driver+0x26/0x40 drivers/base/dd.c:1259
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:529
+ device_del+0x502/0xd60 drivers/base/core.c:3583
+ usb_disable_device+0x35b/0x7b0 drivers/usb/core/message.c:1419
+ usb_disconnect.cold+0x27a/0x78e drivers/usb/core/hub.c:2225
+ hub_port_connect drivers/usb/core/hub.c:5199 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5488 [inline]
+ port_event drivers/usb/core/hub.c:5634 [inline]
+ hub_event+0x1c9c/0x4330 drivers/usb/core/hub.c:5716
+ process_one_work+0x9bf/0x16b0 kernel/workqueue.c:2297
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2444
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Allocated by task 69:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:513 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:472 [inline]
+ __kasan_kmalloc+0xa4/0xd0 mm/kasan/common.c:522
+ kmalloc include/linux/slab.h:596 [inline]
+ kzalloc include/linux/slab.h:721 [inline]
+ __spi_alloc_controller+0x35/0x310 drivers/spi/spi.c:2545
+ spi_alloc_master include/linux/spi/spi.h:730 [inline]
+ msi2500_probe+0x685/0xbe0 drivers/media/usb/msi2500/msi2500.c:1223
+ usb_probe_interface+0x315/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x245/0xcc0 drivers/base/dd.c:596
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:751
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:781
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:898
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:969
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xc17/0x1ee0 drivers/base/core.c:3396
+ usb_set_configuration+0x113f/0x1910 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd9/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x245/0xcc0 drivers/base/dd.c:596
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:751
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:781
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:898
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:969
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xc17/0x1ee0 drivers/base/core.c:3396
+ usb_new_device.cold+0x63f/0x108e drivers/usb/core/hub.c:2563
+ hub_port_connect drivers/usb/core/hub.c:5348 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5488 [inline]
+ port_event drivers/usb/core/hub.c:5634 [inline]
+ hub_event+0x2357/0x4330 drivers/usb/core/hub.c:5716
+ process_one_work+0x9bf/0x16b0 kernel/workqueue.c:2297
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2444
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Freed by task 1275:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:360
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free mm/kasan/common.c:328 [inline]
+ __kasan_slab_free+0xff/0x130 mm/kasan/common.c:374
+ kasan_slab_free include/linux/kasan.h:230 [inline]
+ slab_free_hook mm/slub.c:1700 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1726
+ slab_free mm/slub.c:3492 [inline]
+ kfree+0xf3/0x550 mm/slub.c:4552
+ device_release+0x9f/0x240 drivers/base/core.c:2232
+ kobject_cleanup lib/kobject.c:705 [inline]
+ kobject_release lib/kobject.c:736 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x1c8/0x540 lib/kobject.c:753
+ put_device+0x1b/0x30 drivers/base/core.c:3503
+ spi_unregister_controller+0x2a8/0x3b0 drivers/spi/spi.c:2986
+ msi2500_disconnect+0xd2/0x160 drivers/media/usb/msi2500/msi2500.c:577
+ usb_unbind_interface+0x1d8/0x8d0 drivers/usb/core/driver.c:458
+ __device_release_driver+0x5d7/0x700 drivers/base/dd.c:1205
+ device_release_driver_internal drivers/base/dd.c:1236 [inline]
+ device_release_driver+0x26/0x40 drivers/base/dd.c:1259
+ bus_remove_device+0x2eb/0x5a0 drivers/base/bus.c:529
+ device_del+0x502/0xd60 drivers/base/core.c:3583
+ usb_disable_device+0x35b/0x7b0 drivers/usb/core/message.c:1419
+ usb_disconnect.cold+0x27a/0x78e drivers/usb/core/hub.c:2225
+ hub_port_connect drivers/usb/core/hub.c:5199 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5488 [inline]
+ port_event drivers/usb/core/hub.c:5634 [inline]
+ hub_event+0x1c9c/0x4330 drivers/usb/core/hub.c:5716
+ process_one_work+0x9bf/0x16b0 kernel/workqueue.c:2297
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2444
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+The buggy address belongs to the object at ffff888078f7c000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 1536 bytes inside of
+ 4096-byte region [ffff888078f7c000, ffff888078f7d000)
+The buggy address belongs to the page:
+page:ffffea0001e3de00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x78f78
+head:ffffea0001e3de00 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 0000000000000000 dead000000000122 ffff888010c42140
+raw: 0000000000000000 0000000000040004 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 69, ts 73591547684, free_ts 72672350436
+ prep_new_page mm/page_alloc.c:2424 [inline]
+ get_page_from_freelist+0xa72/0x2f80 mm/page_alloc.c:4153
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5375
+ alloc_pages+0x1a7/0x300 mm/mempolicy.c:2191
+ alloc_slab_page mm/slub.c:1770 [inline]
+ allocate_slab mm/slub.c:1907 [inline]
+ new_slab+0x319/0x490 mm/slub.c:1970
+ ___slab_alloc+0x950/0x1050 mm/slub.c:3001
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3088
+ slab_alloc_node mm/slub.c:3179 [inline]
+ slab_alloc mm/slub.c:3221 [inline]
+ kmem_cache_alloc_trace+0x302/0x3c0 mm/slub.c:3238
+ kmalloc include/linux/slab.h:591 [inline]
+ kzalloc include/linux/slab.h:721 [inline]
+ kobject_uevent_env+0x240/0x1650 lib/kobject_uevent.c:524
+ device_add+0xbb4/0x1ee0 drivers/base/core.c:3377
+ usb_set_configuration+0x113f/0x1910 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd9/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x245/0xcc0 drivers/base/dd.c:596
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:751
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:781
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:898
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1338 [inline]
+ free_pcp_prepare+0x2c5/0x780 mm/page_alloc.c:1389
+ free_unref_page_prepare mm/page_alloc.c:3315 [inline]
+ free_unref_page+0x19/0x690 mm/page_alloc.c:3394
+ qlink_free mm/kasan/quarantine.c:146 [inline]
+ qlist_free_all+0x5a/0xc0 mm/kasan/quarantine.c:165
+ kasan_quarantine_reduce+0x180/0x200 mm/kasan/quarantine.c:272
+ __kasan_slab_alloc+0x95/0xb0 mm/kasan/common.c:444
+ kasan_slab_alloc include/linux/kasan.h:254 [inline]
+ slab_post_alloc_hook mm/slab.h:519 [inline]
+ slab_alloc_node mm/slub.c:3213 [inline]
+ slab_alloc mm/slub.c:3221 [inline]
+ kmem_cache_alloc_trace+0x260/0x3c0 mm/slub.c:3238
+ kmalloc include/linux/slab.h:591 [inline]
+ kzalloc include/linux/slab.h:721 [inline]
+ call_usermodehelper_setup+0x97/0x340 kernel/umh.c:365
+ kobject_uevent_env+0xf73/0x1650 lib/kobject_uevent.c:614
+ netdev_queue_add_kobject net/core/net-sysfs.c:1621 [inline]
+ netdev_queue_update_kobjects+0x37a/0x460 net/core/net-sysfs.c:1655
+ register_queue_kobjects net/core/net-sysfs.c:1716 [inline]
+ netdev_register_kobject+0x35a/0x430 net/core/net-sysfs.c:1959
+ register_netdevice+0xd33/0x1500 net/core/dev.c:10299
+ register_netdev+0x2d/0x50 net/core/dev.c:10423
+ loopback_net_init+0x73/0x160 drivers/net/loopback.c:216
+ ops_init+0xaf/0x470 net/core/net_namespace.c:140
+ setup_net+0x40f/0xa30 net/core/net_namespace.c:326
+ copy_net_ns+0x319/0x760 net/core/net_namespace.c:470
+
+Memory state around the buggy address:
+ ffff888078f7c500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888078f7c580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888078f7c600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff888078f7c680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888078f7c700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

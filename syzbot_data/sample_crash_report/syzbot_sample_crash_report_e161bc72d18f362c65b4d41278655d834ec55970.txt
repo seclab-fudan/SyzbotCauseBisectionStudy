@@ -1,0 +1,93 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: double-free or invalid-free in p9stat_free+0x35/0x100 net/9p/protocol.c:48
+
+CPU: 0 PID: 4442 Comm: syz-executor725 Not tainted 4.18.0+ #209
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_invalid_free+0x64/0xa0 mm/kasan/report.c:336
+ __kasan_slab_free+0x150/0x170 mm/kasan/kasan.c:501
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x210 mm/slab.c:3813
+ p9stat_free+0x35/0x100 net/9p/protocol.c:48
+ v9fs_dir_readdir+0x68e/0xbc0 fs/9p/vfs_dir.c:153
+ iterate_dir+0x48b/0x5d0 fs/readdir.c:51
+ __do_sys_getdents fs/readdir.c:231 [inline]
+ __se_sys_getdents fs/readdir.c:212 [inline]
+ __x64_sys_getdents+0x29f/0x510 fs/readdir.c:212
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4406a9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fffc67864f8 EFLAGS: 00000217 ORIG_RAX: 000000000000004e
+RAX: ffffffffffffffda RBX: 0030656c69662f2e RCX: 00000000004406a9
+RDX: 0000000000000008 RSI: 0000000020000180 RDI: 0000000000000005
+RBP: 64663d736e617274 R08: 0000000000401f30 R09: 0000000000401f30
+R10: 0000000000401f30 R11: 0000000000000217 R12: 0000000000401f30
+R13: 0000000000401fc0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4442:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc mm/slab.c:3718 [inline]
+ __kmalloc+0x14e/0x720 mm/slab.c:3727
+ kmalloc include/linux/slab.h:518 [inline]
+ p9pdu_vreadf net/9p/protocol.c:157 [inline]
+ p9pdu_readf+0x526/0x2170 net/9p/protocol.c:536
+ p9pdu_vreadf net/9p/protocol.c:208 [inline]
+ p9pdu_readf+0xd5c/0x2170 net/9p/protocol.c:536
+ p9stat_read+0x194/0x5d0 net/9p/protocol.c:565
+ v9fs_dir_readdir+0x63d/0xbc0 fs/9p/vfs_dir.c:149
+ iterate_dir+0x48b/0x5d0 fs/readdir.c:51
+ __do_sys_getdents fs/readdir.c:231 [inline]
+ __se_sys_getdents fs/readdir.c:212 [inline]
+ __x64_sys_getdents+0x29f/0x510 fs/readdir.c:212
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 4442:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x210 mm/slab.c:3813
+ p9stat_free+0x35/0x100 net/9p/protocol.c:48
+ p9pdu_vreadf net/9p/protocol.c:220 [inline]
+ p9pdu_readf+0xd90/0x2170 net/9p/protocol.c:536
+ p9stat_read+0x194/0x5d0 net/9p/protocol.c:565
+ v9fs_dir_readdir+0x63d/0xbc0 fs/9p/vfs_dir.c:149
+ iterate_dir+0x48b/0x5d0 fs/readdir.c:51
+ __do_sys_getdents fs/readdir.c:231 [inline]
+ __se_sys_getdents fs/readdir.c:212 [inline]
+ __x64_sys_getdents+0x29f/0x510 fs/readdir.c:212
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801d7975500
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8801d7975500, ffff8801d7975520)
+The buggy address belongs to the page:
+page:ffffea00075e5d40 count:1 mapcount:0 mapping:ffff8801dac001c0 index:0xffff8801d7975fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea00075e6408 ffffea0006c2f848 ffff8801dac001c0
+raw: ffff8801d7975fc1 ffff8801d7975000 000000010000002d 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d7975400: 00 00 00 fc fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801d7975480: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801d7975500: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+                   ^
+ ffff8801d7975580: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801d7975600: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

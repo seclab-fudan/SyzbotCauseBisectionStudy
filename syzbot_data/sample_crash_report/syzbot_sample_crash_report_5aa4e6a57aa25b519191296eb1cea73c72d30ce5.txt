@@ -1,0 +1,81 @@
+team1513: entered promiscuous mode
+8021q: adding VLAN 0 to HW filter on device team1513
+------------[ cut here ]------------
+lockdep bfs error:-1
+WARNING: CPU: 0 PID: 29846 at kernel/locking/lockdep.c:2067 print_bfs_bug+0x22/0x30 kernel/locking/lockdep.c:2067
+Modules linked in:
+CPU: 0 PID: 29846 Comm: syz-executor.5 Not tainted 6.3.0-rc4-syzkaller-00199-g7b50567bdcad #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+RIP: 0010:print_bfs_bug+0x22/0x30 kernel/locking/lockdep.c:2067
+Code: 84 00 00 00 00 00 66 90 55 89 fd 53 e8 d7 2a a9 02 89 c3 e8 60 fd ff ff 85 db 74 10 89 ee 48 c7 c7 e0 5d 4c 8a e8 ae d7 e7 ff <0f> 0b 5b 5d c3 66 0f 1f 84 00 00 00 00 00 53 31 c9 31 d2 31 f6 48
+RSP: 0018:ffffc90013d06670 EFLAGS: 00010082
+RAX: 0000000000000000 RBX: 0000000000000001 RCX: ffffc900153fd000
+RDX: 0000000000040000 RSI: ffffffff814b5fe7 RDI: 0000000000000001
+RBP: 00000000ffffffff R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 207065646b636f6c R12: ffff88807c11e270
+R13: 0000000000000000 R14: ffffc90013d06798 R15: 0000000000000000
+FS:  00007f58387d7700(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9902987218 CR3: 000000016906b000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ check_irq_usage+0x56c/0x1a40 kernel/locking/lockdep.c:2835
+ check_prev_add kernel/locking/lockdep.c:3102 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+ validate_chain kernel/locking/lockdep.c:3832 [inline]
+ __lock_acquire+0x2edf/0x5d40 kernel/locking/lockdep.c:5056
+ lock_acquire kernel/locking/lockdep.c:5669 [inline]
+ lock_acquire+0x1af/0x520 kernel/locking/lockdep.c:5634
+ __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+ _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+ alloc_object lib/debugobjects.c:237 [inline]
+ __debug_object_init+0x5e6/0xf10 lib/debugobjects.c:577
+ debug_object_init lib/debugobjects.c:624 [inline]
+ debug_object_activate+0x330/0x3e0 lib/debugobjects.c:710
+ debug_rcu_head_queue kernel/rcu/rcu.h:189 [inline]
+ __call_rcu_common.constprop.0+0x2c/0x7e0 kernel/rcu/tree.c:2607
+ put_task_struct_rcu_user+0x83/0xc0 kernel/exit.c:231
+ context_switch kernel/sched/core.c:5310 [inline]
+ __schedule+0xc99/0x5770 kernel/sched/core.c:6625
+ preempt_schedule_common+0x45/0xb0 kernel/sched/core.c:6794
+ preempt_schedule_thunk+0x1a/0x20 arch/x86/entry/thunk_64.S:34
+ __mutex_lock_common kernel/locking/mutex.c:728 [inline]
+ __mutex_lock+0xfe5/0x1350 kernel/locking/mutex.c:747
+ team_vlan_rx_add_vid+0x3c/0x1e0 drivers/net/team/team.c:1904
+ vlan_add_rx_filter_info+0x149/0x1d0 net/8021q/vlan_core.c:211
+ __vlan_vid_add net/8021q/vlan_core.c:306 [inline]
+ vlan_vid_add+0x413/0x820 net/8021q/vlan_core.c:336
+ vlan_device_event+0x3e7/0x1fe0 net/8021q/vlan.c:385
+ notifier_call_chain+0xb5/0x200 kernel/notifier.c:87
+ call_netdevice_notifiers_info+0xb5/0x130 net/core/dev.c:1937
+ call_netdevice_notifiers_extack net/core/dev.c:1975 [inline]
+ call_netdevice_notifiers net/core/dev.c:1989 [inline]
+ __dev_notify_flags+0x120/0x2d0 net/core/dev.c:8566
+ rtnl_configure_link+0x181/0x260 net/core/rtnetlink.c:3270
+ rtnl_newlink_create net/core/rtnetlink.c:3448 [inline]
+ __rtnl_newlink+0x10f6/0x1840 net/core/rtnetlink.c:3657
+ rtnl_newlink+0x68/0xa0 net/core/rtnetlink.c:3670
+ rtnetlink_rcv_msg+0x43d/0xd50 net/core/rtnetlink.c:6174
+ netlink_rcv_skb+0x165/0x440 net/netlink/af_netlink.c:2574
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1365
+ netlink_sendmsg+0x925/0xe30 net/netlink/af_netlink.c:1942
+ sock_sendmsg_nosec net/socket.c:724 [inline]
+ sock_sendmsg+0xde/0x190 net/socket.c:747
+ ____sys_sendmsg+0x71c/0x900 net/socket.c:2501
+ ___sys_sendmsg+0x110/0x1b0 net/socket.c:2555
+ __sys_sendmsg+0xf7/0x1c0 net/socket.c:2584
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f5837a8c0f9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f58387d7168 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f5837bac050 RCX: 00007f5837a8c0f9
+RDX: 0000000000000000 RSI: 0000000020000040 RDI: 0000000000000003
+RBP: 00007f5837ae7b39 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f5837ccfb1f R14: 00007f58387d7300 R15: 0000000000022000
+ </TASK>

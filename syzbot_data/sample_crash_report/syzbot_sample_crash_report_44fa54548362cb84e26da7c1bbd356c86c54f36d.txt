@@ -1,0 +1,67 @@
+audit: type=1400 audit(1546412134.760:36): avc:  denied  { map } for  pid=8209 comm="syz-executor753" path="/root/syz-executor753487859" dev="sda1" ino=16483 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: stack-out-of-bounds in jhash2 include/linux/jhash.h:137 [inline]
+BUG: KASAN: stack-out-of-bounds in __xfrm6_addr_hash net/xfrm/xfrm_hash.h:16 [inline]
+BUG: KASAN: stack-out-of-bounds in __xfrm6_daddr_saddr_hash net/xfrm/xfrm_hash.h:29 [inline]
+BUG: KASAN: stack-out-of-bounds in __xfrm_dst_hash net/xfrm/xfrm_hash.h:95 [inline]
+BUG: KASAN: stack-out-of-bounds in xfrm_dst_hash net/xfrm/xfrm_state.c:61 [inline]
+BUG: KASAN: stack-out-of-bounds in xfrm_state_find+0x396a/0x3f00 net/xfrm/xfrm_state.c:958
+Read of size 4 at addr ffff888096def3d0 by task syz-executor753/8209
+
+CPU: 0 PID: 8209 Comm: syz-executor753 Not tainted 4.20.0+ #4
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:134
+ jhash2 include/linux/jhash.h:137 [inline]
+ __xfrm6_addr_hash net/xfrm/xfrm_hash.h:16 [inline]
+ __xfrm6_daddr_saddr_hash net/xfrm/xfrm_hash.h:29 [inline]
+ __xfrm_dst_hash net/xfrm/xfrm_hash.h:95 [inline]
+ xfrm_dst_hash net/xfrm/xfrm_state.c:61 [inline]
+ xfrm_state_find+0x396a/0x3f00 net/xfrm/xfrm_state.c:958
+ xfrm_tmpl_resolve_one net/xfrm/xfrm_policy.c:2385 [inline]
+ xfrm_tmpl_resolve+0x385/0xe00 net/xfrm/xfrm_policy.c:2430
+ xfrm_resolve_and_create_bundle+0x145/0x27f0 net/xfrm/xfrm_policy.c:2725
+ xfrm_lookup_with_ifid+0x340/0x2a90 net/xfrm/xfrm_policy.c:3048
+ xfrm_lookup net/xfrm/xfrm_policy.c:3172 [inline]
+ xfrm_lookup_route+0x3b/0x1f0 net/xfrm/xfrm_policy.c:3183
+ ip_route_output_flow+0xad/0xc0 net/ipv4/route.c:2582
+ udp_sendmsg+0x24cb/0x3a40 net/ipv4/udp.c:1144
+ udpv6_sendmsg+0x1843/0x3550 net/ipv6/udp.c:1279
+ inet_sendmsg+0x1af/0x740 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x409/0x910 net/socket.c:2116
+ __sys_sendmmsg+0x246/0x6f0 net/socket.c:2211
+ __do_sys_sendmmsg net/socket.c:2240 [inline]
+ __se_sys_sendmmsg net/socket.c:2237 [inline]
+ __x64_sys_sendmmsg+0x9d/0x100 net/socket.c:2237
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440349
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffd9cac43d8 EFLAGS: 00000217 ORIG_RAX: 0000000000000133
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440349
+RDX: 0000000000000001 RSI: 0000000020000a80 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000401bd0
+R13: 0000000000401c60 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea00025b7bc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x1fffc0000000000()
+raw: 01fffc0000000000 0000000000000000 ffffffff025b0101 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888096def280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff888096def300: f1 f1 f1 f1 00 00 00 f2 f2 f2 00 00 00 00 00 f2
+>ffff888096def380: f2 f2 f2 f2 00 00 00 00 00 00 f2 f2 f2 f2 00 00
+                                                 ^
+ ffff888096def400: 00 00 00 00 f2 f2 f2 f2 00 00 f8 f2 f2 f2 00 00
+ ffff888096def480: 00 00 00 00 00 00 00 f3 f3 f3 f3 f3 00 00 00 00
+==================================================================

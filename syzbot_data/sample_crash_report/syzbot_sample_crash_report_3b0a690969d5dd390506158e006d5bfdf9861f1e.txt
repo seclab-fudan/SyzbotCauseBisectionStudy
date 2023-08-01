@@ -1,0 +1,122 @@
+==================================================================
+BUG: KASAN: use-after-free in nf_nat_ipv6_manip_pkt+0x47c/0x490 net/ipv6/netfilter/nf_nat_l3proto_ipv6.c:106
+Write of size 16 at addr ffff8801ca885820 by task syzkaller752805/4167
+
+CPU: 1 PID: 4167 Comm: syzkaller752805 Not tainted 4.16.0-rc1+ #318
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23b/0x360 mm/kasan/report.c:412
+ __asan_report_store_n_noabort+0x12/0x14 mm/kasan/report.c:449
+ nf_nat_ipv6_manip_pkt+0x47c/0x490 net/ipv6/netfilter/nf_nat_l3proto_ipv6.c:106
+ nf_nat_packet+0x3cb/0x560 net/netfilter/nf_nat_core.c:506
+ nf_nat_ipv6_fn+0x679/0xa80 net/ipv6/netfilter/nf_nat_l3proto_ipv6.c:329
+ nf_nat_ipv6_local_fn+0x33/0x5d0 net/ipv6/netfilter/nf_nat_l3proto_ipv6.c:407
+ ip6table_nat_local_fn+0x2c/0x40 net/ipv6/netfilter/ip6table_nat.c:69
+ nf_hook_entry_hookfn include/linux/netfilter.h:120 [inline]
+ nf_hook_slow+0xba/0x1a0 net/netfilter/core.c:483
+ nf_hook include/linux/netfilter.h:243 [inline]
+ __ip6_local_out+0x517/0xaa0 net/ipv6/output_core.c:164
+ ip6_local_out+0x2d/0x160 net/ipv6/output_core.c:174
+ ip6_send_skb+0xa1/0x330 net/ipv6/ip6_output.c:1677
+ ip6_push_pending_frames+0xb3/0xe0 net/ipv6/ip6_output.c:1697
+ rawv6_push_pending_frames net/ipv6/raw.c:616 [inline]
+ rawv6_sendmsg+0x2f96/0x40c0 net/ipv6/raw.c:935
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:764
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x446ea9
+RSP: 002b:00007fffd288b578 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 000000000000003e RCX: 0000000000446ea9
+RDX: 0000000000000000 RSI: 00000000209f2fc8 RDI: 0000000000000004
+RBP: 00007fffd288b688 R08: 0000000000008a7f R09: 0000000000008a7f
+R10: 0000000000000000 R11: 0000000000000217 R12: 00007fffd288b688
+R13: 0000000000404370 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4167:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ __do_kmalloc_node mm/slab.c:3669 [inline]
+ __kmalloc_node_track_caller+0x47/0x70 mm/slab.c:3683
+ __kmalloc_reserve.isra.39+0x41/0xd0 net/core/skbuff.c:137
+ __alloc_skb+0x13b/0x780 net/core/skbuff.c:205
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ sock_wmalloc+0x140/0x1d0 net/core/sock.c:1937
+ __ip6_append_data.isra.44+0x26b9/0x3390 net/ipv6/ip6_output.c:1416
+ ip6_append_data+0x189/0x290 net/ipv6/ip6_output.c:1571
+ rawv6_sendmsg+0x1e09/0x40c0 net/ipv6/raw.c:928
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:764
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 4167:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3485 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3800
+ skb_free_head+0x74/0xb0 net/core/skbuff.c:550
+ pskb_expand_head+0x36b/0x1210 net/core/skbuff.c:1490
+ __pskb_pull_tail+0x14a/0x17f0 net/core/skbuff.c:1873
+ skb_make_writable+0x15b/0x750 net/netfilter/core.c:528
+ tcp_manip_pkt+0x82/0x2d0 net/netfilter/nf_nat_proto_tcp.c:51
+ nf_nat_ipv6_manip_pkt+0x22d/0x490 net/ipv6/netfilter/nf_nat_l3proto_ipv6.c:99
+ nf_nat_packet+0x3cb/0x560 net/netfilter/nf_nat_core.c:506
+ nf_nat_ipv6_fn+0x679/0xa80 net/ipv6/netfilter/nf_nat_l3proto_ipv6.c:329
+ nf_nat_ipv6_local_fn+0x33/0x5d0 net/ipv6/netfilter/nf_nat_l3proto_ipv6.c:407
+ ip6table_nat_local_fn+0x2c/0x40 net/ipv6/netfilter/ip6table_nat.c:69
+ nf_hook_entry_hookfn include/linux/netfilter.h:120 [inline]
+ nf_hook_slow+0xba/0x1a0 net/netfilter/core.c:483
+ nf_hook include/linux/netfilter.h:243 [inline]
+ __ip6_local_out+0x517/0xaa0 net/ipv6/output_core.c:164
+ ip6_local_out+0x2d/0x160 net/ipv6/output_core.c:174
+ ip6_send_skb+0xa1/0x330 net/ipv6/ip6_output.c:1677
+ ip6_push_pending_frames+0xb3/0xe0 net/ipv6/ip6_output.c:1697
+ rawv6_push_pending_frames net/ipv6/raw.c:616 [inline]
+ rawv6_sendmsg+0x2f96/0x40c0 net/ipv6/raw.c:935
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:764
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+The buggy address belongs to the object at ffff8801ca885780
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 160 bytes inside of
+ 512-byte region [ffff8801ca885780, ffff8801ca885980)
+The buggy address belongs to the page:
+page:ffffea00072a2140 count:1 mapcount:0 mapping:ffff8801ca885000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801ca885000 0000000000000000 0000000100000006
+raw: ffffea00072a20e0 ffffea00072a2220 ffff8801db000940 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ca885700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801ca885780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801ca885800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                               ^
+ ffff8801ca885880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ca885900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

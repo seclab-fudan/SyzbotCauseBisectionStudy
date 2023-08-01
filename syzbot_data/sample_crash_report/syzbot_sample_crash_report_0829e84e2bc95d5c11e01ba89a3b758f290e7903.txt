@@ -1,0 +1,97 @@
+binder: release 18238:18240 transaction 94 out, still active
+binder: undelivered TRANSACTION_COMPLETE
+binder: undelivered TRANSACTION_ERROR: 29201
+binder: send failed reply for transaction 94, target dead
+==================================================================
+BUG: KASAN: use-after-free in strlen+0x85/0xa0 lib/string.c:482
+Read of size 1 at addr ffff8801b4e94300 by task kworker/0:3/5866
+
+CPU: 0 PID: 5866 Comm: kworker/0:3 Not tainted 4.16.0-rc7+ #371
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: hwsim_wq destroy_radio
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+ strlen+0x85/0xa0 lib/string.c:482
+ strlen include/linux/string.h:267 [inline]
+ hwsim_mcast_del_radio drivers/net/wireless/mac80211_hwsim.c:2836 [inline]
+ mac80211_hwsim_del_radio+0x168/0x3b0 drivers/net/wireless/mac80211_hwsim.c:2855
+ destroy_radio+0x9d/0x100 drivers/net/wireless/mac80211_hwsim.c:3397
+ process_one_work+0xc47/0x1bb0 kernel/workqueue.c:2113
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
+
+Allocated by task 11657:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ __do_kmalloc mm/slab.c:3706 [inline]
+ __kmalloc_track_caller+0x15e/0x760 mm/slab.c:3721
+ kvasprintf+0xa9/0x130 lib/kasprintf.c:25
+ kvasprintf_const+0x56/0x160 lib/kasprintf.c:49
+ kobject_set_name_vargs+0x5b/0x140 lib/kobject.c:263
+ dev_set_name+0xb4/0xf0 drivers/base/core.c:1649
+ wiphy_new_nm+0x910/0x2210 net/wireless/core.c:451
+ ieee80211_alloc_hw_nm+0x4b4/0x2180 net/mac80211/main.c:531
+ mac80211_hwsim_new_radio+0x235/0x2fb0 drivers/net/wireless/mac80211_hwsim.c:2537
+ hwsim_new_radio_nl+0x67a/0x8c0 drivers/net/wireless/mac80211_hwsim.c:3214
+ genl_family_rcv_msg+0x7b7/0xfb0 net/netlink/genetlink.c:599
+ genl_rcv_msg+0xb2/0x140 net/netlink/genetlink.c:624
+ netlink_rcv_skb+0x14b/0x380 net/netlink/af_netlink.c:2444
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:635
+ netlink_unicast_kernel net/netlink/af_netlink.c:1308 [inline]
+ netlink_unicast+0x4c4/0x6b0 net/netlink/af_netlink.c:1334
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1897
+RDS: rds_bind could not find a transport for 255.255.255.255, load rds_tcp or rds_rdma?
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 10184:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3486 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3801
+ kfree_const+0x31/0x40 mm/util.c:38
+ kobject_rename+0x1b3/0x2a0 lib/kobject.c:501
+ device_rename+0x147/0x1f0 drivers/base/core.c:2648
+ cfg80211_switch_netns+0x1fa/0x470 net/wireless/core.c:192
+ cfg80211_pernet_exit+0x93/0xc0 net/wireless/core.c:1336
+ ops_exit_list.isra.6+0xae/0x150 net/core/net_namespace.c:142
+ cleanup_net+0x6a1/0xcb0 net/core/net_namespace.c:517
+ process_one_work+0xc47/0x1bb0 kernel/workqueue.c:2113
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
+
+The buggy address belongs to the object at ffff8801b4e94300
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8801b4e94300, ffff8801b4e94320)
+The buggy address belongs to the page:
+page:ffffea0006d3a500 count:1 mapcount:0 mapping:ffff8801b4e94000 index:0xffff8801b4e94fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801b4e94000 ffff8801b4e94fc1 0000000100000031
+raw: ffffea0007341fa0 ffffea00075d0f20 ffff8801dac001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b4e94200: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801b4e94280: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801b4e94300: fb fb fb fb fc fc fc fc 00 fc fc fc fc fc fc fc
+                   ^
+ ffff8801b4e94380: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801b4e94400: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

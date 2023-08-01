@@ -1,0 +1,87 @@
+=====================================
+WARNING: bad unlock balance detected!
+6.2.0-rc5-syzkaller-17291-g2e84eedb182e #0 Not tainted
+-------------------------------------
+syz-executor.1/23387 is trying to release lock (��) at:
+[<ffff800008874a1c>] ext4_xattr_get+0x2fc/0x418 fs/ext4/xattr.c:686
+but there are no more locks to release!
+
+other info that might help us debug this:
+no locks held by syz-executor.1/23387.
+
+stack backtrace:
+CPU: 0 PID: 23387 Comm: syz-executor.1 Not tainted 6.2.0-rc5-syzkaller-17291-g2e84eedb182e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ print_unlock_imbalance_bug+0x198/0x1a0 kernel/locking/lockdep.c:5108
+ lock_release+0x1f8/0x2b4 kernel/locking/lockdep.c:5688
+ up_read+0x30/0x48 kernel/locking/rwsem.c:1604
+ ext4_xattr_get+0x2fc/0x418 fs/ext4/xattr.c:686
+ ext4_xattr_trusted_get+0x40/0x54 fs/ext4/xattr_trusted.c:27
+ __vfs_getxattr+0x258/0x268 fs/xattr.c:425
+ vfs_getxattr+0x1c0/0x208 fs/xattr.c:458
+ do_getxattr+0xf4/0x2bc fs/xattr.c:717
+ getxattr+0xdc/0x12c fs/xattr.c:751
+ path_getxattr+0xa0/0x14c fs/xattr.c:767
+ __do_sys_getxattr fs/xattr.c:779 [inline]
+ __se_sys_getxattr fs/xattr.c:776 [inline]
+ __arm64_sys_getxattr+0x28/0x38 fs/xattr.c:776
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x104 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+------------[ cut here ]------------
+DEBUG_RWSEMS_WARN_ON(sem->magic != sem): count = 0x100, magic = 0xffff0001191985c8, owner = 0xffff0000c5881a01, curr 0xffff0000c5881a00, list not empty
+WARNING: CPU: 1 PID: 23387 at kernel/locking/rwsem.c:1335 __up_read+0x198/0x2ac kernel/locking/rwsem.c:1335
+Modules linked in:
+CPU: 1 PID: 23387 Comm: syz-executor.1 Not tainted 6.2.0-rc5-syzkaller-17291-g2e84eedb182e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __up_read+0x198/0x2ac kernel/locking/rwsem.c:1335
+lr : __up_read+0x198/0x2ac kernel/locking/rwsem.c:1335
+sp : ffff800014fcb9e0
+x29: ffff800014fcb9e0 x28: ffff80000d6c32f8 x27: ffff00011a409b00
+x26: 00000000ffffffc3 x25: 0000000000000004 x24: ffff800014fcbc30
+x23: 00000000000000ee x22: ffff0001191987b8 x21: ffff80000d52c000
+x20: ffff0001191985c8 x19: ffff000119198560 x18: 000000000000011a
+x17: ffff80000c16e8bc x16: 0000000000000002 x15: 0000000000000000
+x14: 0000000040000002 x13: 0000000000000002 x12: 0000000000040000
+x11: 000000000000e9c1 x10: ffff8000188fd000 x9 : eaec873b24b4e100
+x8 : eaec873b24b4e100 x7 : 0000000000000000 x6 : ffff80000816ead8
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0001fefdef08 x1 : 0000000100000000 x0 : 0000000000000097
+Call trace:
+ __up_read+0x198/0x2ac kernel/locking/rwsem.c:1335
+ up_read+0x38/0x48 kernel/locking/rwsem.c:1605
+ ext4_xattr_get+0x2fc/0x418 fs/ext4/xattr.c:686
+ ext4_xattr_trusted_get+0x40/0x54 fs/ext4/xattr_trusted.c:27
+ __vfs_getxattr+0x258/0x268 fs/xattr.c:425
+ vfs_getxattr+0x1c0/0x208 fs/xattr.c:458
+ do_getxattr+0xf4/0x2bc fs/xattr.c:717
+ getxattr+0xdc/0x12c fs/xattr.c:751
+ path_getxattr+0xa0/0x14c fs/xattr.c:767
+ __do_sys_getxattr fs/xattr.c:779 [inline]
+ __se_sys_getxattr fs/xattr.c:776 [inline]
+ __arm64_sys_getxattr+0x28/0x38 fs/xattr.c:776
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x104 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+irq event stamp: 6175
+hardirqs last  enabled at (6175): [<ffff80000c120a38>] __exit_to_kernel_mode arch/arm64/kernel/entry-common.c:84 [inline]
+hardirqs last  enabled at (6175): [<ffff80000c120a38>] exit_to_kernel_mode+0xe8/0x118 arch/arm64/kernel/entry-common.c:94
+hardirqs last disabled at (6174): [<ffff80000c12a184>] preempt_schedule_irq+0x80/0x110 kernel/sched/core.c:6919
+softirqs last  enabled at (6120): [<ffff80000801c9f4>] local_bh_enable+0x10/0x34 include/linux/bottom_half.h:32
+softirqs last disabled at (6118): [<ffff80000801c9c0>] local_bh_disable+0x10/0x34 include/linux/bottom_half.h:19
+---[ end trace 0000000000000000 ]---

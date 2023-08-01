@@ -1,0 +1,103 @@
+watchdog: BUG: soft lockup - CPU#0 stuck for 122s! [syz-executor596:1796]
+Modules linked in:
+irq event stamp: 147150
+hardirqs last  enabled at (147149): [<ffffffff81004721>] trace_hardirqs_on_thunk+0x1a/0x1c arch/x86/entry/thunk_64.S:41
+hardirqs last disabled at (147150): [<ffffffff8100473d>] trace_hardirqs_off_thunk+0x1a/0x1c arch/x86/entry/thunk_64.S:42
+softirqs last  enabled at (147148): [<ffffffff85c00673>] __do_softirq+0x673/0x950 kernel/softirq.c:319
+softirqs last disabled at (147141): [<ffffffff81157f28>] invoke_softirq kernel/softirq.c:373 [inline]
+softirqs last disabled at (147141): [<ffffffff81157f28>] irq_exit+0x178/0x1a0 kernel/softirq.c:413
+CPU: 0 PID: 1796 Comm: syz-executor596 Not tainted 5.6.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__read_once_size include/linux/compiler.h:199 [inline]
+RIP: 0010:csd_lock_wait kernel/smp.c:109 [inline]
+RIP: 0010:smp_call_function_single+0x2cf/0x3a0 kernel/smp.c:311
+Code: 5f 5d c3 e8 53 62 0a 00 48 8b 54 24 08 4c 89 f9 8b 7c 24 14 48 8d 74 24 40 e8 cd f9 ff ff 41 89 c4 eb 07 e8 33 62 0a 00 f3 90 <8b> 5c 24 58 31 ff 83 e3 01 89 de e8 c1 63 0a 00 85 db 75 e5 e8 18
+RSP: 0018:ffff8881c6b87a20 EFLAGS: 00000293 ORIG_RAX: ffffffffffffff13
+RAX: ffff8881cdf23100 RBX: 0000000000000001 RCX: ffffffff8134f3bf
+RDX: 0000000000000000 RSI: ffffffff8134f3ad RDI: 0000000000000005
+RBP: ffff8881c6b87af0 R08: ffff8881cdf23100 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff8881cda8c040 R15: ffff8881db233e00
+FS:  0000000000000000(0000) GS:ffff8881db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9ad481a000 CR3: 0000000007021000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ smp_call_function_many_cond+0x25e/0x900 kernel/smp.c:439
+ flush_tlb_others arch/x86/include/asm/paravirt.h:68 [inline]
+ flush_tlb_mm_range+0x1e8/0x3e0 arch/x86/mm/tlb.c:798
+ tlb_flush arch/x86/include/asm/tlb.h:24 [inline]
+ tlb_flush_mmu_tlbonly include/asm-generic/tlb.h:424 [inline]
+ tlb_flush_mmu_tlbonly include/asm-generic/tlb.h:414 [inline]
+ tlb_flush_mmu+0x274/0x630 mm/mmu_gather.c:248
+ tlb_finish_mmu+0x93/0x420 mm/mmu_gather.c:328
+ exit_mmap+0x298/0x4d0 mm/mmap.c:3128
+ __mmput kernel/fork.c:1082 [inline]
+ mmput+0xce/0x3d0 kernel/fork.c:1103
+ exit_mm kernel/exit.c:485 [inline]
+ do_exit+0xa83/0x2c80 kernel/exit.c:788
+ do_group_exit+0x125/0x340 kernel/exit.c:899
+ __do_sys_exit_group kernel/exit.c:910 [inline]
+ __se_sys_exit_group kernel/exit.c:908 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:908
+ do_syscall_64+0xb6/0x5a0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x448cd8
+Code: Bad RIP value.
+RSP: 002b:00007ffc82c1de18 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000448cd8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004cd190 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 000000037ffffa00 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006e20c0 R14: 0000000000000000 R15: 0000000000000000
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.6.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:check_kcov_mode kernel/kcov.c:163 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x1c/0x60 kernel/kcov.c:197
+Code: 1f 44 00 00 66 2e 0f 1f 84 00 00 00 00 00 65 48 8b 04 25 00 0f 02 00 65 8b 15 d8 b8 c2 7e f7 c2 00 01 1f 00 48 8b 34 24 74 0e <80> e6 01 74 34 80 b8 d4 12 00 00 00 74 2b 8b 90 b0 12 00 00 83 fa
+RSP: 0018:ffff8881db3099d8 EFLAGS: 00000006
+RAX: ffff8881da213100 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000101 RSI: ffffffff84ba5e3a RDI: ffff8881d9285401
+RBP: ffff8881d92852a0 R08: ffff8881da213100 R09: ffffed103b250a81
+R10: ffffed103b250a80 R11: ffff8881d9285400 R12: 0000000000000001
+R13: 0000000000000017 R14: 00000000000003e9 R15: 0000000000000001
+FS:  0000000000000000(0000) GS:ffff8881db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9ad481a000 CR3: 00000001cd966000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ line6_midibuf_read+0x49a/0xa30 sound/usb/line6/midibuf.c:225
+ line6_data_received+0x318/0x520 sound/usb/line6/driver.c:305
+ __usb_hcd_giveback_urb+0x29a/0x550 drivers/usb/core/hcd.c:1650
+ usb_hcd_giveback_urb+0x368/0x420 drivers/usb/core/hcd.c:1716
+ dummy_timer+0x1258/0x32ae drivers/usb/gadget/udc/dummy_hcd.c:1966
+ call_timer_fn+0x195/0x6f0 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x5f9/0x1500 kernel/time/timer.c:1786
+ __do_softirq+0x21e/0x950 kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x178/0x1a0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:546 [inline]
+ smp_apic_timer_interrupt+0x141/0x540 arch/x86/kernel/apic/apic.c:1146
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:default_idle+0x28/0x300 arch/x86/kernel/process.c:696
+Code: cc cc 41 56 41 55 65 44 8b 2d 44 77 72 7a 41 54 55 53 0f 1f 44 00 00 e8 b6 62 b5 fb e9 07 00 00 00 0f 00 2d ea 0c 53 00 fb f4 <65> 44 8b 2d 20 77 72 7a 0f 1f 44 00 00 5b 5d 41 5c 41 5d 41 5e c3
+RSP: 0018:ffff8881da22fda8 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000007 RBX: ffff8881da213100 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000006 RDI: ffff8881da21394c
+RBP: ffffed103b442620 R08: ffff8881da213100 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000001
+R13: 0000000000000001 R14: ffffffff87e607c0 R15: 0000000000000000
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x3e0/0x500 kernel/sched/idle.c:269
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:361
+ start_secondary+0x2a4/0x390 arch/x86/kernel/smpboot.c:264
+ secondary_startup_64+0xb6/0xc0 arch/x86/kernel/head_64.S:242

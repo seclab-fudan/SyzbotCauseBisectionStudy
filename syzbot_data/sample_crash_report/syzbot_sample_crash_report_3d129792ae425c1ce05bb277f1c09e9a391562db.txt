@@ -1,0 +1,67 @@
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000010
+Mem abort info:
+  ESR = 0x0000000096000004
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000004
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010bfaa000
+[0000000000000010] pgd=0000000000000000, p4d=0000000000000000
+Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+Modules linked in:
+
+CPU: 1 PID: 3059 Comm: udevd Not tainted 6.1.0-rc4-syzkaller-31872-g1621b6eaebf7 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : simple_xattrs_free include/linux/xattr.h:111 [inline]
+pc : shmem_evict_inode+0x2d0/0x3d8 mm/shmem.c:1164
+lr : simple_xattrs_free include/linux/xattr.h:110 [inline]
+lr : shmem_evict_inode+0x2f0/0x3d8 mm/shmem.c:1164
+sp : ffff800012c0ba40
+x29: ffff800012c0ba90
+ x28: ffff80000d890000
+ x27: ffff0000ccf252a0
+
+x26: 00000000000800e0
+ x25: 0000000000000001 x24: 0000000000000001
+x23: ffff0000ccf254c8 x22: ffff0000c0cb6e00 x21: 0000000000000000
+x20: 0000000000000000 x19: ffff0000ccf25310 x18: 0000000000000000
+x17: 0000000000000000 x16: ffff80000db1a158 x15: ffff0000c64dcec0
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c64dcec0
+x11: ff8080000842e558 x10: 0000000000000000 x9 : ffff80000842e558
+x8 : ffff0000c64dcec0 x7 : ffff8000085252dc x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000006 x1 : ffff80000cdfe6d9 x0 : ffff8001f1dbd000
+Call trace:
+ simple_xattrs_free include/linux/xattr.h:110 [inline]
+ shmem_evict_inode+0x2d0/0x3d8 mm/shmem.c:1164
+ evict+0xec/0x334 fs/inode.c:664
+ iput_final fs/inode.c:1747 [inline]
+ iput+0x2c4/0x324 fs/inode.c:1773
+ dentry_unlink_inode+0x204/0x21c fs/dcache.c:401
+ __dentry_kill+0x15c/0x37c fs/dcache.c:607
+ dentry_kill+0x8c/0x194
+ dput+0x194/0x2e0 fs/dcache.c:913
+ do_renameat2+0x49c/0x758 fs/namei.c:4931
+ __do_sys_renameat fs/namei.c:4969 [inline]
+ __se_sys_renameat fs/namei.c:4966 [inline]
+ __arm64_sys_renameat+0x64/0x7c fs/namei.c:4966
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 97f9cd15 f84d0f74 eb1b029f 540001a0 (f9400a80) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	97f9cd15 	bl	0xffffffffffe73454
+   4:	f84d0f74 	ldr	x20, [x27, #208]!
+   8:	eb1b029f 	cmp	x20, x27
+   c:	540001a0 	b.eq	0x40  // b.none
+* 10:	f9400a80 	ldr	x0, [x20, #16] <-- trapping instruction

@@ -1,0 +1,71 @@
+==================================================================
+BUG: KMSAN: uninit-value in gue_err+0x482/0xb00 net/ipv4/fou.c:1031
+CPU: 1 PID: 16 Comm: ksoftirqd/1 Not tainted 5.0.0-rc1+ #9
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x173/0x1d0 lib/dump_stack.c:113
+ kmsan_report+0x12e/0x2a0 mm/kmsan/kmsan.c:600
+ __msan_warning+0x82/0xf0 mm/kmsan/kmsan_instr.c:313
+ gue_err+0x482/0xb00 net/ipv4/fou.c:1031
+ __udp4_lib_err_encap_no_sk net/ipv4/udp.c:569 [inline]
+ __udp4_lib_err_encap net/ipv4/udp.c:624 [inline]
+ __udp4_lib_err+0x12e6/0x1d40 net/ipv4/udp.c:663
+ udp_err+0x74/0x90 net/ipv4/udp.c:735
+ icmp_socket_deliver net/ipv4/icmp.c:766 [inline]
+ icmp_unreach+0xb65/0x1070 net/ipv4/icmp.c:883
+ icmp_rcv+0x11a1/0x1950 net/ipv4/icmp.c:1065
+ ip_protocol_deliver_rcu+0x584/0xba0 net/ipv4/ip_input.c:208
+ ip_local_deliver_finish net/ipv4/ip_input.c:234 [inline]
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ip_local_deliver+0x624/0x7b0 net/ipv4/ip_input.c:255
+ dst_input include/net/dst.h:450 [inline]
+ ip_rcv_finish net/ipv4/ip_input.c:414 [inline]
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ip_rcv+0x6b6/0x740 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core net/core/dev.c:4973 [inline]
+ __netif_receive_skb net/core/dev.c:5083 [inline]
+ process_backlog+0x756/0x10e0 net/core/dev.c:5923
+ napi_poll net/core/dev.c:6346 [inline]
+ net_rx_action+0x78b/0x1a60 net/core/dev.c:6412
+ __do_softirq+0x53f/0x93a kernel/softirq.c:293
+ run_ksoftirqd+0x26/0x50 kernel/softirq.c:658
+ smpboot_thread_fn+0x4d0/0x9f0 kernel/smpboot.c:164
+ kthread+0x4a1/0x4e0 kernel/kthread.c:247
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:355
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:205 [inline]
+ kmsan_internal_poison_shadow+0x92/0x150 mm/kmsan/kmsan.c:159
+ kmsan_kmalloc+0xa6/0x130 mm/kmsan/kmsan_hooks.c:176
+ kmsan_slab_alloc+0xe/0x10 mm/kmsan/kmsan_hooks.c:185
+ slab_post_alloc_hook mm/slab.h:446 [inline]
+ slab_alloc_node mm/slub.c:2754 [inline]
+ __kmalloc_node_track_caller+0xe9e/0xff0 mm/slub.c:4377
+ __kmalloc_reserve net/core/skbuff.c:140 [inline]
+ __alloc_skb+0x309/0xa20 net/core/skbuff.c:208
+ alloc_skb include/linux/skbuff.h:1012 [inline]
+ alloc_skb_with_frags+0x1c7/0xac0 net/core/skbuff.c:5288
+ sock_alloc_send_pskb+0xafd/0x10a0 net/core/sock.c:2091
+ sock_alloc_send_skb+0xca/0xe0 net/core/sock.c:2108
+ __ip_append_data+0x34cd/0x5000 net/ipv4/ip_output.c:998
+ ip_append_data+0x324/0x480 net/ipv4/ip_output.c:1220
+ icmp_push_reply+0x23d/0x7e0 net/ipv4/icmp.c:375
+ icmp_send+0x2e74/0x30c0 net/ipv4/icmp.c:736
+ __udp4_lib_rcv+0x36c9/0x4b70 net/ipv4/udp.c:2313
+ udp_rcv+0x5c/0x70 net/ipv4/udp.c:2472
+ ip_protocol_deliver_rcu+0x584/0xba0 net/ipv4/ip_input.c:208
+ ip_local_deliver_finish net/ipv4/ip_input.c:234 [inline]
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ip_local_deliver+0x624/0x7b0 net/ipv4/ip_input.c:255
+ dst_input include/net/dst.h:450 [inline]
+ ip_rcv_finish net/ipv4/ip_input.c:414 [inline]
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ip_rcv+0x6b6/0x740 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core net/core/dev.c:4973 [inline]
+ __netif_receive_skb net/core/dev.c:5083 [inline]
+ process_backlog+0x756/0x10e0 net/core/dev.c:5923
+ napi_poll net/core/dev.c:6346 [inline]
+ net_rx_action+0x78b/0x1a60 net/core/dev.c:6412
+ __do_softirq+0x53f/0x93a kernel/softirq.c:293
+==================================================================

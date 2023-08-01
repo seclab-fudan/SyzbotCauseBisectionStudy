@@ -1,0 +1,51 @@
+BUG: unable to handle kernel paging request at ffffc90001da6000
+IP: memset_erms+0x9/0x10 arch/x86/lib/memset_64.S:65
+PGD 1dad2c067 P4D 1dad2c067 PUD 1dad2d067 PMD 1caf50067 PTE 0
+Oops: 0002 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 4272 Comm: syzkaller606094 Not tainted 4.15.0-rc6+ #251
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:memset_erms+0x9/0x10 arch/x86/lib/memset_64.S:65
+RSP: 0018:ffff8801bd1cf508 EFLAGS: 00010246
+RAX: fffff520003f3c00 RBX: ffffc90001da6000 RCX: 00000000001f8200
+RDX: 00000000001f8200 RSI: 0000000000000000 RDI: ffffc90001da6000
+RBP: ffff8801bd1cf528 R08: 0000000000000000 R09: ffffc90001da6000
+R10: 000000000003f040 R11: fffff520003f3c3f R12: 00000000001f8200
+R13: 0000000000000000 R14: ffffffff86e6631c R15: 0000000000000010
+FS:  00007fe118c24700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffc90001da6000 CR3: 00000001be894006 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ memset include/linux/string.h:329 [inline]
+ snd_pcm_format_set_silence+0x13f/0x4b0 sound/core/pcm_misc.c:414
+ loopback_prepare+0xcdc/0x1000 sound/drivers/aloop.c:356
+ snd_pcm_do_prepare+0x58/0x90 sound/core/pcm_native.c:1640
+ snd_pcm_action_single+0x70/0x110 sound/core/pcm_native.c:1084
+ snd_pcm_action_nonatomic+0x95/0xa0 sound/core/pcm_native.c:1151
+ snd_pcm_prepare+0x115/0x1a0 sound/core/pcm_native.c:1687
+ snd_pcm_kernel_ioctl+0x97/0x240 sound/core/pcm_native.c:2993
+ snd_pcm_oss_prepare+0x49/0x150 sound/core/oss/pcm_oss.c:1105
+ snd_pcm_oss_make_ready+0xf9/0x130 sound/core/oss/pcm_oss.c:1133
+ snd_pcm_oss_set_trigger+0x62d/0x830 sound/core/oss/pcm_oss.c:1944
+ snd_pcm_oss_poll+0x77c/0xd20 sound/core/oss/pcm_oss.c:2712
+ do_pollfd fs/select.c:822 [inline]
+ do_poll fs/select.c:872 [inline]
+ do_sys_poll+0x715/0x10b0 fs/select.c:966
+ SYSC_poll fs/select.c:1024 [inline]
+ SyS_poll+0x10d/0x450 fs/select.c:1012
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x449a09
+RSP: 002b:00007fe118c23da8 EFLAGS: 00000297 ORIG_RAX: 0000000000000007
+RAX: ffffffffffffffda RBX: 00000000006dbc24 RCX: 0000000000449a09
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000020009fe0
+RBP: 00000000006dbc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000297 R12: 646e732f7665642f
+R13: 7073642f7665642f R14: 0000040000000fde R15: 0000000000000005
+Code: 48 c1 e9 03 40 0f b6 f6 48 b8 01 01 01 01 01 01 01 01 48 0f af c6 f3 48 ab 89 d1 f3 aa 4c 89 c8 c3 90 49 89 f9 40 88 f0 48 89 d1 <f3> aa 4c 89 c8 c3 90 49 89 fa 40 0f b6 ce 48 b8 01 01 01 01 01 
+RIP: memset_erms+0x9/0x10 arch/x86/lib/memset_64.S:65 RSP: ffff8801bd1cf508
+CR2: ffffc90001da6000
+---[ end trace 786071e5cf0edbd2 ]---

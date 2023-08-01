@@ -1,0 +1,111 @@
+RDX: 00000000fffffdef RSI: 00000000200005c0 RDI: 0000000000000013
+RBP: 000000000072bea0 R08: 0000000020000000 R09: 000000000000001c
+R10: 0000000000000040 R11: 0000000000000246 R12: 0000000000000015
+R13: 00000000004c0efd R14: 00000000004d0e00 R15: 0000000000000002
+==================================================================
+BUG: KASAN: slab-out-of-bounds in tls_fill_prepend include/net/tls.h:337 [inline]
+BUG: KASAN: slab-out-of-bounds in tls_push_record+0x1091/0x1400 net/tls/tls_sw.c:239
+Write of size 1 at addr ffff88015f9b8000 by task syz-executor6/8712
+
+CPU: 0 PID: 8712 Comm: syz-executor6 Not tainted 4.18.0-rc1+ #115
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_store1_noabort+0x17/0x20 mm/kasan/report.c:435
+ tls_fill_prepend include/net/tls.h:337 [inline]
+ tls_push_record+0x1091/0x1400 net/tls/tls_sw.c:239
+ tls_sw_push_pending_record+0x22/0x30 net/tls/tls_sw.c:276
+ tls_handle_open_record net/tls/tls_main.c:164 [inline]
+ tls_sk_proto_close+0x74c/0xae0 net/tls/tls_main.c:264
+ inet_release+0x104/0x1f0 net/ipv4/af_inet.c:427
+ inet6_release+0x50/0x70 net/ipv6/af_inet6.c:459
+ __sock_release+0xd7/0x260 net/socket.c:603
+ sock_close+0x19/0x20 net/socket.c:1186
+ __fput+0x35b/0x8b0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x1ec/0x2a0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1b08/0x2750 kernel/exit.c:865
+ do_group_exit+0x177/0x440 kernel/exit.c:968
+ get_signal+0x88e/0x1970 kernel/signal.c:2468
+ do_signal+0x9c/0x21c0 arch/x86/kernel/signal.c:816
+ exit_to_usermode_loop+0x2de/0x370 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455a99
+Code: 1d ba fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb b9 fb ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007f6f74485ce8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 000000000072bec0 RCX: 0000000000455a99
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 000000000072bec0
+RBP: 000000000072bec0 R08: 0000000000000033 R09: 000000000072bea0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffc1150122f R14: 00007f6f744869c0 R15: 0000000000000000
+
+Allocated by task 8707:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x780 mm/slab.c:3620
+ kmalloc include/linux/slab.h:513 [inline]
+ kzalloc include/linux/slab.h:707 [inline]
+ cryptomgr_schedule_probe crypto/algboss.c:107 [inline]
+ cryptomgr_notify+0xcd/0xb90 crypto/algboss.c:274
+ notifier_call_chain+0x180/0x390 kernel/notifier.c:93
+ __blocking_notifier_call_chain kernel/notifier.c:317 [inline]
+ blocking_notifier_call_chain+0x147/0x190 kernel/notifier.c:328
+ crypto_probing_notify+0x26/0x80 crypto/api.c:254
+ crypto_alg_mod_lookup+0x40c/0x6c0 crypto/api.c:284
+ crypto_find_alg crypto/api.c:504 [inline]
+ crypto_alloc_tfm+0xd2/0x2d0 crypto/api.c:537
+ crypto_alloc_skcipher+0x2c/0x40 crypto/skcipher.c:949
+ cryptd_alloc_skcipher+0x12c/0x270 crypto/cryptd.c:1226
+ simd_skcipher_init+0x66/0x160 crypto/simd.c:119
+ crypto_skcipher_init_tfm+0x2ac/0x910 crypto/skcipher.c:863
+ crypto_create_tfm+0xe9/0x310 crypto/api.c:471
+ crypto_alloc_tfm+0x1b5/0x2d0 crypto/api.c:543
+ crypto_alloc_skcipher+0x2c/0x40 crypto/skcipher.c:949
+ skcipher_bind+0x25/0x30 crypto/algif_skcipher.c:310
+ alg_bind+0x2be/0x560 crypto/af_alg.c:183
+ __sys_bind+0x331/0x440 net/socket.c:1528
+ __do_sys_bind net/socket.c:1539 [inline]
+ __se_sys_bind net/socket.c:1537 [inline]
+ __x64_sys_bind+0x73/0xb0 net/socket.c:1537
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 8721:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ cryptomgr_probe+0x211/0x280 crypto/algboss.c:91
+ kthread+0x345/0x410 kernel/kthread.c:240
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+The buggy address belongs to the object at ffff88015f9b8b40
+ which belongs to the cache kmalloc-8192 of size 8192
+The buggy address is located 2880 bytes to the left of
+ 8192-byte region [ffff88015f9b8b40, ffff88015f9bab40)
+The buggy address belongs to the page:
+page:ffffea00057e6e00 count:1 mapcount:0 mapping:ffff8801da802080 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffffea00057c9f08 ffffea0005909f08 ffff8801da802080
+raw: 0000000000000000 ffff88015f9b8b40 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88015f9b7f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88015f9b7f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88015f9b8000: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                   ^
+ ffff88015f9b8080: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88015f9b8100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

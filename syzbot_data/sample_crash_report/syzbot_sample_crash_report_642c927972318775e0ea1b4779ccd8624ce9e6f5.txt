@@ -1,0 +1,90 @@
+watchdog: BUG: soft lockup - CPU#1 stuck for 23s! [syz-executor2:26299]
+Modules linked in:
+irq event stamp: 6690
+hardirqs last  enabled at (6689): [<ffffffff876ef7f4>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+hardirqs last  enabled at (6689): [<ffffffff876ef7f4>] _raw_spin_unlock_irqrestore+0x74/0xc0 kernel/locking/spinlock.c:184
+hardirqs last disabled at (6690): [<ffffffff87800905>] interrupt_entry+0xb5/0xf0 arch/x86/entry/entry_64.S:625
+softirqs last  enabled at (138): [<ffffffff87a00778>] __do_softirq+0x778/0xaf5 kernel/softirq.c:311
+softirqs last disabled at (127): [<ffffffff81475281>] invoke_softirq kernel/softirq.c:365 [inline]
+softirqs last disabled at (127): [<ffffffff81475281>] irq_exit+0x1d1/0x200 kernel/softirq.c:405
+CPU: 1 PID: 26299 Comm: syz-executor2 Not tainted 4.17.0-rc5+ #57
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+RSP: 0018:ffff88018d4ff7a0 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: 0000000000000286 RCX: 0000000000000000
+RDX: 1ffffffff11a30e5 RSI: 0000000000000001 RDI: 0000000000000286
+RBP: ffff88018d4ff7b0 R08: ffffed00391dad62 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801c8ed6b08
+R13: ffff88018d4ff830 R14: 0000000000000001 R15: ffff8801d907ed80
+FS:  00007ff499e00700(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ff499dffdb8 CR3: 00000001c92ed000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ spin_unlock_irqrestore include/linux/spinlock.h:365 [inline]
+ snd_virmidi_output_trigger+0x4d0/0x6b0 sound/core/seq/seq_virmidi.c:205
+ snd_rawmidi_output_trigger sound/core/rawmidi.c:150 [inline]
+ snd_rawmidi_kernel_write1+0x519/0x700 sound/core/rawmidi.c:1288
+ snd_rawmidi_write+0x2e2/0xdc0 sound/core/rawmidi.c:1338
+ __vfs_write+0x10b/0x960 fs/read_write.c:485
+ vfs_write+0x1f8/0x560 fs/read_write.c:549
+ ksys_write+0xf9/0x250 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455a09
+RSP: 002b:00007ff499dffc68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007ff499e006d4 RCX: 0000000000455a09
+RDX: 0000000020000338 RSI: 0000000020000280 RDI: 0000000000000018
+RBP: 000000000072c000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 000000000000077b R14: 00000000006ff428 R15: 0000000000000002
+Code: c7 28 87 d1 88 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 21 48 83 3d 0e 8f 62 01 00 74 0e 48 89 df 57 9d <0f> 1f 44 00 00 eb bb 0f 0b 0f 0b e8 1f a2 46 fa eb 97 e8 18 a2 
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 26275 Comm: syz-executor2 Not tainted 4.17.0-rc5+ #57
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:send_midi_event sound/core/seq/oss/seq_oss_midi.c:621 [inline]
+RIP: 0010:snd_seq_oss_midi_input+0x7e4/0xfe0 sound/core/seq/oss/seq_oss_midi.c:537
+RSP: 0018:ffff8801ca017400 EFLAGS: 00000046
+RAX: dffffc0000000000 RBX: 0000000000000002 RCX: ffffc900028a7000
+RDX: 1ffff10039195487 RSI: 0000000000000004 RDI: 0000000000000005
+RBP: ffff8801ca017508 R08: ffff8801cf41c140 R09: ffffed0039402e90
+R10: ffffed0039402e90 R11: ffff8801ca017481 R12: ffff8801c8caa000
+R13: ffff8801ce095600 R14: 1ffff10039402e84 R15: ffff8801c8caa438
+FS:  00007ff499e42700(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffff600400 CR3: 00000001c92ed000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ snd_seq_oss_event_input+0x197/0x250 sound/core/seq/oss/seq_oss_event.c:442
+ snd_seq_deliver_single_event.constprop.15+0x89a/0xa20 sound/core/seq/seq_clientmgr.c:622
+ deliver_to_subscribers sound/core/seq/seq_clientmgr.c:677 [inline]
+ snd_seq_deliver_event+0x35e/0x950 sound/core/seq/seq_clientmgr.c:812
+ snd_seq_kernel_client_dispatch+0x157/0x1a0 sound/core/seq/seq_clientmgr.c:2330
+ snd_virmidi_output_trigger+0x444/0x6b0 sound/core/seq/seq_virmidi.c:198
+ snd_rawmidi_output_trigger sound/core/rawmidi.c:150 [inline]
+ snd_rawmidi_kernel_write1+0x519/0x700 sound/core/rawmidi.c:1288
+ snd_rawmidi_write+0x2e2/0xdc0 sound/core/rawmidi.c:1338
+ __vfs_write+0x10b/0x960 fs/read_write.c:485
+ vfs_write+0x1f8/0x560 fs/read_write.c:549
+ ksys_write+0xf9/0x250 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455a09
+RSP: 002b:00007ff499e41c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007ff499e426d4 RCX: 0000000000455a09
+RDX: 0000000020000338 RSI: 0000000020000280 RDI: 0000000000000014
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 000000000000077b R14: 00000000006ff428 R15: 0000000000000000
+Code: 84 d2 74 08 4c 89 ef e8 6b e0 ea fb 4c 89 fa 41 8b 75 00 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 ac 06 00 00 <49> 8b bc 24 38 04 00 00 48 8b 95 10 ff ff ff 89 d9 e8 96 17 00 

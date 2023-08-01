@@ -1,0 +1,118 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	1-....: (10443 ticks this GP) idle=ee1/1/0x4000000000000000 softirq=9729/9740 fqs=2218 
+	(t=10502 jiffies g=8717 q=8272)
+NMI backtrace for cpu 1
+CPU: 1 PID: 9200 Comm: syz-executor025 Not tainted 5.14.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ nmi_cpu_backtrace.cold+0x44/0xd7 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1b3/0x230 lib/nmi_backtrace.c:62
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x25e/0x3f0 kernel/rcu/tree_stall.h:343
+ print_cpu_stall kernel/rcu/tree_stall.h:627 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:711 [inline]
+ rcu_pending kernel/rcu/tree.c:3880 [inline]
+ rcu_sched_clock_irq.cold+0x9d/0x746 kernel/rcu/tree.c:2599
+ update_process_times+0x16d/0x200 kernel/time/timer.c:1785
+ tick_sched_handle+0x9b/0x180 kernel/time/tick-sched.c:226
+ tick_sched_timer+0x1b0/0x2d0 kernel/time/tick-sched.c:1421
+ __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+ __hrtimer_run_queues+0x1c0/0xe50 kernel/time/hrtimer.c:1749
+ hrtimer_interrupt+0x31c/0x790 kernel/time/hrtimer.c:1811
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1086 [inline]
+ __sysvec_apic_timer_interrupt+0x146/0x530 arch/x86/kernel/apic/apic.c:1103
+ sysvec_apic_timer_interrupt+0x40/0xc0 arch/x86/kernel/apic/apic.c:1097
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:161 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x38/0x70 kernel/locking/spinlock.c:194
+Code: 74 24 10 e8 3a 17 26 f8 48 89 ef e8 82 8d 26 f8 81 e3 00 02 00 00 75 25 9c 58 f6 c4 02 75 2d 48 85 db 74 01 fb bf 01 00 00 00 <e8> 83 4e 1a f8 65 8b 05 2c a1 cc 76 85 c0 74 0a 5b 5d c3 e8 30 fa
+RSP: 0018:ffffc90000dc0ea0 EFLAGS: 00000206
+RAX: 0000000000000046 RBX: 0000000000000200 RCX: 1ffffffff1adbb3d
+RDX: 0000000000000000 RSI: ffffffff817c4961 RDI: 0000000000000001
+RBP: ffff888018db9630 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff817c4948 R11: 0000000000000000 R12: ffff88803b2ea780
+R13: ffff888018db9630 R14: ffff88803b2ebc80 R15: 0000000000000001
+ spin_unlock_irqrestore include/linux/spinlock.h:418 [inline]
+ skb_dequeue+0x125/0x180 net/core/skbuff.c:3206
+ ieee80211_tasklet_handler+0x34/0x130 net/mac80211/main.c:228
+ tasklet_action_common.constprop.0+0x201/0x2e0 kernel/softirq.c:783
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:636
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:648
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:check_kcov_mode+0x2c/0x40 kernel/kcov.c:174
+Code: 05 39 d8 8b 7e 89 c2 81 e2 00 01 00 00 a9 00 01 ff 00 74 10 31 c0 85 d2 74 15 8b 96 3c 15 00 00 85 d2 74 0b 8b 86 18 15 00 00 <39> f8 0f 94 c0 c3 66 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 31 c0
+RSP: 0018:ffffc900036b7758 EFLAGS: 00000246
+RAX: 0000000000000000 RBX: ffffea0000cd76c0 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff888017678000 RDI: 0000000000000003
+RBP: ffffea0000cd76c0 R08: 0000000000000000 R09: 0000000000000001
+R10: ffffffff819eef70 R11: 0000000000000000 R12: ffffea0000cd76c8
+R13: 0000000000000000 R14: ffffea0000cd7688 R15: ffffea0000cd76c0
+ write_comp_data kernel/kcov.c:218 [inline]
+ __sanitizer_cov_trace_const_cmp8+0x1d/0x70 kernel/kcov.c:291
+ _compound_head include/linux/page-flags.h:187 [inline]
+ PageUnevictable include/linux/page-flags.h:413 [inline]
+ mark_page_accessed+0x330/0x1b00 mm/swap.c:430
+ zap_pte_range mm/memory.c:1359 [inline]
+ zap_pmd_range mm/memory.c:1481 [inline]
+ zap_pud_range mm/memory.c:1510 [inline]
+ zap_p4d_range mm/memory.c:1531 [inline]
+ unmap_page_range+0xd45/0x2a10 mm/memory.c:1552
+ unmap_single_vma+0x198/0x310 mm/memory.c:1597
+ unmap_vmas+0x16d/0x2f0 mm/memory.c:1629
+ exit_mmap+0x1d0/0x620 mm/mmap.c:3195
+ __mmput+0x122/0x470 kernel/fork.c:1103
+ mmput+0x58/0x60 kernel/fork.c:1124
+ exit_mm kernel/exit.c:501 [inline]
+ do_exit+0xabc/0x2a30 kernel/exit.c:812
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ get_signal+0x47f/0x2160 kernel/signal.c:2823
+ arch_do_signal_or_restart+0x2a9/0x1c40 arch/x86/kernel/signal.c:865
+ handle_signal_work kernel/entry/common.c:148 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x17d/0x290 kernel/entry/common.c:209
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:291 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:302
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x447559
+Code: Unable to access opcode bytes at RIP 0x44752f.
+RSP: 002b:00007fe14263b318 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000001 RBX: 00000000004d21c8 RCX: 0000000000447559
+RDX: 00000000000f4240 RSI: 0000000000000081 RDI: 00000000004d21cc
+RBP: 00000000004d21c0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000003 R11: 0000000000000246 R12: 00000000004d21cc
+R13: 00007ffc6d25f0ff R14: 00007fe14263b400 R15: 0000000000022000
+----------------
+Code disassembly (best guess):
+   0:	74 24                	je     0x26
+   2:	10 e8                	adc    %ch,%al
+   4:	3a 17                	cmp    (%rdi),%dl
+   6:	26 f8                	es clc
+   8:	48 89 ef             	mov    %rbp,%rdi
+   b:	e8 82 8d 26 f8       	callq  0xf8268d92
+  10:	81 e3 00 02 00 00    	and    $0x200,%ebx
+  16:	75 25                	jne    0x3d
+  18:	9c                   	pushfq
+  19:	58                   	pop    %rax
+  1a:	f6 c4 02             	test   $0x2,%ah
+  1d:	75 2d                	jne    0x4c
+  1f:	48 85 db             	test   %rbx,%rbx
+  22:	74 01                	je     0x25
+  24:	fb                   	sti
+  25:	bf 01 00 00 00       	mov    $0x1,%edi
+* 2a:	e8 83 4e 1a f8       	callq  0xf81a4eb2 <-- trapping instruction
+  2f:	65 8b 05 2c a1 cc 76 	mov    %gs:0x76cca12c(%rip),%eax        # 0x76cca162
+  36:	85 c0                	test   %eax,%eax
+  38:	74 0a                	je     0x44
+  3a:	5b                   	pop    %rbx
+  3b:	5d                   	pop    %rbp
+  3c:	c3                   	retq
+  3d:	e8                   	.byte 0xe8
+  3e:	30 fa                	xor    %bh,%dl

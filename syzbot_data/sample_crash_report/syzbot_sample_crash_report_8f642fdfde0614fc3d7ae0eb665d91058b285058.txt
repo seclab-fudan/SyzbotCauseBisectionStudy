@@ -1,0 +1,53 @@
+=====================================================
+BUG: KMSAN: kernel-infoleak in kmsan_copy_to_user+0x9c/0xb0 mm/kmsan/kmsan_hooks.c:249
+CPU: 0 PID: 8217 Comm: syz-executor698 Not tainted 5.10.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:118
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ kmsan_internal_check_memory+0x484/0x520 mm/kmsan/kmsan.c:437
+ kmsan_copy_to_user+0x9c/0xb0 mm/kmsan/kmsan_hooks.c:249
+ instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+ _copy_to_user+0x1ac/0x270 lib/usercopy.c:33
+ copy_to_user include/linux/uaccess.h:209 [inline]
+ vmci_host_do_ctx_get_cpt_state drivers/misc/vmw_vmci/vmci_host.c:723 [inline]
+ vmci_host_unlocked_ioctl+0x3489/0x59b0 drivers/misc/vmw_vmci/vmci_host.c:939
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ __do_sys_ioctl fs/ioctl.c:753 [inline]
+ __se_sys_ioctl+0x311/0x4d0 fs/ioctl.c:739
+ __x64_sys_ioctl+0x4a/0x70 fs/ioctl.c:739
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x442879
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 b1 14 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffdb193eb18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 0000000000442879
+RDX: 0000000020001540 RSI: 00000000000007b1 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 00007ffdb193ecb8 R09: 00007ffdb193ecb8
+R10: 00007ffdb193ecb8 R11: 0000000000000246 R12: 0000000000406100
+R13: 431bde82d7b634db R14: 00000000004b0018 R15: 0000000000400488
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2906 [inline]
+ slab_alloc mm/slub.c:2915 [inline]
+ __kmalloc+0x307/0x550 mm/slub.c:3983
+ kmalloc include/linux/slab.h:557 [inline]
+ vmci_ctx_get_chkpt_doorbells drivers/misc/vmw_vmci/vmci_context.c:746 [inline]
+ vmci_ctx_get_chkpt_state+0x6fe/0xf20 drivers/misc/vmw_vmci/vmci_context.c:798
+ vmci_host_do_ctx_get_cpt_state drivers/misc/vmw_vmci/vmci_host.c:719 [inline]
+ vmci_host_unlocked_ioctl+0x2e05/0x59b0 drivers/misc/vmw_vmci/vmci_host.c:939
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ __do_sys_ioctl fs/ioctl.c:753 [inline]
+ __se_sys_ioctl+0x311/0x4d0 fs/ioctl.c:739
+ __x64_sys_ioctl+0x4a/0x70 fs/ioctl.c:739
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Bytes 8-15 of 16 are uninitialized
+Memory access of size 16 starts at ffff888125ea7100
+Data copied to user address 0000000020000540
+=====================================================

@@ -1,0 +1,84 @@
+watchdog: BUG: soft lockup - CPU#0 stuck for 26s! [jbd2/vda-8:2608]
+Modules linked in:
+irq event stamp: 8105
+hardirqs last  enabled at (8104): [<ffffffff800105b8>] __trace_hardirqs_on+0x18/0x20 arch/riscv/kernel/trace_irq.c:19
+hardirqs last disabled at (8105): [<ffffffff800105d8>] __trace_hardirqs_off+0x18/0x20 arch/riscv/kernel/trace_irq.c:25
+softirqs last  enabled at (3234): [<ffffffff83454daa>] softirq_handle_end kernel/softirq.c:414 [inline]
+softirqs last  enabled at (3234): [<ffffffff83454daa>] __do_softirq+0x640/0x930 kernel/softirq.c:600
+softirqs last disabled at (3237): [<ffffffff800699a2>] do_softirq_own_stack include/asm-generic/softirq_stack.h:10 [inline]
+softirqs last disabled at (3237): [<ffffffff800699a2>] invoke_softirq kernel/softirq.c:452 [inline]
+softirqs last disabled at (3237): [<ffffffff800699a2>] __irq_exit_rcu+0x154/0x1ea kernel/softirq.c:650
+CPU: 0 PID: 2608 Comm: jbd2/vda-8 Not tainted 6.2.0-rc1-syzkaller #0
+Hardware name: riscv-virtio,qemu (DT)
+epc : arch_static_branch arch/riscv/include/asm/jump_label.h:20 [inline]
+epc : kfence_alloc include/linux/kfence.h:120 [inline]
+epc : slab_alloc_node mm/slub.c:3438 [inline]
+epc : slab_alloc mm/slub.c:3460 [inline]
+epc : __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+epc : kmem_cache_alloc+0x9e/0x2c6 mm/slub.c:3476
+ ra : slab_pre_alloc_hook mm/slab.h:722 [inline]
+ ra : slab_alloc_node mm/slub.c:3434 [inline]
+ ra : slab_alloc mm/slub.c:3460 [inline]
+ ra : __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+ ra : kmem_cache_alloc+0x64/0x2c6 mm/slub.c:3476
+epc : ffffffff804e66e2 ra : ffffffff804e66a8 sp : ff20000004d665f0
+ gp : ffffffff85efe540 tp : ff60000012653100 t0 : ff6000000fa89e00
+ t1 : 00000000000f0000 t2 : 0000000000000a39 s0 : ff20000004d66690
+ s1 : ff6000000ae55c80 a0 : 0000000000000000 a1 : 0000000000000007
+ a2 : 1ffffffff0a4af8c a3 : ffffffff80cfe038 a4 : 0000000000000000
+ a5 : 0000000000000000 a6 : 0000000000000100 a7 : 0000000000000100
+ s2 : 0000000000000a20 s3 : 0000000000000000 s4 : 0000000000000a20
+ s5 : ffffffff85f25740 s6 : ffffffff8291cafe s7 : 00000000000000b8
+ s8 : ffffffff85f04920 s9 : ff6000000fa89e18 s10: ffffffff85f25740
+ s11: 0000000000000000 t3 : fffffffff3f3f300 t4 : fffffffef0fc9fdc
+ t5 : fffffffef0fc9fdd t6 : ff6000000fa89df4
+status: 0000000000000120 badaddr: 0000000000000000 cause: 8000000000000005
+[<ffffffff804e66e2>] slab_alloc_node mm/slub.c:3435 [inline]
+[<ffffffff804e66e2>] slab_alloc mm/slub.c:3460 [inline]
+[<ffffffff804e66e2>] __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+[<ffffffff804e66e2>] kmem_cache_alloc+0x9e/0x2c6 mm/slub.c:3476
+[<ffffffff8291cafe>] dst_alloc+0x7e/0x16c net/core/dst.c:92
+[<ffffffff82cca420>] rt_dst_alloc+0x56/0x1b0 net/ipv4/route.c:1633
+[<ffffffff82cd6f76>] ip_route_input_slow+0x1240/0x21b8 net/ipv4/route.c:2369
+[<ffffffff82cd8016>] ip_route_input_rcu net/ipv4/route.c:2483 [inline]
+[<ffffffff82cd8016>] ip_route_input_noref+0x128/0x2c6 net/ipv4/route.c:2494
+[<ffffffff82cdfb2a>] ip_rcv_finish_core.constprop.0+0x4fc/0x1312 net/ipv4/ip_input.c:365
+[<ffffffff82ce0ab4>] ip_list_rcv_finish net/ipv4/ip_input.c:612 [inline]
+[<ffffffff82ce0ab4>] ip_sublist_rcv+0x174/0x712 net/ipv4/ip_input.c:638
+[<ffffffff82ce27da>] ip_list_rcv+0x25e/0x2b6 net/ipv4/ip_input.c:673
+[<ffffffff8290e66a>] __netif_receive_skb_list_ptype net/core/dev.c:5525 [inline]
+[<ffffffff8290e66a>] __netif_receive_skb_list_core+0x3e8/0x524 net/core/dev.c:5573
+[<ffffffff8290ee3a>] __netif_receive_skb_list net/core/dev.c:5625 [inline]
+[<ffffffff8290ee3a>] netif_receive_skb_list_internal+0x4f8/0x802 net/core/dev.c:5716
+[<ffffffff82910754>] gro_normal_list include/net/gro.h:433 [inline]
+[<ffffffff82910754>] gro_normal_list include/net/gro.h:429 [inline]
+[<ffffffff82910754>] napi_complete_done+0x1aa/0x57c net/core/dev.c:6056
+[<ffffffff81997c1c>] virtqueue_napi_complete drivers/net/virtio_net.c:405 [inline]
+[<ffffffff81997c1c>] virtnet_poll+0x866/0xa04 drivers/net/virtio_net.c:1682
+[<ffffffff82910ba0>] __napi_poll+0x7a/0x34e net/core/dev.c:6485
+[<ffffffff82911988>] napi_poll net/core/dev.c:6552 [inline]
+[<ffffffff82911988>] net_rx_action+0x72c/0x878 net/core/dev.c:6663
+[<ffffffff834549fe>] __do_softirq+0x294/0x930 kernel/softirq.c:571
+[<ffffffff800699a2>] do_softirq_own_stack include/asm-generic/softirq_stack.h:10 [inline]
+[<ffffffff800699a2>] invoke_softirq kernel/softirq.c:452 [inline]
+[<ffffffff800699a2>] __irq_exit_rcu+0x154/0x1ea kernel/softirq.c:650
+[<ffffffff80069c90>] irq_exit+0x10/0x7a kernel/softirq.c:674
+[<ffffffff834438bc>] generic_handle_arch_irq+0x48/0x54 kernel/irq/handle.c:240
+[<ffffffff80006004>] ret_from_exception+0x0/0x1a arch/riscv/kernel/entry.S:249
+[<ffffffff804e66e2>] slab_alloc_node mm/slub.c:3435 [inline]
+[<ffffffff804e66e2>] slab_alloc mm/slub.c:3460 [inline]
+[<ffffffff804e66e2>] __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+[<ffffffff804e66e2>] kmem_cache_alloc+0x9e/0x2c6 mm/slub.c:3476
+[<ffffffff805e935a>] kmem_cache_zalloc include/linux/slab.h:710 [inline]
+[<ffffffff805e935a>] alloc_buffer_head+0x30/0x1c2 fs/buffer.c:2899
+[<ffffffff805ebd8a>] alloc_page_buffers+0x2ac/0x5f6 fs/buffer.c:829
+[<ffffffff805ee176>] grow_dev_page fs/buffer.c:965 [inline]
+[<ffffffff805ee176>] grow_buffers fs/buffer.c:1011 [inline]
+[<ffffffff805ee176>] __getblk_slow+0x3de/0x7d2 fs/buffer.c:1038
+[<ffffffff805ee5de>] __getblk_gfp+0x74/0x78 fs/buffer.c:1333
+[<ffffffff8085b21e>] __getblk include/linux/buffer_head.h:411 [inline]
+[<ffffffff8085b21e>] jbd2_journal_get_descriptor_buffer+0xee/0x2b4 fs/jbd2/journal.c:1019
+[<ffffffff80844356>] jbd2_journal_commit_transaction+0x1c52/0x4492 fs/jbd2/commit.c:644
+[<ffffffff80856172>] kjournald2+0x192/0x5ae fs/jbd2/journal.c:210
+[<ffffffff800b4c8e>] kthread+0x19c/0x1f8 kernel/kthread.c:376
+[<ffffffff80006004>] ret_from_exception+0x0/0x1a arch/riscv/kernel/entry.S:249

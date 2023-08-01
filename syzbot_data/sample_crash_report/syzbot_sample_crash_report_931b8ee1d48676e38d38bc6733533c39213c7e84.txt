@@ -1,0 +1,51 @@
+=============================
+WARNING: suspicious RCU usage
+6.0.0-rc1-syzkaller-00066-g3b06a2755758 #0 Not tainted
+-----------------------------
+include/net/sock.h:592 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+4 locks held by syz-executor384/3606:
+ #0: ffff8880747f0e10 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #0: ffff8880747f0e10 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: __sock_release+0x86/0x280 net/socket.c:649
+ #1: ffffc90001501b08 (&table->hash[i].lock){+...}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:354 [inline]
+ #1: ffffc90001501b08 (&table->hash[i].lock){+...}-{2:2}, at: udp_lib_unhash net/ipv4/udp.c:2014 [inline]
+ #1: ffffc90001501b08 (&table->hash[i].lock){+...}-{2:2}, at: udp_lib_unhash+0x1d5/0x730 net/ipv4/udp.c:2004
+ #2: ffffffff8d7bc038 (reuseport_lock){+...}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:354 [inline]
+ #2: ffffffff8d7bc038 (reuseport_lock){+...}-{2:2}, at: reuseport_detach_sock+0x22/0x4a0 net/core/sock_reuseport.c:346
+ #3: ffff88814b2fc3b8 (clock-AF_INET6){++..}-{2:2}, at: bpf_sk_reuseport_detach+0x26/0x190 kernel/bpf/reuseport_array.c:26
+
+stack backtrace:
+CPU: 1 PID: 3606 Comm: syz-executor384 Not tainted 6.0.0-rc1-syzkaller-00066-g3b06a2755758 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __rcu_dereference_sk_user_data_with_flags include/net/sock.h:592 [inline]
+ bpf_sk_reuseport_detach+0x156/0x190 kernel/bpf/reuseport_array.c:27
+ reuseport_detach_sock+0x8c/0x4a0 net/core/sock_reuseport.c:362
+ udp_lib_unhash net/ipv4/udp.c:2016 [inline]
+ udp_lib_unhash+0x210/0x730 net/ipv4/udp.c:2004
+ sk_common_release+0xba/0x390 net/core/sock.c:3600
+ inet_release+0x12e/0x270 net/ipv4/af_inet.c:428
+ inet6_release+0x4c/0x70 net/ipv6/af_inet6.c:482
+ __sock_release+0xcd/0x280 net/socket.c:650
+ sock_close+0x18/0x20 net/socket.c:1365
+ __fput+0x277/0x9d0 fs/file_table.c:320
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0xad5/0x29b0 kernel/exit.c:795
+ do_group_exit+0xd2/0x2f0 kernel/exit.c:925
+ __do_sys_exit_group kernel/exit.c:936 [inline]
+ __se_sys_exit_group kernel/exit.c:934 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:934
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fec5a0c3679
+Code: Unable to access opcode bytes at RIP 0x7fec5a0c364f.
+RSP: 002b:00007ffd88d7f598 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7

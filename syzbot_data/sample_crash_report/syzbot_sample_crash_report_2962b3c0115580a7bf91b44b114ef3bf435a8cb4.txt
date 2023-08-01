@@ -1,0 +1,303 @@
+==================================================================
+kasan: CONFIG_KASAN_INLINE enabled
+BUG: KASAN: stack-out-of-bounds in ____rb_erase_color lib/rbtree.c:258 [inline]
+BUG: KASAN: stack-out-of-bounds in rb_erase+0x18d0/0x3550 lib/rbtree.c:462
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+Read of size 8 at addr ffff8880a941f470 by task kworker/u4:4/501
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+
+CPU: 1 PID: 64 Comm: ksoftirqĽ1 Not tainted 5.0.0-rc1+ #24
+CPU: 0 PID: 501 Comm: kworker/u4:4 Not tainted 5.0.0-rc1+ #24
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__read_once_size include/linux/compiler.h:191 [inline]
+RIP: 0010:get_running_cputimer include/linux/sched/cputime.h:85 [inline]
+RIP: 0010:account_group_system_time include/linux/sched/cputime.h:149 [inline]
+RIP: 0010:account_system_index_time+0xe8/0x5f0 kernel/sched/cputime.c:168
+Workqueue: bat_events batadv_nc_worker
+Code: 04 00 00 49 8b 84 24 00 07 00 00 48 ba 00 00 00 00 00 fc ff df 48 8d b8 40 01 00 00 48 8d 88 28 01 00 00 48 89 fe 48 c1 ee 03 <0f> b6 14 16 48 89 fe 83 e6 07 40 38 f2 7f 08 84 d2 0f 85 93 03 00
+Call Trace:
+RSP: 0018:ffff8880ae707a80 EFLAGS: 00010002
+ <IRQ>
+RAX: 00000000a94c9240 RBX: 1ffff11015ce0f54 RCX: 00000000a94c9368
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+RDX: dffffc0000000000 RSI: 0000000015299270 RDI: 00000000a94c9380
+RBP: ffff8880ae707b48 R08: ffff8880ae71f5f0 R09: ffffffff8a9a905d
+R10: ffffffff8a9a9050 R11: 0000000000000001 R12: ffff8880a94ca440
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+R13: 000000000098266f R14: 0000000000000003 R15: ffff8880ae707b20
+FS:  0000000000000000(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+CR2: 0000000000000068 CR3: 0000000090098000 CR4: 00000000001426e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+ ____rb_erase_color lib/rbtree.c:258 [inline]
+ rb_erase+0x18d0/0x3550 lib/rbtree.c:462
+Call Trace:
+ <IRQ>
+ irqtime_account_process_tick.isra.0+0x3a2/0x490 kernel/sched/cputime.c:380
+ account_process_tick+0x27f/0x350 kernel/sched/cputime.c:483
+ update_process_times+0x25/0x80 kernel/time/timer.c:1633
+ tick_sched_handle+0xa2/0x190 kernel/time/tick-sched.c:161
+ tick_sched_timer+0x47/0x130 kernel/time/tick-sched.c:1271
+ __run_hrtimer kernel/time/hrtimer.c:1389 [inline]
+ __hrtimer_run_queues+0x3a7/0x1050 kernel/time/hrtimer.c:1451
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1035 [inline]
+ smp_apic_timer_interrupt+0x18d/0x760 arch/x86/kernel/apic/apic.c:1060
+ timerqueue_del+0x86/0x150 lib/timerqueue.c:87
+ __remove_hrtimer+0xa8/0x1c0 kernel/time/hrtimer.c:975
+ __run_hrtimer kernel/time/hrtimer.c:1371 [inline]
+ __hrtimer_run_queues+0x311/0x1050 kernel/time/hrtimer.c:1451
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+Modules linked in:
+
+======================================================
+WARNING: possible circular locking dependency detected
+5.0.0-rc1+ #24 Not tainted
+------------------------------------------------------
+kworker/u4:4/501 is trying to acquire lock:
+0000000038cad6fc ((console_sem).lock){-.-.}, at: down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+
+but task is already holding lock:
+00000000bfe049d6 (report_lock){-...}, at: start_report mm/kasan/report.c:85 [inline]
+00000000bfe049d6 (report_lock){-...}, at: kasan_report+0xb1/0x15e mm/kasan/report.c:309
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #5 (report_lock){-...}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       start_report mm/kasan/report.c:85 [inline]
+       kasan_report+0xb1/0x15e mm/kasan/report.c:309
+       __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+       ____rb_erase_color lib/rbtree.c:258 [inline]
+       rb_erase+0x18d0/0x3550 lib/rbtree.c:462
+       timerqueue_del+0x86/0x150 lib/timerqueue.c:87
+       __remove_hrtimer+0xa8/0x1c0 kernel/time/hrtimer.c:975
+       __run_hrtimer kernel/time/hrtimer.c:1371 [inline]
+       __hrtimer_run_queues+0x311/0x1050 kernel/time/hrtimer.c:1451
+       hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+       local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1035 [inline]
+       smp_apic_timer_interrupt+0x18d/0x760 arch/x86/kernel/apic/apic.c:1060
+       apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+       debug_smp_processor_id+0x0/0x20 include/linux/bitmap.h:317
+       rcu_is_watching+0x10/0x30 kernel/rcu/tree.c:932
+       rcu_read_unlock include/linux/rcupdate.h:657 [inline]
+       batadv_nc_purge_orig_hash net/batman-adv/network-coding.c:423 [inline]
+       batadv_nc_worker+0x5f6/0x920 net/batman-adv/network-coding.c:730
+       process_one_work+0xd0c/0x1ce0 kernel/workqueue.c:2153
+       worker_thread+0x143/0x14a0 kernel/workqueue.c:2296
+       kthread+0x357/0x430 kernel/kthread.c:246
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+-> #4 (hrtimer_bases.lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       lock_hrtimer_base.isra.0+0x75/0x130 kernel/time/hrtimer.c:165
+       hrtimer_start_range_ns+0x120/0xda0 kernel/time/hrtimer.c:1104
+       hrtimer_start_expires include/linux/hrtimer.h:409 [inline]
+       start_rt_bandwidth kernel/sched/rt.c:70 [inline]
+       inc_rt_group kernel/sched/rt.c:1147 [inline]
+       inc_rt_tasks kernel/sched/rt.c:1191 [inline]
+       __enqueue_rt_entity kernel/sched/rt.c:1261 [inline]
+       enqueue_rt_entity kernel/sched/rt.c:1305 [inline]
+       enqueue_task_rt+0x95b/0x1010 kernel/sched/rt.c:1335
+       enqueue_task+0xb9/0x380 kernel/sched/core.c:730
+       __sched_setscheduler+0xe32/0x1fe0 kernel/sched/core.c:4336
+       _sched_setscheduler+0x218/0x340 kernel/sched/core.c:4373
+       sched_setscheduler+0xe/0x10 kernel/sched/core.c:4388
+       watchdog_dev_init+0x109/0x1db drivers/watchdog/watchdog_dev.c:1144
+       watchdog_init+0x81/0x294 drivers/watchdog/watchdog_core.c:355
+       do_one_initcall+0x129/0x937 init/main.c:888
+       do_initcall_level init/main.c:956 [inline]
+       do_initcalls init/main.c:964 [inline]
+       do_basic_setup init/main.c:982 [inline]
+       kernel_init_freeable+0x4d5/0x5c4 init/main.c:1135
+       kernel_init+0x12/0x1c5 init/main.c:1055
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+-> #3 (&rt_b->rt_runtime_lock){-.-.}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:144
+       __enable_runtime kernel/sched/rt.c:786 [inline]
+       rq_online_rt+0xb4/0x390 kernel/sched/rt.c:2178
+       set_rq_online.part.0+0xe7/0x140 kernel/sched/core.c:5666
+       set_rq_online kernel/sched/core.c:5772 [inline]
+       sched_cpu_activate+0x29e/0x430 kernel/sched/core.c:5765
+       cpuhp_invoke_callback+0x2f6/0x2110 kernel/cpu.c:168
+       cpuhp_thread_fun+0x496/0x8a0 kernel/cpu.c:685
+       smpboot_thread_fn+0x6ab/0xa10 kernel/smpboot.c:164
+       kthread+0x357/0x430 kernel/kthread.c:246
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+-> #2 (&rq->lock){-.-.}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:144
+       rq_lock kernel/sched/sched.h:1149 [inline]
+       task_fork_fair+0xb5/0x7a0 kernel/sched/fair.c:10058
+       sched_fork+0x437/0xb90 kernel/sched/core.c:2359
+       copy_process+0x1f95/0x8710 kernel/fork.c:1887
+       _do_fork+0x1a9/0x1170 kernel/fork.c:2227
+       kernel_thread+0x34/0x40 kernel/fork.c:2286
+       rest_init+0x28/0x37b init/main.c:408
+       arch_call_rest_init+0xe/0x1b
+       start_kernel+0x87c/0x8b7 init/main.c:740
+       x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:470
+       x86_64_start_kernel+0x77/0x7b arch/x86/kernel/head64.c:451
+       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+
+-> #1 (&p->pi_lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       try_to_wake_up+0xb9/0x1480 kernel/sched/core.c:1965
+       wake_up_process+0x10/0x20 kernel/sched/core.c:2129
+       __up.isra.0+0x1c0/0x2a0 kernel/locking/semaphore.c:262
+       up+0x13e/0x1c0 kernel/locking/semaphore.c:187
+       __up_console_sem+0xb7/0x1c0 kernel/printk/printk.c:236
+       console_unlock+0x778/0x11e0 kernel/printk/printk.c:2426
+       vprintk_emit+0x370/0x960 kernel/printk/printk.c:1931
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1958
+       vprintk_func+0x7e/0x189 kernel/printk/printk_safe.c:398
+       printk+0xba/0xed kernel/printk/printk.c:1991
+       check_stack_usage kernel/exit.c:755 [inline]
+       do_exit.cold+0x57/0x16a kernel/exit.c:916
+       do_group_exit+0x177/0x430 kernel/exit.c:970
+       __do_sys_exit_group kernel/exit.c:981 [inline]
+       __se_sys_exit_group kernel/exit.c:979 [inline]
+       __x64_sys_exit_group+0x44/0x50 kernel/exit.c:979
+       do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 ((console_sem).lock){-.-.}:
+       lock_acquire+0x1db/0x570 kernel/locking/lockdep.c:3841
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+       down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+       __down_trylock_console_sem+0xa8/0x210 kernel/printk/printk.c:219
+       console_trylock+0x15/0xa0 kernel/printk/printk.c:2242
+       console_trylock_spinning kernel/printk/printk.c:1662 [inline]
+       vprintk_emit+0x351/0x960 kernel/printk/printk.c:1930
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1958
+       vprintk_func+0x7e/0x189 kernel/printk/printk_safe.c:398
+       printk+0xba/0xed kernel/printk/printk.c:1991
+       start_report mm/kasan/report.c:86 [inline]
+       kasan_report+0xc1/0x15e mm/kasan/report.c:309
+       __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+       ____rb_erase_color lib/rbtree.c:258 [inline]
+       rb_erase+0x18d0/0x3550 lib/rbtree.c:462
+       timerqueue_del+0x86/0x150 lib/timerqueue.c:87
+       __remove_hrtimer+0xa8/0x1c0 kernel/time/hrtimer.c:975
+       __run_hrtimer kernel/time/hrtimer.c:1371 [inline]
+       __hrtimer_run_queues+0x311/0x1050 kernel/time/hrtimer.c:1451
+       hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+       local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1035 [inline]
+       smp_apic_timer_interrupt+0x18d/0x760 arch/x86/kernel/apic/apic.c:1060
+       apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+       debug_smp_processor_id+0x0/0x20 include/linux/bitmap.h:317
+       rcu_is_watching+0x10/0x30 kernel/rcu/tree.c:932
+       rcu_read_unlock include/linux/rcupdate.h:657 [inline]
+       batadv_nc_purge_orig_hash net/batman-adv/network-coding.c:423 [inline]
+       batadv_nc_worker+0x5f6/0x920 net/batman-adv/network-coding.c:730
+       process_one_work+0xd0c/0x1ce0 kernel/workqueue.c:2153
+       worker_thread+0x143/0x14a0 kernel/workqueue.c:2296
+       kthread+0x357/0x430 kernel/kthread.c:246
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+other info that might help us debug this:
+
+Chain exists of:
+  (console_sem).lock --> hrtimer_bases.lock --> report_lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(report_lock);
+                               lock(hrtimer_bases.lock);
+                               lock(report_lock);
+  lock((console_sem).lock);
+
+ *** DEADLOCK ***
+
+5 locks held by kworker/u4:4/501:
+ #0: 000000000eba5317 ((wq_completion)"%s""bat_events"){+.+.}, at: __write_once_size include/linux/compiler.h:218 [inline]
+ #0: 000000000eba5317 ((wq_completion)"%s""bat_events"){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: 000000000eba5317 ((wq_completion)"%s""bat_events"){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:40 [inline]
+ #0: 000000000eba5317 ((wq_completion)"%s""bat_events"){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:59 [inline]
+ #0: 000000000eba5317 ((wq_completion)"%s""bat_events"){+.+.}, at: set_work_data kernel/workqueue.c:617 [inline]
+ #0: 000000000eba5317 ((wq_completion)"%s""bat_events"){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+ #0: 000000000eba5317 ((wq_completion)"%s""bat_events"){+.+.}, at: process_one_work+0xbc7/0x1ce0 kernel/workqueue.c:2124
+ #1: 00000000e7577dae ((work_completion)(&(&bat_priv->nc.work)->work)){+.+.}, at: process_one_work+0xc1d/0x1ce0 kernel/workqueue.c:2128
+ #2: 000000006793258a (rcu_read_lock){....}, at: batadv_nc_purge_orig_hash net/batman-adv/network-coding.c:417 [inline]
+ #2: 000000006793258a (rcu_read_lock){....}, at: batadv_nc_worker+0x167/0x920 net/batman-adv/network-coding.c:730
+ #3: 0000000083f5b3b1 (hrtimer_bases.lock){-.-.}, at: __run_hrtimer kernel/time/hrtimer.c:1391 [inline]
+ #3: 0000000083f5b3b1 (hrtimer_bases.lock){-.-.}, at: __hrtimer_run_queues+0x40f/0x1050 kernel/time/hrtimer.c:1451
+ #4: 00000000bfe049d6 (report_lock){-...}, at: start_report mm/kasan/report.c:85 [inline]
+ #4: 00000000bfe049d6 (report_lock){-...}, at: kasan_report+0xb1/0x15e mm/kasan/report.c:309
+
+stack backtrace:
+CPU: 0 PID: 501 Comm: kworker/u4:4 Not tainted 5.0.0-rc1+ #24
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: bat_events batadv_nc_worker
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_circular_bug.isra.0.cold+0x1cc/0x28f kernel/locking/lockdep.c:1224
+ check_prev_add kernel/locking/lockdep.c:1866 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1979 [inline]
+ validate_chain kernel/locking/lockdep.c:2350 [inline]
+ __lock_acquire+0x3014/0x4a30 kernel/locking/lockdep.c:3338
+ lock_acquire+0x1db/0x570 kernel/locking/lockdep.c:3841
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:152
+ down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+ __down_trylock_console_sem+0xa8/0x210 kernel/printk/printk.c:219
+ console_trylock+0x15/0xa0 kernel/printk/printk.c:2242
+ console_trylock_spinning kernel/printk/printk.c:1662 [inline]
+ vprintk_emit+0x351/0x960 kernel/printk/printk.c:1930
+ vprintk_default+0x28/0x30 kernel/printk/printk.c:1958
+ vprintk_func+0x7e/0x189 kernel/printk/printk_safe.c:398
+ printk+0xba/0xed kernel/printk/printk.c:1991
+ start_report mm/kasan/report.c:86 [inline]
+ kasan_report+0xc1/0x15e mm/kasan/report.c:309
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ ____rb_erase_color lib/rbtree.c:258 [inline]
+ rb_erase+0x18d0/0x3550 lib/rbtree.c:462
+ timerqueue_del+0x86/0x150 lib/timerqueue.c:87
+ __remove_hrtimer+0xa8/0x1c0 kernel/time/hrtimer.c:975
+ __run_hrtimer kernel/time/hrtimer.c:1371 [inline]
+ __hrtimer_run_queues+0x311/0x1050 kernel/time/hrtimer.c:1451
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1035 [inline]
+ smp_apic_timer_interrupt+0x18d/0x760 arch/x86/kernel/apic/apic.c:1060
+ ? check_pre
+Lost 55 message(s)!
+---[ end trace 1299d80dc535a701 ]---
+RIP: 0010:__read_once_size include/linux/compiler.h:191 [inline]
+RIP: 0010:get_running_cputimer include/linux/sched/cputime.h:85 [inline]
+RIP: 0010:account_group_system_time include/linux/sched/cputime.h:149 [inline]
+RIP: 0010:account_system_index_time+0xe8/0x5f0 kernel/sched/cputime.c:168
+Code: 04 00 00 49 8b 84 24 00 07 00 00 48 ba 00 00 00 00 00 fc ff df 48 8d b8 40 01 00 00 48 8d 88 28 01 00 00 48 89 fe 48 c1 ee 03 <0f> b6 14 16 48 89 fe 83 e6 07 40 38 f2 7f 08 84 d2 0f 85 93 03 00
+RSP: 0018:ffff8880ae707a80 EFLAGS: 00010002
+RAX: 00000000a94c9240 RBX: 1ffff11015ce0f54 RCX: 00000000a94c9368
+RDX: dffffc0000000000 RSI: 0000000015299270 RDI: 00000000a94c9380
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+RBP: ffff8880ae707b48 R08: ffff8880ae71f5f0 R09: ffffffff8a9a905d
+R10: ffffffff8a9a9050 R11: 0000000000000001 R12: ffff8880a94ca440
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1035 [inline]
+ smp_apic_timer_interrupt+0x18d/0x760 arch/x86/kernel/apic/apic.c:1060
+R13: 000000000098266f R14: 0000000000000003 R15: ffff8880ae707b20
+FS:  0000000000000000(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000068 CR3: 0000000090098000 CR4: 00000000001426e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

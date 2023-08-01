@@ -1,0 +1,46 @@
+==================================================================
+BUG: KCSAN: data-race in flush_tlb_batched_pending / try_to_unmap_one
+
+write to 0xffff888105f713bc of 1 bytes by task 1803 on cpu 0:
+ flush_tlb_batched_pending+0x5f/0x80 mm/rmap.c:691
+ madvise_free_pte_range+0xee/0x7d0 mm/madvise.c:594
+ walk_pmd_range mm/pagewalk.c:128 [inline]
+ walk_pud_range mm/pagewalk.c:205 [inline]
+ walk_p4d_range mm/pagewalk.c:240 [inline]
+ walk_pgd_range mm/pagewalk.c:277 [inline]
+ __walk_page_range+0x981/0x1160 mm/pagewalk.c:379
+ walk_page_range+0x131/0x300 mm/pagewalk.c:475
+ madvise_free_single_vma mm/madvise.c:734 [inline]
+ madvise_dontneed_free mm/madvise.c:822 [inline]
+ madvise_vma mm/madvise.c:996 [inline]
+ do_madvise+0xe4a/0x1140 mm/madvise.c:1202
+ __do_sys_madvise mm/madvise.c:1228 [inline]
+ __se_sys_madvise mm/madvise.c:1226 [inline]
+ __x64_sys_madvise+0x5d/0x70 mm/madvise.c:1226
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+write to 0xffff888105f713bc of 1 bytes by task 69 on cpu 1:
+ set_tlb_ubc_flush_pending mm/rmap.c:636 [inline]
+ try_to_unmap_one+0x60e/0x1220 mm/rmap.c:1515
+ rmap_walk_anon+0x2fb/0x470 mm/rmap.c:2301
+ try_to_unmap+0xec/0x110
+ shrink_page_list+0xe91/0x2620 mm/vmscan.c:1760
+ shrink_inactive_list+0x3fb/0x730 mm/vmscan.c:2435
+ shrink_list mm/vmscan.c:2662 [inline]
+ shrink_lruvec+0x3c9/0x710 mm/vmscan.c:2981
+ shrink_node_memcgs+0x23e/0x410 mm/vmscan.c:3170
+ shrink_node+0x8f6/0x1190 mm/vmscan.c:3293
+ kswapd_shrink_node mm/vmscan.c:4069 [inline]
+ balance_pgdat+0x702/0xd30 mm/vmscan.c:4260
+ kswapd+0x200/0x340 mm/vmscan.c:4520
+ kthread+0x2c7/0x2e0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+
+value changed: 0x01 -> 0x00
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 69 Comm: kswapd0 Not tainted 5.16.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

@@ -1,0 +1,158 @@
+INFO: task syz-executor.4:30171 can't die for more than 143 seconds.
+task:syz-executor.4  state:D stack:27672 pid:30171 ppid: 14627 flags:0x00004004
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:4987 [inline]
+ __schedule+0xa9a/0x4940 kernel/sched/core.c:6268
+ schedule+0xd2/0x260 kernel/sched/core.c:6341
+ blk_mq_freeze_queue_wait+0x112/0x160 block/blk-mq.c:178
+ __loop_clr_fd+0x1ae/0x1070 drivers/block/loop.c:1122
+ loop_clr_fd drivers/block/loop.c:1237 [inline]
+ lo_ioctl+0x398/0x17c0 drivers/block/loop.c:1562
+ blkdev_ioctl+0x37a/0x800 block/ioctl.c:609
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:874 [inline]
+ __se_sys_ioctl fs/ioctl.c:860 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:860
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f15fd31b8a7
+RSP: 002b:00007f15fa890fa8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000020001240 RCX: 00007f15fd31b8a7
+RDX: 0000000000000000 RSI: 0000000000004c01 RDI: 0000000000000004
+RBP: 00007f15fa8916bc R08: 00007f15fa891040 R09: 0000000020000140
+R10: 0000000000000000 R11: 0000000000000246 R12: ffffffffffffffff
+R13: 0000000000000005 R14: 00007f15fa891000 R15: 0000000020000000
+ </TASK>
+INFO: task syz-executor.4:30171 blocked for more than 143 seconds.
+      Not tainted 5.16.0-rc1-next-20211118-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor.4  state:D stack:27672 pid:30171 ppid: 14627 flags:0x00004004
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:4987 [inline]
+ __schedule+0xa9a/0x4940 kernel/sched/core.c:6268
+ schedule+0xd2/0x260 kernel/sched/core.c:6341
+ blk_mq_freeze_queue_wait+0x112/0x160 block/blk-mq.c:178
+ __loop_clr_fd+0x1ae/0x1070 drivers/block/loop.c:1122
+ loop_clr_fd drivers/block/loop.c:1237 [inline]
+ lo_ioctl+0x398/0x17c0 drivers/block/loop.c:1562
+ blkdev_ioctl+0x37a/0x800 block/ioctl.c:609
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:874 [inline]
+ __se_sys_ioctl fs/ioctl.c:860 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:860
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f15fd31b8a7
+RSP: 002b:00007f15fa890fa8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000020001240 RCX: 00007f15fd31b8a7
+RDX: 0000000000000000 RSI: 0000000000004c01 RDI: 0000000000000004
+RBP: 00007f15fa8916bc R08: 00007f15fa891040 R09: 0000000020000140
+R10: 0000000000000000 R11: 0000000000000246 R12: ffffffffffffffff
+R13: 0000000000000005 R14: 00007f15fa891000 R15: 0000000020000000
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/26:
+ #0: ffffffff8bb83ba0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6458
+2 locks held by systemd-udevd/2970:
+ #0: ffff88801a42d918 (&disk->open_mutex){+.+.}-{3:3}, at: blkdev_get_by_dev.part.0+0x9b/0xb50 block/bdev.c:819
+ #1: ffff88801a429360 (&lo->lo_mutex){+.+.}-{3:3}, at: lo_open+0x75/0x120 drivers/block/loop.c:1733
+1 lock held by in:imklog/6263:
+ #0: ffff88801dd6e870 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:990
+3 locks held by kworker/u4:4/11914:
+5 locks held by kworker/u4:11/11915:
+ #0: ffff8880b9c39a98 (&rq->__lock){-.-.}-{2:2}, at: raw_spin_rq_lock_nested+0x2b/0x120 kernel/sched/core.c:478
+ #1: ffffc90019137db0 ((work_completion)(&(&bat_priv->nc.work)->work)){+.+.}-{0:0}, at: process_one_work+0x8ca/0x1690 kernel/workqueue.c:2273
+ #2: ffff8880b9d39a98 (&rq->__lock){-.-.}-{2:2}, at: raw_spin_rq_lock_nested+0x2b/0x120 kernel/sched/core.c:478
+ #3: ffffffff90710300 (&obj_hash[i].lock){-.-.}-{2:2}, at: debug_object_activate+0x12e/0x3e0 lib/debugobjects.c:661
+ #4: ffff8880b9d39a98 (&rq->__lock){-.-.}-{2:2}, at: raw_spin_rq_lock_nested+0x2b/0x120 kernel/sched/core.c:478
+1 lock held by syz-executor.4/30171:
+ #0: ffff88801a429360 (&lo->lo_mutex){+.+.}-{3:3}, at: __loop_clr_fd+0x7a/0x1070 drivers/block/loop.c:1106
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 26 Comm: khungtaskd Not tainted 5.16.0-rc1-next-20211118-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x47/0x144 lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x1b3/0x230 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:254 [inline]
+ watchdog+0xcb7/0xed0 kernel/hung_task.c:339
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 2965 Comm: systemd-journal Not tainted 5.16.0-rc1-next-20211118-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:unwind_next_frame+0x3c9/0x1ce0 arch/x86/kernel/unwind_orc.c:456
+Code: 85 ba 12 00 00 41 c6 46 34 01 49 c7 c0 e0 a0 9f 8b 4d 8d 78 04 48 b8 00 00 00 00 00 fc ff df 4c 89 fa 48 c1 ea 03 0f b6 04 02 <4c> 89 fa 83 e2 07 38 d0 7f 08 84 c0 0f 85 bd 08 00 00 41 0f b6 40
+RSP: 0018:ffffc9000b5ef630 EFLAGS: 00000a06
+RAX: 0000000000000000 RBX: 1ffff920016bdece RCX: ffffffff81c9caea
+RDX: 1ffffffff1c31647 RSI: ffffffff8e18b1e8 RDI: ffffffff8da62314
+RBP: 0000000000000001 R08: ffffffff8e18b236 R09: 0000000000000001
+R10: fffff520016bdeec R11: 000000000008808a R12: ffffc9000b5ef750
+R13: ffffc9000b5ef73d R14: ffffc9000b5ef708 R15: ffffffff8e18b23a
+FS:  00007f26d91498c0(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f26d6001000 CR3: 000000001d0fd000 CR4: 00000000003526e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ arch_stack_walk+0x7d/0xe0 arch/x86/kernel/stacktrace.c:25
+ stack_trace_save+0x8c/0xc0 kernel/stacktrace.c:122
+ kasan_save_stack+0x1e/0x50 mm/kasan/common.c:38
+ __kasan_record_aux_stack+0xf5/0x120 mm/kasan/generic.c:348
+ task_work_add+0x3a/0x190 kernel/task_work.c:38
+ fput_many.part.0+0xbb/0x170 fs/file_table.c:341
+ fput_many fs/file_table.c:336 [inline]
+ fput+0x3b/0x50 fs/file_table.c:357
+ path_openat+0x1a47/0x2750 fs/namei.c:3568
+ do_filp_open+0x1aa/0x400 fs/namei.c:3586
+ do_sys_openat2+0x16d/0x4d0 fs/open.c:1212
+ do_sys_open fs/open.c:1228 [inline]
+ __do_sys_open fs/open.c:1236 [inline]
+ __se_sys_open fs/open.c:1232 [inline]
+ __x64_sys_open+0x119/0x1c0 fs/open.c:1232
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f26d86d8840
+Code: 73 01 c3 48 8b 0d 68 77 20 00 f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 83 3d 89 bb 20 00 00 75 10 b8 02 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 1e f6 ff ff 48 89 04 24
+RSP: 002b:00007ffec9325b78 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 00007ffec9325e80 RCX: 00007f26d86d8840
+RDX: 00000000000001a0 RSI: 0000000000080042 RDI: 00005600ddba6580
+RBP: 000000000000000d R08: 000000000000ffc0 R09: 00000000ffffffff
+R10: 0000000000000069 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00005600ddba2040 R14: 00007ffec9325e40 R15: 00005600ddbaea40
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	85 ba 12 00 00 41    	test   %edi,0x41000012(%rdx)
+   6:	c6 46 34 01          	movb   $0x1,0x34(%rsi)
+   a:	49 c7 c0 e0 a0 9f 8b 	mov    $0xffffffff8b9fa0e0,%r8
+  11:	4d 8d 78 04          	lea    0x4(%r8),%r15
+  15:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  1c:	fc ff df
+  1f:	4c 89 fa             	mov    %r15,%rdx
+  22:	48 c1 ea 03          	shr    $0x3,%rdx
+  26:	0f b6 04 02          	movzbl (%rdx,%rax,1),%eax
+* 2a:	4c 89 fa             	mov    %r15,%rdx <-- trapping instruction
+  2d:	83 e2 07             	and    $0x7,%edx
+  30:	38 d0                	cmp    %dl,%al
+  32:	7f 08                	jg     0x3c
+  34:	84 c0                	test   %al,%al
+  36:	0f 85 bd 08 00 00    	jne    0x8f9
+  3c:	41                   	rex.B
+  3d:	0f                   	.byte 0xf
+  3e:	b6 40                	mov    $0x40,%dh

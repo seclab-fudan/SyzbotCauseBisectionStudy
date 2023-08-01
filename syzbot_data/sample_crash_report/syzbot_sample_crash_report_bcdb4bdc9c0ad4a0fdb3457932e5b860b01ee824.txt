@@ -1,0 +1,53 @@
+device syz0 entered promiscuous mode
+------------[ cut here ]------------
+Bad or missing usercopy whitelist? Kernel memory exposure attempt detected from SLAB object 'skbuff_head_cache' (offset 64, size 16)!
+WARNING: CPU: 0 PID: 3663 at mm/usercopy.c:81 usercopy_warn+0xdb/0x100 mm/usercopy.c:76
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 0 PID: 3663 Comm: syzkaller694156 Not tainted 4.15.0-rc7-next-20180115+ #97
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ panic+0x1e4/0x41c kernel/panic.c:183
+ __warn+0x1dc/0x200 kernel/panic.c:547
+ report_bug+0x211/0x2d0 lib/bug.c:184
+ fixup_bug.part.11+0x37/0x80 arch/x86/kernel/traps.c:178
+ fixup_bug arch/x86/kernel/traps.c:247 [inline]
+ do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:296
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+ invalid_op+0x22/0x40 arch/x86/entry/entry_64.S:1085
+RIP: 0010:usercopy_warn+0xdb/0x100 mm/usercopy.c:76
+RSP: 0018:ffff8801d99df548 EFLAGS: 00010282
+RAX: dffffc0000000008 RBX: ffffffff865cf19f RCX: ffffffff815aba6e
+RDX: 0000000000000000 RSI: 1ffff1003b33be2e RDI: 1ffff1003b33be64
+RBP: ffff8801d99df5a0 R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000000003e6 R11: 0000000000000000 R12: ffffffff86200d00
+R13: ffffffff85d2cfc0 R14: 0000000000000040 R15: 0000000000000010
+ __check_heap_object+0x89/0xc0 mm/slab.c:4426
+ check_heap_object mm/usercopy.c:236 [inline]
+ __check_object_size+0x272/0x530 mm/usercopy.c:259
+ check_object_size include/linux/thread_info.h:112 [inline]
+ check_copy_size include/linux/thread_info.h:143 [inline]
+ copy_to_user include/linux/uaccess.h:154 [inline]
+ put_cmsg+0x233/0x3f0 net/core/scm.c:242
+ sock_recv_errqueue+0x200/0x3e0 net/core/sock.c:2913
+ packet_recvmsg+0xb2e/0x17a0 net/packet/af_packet.c:3296
+ sock_recvmsg_nosec net/socket.c:803 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:810
+ ___sys_recvmsg+0x2a4/0x640 net/socket.c:2179
+ __sys_recvmmsg+0x2a9/0xaf0 net/socket.c:2287
+ SYSC_recvmmsg net/socket.c:2368 [inline]
+ SyS_recvmmsg+0xc4/0x160 net/socket.c:2352
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x444339
+RSP: 002b:00007ffdb359d7d8 EFLAGS: 00000203 ORIG_RAX: 000000000000012b
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000444339
+RDX: 0000000000000001 RSI: 0000000020ef7fc4 RDI: 0000000000000005
+RBP: 00000000006ce018 R08: 0000000020000000 R09: 0000000000000001
+R10: 0000000000002000 R11: 0000000000000203 R12: 0000000000402020
+R13: 00000000004020b0 R14: 0000000000000000 R15: 0000000000000000
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

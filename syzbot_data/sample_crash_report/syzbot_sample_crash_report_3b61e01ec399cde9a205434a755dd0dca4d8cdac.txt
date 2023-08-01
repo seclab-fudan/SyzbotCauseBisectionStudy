@@ -1,0 +1,275 @@
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.15.0+ #292 Not tainted
+------------------------------------------------------
+syz-executor6/6384 is trying to acquire lock:
+ (sk_lock-AF_INET){+.+.}, at: [<000000007e500263>] lock_sock include/net/sock.h:1461 [inline]
+ (sk_lock-AF_INET){+.+.}, at: [<000000007e500263>] do_ip_getsockopt+0x1b3/0x2170 net/ipv4/ip_sockglue.c:1335
+
+but task is already holding lock:
+ (rtnl_mutex){+.+.}, at: [<00000000d5685599>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (rtnl_mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+       register_netdevice_notifier+0xad/0x860 net/core/dev.c:1607
+       tee_tg_check+0x1a0/0x280 net/netfilter/xt_TEE.c:106
+       xt_check_target+0x22c/0x7d0 net/netfilter/x_tables.c:845
+       check_target net/ipv4/netfilter/ip_tables.c:513 [inline]
+       find_check_entry.isra.8+0x8c8/0xcb0 net/ipv4/netfilter/ip_tables.c:554
+       translate_table+0xed1/0x1610 net/ipv4/netfilter/ip_tables.c:725
+       do_replace net/ipv4/netfilter/ip_tables.c:1141 [inline]
+       do_ipt_set_ctl+0x370/0x5f0 net/ipv4/netfilter/ip_tables.c:1675
+       nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+       nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+       ip_setsockopt+0xa1/0xb0 net/ipv4/ip_sockglue.c:1260
+       sctp_setsockopt+0x2b6/0x61d0 net/sctp/socket.c:4104
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2978
+       SYSC_setsockopt net/socket.c:1849 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1828
+       entry_SYSCALL_64_fastpath+0x29/0xa0
+
+-> #0 (sk_lock-AF_INET){+.+.}:
+       lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+       lock_sock_nested+0xc2/0x110 net/core/sock.c:2780
+       lock_sock include/net/sock.h:1461 [inline]
+       do_ip_getsockopt+0x1b3/0x2170 net/ipv4/ip_sockglue.c:1335
+       ip_getsockopt+0x90/0x220 net/ipv4/ip_sockglue.c:1566
+       tcp_getsockopt+0x82/0xd0 net/ipv4/tcp.c:3359
+       sock_common_getsockopt+0x95/0xd0 net/core/sock.c:2937
+       SYSC_getsockopt net/socket.c:1880 [inline]
+       SyS_getsockopt+0x178/0x340 net/socket.c:1862
+       entry_SYSCALL_64_fastpath+0x29/0xa0
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(rtnl_mutex);
+                               lock(sk_lock-AF_INET);
+                               lock(rtnl_mutex);
+  lock(sk_lock-AF_INET);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor6/6384:
+ #0:  (rtnl_mutex){+.+.}, at: [<00000000d5685599>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+
+stack backtrace:
+CPU: 1 PID: 6384 Comm: syz-executor6 Not tainted 4.15.0+ #292
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_circular_bug.isra.38+0x2cd/0x2dc kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x30a8/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ lock_sock_nested+0xc2/0x110 net/core/sock.c:2780
+ lock_sock include/net/sock.h:1461 [inline]
+ do_ip_getsockopt+0x1b3/0x2170 net/ipv4/ip_sockglue.c:1335
+ ip_getsockopt+0x90/0x220 net/ipv4/ip_sockglue.c:1566
+ tcp_getsockopt+0x82/0xd0 net/ipv4/tcp.c:3359
+ sock_common_getsockopt+0x95/0xd0 net/core/sock.c:2937
+ SYSC_getsockopt net/socket.c:1880 [inline]
+ SyS_getsockopt+0x178/0x340 net/socket.c:1862
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x453299
+RSP: 002b:00007f08eb710c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 0000000000000029 RSI: 0000000000000000 RDI: 0000000000000014
+RBP: 000000000000055e R08: 0000000020745000 R09: 0000000000000000
+R10: 0000000020000000 R11: 0000000000000212 R12: 00000000006f7170
+R13: 00000000ffffffff R14: 00007f08eb7116d4 R15: 0000000000000000
+ip_tables: iptables: counters copy to user failed while replacing table
+ip_tables: iptables: counters copy to user failed while replacing table
+TCP: request_sock_TCP: Possible SYN flooding on port 20030. Sending cookies.  Check SNMP counters.
+QAT: Invalid ioctl
+QAT: Invalid ioctl
+device syz2 entered promiscuous mode
+device eql entered promiscuous mode
+device eql entered promiscuous mode
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor6'.
+netlink: 'syz-executor6': attribute type 5 has an invalid length.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor6'.
+netlink: 'syz-executor6': attribute type 5 has an invalid length.
+QAT: Invalid ioctl
+QAT: Invalid ioctl
+netlink: 'syz-executor3': attribute type 1 has an invalid length.
+openvswitch: netlink: Flow actions attr not present in new flow.
+openvswitch: netlink: Flow actions attr not present in new flow.
+SELinux: failed to load policy
+SELinux:  policydb magic number 0x3a58fbeb does not match expected magic number 0xf97cff8c
+SELinux: failed to load policy
+NFS: bad mount option value specified: vs
+SELinux: failed to load policy
+SELinux:  policydb magic number 0x3a58fbeb does not match expected magic number 0xf97cff8c
+SELinux: failed to load policy
+NFS: bad mount option value specified: vs
+PPPIOCDETACH file->f_count=2
+PPPIOCDETACH file->f_count=2
+device syz6 entered promiscuous mode
+kauditd_printk_skb: 60 callbacks suppressed
+audit: type=1400 audit(1517586539.688:141): avc:  denied  { bind } for  pid=7099 comm="syz-executor2" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+device eql entered promiscuous mode
+audit: type=1326 audit(1517586539.927:142): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7171 comm="syz-executor5" exe="/root/syz-executor5" sig=9 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x0
+audit: type=1326 audit(1517586540.011:143): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7171 comm="syz-executor5" exe="/root/syz-executor5" sig=9 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x0
+audit: type=1326 audit(1517586540.089:144): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7219 comm="syz-executor5" exe="/root/syz-executor5" sig=9 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x0
+audit: type=1326 audit(1517586540.580:145): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7232 comm="syz-executor5" exe="/root/syz-executor5" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586540.580:146): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7232 comm="syz-executor5" exe="/root/syz-executor5" sig=0 arch=c000003e syscall=149 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586540.580:147): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7232 comm="syz-executor5" exe="/root/syz-executor5" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586540.580:148): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7232 comm="syz-executor5" exe="/root/syz-executor5" sig=0 arch=c000003e syscall=321 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586540.580:149): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7232 comm="syz-executor5" exe="/root/syz-executor5" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586540.580:150): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7232 comm="syz-executor5" exe="/root/syz-executor5" sig=0 arch=c000003e syscall=64 compat=0 ip=0x453299 code=0x7ffc0000
+QAT: Invalid ioctl
+xt_SECMARK: invalid mode: 0
+xt_SECMARK: invalid mode: 0
+rfkill: input handler disabled
+rfkill: input handler enabled
+SELinux: unrecognized netlink message: protocol=9 nlmsg_type=18 sclass=netlink_audit_socket pig=7555 comm=syz-executor2
+*** Guest State ***
+CR0: actual=0x0000000000000031, shadow=0x0000000060000011, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000242459, shadow=0x0000000000240409, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x0000000000000f80  RIP = 0x0000000000000000
+RFLAGS=0x00000002         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000f80 CS:RIP=0030:0000000000002810
+CS:   sel=0x0030, attr=0x0409b, limit=0x000fffff, base=0x0000000000000000
+DS:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+SS:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+*** Guest State ***
+ES:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+CR0: actual=0x0000000000000031, shadow=0x0000000060000011, gh_mask=fffffffffffffff7
+FS:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+CR4: actual=0x0000000000242459, shadow=0x0000000000240409, gh_mask=ffffffffffffe871
+GS:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+GDTR:                           limit=0x000007ff, base=0x0000000000001000
+LDTR: sel=0x0008, attr=0x04082, limit=0x000007ff, base=0x0000000000001800
+CR3 = 0x00000000fffbc000
+IDTR:                           limit=0x000001ff, base=0x0000000000003800
+TR:   sel=0x0000, attr=0x0008b, limit=0x0000ffff, base=0x0000000000000000
+RSP = 0x0000000000000f80  RIP = 0x0000000000000000
+RFLAGS=0x00000002         DR7 = 0x0000000000000400
+EFER =     0x0000000000000001  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+Sysenter RSP=0000000000000f80 CS:RIP=0030:0000000000002810
+*** Host State ***
+RIP = 0xffffffff811bdff4  RSP = 0xffff8801ca17f508
+CS:   sel=0x0030, attr=0x0409b, limit=0x000fffff, base=0x0000000000000000
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+DS:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+FSBase=00007fd4a0c63700 GSBase=ffff8801db500000 TRBase=fffffe0000034000
+GDTBase=fffffe0000032000 IDTBase=fffffe0000000000
+SS:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+CR0=0000000080050033 CR3=00000001ca230002 CR4=00000000001626e0
+ES:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+Sysenter RSP=fffffe0000033200 CS:RIP=0010:ffffffff85a01b70
+FS:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+GS:   sel=0x0038, attr=0x04093, limit=0x000fffff, base=0x0000000000000000
+PinBased=0000003f CPUBased=b699edfa SecondaryExec=000000ca
+EntryControls=0000d1ff ExitControls=0023efff
+GDTR:                           limit=0x000007ff, base=0x0000000000001000
+ExceptionBitmap=00060042 PFECmask=00000000 PFECmatch=00000000
+LDTR: sel=0x0008, attr=0x04082, limit=0x000007ff, base=0x0000000000001800
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+IDTR:                           limit=0x000001ff, base=0x0000000000003800
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffffdf6f0ef751
+EPT pointer = 0x00000001c40da01e
+TR:   sel=0x0000, attr=0x0008b, limit=0x0000ffff, base=0x0000000000000000
+EFER =     0x0000000000000001  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811bdff4  RSP = 0xffff8801d4257508
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007fd4a0c20700 GSBase=ffff8801db400000 TRBase=fffffe0000003000
+GDTBase=fffffe0000001000 IDTBase=fffffe0000000000
+CR0=0000000080050033 CR3=00000001ca230001 CR4=00000000001626f0
+Sysenter RSP=fffffe0000002200 CS:RIP=0010:ffffffff85a01b70
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b699edfa SecondaryExec=000000ca
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=00060042 PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffffdf65220ff6
+EPT pointer = 0x00000001b205701e
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
+binder: 7842:7853 Acquire 1 refcount change on invalid ref 0 ret -22
+binder: 7842:7853 ioctl c0306201 2000a000 returned -11
+binder: 7842:7869 Acquire 1 refcount change on invalid ref 0 ret -22
+netlink: 204 bytes leftover after parsing attributes in process `syz-executor2'.
+netlink: 204 bytes leftover after parsing attributes in process `syz-executor2'.
+syz-executor4 (8035): /proc/8034/oom_adj is deprecated, please use /proc/8034/oom_score_adj instead.
+kauditd_printk_skb: 51 callbacks suppressed
+audit: type=1400 audit(1517586545.084:202): avc:  denied  { shutdown } for  pid=8050 comm="syz-executor6" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+*** Guest State ***
+CR0: actual=0x0000000000000030, shadow=0x0000000060000010, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002050, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x0000000000000000  RIP = 0x000000000000fff0
+RFLAGS=0x00000002         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0xf000, attr=0x0009b, limit=0x0000ffff, base=0x00000000ffff0000
+DS:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+ES:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+GDTR:                           limit=0x0000ffff, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x00082, limit=0x0000ffff, base=0x0000000000000000
+IDTR:                           limit=0x0000ffff, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x0008b, limit=0x0000ffff, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000001  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811bdff4  RSP = 0xffff8801ccc0f508
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007fb946362700 GSBase=ffff8801db400000 TRBase=fffffe0000003000
+GDTBase=fffffe0000001000 IDTBase=fffffe0000000000
+CR0=0000000080050033 CR3=00000001c735e005 CR4=00000000001626f0
+Sysenter RSP=fffffe0000002200 CS:RIP=0010:ffffffff85a01b70
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b699edfe SecondaryExec=000000c2
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=00060042 PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffffdde520b627
+EPT pointer = 0x00000001d729901e
+audit: type=1326 audit(1517586546.395:203): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=8276 comm="syz-executor0" exe="/root/syz-executor0" sig=31 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x0
+QAT: Invalid ioctl
+QAT: Invalid ioctl
+audit: type=1326 audit(1517586546.492:204): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=8276 comm="syz-executor0" exe="/root/syz-executor0" sig=31 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x0
+audit: type=1326 audit(1517586546.549:205): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=8315 comm="syz-executor1" exe="/root/syz-executor1" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586546.553:206): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=8315 comm="syz-executor1" exe="/root/syz-executor1" sig=0 arch=c000003e syscall=257 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586546.554:207): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=8315 comm="syz-executor1" exe="/root/syz-executor1" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586546.554:208): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=8315 comm="syz-executor1" exe="/root/syz-executor1" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586546.556:209): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=8315 comm="syz-executor1" exe="/root/syz-executor1" sig=0 arch=c000003e syscall=16 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1517586546.556:210): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=8315 comm="syz-executor1" exe="/root/syz-executor1" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000

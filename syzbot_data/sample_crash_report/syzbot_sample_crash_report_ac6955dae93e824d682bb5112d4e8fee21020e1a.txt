@@ -1,0 +1,53 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.15.0-rc8+ #180
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:loopback_pos_update+0x182/0x1580 sound/drivers/aloop.c:479
+RSP: 0018:ffff8801db3076d8 EFLAGS: 00010006
+RAX: dffffc0000000000 RBX: 0000000000000186 RCX: ffffffff8427742d
+RDX: 0000000000000009 RSI: 000000003559c4f5 RDI: 0000000000000048
+RBP: ffff8801db307768 R08: 1ffff1003b660e2d R09: 000000000000000c
+R10: ffff8801db307628 R11: 0000000000000024 R12: 0000000000000000
+R13: 00000000fffdfa08 R14: 1ffffffff0d01200 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000f7f56db0 CR3: 0000000006822006 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ loopback_timer_function+0x6d/0x277 sound/drivers/aloop.c:522
+ call_timer_fn+0x228/0x820 kernel/time/timer.c:1318
+ expire_timers kernel/time/timer.c:1355 [inline]
+ __run_timers+0x7ee/0xb70 kernel/time/timer.c:1658
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1684
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:541 [inline]
+ smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xa9/0xb0 arch/x86/entry/entry_64.S:937
+ </IRQ>
+RIP: 0010:native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:54
+RSP: 0018:ffff8801d9f77cb0 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff11
+RAX: dffffc0000000000 RBX: 1ffff1003b3eef99 RCX: 0000000000000000
+RDX: 1ffffffff0d19190 RSI: 0000000000000001 RDI: ffffffff868c8c80
+RBP: ffff8801d9f77cb0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000001
+R13: ffff8801d9f77d68 R14: ffffffff870386e0 R15: 0000000000000000
+ arch_safe_halt arch/x86/include/asm/paravirt.h:93 [inline]
+ default_idle+0xbf/0x460 arch/x86/kernel/process.c:355
+ arch_cpu_idle+0xa/0x10 arch/x86/kernel/process.c:346
+ default_idle_call+0x36/0x90 kernel/sched/idle.c:98
+ cpuidle_idle_call kernel/sched/idle.c:156 [inline]
+ do_idle+0x24a/0x3b0 kernel/sched/idle.c:246
+ cpu_startup_entry+0x104/0x120 kernel/sched/idle.c:351
+ start_secondary+0x40a/0x590 arch/x86/kernel/smpboot.c:268
+ secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:237
+Code: 00 fc ff df 41 80 3c 06 00 0f 85 e0 11 00 00 49 8d 7f 48 48 b8 00 00 00 00 00 fc ff df 4c 8b 2d a5 1b 59 02 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 b0 11 00 00 4d 89 ec 4d 2b 67 48 4d 89 6f 48 
+RIP: loopback_pos_update+0x182/0x1580 sound/drivers/aloop.c:479 RSP: ffff8801db3076d8
+---[ end trace 01c78bc89174b551 ]---

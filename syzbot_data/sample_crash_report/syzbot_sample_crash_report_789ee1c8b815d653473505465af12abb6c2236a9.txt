@@ -1,0 +1,171 @@
+INFO: trying to register non-static key.
+The code is fine but needs lockdep annotation, or maybe
+you didn't initialize this object before use?
+turning off the locking correctness validator.
+CPU: 0 PID: 3604 Comm: sshd Not tainted 6.0.0-rc1-syzkaller-00160-g4c2d0b039c5c #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ assign_lock_key kernel/locking/lockdep.c:979 [inline]
+ register_lock_class+0xf1b/0x1120 kernel/locking/lockdep.c:1292
+ __lock_acquire+0x109/0x56d0 kernel/locking/lockdep.c:4932
+ lock_acquire kernel/locking/lockdep.c:5666 [inline]
+ lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x39/0x50 kernel/locking/spinlock.c:162
+ skb_queue_tail+0x21/0x140 net/core/skbuff.c:3396
+ ath9k_htc_txep+0x287/0x400 drivers/net/wireless/ath/ath9k/htc_drv_txrx.c:712
+ ath9k_htc_txcompletion_cb+0x1cd/0x2e0 drivers/net/wireless/ath/ath9k/htc_hst.c:353
+ hif_usb_regout_cb+0x115/0x1c0 drivers/net/wireless/ath/ath9k/hif_usb.c:90
+ __usb_hcd_giveback_urb+0x2b0/0x5c0 drivers/usb/core/hcd.c:1671
+ usb_hcd_giveback_urb+0x380/0x430 drivers/usb/core/hcd.c:1754
+ dummy_timer+0x11ff/0x32c0 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x1a0/0x6b0 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers.part.0+0x674/0xa80 kernel/time/timer.c:1790
+ __run_timers kernel/time/timer.c:1768 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1803
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1106
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:atime_needs_update+0x1/0x870 fs/inode.c:1887
+Code: 00 00 00 00 48 89 ef e8 3d 5c a4 07 e8 68 e7 9d ff 4c 89 e0 5d 41 5c c3 e8 5c 3f ea ff eb d9 66 2e 0f 1f 84 00 00 00 00 00 55 <48> 89 e5 41 57 41 56 41 55 49 89 fd 41 54 53 48 89 f3 48 83 ec 08
+RSP: 0018:ffffc90002d1fb28 EFLAGS: 00000246
+RAX: dffffc0000000000 RBX: ffff888075773a70 RCX: 0000000000000000
+RDX: 1ffff1100eaee75b RSI: ffff8880756dad90 RDI: ffff88801d5e1410
+RBP: ffffc90002d1fbe0 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff920005a3f6a
+R13: ffff8880756dad90 R14: ffff88801d5e1410 R15: ffff88814013cda0
+ touch_atime+0xd3/0x700 fs/inode.c:1927
+ file_accessed include/linux/fs.h:2516 [inline]
+ pipe_read+0xc90/0x1100 fs/pipe.c:395
+ call_read_iter include/linux/fs.h:2181 [inline]
+ new_sync_read fs/read_write.c:389 [inline]
+ vfs_read+0x7f6/0x930 fs/read_write.c:470
+ ksys_read+0x1e8/0x250 fs/read_write.c:607
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f52c3a268fe
+Code: c0 e9 e6 fe ff ff 50 48 8d 3d 0e c7 09 00 e8 c9 cf 01 00 66 0f 1f 84 00 00 00 00 00 64 8b 04 25 18 00 00 00 85 c0 75 14 0f 05 <48> 3d 00 f0 ff ff 77 5a c3 66 0f 1f 84 00 00 00 00 00 48 83 ec 28
+RSP: 002b:00007ffe3299f4d8 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f52c3a268fe
+RDX: 0000000000004000 RSI: 00007ffe3299f4e8 RDI: 0000000000000009
+RBP: 000055d8779ad450 R08: 000055d8779ae750 R09: 00007ffe329b5080
+R10: 00007ffe329b50f0 R11: 0000000000000246 R12: 0000000000000030
+R13: 000055d8779ac030 R14: 00007ffe3299f4e8 R15: 000055d8779ae8d0
+ </TASK>
+general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 0 PID: 3604 Comm: sshd Not tainted 6.0.0-rc1-syzkaller-00160-g4c2d0b039c5c #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+RIP: 0010:__skb_insert include/linux/skbuff.h:2157 [inline]
+RIP: 0010:__skb_queue_before include/linux/skbuff.h:2263 [inline]
+RIP: 0010:__skb_queue_tail include/linux/skbuff.h:2296 [inline]
+RIP: 0010:skb_queue_tail+0x9e/0x140 net/core/skbuff.c:3397
+Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 80 00 00 00 4c 89 e2 4c 89 65 08 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 48 89 6b 08 <80> 3c 02 00 75 4f 48 8d 7b 10 49 89 2c 24 48 b8 00 00 00 00 00 fc
+RSP: 0018:ffffc900000079e0 EFLAGS: 00010056
+RAX: dffffc0000000000 RBX: ffff888020aeb890 RCX: ffffffff815ff650
+RDX: 0000000000000000 RSI: 0000000000000046 RDI: ffff88807f17ac88
+RBP: ffff88807f17ac80 R08: 0000000000000001 R09: 0000000000000003
+R10: fffff52000000f2a R11: 3e4b5341542f3c20 R12: 0000000000000000
+R13: ffff888020aeb8a8 R14: 00000000ffff9d89 R15: ffffffff853c1820
+FS:  00007f52c38d6800(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055a6ee9fd210 CR3: 0000000072392000 CR4: 0000000000350ef0
+Call Trace:
+ <IRQ>
+ ath9k_htc_txep+0x287/0x400 drivers/net/wireless/ath/ath9k/htc_drv_txrx.c:712
+ ath9k_htc_txcompletion_cb+0x1cd/0x2e0 drivers/net/wireless/ath/ath9k/htc_hst.c:353
+ hif_usb_regout_cb+0x115/0x1c0 drivers/net/wireless/ath/ath9k/hif_usb.c:90
+ __usb_hcd_giveback_urb+0x2b0/0x5c0 drivers/usb/core/hcd.c:1671
+ usb_hcd_giveback_urb+0x380/0x430 drivers/usb/core/hcd.c:1754
+ dummy_timer+0x11ff/0x32c0 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x1a0/0x6b0 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers.part.0+0x674/0xa80 kernel/time/timer.c:1790
+ __run_timers kernel/time/timer.c:1768 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1803
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1106
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:atime_needs_update+0x1/0x870 fs/inode.c:1887
+Code: 00 00 00 00 48 89 ef e8 3d 5c a4 07 e8 68 e7 9d ff 4c 89 e0 5d 41 5c c3 e8 5c 3f ea ff eb d9 66 2e 0f 1f 84 00 00 00 00 00 55 <48> 89 e5 41 57 41 56 41 55 49 89 fd 41 54 53 48 89 f3 48 83 ec 08
+RSP: 0018:ffffc90002d1fb28 EFLAGS: 00000246
+RAX: dffffc0000000000 RBX: ffff888075773a70 RCX: 0000000000000000
+RDX: 1ffff1100eaee75b RSI: ffff8880756dad90 RDI: ffff88801d5e1410
+RBP: ffffc90002d1fbe0 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff920005a3f6a
+R13: ffff8880756dad90 R14: ffff88801d5e1410 R15: ffff88814013cda0
+ touch_atime+0xd3/0x700 fs/inode.c:1927
+ file_accessed include/linux/fs.h:2516 [inline]
+ pipe_read+0xc90/0x1100 fs/pipe.c:395
+ call_read_iter include/linux/fs.h:2181 [inline]
+ new_sync_read fs/read_write.c:389 [inline]
+ vfs_read+0x7f6/0x930 fs/read_write.c:470
+ ksys_read+0x1e8/0x250 fs/read_write.c:607
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f52c3a268fe
+Code: c0 e9 e6 fe ff ff 50 48 8d 3d 0e c7 09 00 e8 c9 cf 01 00 66 0f 1f 84 00 00 00 00 00 64 8b 04 25 18 00 00 00 85 c0 75 14 0f 05 <48> 3d 00 f0 ff ff 77 5a c3 66 0f 1f 84 00 00 00 00 00 48 83 ec 28
+RSP: 002b:00007ffe3299f4d8 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f52c3a268fe
+RDX: 0000000000004000 RSI: 00007ffe3299f4e8 RDI: 0000000000000009
+RBP: 000055d8779ad450 R08: 000055d8779ae750 R09: 00007ffe329b5080
+R10: 00007ffe329b50f0 R11: 0000000000000246 R12: 0000000000000030
+R13: 000055d8779ac030 R14: 00007ffe3299f4e8 R15: 000055d8779ae8d0
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__skb_insert include/linux/skbuff.h:2157 [inline]
+RIP: 0010:__skb_queue_before include/linux/skbuff.h:2263 [inline]
+RIP: 0010:__skb_queue_tail include/linux/skbuff.h:2296 [inline]
+RIP: 0010:skb_queue_tail+0x9e/0x140 net/core/skbuff.c:3397
+Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 80 00 00 00 4c 89 e2 4c 89 65 08 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 48 89 6b 08 <80> 3c 02 00 75 4f 48 8d 7b 10 49 89 2c 24 48 b8 00 00 00 00 00 fc
+RSP: 0018:ffffc900000079e0 EFLAGS: 00010056
+RAX: dffffc0000000000 RBX: ffff888020aeb890 RCX: ffffffff815ff650
+RDX: 0000000000000000 RSI: 0000000000000046 RDI: ffff88807f17ac88
+RBP: ffff88807f17ac80 R08: 0000000000000001 R09: 0000000000000003
+R10: fffff52000000f2a R11: 3e4b5341542f3c20 R12: 0000000000000000
+R13: ffff888020aeb8a8 R14: 00000000ffff9d89 R15: ffffffff853c1820
+FS:  00007f52c38d6800(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055a6ee9fd210 CR3: 0000000072392000 CR4: 0000000000350ef0
+----------------
+Code disassembly (best guess):
+   0:	00 00                	add    %al,(%rax)
+   2:	00 00                	add    %al,(%rax)
+   4:	48 89 ef             	mov    %rbp,%rdi
+   7:	e8 3d 5c a4 07       	callq  0x7a45c49
+   c:	e8 68 e7 9d ff       	callq  0xff9de779
+  11:	4c 89 e0             	mov    %r12,%rax
+  14:	5d                   	pop    %rbp
+  15:	41 5c                	pop    %r12
+  17:	c3                   	retq
+  18:	e8 5c 3f ea ff       	callq  0xffea3f79
+  1d:	eb d9                	jmp    0xfffffff8
+  1f:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
+  26:	00 00 00
+  29:	55                   	push   %rbp
+* 2a:	48 89 e5             	mov    %rsp,%rbp <-- trapping instruction
+  2d:	41 57                	push   %r15
+  2f:	41 56                	push   %r14
+  31:	41 55                	push   %r13
+  33:	49 89 fd             	mov    %rdi,%r13
+  36:	41 54                	push   %r12
+  38:	53                   	push   %rbx
+  39:	48 89 f3             	mov    %rsi,%rbx
+  3c:	48 83 ec 08          	sub    $0x8,%rsp

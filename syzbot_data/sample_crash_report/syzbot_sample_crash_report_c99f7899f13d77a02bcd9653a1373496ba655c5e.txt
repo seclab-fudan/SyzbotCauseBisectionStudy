@@ -1,0 +1,33 @@
+==================================================================
+BUG: KCSAN: data-race in __io_uring_cancel / io_uring_try_cancel_requests
+
+write to 0xffff88811d8191b0 of 8 bytes by task 30073 on cpu 1:
+ io_uring_clean_tctx fs/io_uring.c:9042 [inline]
+ __io_uring_cancel+0x261/0x3b0 fs/io_uring.c:9136
+ io_uring_files_cancel include/linux/io_uring.h:16 [inline]
+ do_exit+0x185/0x1560 kernel/exit.c:781
+ do_group_exit+0xce/0x1a0 kernel/exit.c:923
+ get_signal+0xfc3/0x1610 kernel/signal.c:2835
+ arch_do_signal_or_restart+0x2a/0x220 arch/x86/kernel/signal.c:789
+ handle_signal_work kernel/entry/common.c:147 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x109/0x190 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x20/0x40 kernel/entry/common.c:301
+ do_syscall_64+0x56/0x90 arch/x86/entry/common.c:57
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+read to 0xffff88811d8191b0 of 8 bytes by task 22 on cpu 0:
+ io_uring_try_cancel_iowq fs/io_uring.c:8911 [inline]
+ io_uring_try_cancel_requests+0x1ce/0x8e0 fs/io_uring.c:8933
+ io_ring_exit_work+0x7c/0x1110 fs/io_uring.c:8736
+ process_one_work+0x3e9/0x8f0 kernel/workqueue.c:2276
+ worker_thread+0x636/0xae0 kernel/workqueue.c:2422
+ kthread+0x1d0/0x1f0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 22 Comm: kworker/u4:1 Not tainted 5.13.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound io_ring_exit_work
+==================================================================

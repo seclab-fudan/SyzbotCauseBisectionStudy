@@ -1,0 +1,52 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in set_bit include/asm-generic/bitops/instrumented-atomic.h:28 [inline]
+BUG: KASAN: stack-out-of-bounds in __node_set include/linux/nodemask.h:130 [inline]
+BUG: KASAN: stack-out-of-bounds in mpol_to_str+0x377/0x3be mm/mempolicy.c:2962
+Write of size 8 at addr ffffc90000c7fb60 by task systemd/1
+
+CPU: 0 PID: 1 Comm: systemd Not tainted 5.6.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x188/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0x5/0x315 mm/kasan/report.c:374
+ __kasan_report.cold+0x1a/0x32 mm/kasan/report.c:506
+ kasan_report+0xe/0x20 mm/kasan/common.c:641
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x128/0x190 mm/kasan/generic.c:192
+ set_bit include/asm-generic/bitops/instrumented-atomic.h:28 [inline]
+ __node_set include/linux/nodemask.h:130 [inline]
+ mpol_to_str+0x377/0x3be mm/mempolicy.c:2962
+ shmem_show_mpol mm/shmem.c:1406 [inline]
+ shmem_show_options+0x418/0x630 mm/shmem.c:3609
+ show_mountinfo+0x616/0x900 fs/proc_namespace.c:187
+ seq_read+0xad0/0x1160 fs/seq_file.c:268
+ __vfs_read+0x76/0x100 fs/read_write.c:425
+ vfs_read+0x1ea/0x430 fs/read_write.c:461
+ ksys_read+0x127/0x250 fs/read_write.c:587
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x7f17892db92d
+Code: 2d 2c 00 00 75 10 b8 00 00 00 00 0f 05 48 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 de 9b 01 00 48 89 04 24 b8 00 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 27 9c 01 00 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007ffc058b86b0 EFLAGS: 00000293 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 0000556657fec630 RCX: 00007f17892db92d
+RDX: 0000000000000400 RSI: 0000556657fec860 RDI: 000000000000002c
+RBP: 0000000000000d68 R08: 00007f178ad11500 R09: 00000000000000e0
+R10: 0000556657fecc47 R11: 0000000000000293 R12: 00007f1789596440
+R13: 00007f1789595900 R14: 0000000000000019 R15: 0000000000000000
+
+
+addr ffffc90000c7fb60 is located in stack of task systemd/1 at offset 40 in frame:
+ mpol_to_str+0x0/0x3be mm/mempolicy.c:2924
+
+this frame has 1 object:
+ [32, 40) 'nodes'
+
+Memory state around the buggy address:
+ ffffc90000c7fa00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffc90000c7fa80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffffc90000c7fb00: 00 00 00 00 00 00 00 f1 f1 f1 f1 00 f3 f3 f3 00
+                                                       ^
+ ffffc90000c7fb80: 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 00 00
+ ffffc90000c7fc00: 00 00 00 00 00 00 f3 f3 f3 f3 00 00 00 00 00 00
+==================================================================

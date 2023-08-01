@@ -1,0 +1,89 @@
+INFO: task khugepaged:1663 blocked for more than 143 seconds.
+      Not tainted 5.14.0-rc3-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:khugepaged      state:D stack:28464 pid: 1663 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:4683 [inline]
+ __schedule+0x93a/0x26f0 kernel/sched/core.c:5940
+ schedule+0xd3/0x270 kernel/sched/core.c:6019
+ schedule_timeout+0x1db/0x2a0 kernel/time/timer.c:1855
+ do_wait_for_common kernel/sched/completion.c:85 [inline]
+ __wait_for_common kernel/sched/completion.c:106 [inline]
+ wait_for_common kernel/sched/completion.c:117 [inline]
+ wait_for_completion+0x176/0x280 kernel/sched/completion.c:138
+ __flush_work+0x50e/0xad0 kernel/workqueue.c:3053
+ __lru_add_drain_all+0x3fd/0x760 mm/swap.c:842
+ khugepaged_do_scan mm/khugepaged.c:2214 [inline]
+ khugepaged+0x10f/0x5590 mm/khugepaged.c:2275
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1647:
+ #0: ffffffff8b97ba40 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6446
+1 lock held by khugepaged/1663:
+ #0: ffffffff8ba5e948 (lock#6){+.+.}-{3:3}, at: __lru_add_drain_all+0x65/0x760 mm/swap.c:791
+1 lock held by in:imklog/8274:
+ #0: ffff88801b6b4ff0 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:974
+3 locks held by kworker/1:4/8673:
+3 locks held by kworker/1:5/8674:
+2 locks held by syz-executor764/31172:
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1647 Comm: khungtaskd Not tainted 5.14.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ nmi_cpu_backtrace.cold+0x44/0xd7 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1b3/0x230 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:210 [inline]
+ watchdog+0xd0a/0xfc0 kernel/hung_task.c:295
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 19 Comm: ksoftirqd/1 Not tainted 5.14.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__find_rr_leaf+0x2d4/0xd20 net/ipv6/route.c:794
+Code: 08 0f 84 58 01 00 00 e8 aa 3d a0 f9 48 83 3c 24 00 74 43 e8 9e 3d a0 f9 48 8d bb 80 00 00 00 48 89 f8 48 c1 e8 03 0f b6 04 28 <84> c0 74 08 3c 03 0f 8e 49 08 00 00 44 8b a3 80 00 00 00 44 8b 74
+RSP: 0018:ffffc90000d97508 EFLAGS: 00000a06
+RAX: 0000000000000000 RBX: ffff88804f143400 RCX: 0000000000000100
+RDX: ffff888010a7d4c0 RSI: ffffffff87d55dc2 RDI: ffff88804f143480
+RBP: dffffc0000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff87d55d8a R11: 0000000000000000 R12: 0000000000000001
+R13: ffffc90000d977f0 R14: 0000000000000000 R15: ffff88804f142aa0
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000200000c0 CR3: 000000001ff23000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ find_rr_leaf net/ipv6/route.c:846 [inline]
+ rt6_select net/ipv6/route.c:890 [inline]
+ fib6_table_lookup+0x649/0xa20 net/ipv6/route.c:2174
+ ip6_pol_route+0x1c5/0x11d0 net/ipv6/route.c:2210
+ pol_lookup_func include/net/ip6_fib.h:579 [inline]
+ fib6_rule_lookup+0x111/0x6f0 net/ipv6/fib6_rules.c:115
+ ip6_route_input_lookup net/ipv6/route.c:2280 [inline]
+ ip6_route_input+0x63c/0xb30 net/ipv6/route.c:2576
+ ip6_rcv_finish_core.constprop.0.isra.0+0x168/0x570 net/ipv6/ip6_input.c:63
+ ip6_rcv_finish net/ipv6/ip6_input.c:74 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ipv6_rcv+0x229/0x3c0 net/ipv6/ip6_input.c:297
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5498
+ __netif_receive_skb+0x24/0x1b0 net/core/dev.c:5612
+ process_backlog+0x2a5/0x6c0 net/core/dev.c:6492
+ __napi_poll+0xaf/0x440 net/core/dev.c:7047
+ napi_poll net/core/dev.c:7114 [inline]
+ net_rx_action+0x801/0xb40 net/core/dev.c:7201
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ run_ksoftirqd kernel/softirq.c:920 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:912
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295

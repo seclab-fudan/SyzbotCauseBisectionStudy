@@ -1,0 +1,33 @@
+------------[ cut here ]------------
+refcount_t: decrement hit 0; leaking memory.
+WARNING: CPU: 0 PID: 3991 at lib/refcount.c:31 refcount_warn_saturate+0x1d7/0x1f0 lib/refcount.c:31
+Modules linked in:
+CPU: 0 PID: 3991 Comm: kworker/u4:11 Not tainted 6.1.0-rc8-syzkaller-00164-g4cee37b3a4e6 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: events_unbound bpf_map_free_deferred
+RIP: 0010:refcount_warn_saturate+0x1d7/0x1f0 lib/refcount.c:31
+Code: 05 e8 41 35 0a 01 e8 95 40 a0 05 0f 0b e9 d3 fe ff ff e8 2c c1 78 fd 48 c7 c7 40 d7 a5 8a c6 05 c5 41 35 0a 01 e8 76 40 a0 05 <0f> 0b e9 b4 fe ff ff 48 89 ef e8 8a d9 c4 fd e9 5c fe ff ff 0f 1f
+RSP: 0018:ffffc90004e7fc50 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888038410080 RSI: ffffffff81649a0c RDI: fffff520009cff7c
+RBP: ffff888076ee2d40 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000201 R11: 0000000000000000 R12: 0000000000000010
+R13: ffff888076ee2cc0 R14: ffffed100eddc5e7 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b30a3e000 CR3: 00000000306ef000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __refcount_dec include/linux/refcount.h:344 [inline]
+ refcount_dec include/linux/refcount.h:359 [inline]
+ __sock_put include/net/sock.h:779 [inline]
+ tcp_release_cb+0x250/0x360 net/ipv4/tcp_output.c:1111
+ release_sock+0xb8/0x1b0 net/core/sock.c:3468
+ sock_map_free+0xc2/0x320 net/core/sock_map.c:356
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>

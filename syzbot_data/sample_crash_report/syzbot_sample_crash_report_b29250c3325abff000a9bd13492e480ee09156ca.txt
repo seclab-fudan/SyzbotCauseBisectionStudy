@@ -1,0 +1,63 @@
+=====================================================
+BUG: KMSAN: use-after-free in mutex_optimistic_spin kernel/locking/mutex.c:647 [inline]
+BUG: KMSAN: use-after-free in __mutex_lock_common kernel/locking/mutex.c:933 [inline]
+BUG: KMSAN: use-after-free in __mutex_lock+0x5d8/0x1980 kernel/locking/mutex.c:1077
+CPU: 0 PID: 11462 Comm: kworker/0:3 Not tainted 5.3.0-rc7+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x191/0x1f0 lib/dump_stack.c:113
+ kmsan_report+0x17d/0x2f0 mm/kmsan/kmsan_report.c:114
+ __msan_warning+0x73/0xe0 mm/kmsan/kmsan_instr.c:250
+ mutex_spin_on_owner+0x24e/0x420 kernel/locking/mutex.c:542
+ mutex_optimistic_spin kernel/locking/mutex.c:647 [inline]
+ __mutex_lock_common kernel/locking/mutex.c:933 [inline]
+ __mutex_lock+0x5d8/0x1980 kernel/locking/mutex.c:1077
+ __mutex_lock_slowpath+0x2c/0x30 kernel/locking/mutex.c:1338
+ mutex_lock+0x5d/0x80 kernel/locking/mutex.c:258
+ iowarrior_disconnect+0x133/0x3e0 drivers/usb/misc/iowarrior.c:878
+ usb_unbind_interface+0x3a2/0xdd0 drivers/usb/core/driver.c:423
+ __device_release_driver drivers/base/dd.c:1120 [inline]
+ device_release_driver_internal+0x911/0xd20 drivers/base/dd.c:1151
+ device_release_driver+0x4b/0x60 drivers/base/dd.c:1174
+ bus_remove_device+0x4bf/0x670 drivers/base/bus.c:556
+ device_del+0xcd5/0x1d10 drivers/base/core.c:2339
+ usb_disable_device+0x567/0x1150 drivers/usb/core/message.c:1241
+ usb_disconnect+0x51e/0xd60 drivers/usb/core/hub.c:2199
+ hub_port_connect drivers/usb/core/hub.c:4949 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x3fd0/0x72f0 drivers/usb/core/hub.c:5441
+ process_one_work+0x1572/0x1ef0 kernel/workqueue.c:2269
+ worker_thread+0x111b/0x2460 kernel/workqueue.c:2415
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:355
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:154 [inline]
+ kmsan_internal_poison_shadow+0x60/0x120 mm/kmsan/kmsan.c:137
+ kmsan_slab_free+0x8d/0x100 mm/kmsan/kmsan_hooks.c:123
+ slab_free_freelist_hook mm/slub.c:1472 [inline]
+ slab_free mm/slub.c:3038 [inline]
+ kfree+0x4c1/0x2db0 mm/slub.c:3980
+ device_release+0xfb/0x380 drivers/base/core.c:1068
+ kobject_cleanup lib/kobject.c:693 [inline]
+ kobject_release lib/kobject.c:722 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x38d/0x480 lib/kobject.c:739
+ put_device drivers/base/core.c:2264 [inline]
+ device_unregister+0x63/0x80 drivers/base/core.c:2372
+ usb_remove_ep_devs+0x7e/0xe0 drivers/usb/core/endpoint.c:215
+ remove_intf_ep_devs drivers/usb/core/message.c:1116 [inline]
+ usb_disable_device+0x41a/0x1150 drivers/usb/core/message.c:1240
+ usb_disconnect+0x51e/0xd60 drivers/usb/core/hub.c:2199
+ hub_port_connect drivers/usb/core/hub.c:4949 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x3fd0/0x72f0 drivers/usb/core/hub.c:5441
+ process_one_work+0x1572/0x1ef0 kernel/workqueue.c:2269
+ worker_thread+0x111b/0x2460 kernel/workqueue.c:2415
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:355
+=====================================================

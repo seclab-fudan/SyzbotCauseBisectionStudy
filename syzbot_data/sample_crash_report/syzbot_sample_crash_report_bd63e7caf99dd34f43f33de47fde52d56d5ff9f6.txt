@@ -1,0 +1,31 @@
+BUG: memory leak
+unreferenced object 0xffff88810f402d00 (size 232):
+  comm "syz-executor486", pid 8416, jiffies 4294943639 (age 13.060s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff836a0d5f>] __alloc_skb+0x20f/0x280 net/core/skbuff.c:413
+    [<ffffffff83ad5686>] alloc_skb include/linux/skbuff.h:1107 [inline]
+    [<ffffffff83ad5686>] xfrm_alloc_compat+0x1d6/0x6d0 net/xfrm/xfrm_compat.c:324
+    [<ffffffff83ad2b4c>] xfrm_alloc_userspi+0x29c/0x3f0 net/xfrm/xfrm_user.c:1448
+    [<ffffffff83ace7f8>] xfrm_user_rcv_msg+0x208/0x3e0 net/xfrm/xfrm_user.c:2812
+    [<ffffffff838233d7>] netlink_rcv_skb+0x87/0x1d0 net/netlink/af_netlink.c:2504
+    [<ffffffff83acc9e2>] xfrm_netlink_rcv+0x32/0x40 net/xfrm/xfrm_user.c:2824
+    [<ffffffff838225c2>] netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+    [<ffffffff838225c2>] netlink_unicast+0x392/0x4c0 net/netlink/af_netlink.c:1340
+    [<ffffffff83822a58>] netlink_sendmsg+0x368/0x6a0 net/netlink/af_netlink.c:1929
+    [<ffffffff836908a6>] sock_sendmsg_nosec net/socket.c:654 [inline]
+    [<ffffffff836908a6>] sock_sendmsg+0x56/0x80 net/socket.c:674
+    [<ffffffff83696c6f>] sock_no_sendpage+0x8f/0xc0 net/core/sock.c:2862
+    [<ffffffff836901ab>] kernel_sendpage.part.0+0xeb/0x150 net/socket.c:3631
+    [<ffffffff83690e8b>] kernel_sendpage net/socket.c:3628 [inline]
+    [<ffffffff83690e8b>] sock_sendpage+0x5b/0x90 net/socket.c:947
+    [<ffffffff815b8872>] pipe_to_sendpage+0xa2/0x110 fs/splice.c:364
+    [<ffffffff815ba712>] splice_from_pipe_feed fs/splice.c:418 [inline]
+    [<ffffffff815ba712>] __splice_from_pipe+0x1e2/0x330 fs/splice.c:562
+    [<ffffffff815baf3f>] splice_from_pipe fs/splice.c:597 [inline]
+    [<ffffffff815baf3f>] generic_splice_sendpage+0x6f/0xa0 fs/splice.c:746
+    [<ffffffff815b892b>] do_splice_from fs/splice.c:767 [inline]
+    [<ffffffff815b892b>] direct_splice_actor+0x4b/0x70 fs/splice.c:936
+

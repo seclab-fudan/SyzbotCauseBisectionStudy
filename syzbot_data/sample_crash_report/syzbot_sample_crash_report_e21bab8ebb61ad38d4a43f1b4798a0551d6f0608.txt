@@ -1,0 +1,55 @@
+==================================================================
+BUG: KASAN: global-out-of-bounds in clear_bit include/asm-generic/bitops-instrumented.h:56 [inline]
+BUG: KASAN: global-out-of-bounds in kbd_keycode drivers/tty/vt/keyboard.c:1411 [inline]
+BUG: KASAN: global-out-of-bounds in kbd_event+0xe6b/0x3790 drivers/tty/vt/keyboard.c:1495
+Write of size 8 at addr ffffffff89a1b2d8 by task syz-executor108/1722
+
+CPU: 1 PID: 1722 Comm: syz-executor108 Not tainted 5.4.0-rc6+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description.constprop.0.cold+0x5/0x2fc mm/kasan/report.c:374
+ __kasan_report.cold+0x1a/0x33 mm/kasan/report.c:506
+ kasan_report+0xe/0x20 mm/kasan/common.c:634
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x128/0x190 mm/kasan/generic.c:192
+ clear_bit include/asm-generic/bitops-instrumented.h:56 [inline]
+ kbd_keycode drivers/tty/vt/keyboard.c:1411 [inline]
+ kbd_event+0xe6b/0x3790 drivers/tty/vt/keyboard.c:1495
+ input_to_handler+0x3b6/0x4c0 drivers/input/input.c:118
+ input_pass_values.part.0+0x2e3/0x720 drivers/input/input.c:145
+ input_pass_values drivers/input/input.c:949 [inline]
+ input_set_keycode+0x290/0x320 drivers/input/input.c:954
+ evdev_handle_set_keycode_v2+0xc4/0x120 drivers/input/evdev.c:882
+ evdev_do_ioctl drivers/input/evdev.c:1150 [inline]
+ evdev_ioctl_handler+0xd49/0x19f0 drivers/input/evdev.c:1284
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd2d/0x1330 fs/ioctl.c:696
+ ksys_ioctl+0x9b/0xc0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:718
+ do_syscall_64+0xb7/0x580 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x444dc9
+Code: e8 bc af 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b d8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fffaf4eda08 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000444dc9
+RDX: 0000000020000080 RSI: 0000000040284504 RDI: 0000000000000004
+RBP: 00000000006cf018 R08: 090b000000008300 R09: 00000000004002e0
+R10: 000000000000000f R11: 0000000000000246 R12: 0000000000402a70
+R13: 0000000000402b00 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the variable:
+ key_down+0x78/0x80
+
+Memory state around the buggy address:
+ ffffffff89a1b180: fa fa fa fa 04 fa fa fa fa fa fa fa 01 fa fa fa
+ ffffffff89a1b200: fa fa fa fa 00 01 fa fa fa fa fa fa 00 00 00 00
+>ffffffff89a1b280: 00 00 00 00 00 00 00 00 fa fa fa fa 00 00 00 00
+                                                    ^
+ ffffffff89a1b300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffffff89a1b380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

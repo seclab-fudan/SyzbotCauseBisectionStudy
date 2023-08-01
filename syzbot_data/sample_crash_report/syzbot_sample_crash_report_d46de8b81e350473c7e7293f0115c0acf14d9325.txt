@@ -1,0 +1,126 @@
+gfs2: fsid=syz:syz.0:  H: s:SH f:H e:0 p:4839 [syz-executor165] __gfs2_lookup+0x5c/0x1dc fs/gfs2/inode.c:870
+BUG: sleeping function called from invalid context at arch/arm64/mm/fault.c:599
+in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 4854, name: syz-executor165
+preempt_count: 0, expected: 0
+RCU nest depth: 1, expected: 0
+3 locks held by syz-executor165/4854:
+ #0: ffff0000caf41a50 (&type->i_mutex_dir_key#6){.+.+}-{3:3}, at: inode_lock_shared include/linux/fs.h:766 [inline]
+ #0: ffff0000caf41a50 (&type->i_mutex_dir_key#6){.+.+}-{3:3}, at: open_last_lookups fs/namei.c:3480 [inline]
+ #0: ffff0000caf41a50 (&type->i_mutex_dir_key#6){.+.+}-{3:3}, at: path_openat+0x2e4/0x11c4 fs/namei.c:3711
+ #1: ffff80000d4a4640 (rcu_read_lock){....}-{1:2}, at: rcu_lock_acquire+0x10/0x4c include/linux/rcupdate.h:303
+ #2: ffff0000c703d108 (&mm->mmap_lock){++++}-{3:3}, at: mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #2: ffff0000c703d108 (&mm->mmap_lock){++++}-{3:3}, at: do_page_fault+0x1ec/0x79c arch/arm64/mm/fault.c:589
+CPU: 1 PID: 4854 Comm: syz-executor165 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ __might_resched+0x208/0x218 kernel/sched/core.c:9908
+ __might_sleep+0x48/0x78 kernel/sched/core.c:9837
+ do_page_fault+0x214/0x79c arch/arm64/mm/fault.c:599
+ do_translation_fault+0x78/0x194 arch/arm64/mm/fault.c:691
+ do_mem_abort+0x54/0x130 arch/arm64/mm/fault.c:827
+ el1_abort+0x3c/0x5c arch/arm64/kernel/entry-common.c:367
+ el1h_64_sync_handler+0x60/0xac arch/arm64/kernel/entry-common.c:427
+ el1h_64_sync+0x64/0x68 arch/arm64/kernel/entry.S:579
+ rcu_read_lock include/linux/rcupdate.h:739 [inline]
+ dump_holder fs/gfs2/glock.c:2332 [inline]
+ gfs2_dump_glock+0x4f4/0x904 fs/gfs2/glock.c:2447
+ gfs2_consist_inode_i+0x68/0x88 fs/gfs2/util.c:465
+ gfs2_dirent_scan+0x2dc/0x3b4 fs/gfs2/dir.c:602
+ gfs2_dirent_search+0x134/0x494 fs/gfs2/dir.c:850
+ gfs2_dir_search+0x58/0x130 fs/gfs2/dir.c:1650
+ gfs2_lookupi+0x23c/0x354 fs/gfs2/inode.c:323
+ __gfs2_lookup+0x5c/0x1dc fs/gfs2/inode.c:870
+ gfs2_atomic_open+0x74/0x148 fs/gfs2/inode.c:1274
+ atomic_open fs/namei.c:3276 [inline]
+ lookup_open fs/namei.c:3384 [inline]
+ open_last_lookups fs/namei.c:3481 [inline]
+ path_openat+0x67c/0x11c4 fs/namei.c:3711
+ do_filp_open+0xdc/0x1b8 fs/namei.c:3741
+ do_sys_openat2+0xb8/0x22c fs/open.c:1310
+ do_sys_open fs/open.c:1326 [inline]
+ __do_sys_openat fs/open.c:1342 [inline]
+ __se_sys_openat fs/open.c:1337 [inline]
+ __arm64_sys_openat+0xb0/0xe0 fs/open.c:1337
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000021
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010d7a2000
+[0000000000000021] pgd=0800000109ee4003, p4d=0800000109ee4003, pud=080000010cd91003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 4854 Comm: syz-executor165 Tainted: G        W          6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : pid_is_meaningful fs/gfs2/glock.c:1464 [inline]
+pc : dump_holder fs/gfs2/glock.c:2333 [inline]
+pc : gfs2_dump_glock+0x4f4/0x904 fs/gfs2/glock.c:2447
+lr : rcu_read_lock include/linux/rcupdate.h:739 [inline]
+lr : dump_holder fs/gfs2/glock.c:2332 [inline]
+lr : gfs2_dump_glock+0x498/0x904 fs/gfs2/glock.c:2447
+sp : ffff800013a13600
+x29: ffff800013a137d0 x28: ffff80000cd3bac3 x27: ffff0000c9c93c58
+x26: 00000000000012e7 x25: ffff800013a137a1 x24: ffff0000c704b020
+x23: 0000000000000001 x22: 0000000000000040 x21: ffff80000d4a4640
+x20: ffff80000d95c000 x19: ffff0000c704b0a0 x18: 0000000000000338
+x17: ffff80000c0cd83c x16: ffff80000dbe6158 x15: ffff0000c9c94ec0
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c9c94ec0
+x11: ff8080000926ce78 x10: 0000000000000000 x9 : ffff80000926ce78
+x8 : ffff0000c9c94ec0 x7 : ffff800009273590 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000000 x3 : 0000000000000002
+x2 : 0000000000000008 x1 : ffff80000ce893cb x0 : 0000000000000001
+Call trace:
+ rcu_read_lock include/linux/rcupdate.h:739 [inline]
+ dump_holder fs/gfs2/glock.c:2332 [inline]
+ gfs2_dump_glock+0x4f4/0x904 fs/gfs2/glock.c:2447
+ gfs2_consist_inode_i+0x68/0x88 fs/gfs2/util.c:465
+ gfs2_dirent_scan+0x2dc/0x3b4 fs/gfs2/dir.c:602
+ gfs2_dirent_search+0x134/0x494 fs/gfs2/dir.c:850
+ gfs2_dir_search+0x58/0x130 fs/gfs2/dir.c:1650
+ gfs2_lookupi+0x23c/0x354 fs/gfs2/inode.c:323
+ __gfs2_lookup+0x5c/0x1dc fs/gfs2/inode.c:870
+ gfs2_atomic_open+0x74/0x148 fs/gfs2/inode.c:1274
+ atomic_open fs/namei.c:3276 [inline]
+ lookup_open fs/namei.c:3384 [inline]
+ open_last_lookups fs/namei.c:3481 [inline]
+ path_openat+0x67c/0x11c4 fs/namei.c:3711
+ do_filp_open+0xdc/0x1b8 fs/namei.c:3741
+ do_sys_openat2+0xb8/0x22c fs/open.c:1310
+ do_sys_open fs/open.c:1326 [inline]
+ __do_sys_openat fs/open.c:1342 [inline]
+ __se_sys_openat fs/open.c:1337 [inline]
+ __arm64_sys_openat+0xb0/0xe0 fs/open.c:1337
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 91178800 9117ec42 391e2688 97bcdabc (794042f4) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	91178800 	add	x0, x0, #0x5e2
+   4:	9117ec42 	add	x2, x2, #0x5fb
+   8:	391e2688 	strb	w8, [x20, #1929]
+   c:	97bcdabc 	bl	0xfffffffffef36afc
+* 10:	794042f4 	ldrh	w20, [x23, #32] <-- trapping instruction

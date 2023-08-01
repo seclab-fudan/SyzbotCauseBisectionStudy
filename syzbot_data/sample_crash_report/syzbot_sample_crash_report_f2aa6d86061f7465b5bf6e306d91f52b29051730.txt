@@ -1,0 +1,92 @@
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 3603 at drivers/i2c/i2c-core-base.c:2178 __i2c_transfer+0xa14/0x17c0 drivers/i2c/i2c-core-base.c:2178 drivers/i2c/i2c-core-base.c:2178
+Modules linked in:
+CPU: 1 PID: 3603 Comm: syz-executor029 Not tainted 5.16.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__i2c_transfer+0xa14/0x17c0 drivers/i2c/i2c-core-base.c:2178 drivers/i2c/i2c-core-base.c:2178
+Code: 0f 94 c7 31 ff 44 89 fe e8 e9 ab 9b fb 45 84 ff 0f 84 26 fd ff ff e8 fb a7 9b fb e8 65 3b 24 fb e9 17 fd ff ff e8 ec a7 9b fb <0f> 0b 41 bc ea ff ff ff e9 9e fd ff ff e8 da a7 9b fb 44 89 ee bf
+RSP: 0018:ffffc90002aafce8 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000010 RCX: 0000000000000000
+RDX: ffff88801c0f3a00 RSI: ffffffff85dc09e4 RDI: 0000000000000003
+RBP: ffff88814a058b58 R08: 0000000000000000 R09: ffffffff8ff74ac7
+R10: ffffffff85dc0008 R11: 0000000000000000 R12: 0000000000000010
+R13: 0000000000000000 R14: ffff88814a058b78 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0063) knlGS:0000000056cc62c0
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 00000000773de000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ i2c_transfer+0x1e6/0x3e0 drivers/i2c/i2c-core-base.c:2269 drivers/i2c/i2c-core-base.c:2269
+ i2cdev_ioctl_rdwr+0x583/0x6a0 drivers/i2c/i2c-dev.c:297 drivers/i2c/i2c-dev.c:297
+ compat_i2cdev_ioctl+0x419/0x4f0 drivers/i2c/i2c-dev.c:561 drivers/i2c/i2c-dev.c:561
+ __do_compat_sys_ioctl+0x1c7/0x290 fs/ioctl.c:972 fs/ioctl.c:972
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline] arch/x86/entry/common.c:178
+ __do_fast_syscall_32+0x65/0xf0 arch/x86/entry/common.c:178 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x2f/0x70 arch/x86/entry/common.c:203 arch/x86/entry/common.c:203
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+RIP: 0023:0xf7e6e549
+Code: 03 74 c0 01 10 05 03 74 b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 8d b4 26 00 00 00 00 8d b4 26 00 00 00 00
+RSP: 002b:00000000fffc8b7c EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000000707
+RDX: 00000000200003c0 RSI: 00000000fffc8bd0 RDI: 00000000f7f15000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	03 74 c0 01          	add    0x1(%rax,%rax,8),%esi
+   4:	10 05 03 74 b8 01    	adc    %al,0x1b87403(%rip)        # 0x1b8740d
+   a:	10 06                	adc    %al,(%rsi)
+   c:	03 74 b4 01          	add    0x1(%rsp,%rsi,4),%esi
+  10:	10 07                	adc    %al,(%rdi)
+  12:	03 74 b0 01          	add    0x1(%rax,%rsi,4),%esi
+  16:	10 08                	adc    %cl,(%rax)
+  18:	03 74 d8 01          	add    0x1(%rax,%rbx,8),%esi
+  1c:	00 00                	add    %al,(%rax)
+  1e:	00 00                	add    %al,(%rax)
+  20:	00 51 52             	add    %dl,0x52(%rcx)
+  23:	55                   	push   %rbp
+  24:	89 e5                	mov    %esp,%ebp
+  26:	0f 34                	sysenter
+  28:	cd 80                	int    $0x80
+* 2a:	5d                   	pop    %rbp <-- trapping instruction
+  2b:	5a                   	pop    %rdx
+  2c:	59                   	pop    %rcx
+  2d:	c3                   	retq
+  2e:	90                   	nop
+  2f:	90                   	nop
+  30:	90                   	nop
+  31:	90                   	nop
+  32:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi
+  39:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi
+----------------
+Code disassembly (best guess):
+   0:	03 74 c0 01          	add    0x1(%rax,%rax,8),%esi
+   4:	10 05 03 74 b8 01    	adc    %al,0x1b87403(%rip)        # 0x1b8740d
+   a:	10 06                	adc    %al,(%rsi)
+   c:	03 74 b4 01          	add    0x1(%rsp,%rsi,4),%esi
+  10:	10 07                	adc    %al,(%rdi)
+  12:	03 74 b0 01          	add    0x1(%rax,%rsi,4),%esi
+  16:	10 08                	adc    %cl,(%rax)
+  18:	03 74 d8 01          	add    0x1(%rax,%rbx,8),%esi
+  1c:	00 00                	add    %al,(%rax)
+  1e:	00 00                	add    %al,(%rax)
+  20:	00 51 52             	add    %dl,0x52(%rcx)
+  23:	55                   	push   %rbp
+  24:	89 e5                	mov    %esp,%ebp
+  26:	0f 34                	sysenter
+  28:	cd 80                	int    $0x80
+* 2a:	5d                   	pop    %rbp <-- trapping instruction
+  2b:	5a                   	pop    %rdx
+  2c:	59                   	pop    %rcx
+  2d:	c3                   	retq
+  2e:	90                   	nop
+  2f:	90                   	nop
+  30:	90                   	nop
+  31:	90                   	nop
+  32:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi
+  39:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi

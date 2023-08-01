@@ -1,0 +1,217 @@
+========================================================
+WARNING: possible irq lock inversion dependency detected
+5.8.0-syzkaller #0 Not tainted
+--------------------------------------------------------
+syz-executor046/6843 just changed the state of lock:
+ffff8880a6b534d8 (&ctx->completion_lock){-...}-{2:2}, at: io_timeout_fn+0x6c/0x3f0 fs/io_uring.c:4999
+but this lock took another, HARDIRQ-unsafe lock in the past:
+ (&fs->lock){+.+.}-{2:2}
+
+
+and interrupts could create inverse lock ordering between them.
+
+
+other info that might help us debug this:
+ Possible interrupt unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&fs->lock);
+                               local_irq_disable();
+                               lock(&ctx->completion_lock);
+                               lock(&fs->lock);
+  <Interrupt>
+    lock(&ctx->completion_lock);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor046/6843:
+ #0: ffff8880a6b53428 (&ctx->uring_lock){+.+.}-{3:3}, at: __do_sys_io_uring_enter+0xdb7/0x1ae0 fs/io_uring.c:8035
+
+the shortest dependencies between 2nd lock and 1st lock:
+ -> (&fs->lock){+.+.}-{2:2} {
+    HARDIRQ-ON-W at:
+                      lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:5005
+                      __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+                      _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+                      spin_lock include/linux/spinlock.h:354 [inline]
+                      set_fs_pwd+0x85/0x290 fs/fs_struct.c:39
+                      init_chdir+0x106/0x14e fs/init.c:54
+                      devtmpfs_setup drivers/base/devtmpfs.c:415 [inline]
+                      devtmpfsd+0x76/0x333 drivers/base/devtmpfs.c:430
+                      kthread+0x3b5/0x4a0 kernel/kthread.c:292
+                      ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+    SOFTIRQ-ON-W at:
+                      lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:5005
+                      __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+                      _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+                      spin_lock include/linux/spinlock.h:354 [inline]
+                      set_fs_pwd+0x85/0x290 fs/fs_struct.c:39
+                      init_chdir+0x106/0x14e fs/init.c:54
+                      devtmpfs_setup drivers/base/devtmpfs.c:415 [inline]
+                      devtmpfsd+0x76/0x333 drivers/base/devtmpfs.c:430
+                      kthread+0x3b5/0x4a0 kernel/kthread.c:292
+                      ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+    INITIAL USE at:
+                     lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:5005
+                     __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+                     _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+                     spin_lock include/linux/spinlock.h:354 [inline]
+                     set_fs_pwd+0x85/0x290 fs/fs_struct.c:39
+                     init_chdir+0x106/0x14e fs/init.c:54
+                     devtmpfs_setup drivers/base/devtmpfs.c:415 [inline]
+                     devtmpfsd+0x76/0x333 drivers/base/devtmpfs.c:430
+                     kthread+0x3b5/0x4a0 kernel/kthread.c:292
+                     ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+  }
+  ... key      at: [<ffffffff8c98c220>] __key.1+0x0/0x40
+  ... acquired at:
+   __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+   _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+   spin_lock include/linux/spinlock.h:354 [inline]
+   io_req_clean_work fs/io_uring.c:1126 [inline]
+   io_dismantle_req+0x3ec/0x9e0 fs/io_uring.c:1544
+   __io_free_req+0x16/0x3c0 fs/io_uring.c:1562
+   __io_double_put_req fs/io_uring.c:1909 [inline]
+   __io_fail_links+0x433/0x5b0 fs/io_uring.c:1659
+   io_fail_links fs/io_uring.c:1675 [inline]
+   __io_req_find_next+0x368/0x460 fs/io_uring.c:1698
+   io_req_find_next fs/io_uring.c:1706 [inline]
+   io_steal_work fs/io_uring.c:1897 [inline]
+   io_wq_submit_work+0x33c/0x3d0 fs/io_uring.c:5792
+   io_worker_handle_work+0xa45/0x13f0 fs/io-wq.c:527
+   io_wqe_worker+0xbf0/0x10e0 fs/io-wq.c:569
+   kthread+0x3b5/0x4a0 kernel/kthread.c:292
+   ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+-> (&ctx->completion_lock){-...}-{2:2} {
+   IN-HARDIRQ-W at:
+                    lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:5005
+                    __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+                    _raw_spin_lock_irqsave+0x8c/0xc0 kernel/locking/spinlock.c:159
+                    io_timeout_fn+0x6c/0x3f0 fs/io_uring.c:4999
+                    __run_hrtimer kernel/time/hrtimer.c:1520 [inline]
+                    __hrtimer_run_queues+0x6a9/0xfc0 kernel/time/hrtimer.c:1584
+                    hrtimer_interrupt+0x32a/0x930 kernel/time/hrtimer.c:1646
+                    local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1079 [inline]
+                    __sysvec_apic_timer_interrupt+0x142/0x5e0 arch/x86/kernel/apic/apic.c:1096
+                    asm_call_on_stack+0xf/0x20 arch/x86/entry/entry_64.S:706
+                    __run_on_irqstack arch/x86/include/asm/irq_stack.h:22 [inline]
+                    run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:48 [inline]
+                    sysvec_apic_timer_interrupt+0xb2/0xf0 arch/x86/kernel/apic/apic.c:1090
+                    asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:581
+                    arch_local_irq_enable arch/x86/include/asm/paravirt.h:780 [inline]
+                    __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:168 [inline]
+                    _raw_spin_unlock_irq+0x4b/0x80 kernel/locking/spinlock.c:199
+                    spin_unlock_irq include/linux/spinlock.h:404 [inline]
+                    io_timeout fs/io_uring.c:5162 [inline]
+                    io_issue_sqe+0x2de6/0x60d0 fs/io_uring.c:5594
+                    __io_queue_sqe+0x284/0x1190 fs/io_uring.c:5981
+                    io_queue_sqe+0x73e/0x1130 fs/io_uring.c:6060
+                    io_submit_sqe fs/io_uring.c:6130 [inline]
+                    io_submit_sqes+0x1794/0x2380 fs/io_uring.c:6327
+                    __do_sys_io_uring_enter+0xdc7/0x1ae0 fs/io_uring.c:8036
+                    do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+                    entry_SYSCALL_64_after_hwframe+0x44/0xa9
+   INITIAL USE at:
+                   lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:5005
+                   __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+                   _raw_spin_lock_irqsave+0x8c/0xc0 kernel/locking/spinlock.c:159
+                   io_cqring_add_event fs/io_uring.c:1419 [inline]
+                   __io_req_complete fs/io_uring.c:1458 [inline]
+                   __io_req_complete fs/io_uring.c:1454 [inline]
+                   io_req_complete fs/io_uring.c:1472 [inline]
+                   io_madvise fs/io_uring.c:3737 [inline]
+                   io_issue_sqe+0xcfd/0x60d0 fs/io_uring.c:5682
+                   io_wq_submit_work+0x183/0x3d0 fs/io_uring.c:5775
+                   io_worker_handle_work+0xa45/0x13f0 fs/io-wq.c:527
+                   io_wqe_worker+0xbf0/0x10e0 fs/io-wq.c:569
+                   kthread+0x3b5/0x4a0 kernel/kthread.c:292
+                   ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+ }
+ ... key      at: [<ffffffff8c98dc80>] __key.9+0x0/0x40
+ ... acquired at:
+   mark_lock_irq kernel/locking/lockdep.c:3568 [inline]
+   mark_lock+0x54b/0x1710 kernel/locking/lockdep.c:4006
+   mark_usage kernel/locking/lockdep.c:3902 [inline]
+   __lock_acquire+0x13ad/0x5640 kernel/locking/lockdep.c:4380
+   lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:5005
+   __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+   _raw_spin_lock_irqsave+0x8c/0xc0 kernel/locking/spinlock.c:159
+   io_timeout_fn+0x6c/0x3f0 fs/io_uring.c:4999
+   __run_hrtimer kernel/time/hrtimer.c:1520 [inline]
+   __hrtimer_run_queues+0x6a9/0xfc0 kernel/time/hrtimer.c:1584
+   hrtimer_interrupt+0x32a/0x930 kernel/time/hrtimer.c:1646
+   local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1079 [inline]
+   __sysvec_apic_timer_interrupt+0x142/0x5e0 arch/x86/kernel/apic/apic.c:1096
+   asm_call_on_stack+0xf/0x20 arch/x86/entry/entry_64.S:706
+   __run_on_irqstack arch/x86/include/asm/irq_stack.h:22 [inline]
+   run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:48 [inline]
+   sysvec_apic_timer_interrupt+0xb2/0xf0 arch/x86/kernel/apic/apic.c:1090
+   asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:581
+   arch_local_irq_enable arch/x86/include/asm/paravirt.h:780 [inline]
+   __raw_spin_unlock_irq include/linux/spinlock_api_smp.h:168 [inline]
+   _raw_spin_unlock_irq+0x4b/0x80 kernel/locking/spinlock.c:199
+   spin_unlock_irq include/linux/spinlock.h:404 [inline]
+   io_timeout fs/io_uring.c:5162 [inline]
+   io_issue_sqe+0x2de6/0x60d0 fs/io_uring.c:5594
+   __io_queue_sqe+0x284/0x1190 fs/io_uring.c:5981
+   io_queue_sqe+0x73e/0x1130 fs/io_uring.c:6060
+   io_submit_sqe fs/io_uring.c:6130 [inline]
+   io_submit_sqes+0x1794/0x2380 fs/io_uring.c:6327
+   __do_sys_io_uring_enter+0xdc7/0x1ae0 fs/io_uring.c:8036
+   do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+   entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+
+stack backtrace:
+CPU: 0 PID: 6843 Comm: syz-executor046 Not tainted 5.8.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_irq_inversion_bug kernel/locking/lockdep.c:3429 [inline]
+ check_usage_forwards.cold+0x1e/0x27 kernel/locking/lockdep.c:3453
+ mark_lock_irq kernel/locking/lockdep.c:3568 [inline]
+ mark_lock+0x54b/0x1710 kernel/locking/lockdep.c:4006
+ mark_usage kernel/locking/lockdep.c:3902 [inline]
+ __lock_acquire+0x13ad/0x5640 kernel/locking/lockdep.c:4380
+ lock_acquire+0x1f1/0xad0 kernel/locking/lockdep.c:5005
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x8c/0xc0 kernel/locking/spinlock.c:159
+ io_timeout_fn+0x6c/0x3f0 fs/io_uring.c:4999
+ __run_hrtimer kernel/time/hrtimer.c:1520 [inline]
+ __hrtimer_run_queues+0x6a9/0xfc0 kernel/time/hrtimer.c:1584
+ hrtimer_interrupt+0x32a/0x930 kernel/time/hrtimer.c:1646
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1079 [inline]
+ __sysvec_apic_timer_interrupt+0x142/0x5e0 arch/x86/kernel/apic/apic.c:1096
+ asm_call_on_stack+0xf/0x20 arch/x86/entry/entry_64.S:706
+ </IRQ>
+ __run_on_irqstack arch/x86/include/asm/irq_stack.h:22 [inline]
+ run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:48 [inline]
+ sysvec_apic_timer_interrupt+0xb2/0xf0 arch/x86/kernel/apic/apic.c:1090
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:581
+RIP: 0010:__raw_spin_unlock_irq include/linux/spinlock_api_smp.h:169 [inline]
+RIP: 0010:_raw_spin_unlock_irq+0x4b/0x80 kernel/locking/spinlock.c:199
+Code: c0 58 34 b6 89 48 ba 00 00 00 00 00 fc ff df 48 c1 e8 03 80 3c 10 00 75 31 48 83 3d 06 e0 c2 01 00 74 25 fb 66 0f 1f 44 00 00 <bf> 01 00 00 00 e8 bb 6c 5c f9 65 8b 05 54 aa 0e 78 85 c0 74 02 5d
+RSP: 0018:ffffc900054af8b0 EFLAGS: 00000286
+RAX: 1ffffffff136c68b RBX: 0000000000000000 RCX: 0000000000000006
+RDX: dffffc0000000000 RSI: 0000000000000000 RDI: ffffffff87f3542f
+RBP: ffff8880a6b534c0 R08: 0000000000000001 R09: ffffffff8c5eaadf
+R10: fffffbfff18bd55b R11: 000000000001f8e0 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: ffff8880a61c4d00
+ spin_unlock_irq include/linux/spinlock.h:404 [inline]
+ io_timeout fs/io_uring.c:5162 [inline]
+ io_issue_sqe+0x2de6/0x60d0 fs/io_uring.c:5594
+ __io_queue_sqe+0x284/0x1190 fs/io_uring.c:5981
+ io_queue_sqe+0x73e/0x1130 fs/io_uring.c:6060
+ io_submit_sqe fs/io_uring.c:6130 [inline]
+ io_submit_sqes+0x1794/0x2380 fs/io_uring.c:6327
+ __do_sys_io_uring_enter+0xdc7/0x1ae0 fs/io_uring.c:8036
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x440b99
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffc41ef4908 EFLAGS: 00000246 ORIG_RAX: 00000000000001aa
+RAX: ffffffffffffff

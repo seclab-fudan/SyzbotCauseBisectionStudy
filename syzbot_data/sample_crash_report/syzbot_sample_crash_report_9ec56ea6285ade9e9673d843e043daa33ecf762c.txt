@@ -1,0 +1,55 @@
+BUG: sleeping function called from invalid context at kernel/locking/mutex.c:935
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 9170, name: syz-executor845
+2 locks held by syz-executor845/9170:
+ #0: ffffffff899a12a0 (rtnl_mutex){+.+.}, at: rtnl_lock net/core/rtnetlink.c:72 [inline]
+ #0: ffffffff899a12a0 (rtnl_mutex){+.+.}, at: rtnetlink_rcv_msg+0x40a/0xb00 net/core/rtnetlink.c:5220
+ #1: ffff8880a0d3f740 (&(&sch->q.lock)->rlock){+...}, at: spin_lock_bh include/linux/spinlock.h:343 [inline]
+ #1: ffff8880a0d3f740 (&(&sch->q.lock)->rlock){+...}, at: sch_tree_lock include/net/sch_generic.h:544 [inline]
+ #1: ffff8880a0d3f740 (&(&sch->q.lock)->rlock){+...}, at: sfb_change+0x257/0xe90 net/sched/sch_sfb.c:519
+Preemption disabled at:
+[<ffffffff85c6e0a7>] spin_lock_bh include/linux/spinlock.h:343 [inline]
+[<ffffffff85c6e0a7>] sch_tree_lock include/net/sch_generic.h:544 [inline]
+[<ffffffff85c6e0a7>] sfb_change+0x257/0xe90 net/sched/sch_sfb.c:519
+CPU: 1 PID: 9170 Comm: syz-executor845 Not tainted 5.3.0+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ ___might_sleep.cold+0x1fb/0x23e kernel/sched/core.c:6807
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6760
+ __mutex_lock_common kernel/locking/mutex.c:935 [inline]
+ __mutex_lock+0xc5/0x13c0 kernel/locking/mutex.c:1103
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1118
+ tcf_chain0_head_change_cb_del.isra.0+0x34/0x3e0 net/sched/cls_api.c:774
+ tcf_block_put_ext.part.0+0x2a/0x80 net/sched/cls_api.c:1345
+ tcf_block_put_ext net/sched/cls_api.c:1343 [inline]
+ tcf_block_put+0xbf/0x110 net/sched/cls_api.c:1358
+ sfb_destroy+0x37/0x80 net/sched/sch_sfb.c:467
+ qdisc_destroy+0x11f/0x630 net/sched/sch_generic.c:968
+ qdisc_put+0x85/0xa0 net/sched/sch_generic.c:995
+ sfb_change+0x3d8/0xe90 net/sched/sch_sfb.c:522
+ qdisc_change net/sched/sch_api.c:1321 [inline]
+ tc_modify_qdisc+0xfcf/0x1c50 net/sched/sch_api.c:1623
+ rtnetlink_rcv_msg+0x463/0xb00 net/core/rtnetlink.c:5223
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5241
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x531/0x710 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x8a5/0xd60 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:657
+ ___sys_sendmsg+0x803/0x920 net/socket.c:2311
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2356
+ __do_sys_sendmsg net/socket.c:2365 [inline]
+ __se_sys_sendmsg net/socket.c:2363 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2363
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x446519
+Code: e8 1c ba 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 ab 0e fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f62937ecdb8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000006dbc68 RCX: 0000000000446519
+RDX: 0000000000000000 RSI: 0000000020000240 RDI: 0000000000000006
+RBP: 00000000006dbc60 R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000ffffffff R11: 0000000000000246 R12: 00000000006dbc6c
+R13: 00007ffe074cdc2f R14: 00007f62937ed9c0 R15: 0000000000000000

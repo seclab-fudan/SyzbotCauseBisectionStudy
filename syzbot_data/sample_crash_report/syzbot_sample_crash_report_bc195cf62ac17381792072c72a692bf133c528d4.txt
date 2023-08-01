@@ -1,0 +1,78 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	1-...!: (1 GPs behind) idle=5ce/1/0x4000000000000000 softirq=71451/71452 fqs=11 
+	(t=10501 jiffies g=80885 q=481)
+rcu: rcu_preempt kthread starved for 10480 jiffies! g80885 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x0 ->cpu=0
+rcu: 	Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+rcu: RCU grace-period kthread stack dump:
+rcu_preempt     R  running task    29472    10      2 0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:3458 [inline]
+ __schedule+0x8ea/0x2210 kernel/sched/core.c:4219
+ schedule+0xd0/0x2a0 kernel/sched/core.c:4294
+ schedule_timeout+0x148/0x250 kernel/time/timer.c:1908
+ rcu_gp_fqs_loop kernel/rcu/tree.c:1874 [inline]
+ rcu_gp_kthread+0xae5/0x1b50 kernel/rcu/tree.c:2044
+ kthread+0x3b5/0x4a0 kernel/kthread.c:291
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+NMI backtrace for cpu 1
+CPU: 1 PID: 27186 Comm: syz-executor533 Not tainted 5.8.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x70/0xb1 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x1b3/0x223 lib/nmi_backtrace.c:62
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x194/0x1cf kernel/rcu/tree_stall.h:320
+ print_cpu_stall kernel/rcu/tree_stall.h:553 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:627 [inline]
+ rcu_pending kernel/rcu/tree.c:3489 [inline]
+ rcu_sched_clock_irq.cold+0x5b3/0xccc kernel/rcu/tree.c:2504
+ update_process_times+0x25/0x60 kernel/time/timer.c:1737
+ tick_sched_handle+0x9b/0x180 kernel/time/tick-sched.c:176
+ tick_sched_timer+0x108/0x290 kernel/time/tick-sched.c:1320
+ __run_hrtimer kernel/time/hrtimer.c:1520 [inline]
+ __hrtimer_run_queues+0x1d5/0xfc0 kernel/time/hrtimer.c:1584
+ hrtimer_interrupt+0x32a/0x930 kernel/time/hrtimer.c:1646
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1080 [inline]
+ __sysvec_apic_timer_interrupt+0x142/0x5e0 arch/x86/kernel/apic/apic.c:1097
+ asm_call_on_stack+0xf/0x20 arch/x86/entry/entry_64.S:711
+ </IRQ>
+ __run_on_irqstack arch/x86/include/asm/irq_stack.h:22 [inline]
+ run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:48 [inline]
+ sysvec_apic_timer_interrupt+0xe0/0x120 arch/x86/kernel/apic/apic.c:1091
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:585
+RIP: 0010:write_comp_data+0x2f/0x80 kernel/kcov.c:218
+Code: 05 a6 46 8e 7e 65 48 8b 34 25 00 ff 01 00 a9 00 01 ff 00 74 0f f6 c4 01 74 59 8b 86 04 14 00 00 85 c0 74 4f 8b 86 e0 13 00 00 <83> f8 03 75 44 48 8b 86 e8 13 00 00 8b b6 e4 13 00 00 4c 8b 00 48
+RSP: 0018:ffffc900055776e8 EFLAGS: 00000246
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff8395f2ab
+RDX: 0000000000000000 RSI: ffff8880a6a78300 RDI: 0000000000000005
+RBP: 0000000000000000 R08: 0000000000000000 R09: ffff888083de5abf
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8880a06e0c00
+R13: 0000000000000000 R14: dffffc0000000000 R15: 0000000000000000
+ bvec_iter_advance include/linux/bvec.h:110 [inline]
+ iov_iter_copy_from_user_atomic+0x62b/0xbe0 lib/iov_iter.c:1000
+ generic_perform_write+0x277/0x4f0 mm/filemap.c:3326
+ ext4_buffered_write_iter+0x235/0x4a0 fs/ext4/file.c:270
+ ext4_file_write_iter+0x1f3/0x13d0 fs/ext4/file.c:655
+ call_write_iter include/linux/fs.h:1908 [inline]
+ do_iter_readv_writev+0x567/0x780 fs/read_write.c:713
+ do_iter_write+0x188/0x5f0 fs/read_write.c:1018
+ vfs_iter_write+0x70/0xa0 fs/read_write.c:1059
+ iter_file_splice_write+0x721/0xbe0 fs/splice.c:750
+ do_splice_from fs/splice.c:846 [inline]
+ do_splice+0xbcd/0x1820 fs/splice.c:1144
+ __do_sys_splice fs/splice.c:1419 [inline]
+ __se_sys_splice fs/splice.c:1401 [inline]
+ __x64_sys_splice+0x198/0x250 fs/splice.c:1401
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x447cf9
+Code: e8 5c e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 4b 06 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f3cabb9ecd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000113
+RAX: ffffffffffffffda RBX: 00000000006e39e8 RCX: 0000000000447cf9
+RDX: 0000000000000005 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 00000000006e39e0 R08: 0000000000010005 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006e39ec
+R13: 00007ffc875f6e9f R14: 00007f3cabb9f9c0 R15: 20c49ba5e353f7cf

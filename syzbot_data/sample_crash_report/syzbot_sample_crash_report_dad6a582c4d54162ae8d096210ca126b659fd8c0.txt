@@ -1,0 +1,119 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in hfs_strcmp+0x147/0x170 fs/hfs/string.c:84
+Read of size 1 at addr ffff8880204501ce by task kworker/u4:5/1091
+
+CPU: 0 PID: 1091 Comm: kworker/u4:5 Not tainted 6.1.0-syzkaller-00071-g3a28c2c89f4b #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: writeback wb_workfn (flush-7:0)
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:284 [inline]
+ print_report+0x15e/0x45d mm/kasan/report.c:395
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:495
+ hfs_strcmp+0x147/0x170 fs/hfs/string.c:84
+ hfs_cat_keycmp+0x17d/0x1d0 fs/hfs/catalog.c:181
+ __hfs_brec_find+0x1d0/0x4d0 fs/hfs/bfind.c:75
+ hfs_brec_find+0x202/0x4e0 fs/hfs/bfind.c:138
+ hfs_write_inode+0x349/0x980 fs/hfs/inode.c:462
+ write_inode fs/fs-writeback.c:1440 [inline]
+ __writeback_single_inode+0xcfc/0x1440 fs/fs-writeback.c:1652
+ writeback_sb_inodes+0x54d/0xf90 fs/fs-writeback.c:1878
+ wb_writeback+0x2c5/0xd70 fs/fs-writeback.c:2052
+ wb_do_writeback fs/fs-writeback.c:2195 [inline]
+ wb_workfn+0x2e0/0x12f0 fs/fs-writeback.c:2235
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+
+Allocated by task 1091:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:371 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:330 [inline]
+ __kasan_kmalloc+0xa5/0xb0 mm/kasan/common.c:380
+ kasan_kmalloc include/linux/kasan.h:211 [inline]
+ __do_kmalloc_node mm/slab_common.c:955 [inline]
+ __kmalloc+0x5a/0xd0 mm/slab_common.c:968
+ kmalloc include/linux/slab.h:569 [inline]
+ hfs_find_init+0x95/0x240 fs/hfs/bfind.c:21
+ hfs_write_inode+0x225/0x980 fs/hfs/inode.c:457
+ write_inode fs/fs-writeback.c:1440 [inline]
+ __writeback_single_inode+0xcfc/0x1440 fs/fs-writeback.c:1652
+ writeback_sb_inodes+0x54d/0xf90 fs/fs-writeback.c:1878
+ wb_writeback+0x2c5/0xd70 fs/fs-writeback.c:2052
+ wb_do_writeback fs/fs-writeback.c:2195 [inline]
+ wb_workfn+0x2e0/0x12f0 fs/fs-writeback.c:2235
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+The buggy address belongs to the object at ffff888020450180
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 78 bytes inside of
+ 96-byte region [ffff888020450180, ffff8880204501e0)
+
+The buggy address belongs to the physical page:
+page:ffffea0000811400 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x20450
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea00005f3e40 dead000000000002 ffff888012041780
+raw: 0000000000000000 0000000080200020 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 9, tgid 9 (kworker/u4:0), ts 7013039595, free_ts 7011439514
+ prep_new_page mm/page_alloc.c:2539 [inline]
+ get_page_from_freelist+0x10b5/0x2d50 mm/page_alloc.c:4291
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5558
+ alloc_pages+0x1aa/0x270 mm/mempolicy.c:2285
+ alloc_slab_page mm/slub.c:1794 [inline]
+ allocate_slab+0x25f/0x350 mm/slub.c:1939
+ new_slab mm/slub.c:1992 [inline]
+ ___slab_alloc+0xa91/0x1400 mm/slub.c:3180
+ __slab_alloc.constprop.0+0x56/0xa0 mm/slub.c:3279
+ slab_alloc_node mm/slub.c:3364 [inline]
+ __kmem_cache_alloc_node+0x199/0x3e0 mm/slub.c:3437
+ kmalloc_trace+0x26/0x60 mm/slab_common.c:1045
+ kmalloc include/linux/slab.h:564 [inline]
+ kzalloc include/linux/slab.h:700 [inline]
+ blk_mq_alloc_ctxs block/blk-mq.c:3921 [inline]
+ blk_mq_init_allocated_queue+0x1ad/0x1470 block/blk-mq.c:4162
+ blk_mq_init_queue_data block/blk-mq.c:3982 [inline]
+ blk_mq_init_queue+0xc7/0x150 block/blk-mq.c:3992
+ scsi_alloc_sdev+0x852/0xd90 drivers/scsi/scsi_scan.c:335
+ scsi_probe_and_add_lun+0x208b/0x34d0 drivers/scsi/scsi_scan.c:1183
+ __scsi_scan_target+0x21f/0xda0 drivers/scsi/scsi_scan.c:1665
+ scsi_scan_channel drivers/scsi/scsi_scan.c:1753 [inline]
+ scsi_scan_channel+0x148/0x1e0 drivers/scsi/scsi_scan.c:1729
+ scsi_scan_host_selected+0x2e3/0x3b0 drivers/scsi/scsi_scan.c:1782
+ do_scsi_scan_host+0x1e8/0x260 drivers/scsi/scsi_scan.c:1921
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1459 [inline]
+ free_pcp_prepare+0x65c/0xd90 mm/page_alloc.c:1509
+ free_unref_page_prepare mm/page_alloc.c:3387 [inline]
+ free_unref_page_list+0x176/0xc40 mm/page_alloc.c:3529
+ release_pages+0xc8a/0x1360 mm/swap.c:1055
+ tlb_batch_pages_flush+0xa8/0x1a0 mm/mmu_gather.c:59
+ tlb_flush_mmu_free mm/mmu_gather.c:254 [inline]
+ tlb_flush_mmu mm/mmu_gather.c:261 [inline]
+ tlb_finish_mmu+0x14b/0x7e0 mm/mmu_gather.c:361
+ exit_mmap+0x202/0x7b0 mm/mmap.c:3096
+ __mmput+0x128/0x4c0 kernel/fork.c:1185
+ mmput+0x60/0x70 kernel/fork.c:1207
+ free_bprm+0x65/0x2e0 fs/exec.c:1486
+ kernel_execve+0x3fe/0x500 fs/exec.c:2004
+ call_usermodehelper_exec_async+0x2e7/0x580 kernel/umh.c:113
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Memory state around the buggy address:
+ ffff888020450080: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff888020450100: fa fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+>ffff888020450180: 00 00 00 00 00 00 00 00 00 06 fc fc fc fc fc fc
+                                              ^
+ ffff888020450200: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff888020450280: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+==================================================================

@@ -1,0 +1,113 @@
+BUG: unable to handle page fault for address: ffffdc0000000008
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 100026067 P4D 100026067 PUD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 253 Comm: kworker/u4:2 Not tainted 6.0.0-rc1-syzkaller-00047-g594b9411b4ad #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+RIP: 0010:entity_before kernel/sched/fair.c:585 [inline]
+RIP: 0010:__entity_less kernel/sched/fair.c:621 [inline]
+RIP: 0010:rb_add_cached include/linux/rbtree.h:174 [inline]
+RIP: 0010:__enqueue_entity kernel/sched/fair.c:629 [inline]
+RIP: 0010:enqueue_entity kernel/sched/fair.c:4454 [inline]
+RIP: 0010:enqueue_task_fair+0x46d/0x1e50 kernel/sched/fair.c:5757
+Code: 89 f8 48 c1 e8 03 42 80 3c 28 00 0f 85 6d 17 00 00 4c 8b 7b 50 ba 01 00 00 00 eb 03 48 89 c5 48 8d 7d 40 48 89 f8 48 c1 e8 03 <42> 80 3c 28 00 0f 85 9f 10 00 00 4c 3b 7d 40 4c 8d 65 10 78 06 4c
+RSP: 0000:ffffc90000007ba8 EFLAGS: 00010802
+RAX: 1fffe00000000008 RBX: ffff8881002d1d00 RCX: 0000000000000276
+RDX: 0000000000000000 RSI: ffff8881f6837bf0 RDI: ffff000000000040
+RBP: ffff000000000000 R08: 0000000000000000 R09: ffff8881f6837bd0
+R10: ffff8881002d1d10 R11: ffff8881f6837b00 R12: ffff88810e6c0098
+R13: dffffc0000000000 R14: ffff8881f6837bc0 R15: 0000000032c4e919
+FS:  0000000000000000(0000) GS:ffff8881f6800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffdc0000000008 CR3: 0000000007825000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ enqueue_task kernel/sched/core.c:2066 [inline]
+ activate_task kernel/sched/core.c:2091 [inline]
+ ttwu_do_activate+0x181/0x450 kernel/sched/core.c:3670
+ ttwu_queue kernel/sched/core.c:3875 [inline]
+ try_to_wake_up+0xe39/0x1c20 kernel/sched/core.c:4198
+ call_timer_fn+0x1a0/0x6b0 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers.part.0+0x674/0xa80 kernel/time/timer.c:1790
+ __run_timers kernel/time/timer.c:1768 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1803
+ __do_softirq+0x1c0/0x9a9 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x113/0x170 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x8e/0xc0 arch/x86/kernel/apic/apic.c:1106
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x38/0x70 kernel/locking/spinlock.c:194
+Code: 74 24 10 e8 da 3b 34 fb 48 89 ef e8 62 bd 34 fb 81 e3 00 02 00 00 75 25 9c 58 f6 c4 02 75 2d 48 85 db 74 01 fb bf 01 00 00 00 <e8> 43 1a 2a fb 65 8b 05 cc 8e 0c 7a 85 c0 74 0a 5b 5d c3 e8 20 96
+RSP: 0000:ffffc9000161fa50 EFLAGS: 00000206
+RAX: 0000000000000006 RBX: 0000000000000200 RCX: 1ffffffff16110be
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000001
+RBP: ffffffff8ba003d8 R08: 0000000000000001 R09: ffffffff8b0766ef
+R10: 0000000000000001 R11: 0000000000000000 R12: 1ffffffff174007a
+R13: 0000000000000000 R14: dead000000000100 R15: dffffc0000000000
+ __debug_check_no_obj_freed lib/debugobjects.c:999 [inline]
+ debug_check_no_obj_freed+0x20c/0x420 lib/debugobjects.c:1020
+ free_pages_prepare mm/page_alloc.c:1455 [inline]
+ free_pcp_prepare+0x433/0xb80 mm/page_alloc.c:1499
+ free_unref_page_prepare mm/page_alloc.c:3380 [inline]
+ free_unref_page_list+0x176/0x900 mm/page_alloc.c:3522
+ release_pages+0xb79/0x11b0 mm/swap.c:1012
+ tlb_batch_pages_flush+0xa8/0x1a0 mm/mmu_gather.c:58
+ tlb_flush_mmu_free mm/mmu_gather.c:255 [inline]
+ tlb_flush_mmu mm/mmu_gather.c:262 [inline]
+ tlb_finish_mmu+0x147/0x7e0 mm/mmu_gather.c:353
+ exit_mmap+0x1d2/0x490 mm/mmap.c:3115
+ __mmput kernel/fork.c:1187 [inline]
+ mmput+0xcc/0x410 kernel/fork.c:1208
+ free_bprm+0x65/0x2e0 fs/exec.c:1492
+ kernel_execve+0x3fa/0x500 fs/exec.c:2011
+ call_usermodehelper_exec_async+0x2e3/0x580 kernel/umh.c:112
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+CR2: ffffdc0000000008
+---[ end trace 0000000000000000 ]---
+RIP: 0010:entity_before kernel/sched/fair.c:585 [inline]
+RIP: 0010:__entity_less kernel/sched/fair.c:621 [inline]
+RIP: 0010:rb_add_cached include/linux/rbtree.h:174 [inline]
+RIP: 0010:__enqueue_entity kernel/sched/fair.c:629 [inline]
+RIP: 0010:enqueue_entity kernel/sched/fair.c:4454 [inline]
+RIP: 0010:enqueue_task_fair+0x46d/0x1e50 kernel/sched/fair.c:5757
+Code: 89 f8 48 c1 e8 03 42 80 3c 28 00 0f 85 6d 17 00 00 4c 8b 7b 50 ba 01 00 00 00 eb 03 48 89 c5 48 8d 7d 40 48 89 f8 48 c1 e8 03 <42> 80 3c 28 00 0f 85 9f 10 00 00 4c 3b 7d 40 4c 8d 65 10 78 06 4c
+RSP: 0000:ffffc90000007ba8 EFLAGS: 00010802
+RAX: 1fffe00000000008 RBX: ffff8881002d1d00 RCX: 0000000000000276
+RDX: 0000000000000000 RSI: ffff8881f6837bf0 RDI: ffff000000000040
+RBP: ffff000000000000 R08: 0000000000000000 R09: ffff8881f6837bd0
+R10: ffff8881002d1d10 R11: ffff8881f6837b00 R12: ffff88810e6c0098
+R13: dffffc0000000000 R14: ffff8881f6837bc0 R15: 0000000032c4e919
+FS:  0000000000000000(0000) GS:ffff8881f6800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffdc0000000008 CR3: 0000000007825000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	89 f8                	mov    %edi,%eax
+   2:	48 c1 e8 03          	shr    $0x3,%rax
+   6:	42 80 3c 28 00       	cmpb   $0x0,(%rax,%r13,1)
+   b:	0f 85 6d 17 00 00    	jne    0x177e
+  11:	4c 8b 7b 50          	mov    0x50(%rbx),%r15
+  15:	ba 01 00 00 00       	mov    $0x1,%edx
+  1a:	eb 03                	jmp    0x1f
+  1c:	48 89 c5             	mov    %rax,%rbp
+  1f:	48 8d 7d 40          	lea    0x40(%rbp),%rdi
+  23:	48 89 f8             	mov    %rdi,%rax
+  26:	48 c1 e8 03          	shr    $0x3,%rax
+* 2a:	42 80 3c 28 00       	cmpb   $0x0,(%rax,%r13,1) <-- trapping instruction
+  2f:	0f 85 9f 10 00 00    	jne    0x10d4
+  35:	4c 3b 7d 40          	cmp    0x40(%rbp),%r15
+  39:	4c 8d 65 10          	lea    0x10(%rbp),%r12
+  3d:	78 06                	js     0x45
+  3f:	4c                   	rex.WR

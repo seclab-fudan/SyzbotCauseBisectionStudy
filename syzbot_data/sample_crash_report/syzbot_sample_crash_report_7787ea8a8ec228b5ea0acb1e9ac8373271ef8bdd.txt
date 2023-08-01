@@ -1,0 +1,95 @@
+------------[ cut here ]------------
+kernel BUG at net/core/dev.c:3315!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 8717 Comm: syz-executor187 Not tainted 5.14.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:skb_checksum_help+0x55c/0x560 net/core/dev.c:3315
+Code: ff 44 89 f9 80 e1 07 fe c1 38 c1 0f 8c 44 fe ff ff 4c 89 ff e8 45 ad d6 f9 e9 37 fe ff ff e8 9b 61 8d f9 0f 0b e8 94 61 8d f9 <0f> 0b 66 90 41 57 41 56 41 55 41 54 53 49 89 fc 49 bd 00 00 00 00
+RSP: 0018:ffffc90002376c80 EFLAGS: 00010293
+RAX: ffffffff87f2d63c RBX: 00000000000000e0 RCX: ffff8880163d0000
+RDX: 0000000000000000 RSI: 00000000000000e0 RDI: 00000000000003d4
+RBP: 00000000000003d4 R08: ffffffff87f2d3c8 R09: fffff5200046ed82
+R10: fffff5200046ed82 R11: 0000000000000000 R12: ffff888033f4ae34
+R13: ffff888033f4adc0 R14: dffffc0000000000 R15: 00000000000003d2
+FS:  00000000010e8300(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020002180 CR3: 0000000035fc8000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ skb_csum_hwoffload_help net/core/dev.c:3720 [inline]
+ validate_xmit_skb+0xb1f/0xff0 net/core/dev.c:3763
+ __dev_queue_xmit+0x16fc/0x34b0 net/core/dev.c:4276
+ neigh_hh_output include/net/neighbour.h:499 [inline]
+ neigh_output include/net/neighbour.h:508 [inline]
+ ip_finish_output2+0xcaf/0x19f0 net/ipv4/ip_output.c:230
+ iptunnel_xmit+0x46b/0x810 net/ipv4/ip_tunnel_core.c:82
+ udp_tunnel_xmit_skb+0x1c8/0x2d0 net/ipv4/udp_tunnel_core.c:174
+ geneve_xmit_skb drivers/net/geneve.c:971 [inline]
+ geneve_xmit+0x13f5/0x2650 drivers/net/geneve.c:1082
+ __netdev_start_xmit include/linux/netdevice.h:4944 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4958 [inline]
+ xmit_one net/core/dev.c:3659 [inline]
+ dev_hard_start_xmit+0x20b/0x450 net/core/dev.c:3675
+ sch_direct_xmit+0x292/0x5b0 net/sched/sch_generic.c:342
+ qdisc_restart net/sched/sch_generic.c:407 [inline]
+ __qdisc_run+0x9dc/0x1cd0 net/sched/sch_generic.c:415
+ __dev_xmit_skb net/core/dev.c:3944 [inline]
+ __dev_queue_xmit+0xe6b/0x34b0 net/core/dev.c:4253
+ packet_snd net/packet/af_packet.c:3016 [inline]
+ packet_sendmsg+0x4cb9/0x6730 net/packet/af_packet.c:3044
+ sock_sendmsg_nosec net/socket.c:703 [inline]
+ sock_sendmsg net/socket.c:723 [inline]
+ __sys_sendto+0x541/0x720 net/socket.c:2019
+ __do_sys_sendto net/socket.c:2031 [inline]
+ __se_sys_sendto net/socket.c:2027 [inline]
+ __x64_sys_sendto+0xda/0xf0 net/socket.c:2027
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x443a29
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 41 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe15d05ea8 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000443a29
+RDX: 0000000000003287 RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000000 R09: 00000000000002ff
+R10: 0000000004000002 R11: 0000000000000246 R12: 00007ffe15d05ed0
+R13: 00000000000f4240 R14: 000000000000cb0a R15: 00007ffe15d05ec4
+Modules linked in:
+---[ end trace 9b6ac491372f5f0c ]---
+RIP: 0010:skb_checksum_help+0x55c/0x560 net/core/dev.c:3315
+Code: ff 44 89 f9 80 e1 07 fe c1 38 c1 0f 8c 44 fe ff ff 4c 89 ff e8 45 ad d6 f9 e9 37 fe ff ff e8 9b 61 8d f9 0f 0b e8 94 61 8d f9 <0f> 0b 66 90 41 57 41 56 41 55 41 54 53 49 89 fc 49 bd 00 00 00 00
+RSP: 0018:ffffc90002376c80 EFLAGS: 00010293
+RAX: ffffffff87f2d63c RBX: 00000000000000e0 RCX: ffff8880163d0000
+RDX: 0000000000000000 RSI: 00000000000000e0 RDI: 00000000000003d4
+RBP: 00000000000003d4 R08: ffffffff87f2d3c8 R09: fffff5200046ed82
+R10: fffff5200046ed82 R11: 0000000000000000 R12: ffff888033f4ae34
+R13: ffff888033f4adc0 R14: dffffc0000000000 R15: 00000000000003d2
+FS:  00000000010e8300(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020002180 CR3: 0000000035fc8000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	ff 44 89 f9          	incl   -0x7(%rcx,%rcx,4)
+   4:	80 e1 07             	and    $0x7,%cl
+   7:	fe c1                	inc    %cl
+   9:	38 c1                	cmp    %al,%cl
+   b:	0f 8c 44 fe ff ff    	jl     0xfffffe55
+  11:	4c 89 ff             	mov    %r15,%rdi
+  14:	e8 45 ad d6 f9       	callq  0xf9d6ad5e
+  19:	e9 37 fe ff ff       	jmpq   0xfffffe55
+  1e:	e8 9b 61 8d f9       	callq  0xf98d61be
+  23:	0f 0b                	ud2    
+  25:	e8 94 61 8d f9       	callq  0xf98d61be
+  2a:	0f 0b                	ud2     <-- trapping instruction
+  2c:	66 90                	xchg   %ax,%ax
+  2e:	41 57                	push   %r15
+  30:	41 56                	push   %r14
+  32:	41 55                	push   %r13
+  34:	41 54                	push   %r12
+  36:	53                   	push   %rbx
+  37:	49 89 fc             	mov    %rdi,%r12
+  3a:	49                   	rex.WB
+  3b:	bd 00 00 00 00       	mov    $0x0,%ebp

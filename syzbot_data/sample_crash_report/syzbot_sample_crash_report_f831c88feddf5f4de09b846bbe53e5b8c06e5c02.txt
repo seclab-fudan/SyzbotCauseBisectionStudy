@@ -1,0 +1,52 @@
+EXT4-fs warning (device sda1): ext4_group_add:1636: No reserved GDT blocks, can't resize
+EXT4-fs (sda1): re-mounted. Opts: 
+==================================================================
+BUG: KASAN: out-of-bounds in _copy_to_user+0xe9/0x110 lib/usercopy.c:27
+Read of size 1012 at addr ffff880191bffff2 by task syz-executor3/11504
+
+CPU: 1 PID: 11504 Comm: syz-executor3 Not tainted 4.18.0-rc3+ #4
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ kasan_check_read+0x11/0x20 mm/kasan/kasan.c:272
+ _copy_to_user+0xe9/0x110 lib/usercopy.c:27
+ copy_to_user include/linux/uaccess.h:155 [inline]
+ bpf_test_finish.isra.7+0xee/0x1f0 net/bpf/test_run.c:59
+ bpf_prog_test_run_skb+0x7d7/0xa30 net/bpf/test_run.c:144
+ bpf_prog_test_run+0x130/0x1a0 kernel/bpf/syscall.c:1688
+ __do_sys_bpf kernel/bpf/syscall.c:2325 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:2269 [inline]
+ __x64_sys_bpf+0x3d8/0x510 kernel/bpf/syscall.c:2269
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455e29
+Code: 1d ba fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb b9 fb ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007fa8e9757c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00007fa8e97586d4 RCX: 0000000000455e29
+RDX: 0000000000000028 RSI: 0000000020000080 RDI: 000000000000000a
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000004bbaee R14: 00000000004c8d20 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0006468000 count:1 mapcount:1 mapping:ffff8801cfd7a4c9 index:0x20000 compound_mapcount: 1
+flags: 0x2fffc0000048068(uptodate|lru|active|head|swapbacked)
+raw: 02fffc0000048068 ffffea0007160ec8 ffffea000719af08 ffff8801cfd7a4c9
+raw: 0000000000020000 0000000000000000 00000001ffffffff ffff8801cf6fccc0
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff8801cf6fccc0
+
+Memory state around the buggy address:
+ ffff880191c00280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff880191c00300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff880191c00380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+                                                          ^
+ ffff880191c00400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff880191c00480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

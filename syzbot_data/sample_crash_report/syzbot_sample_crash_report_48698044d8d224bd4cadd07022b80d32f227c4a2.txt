@@ -1,0 +1,69 @@
+==================================================================
+BUG: KMSAN: uninit-value in copy_to_user include/linux/uaccess.h:184 [inline]
+BUG: KMSAN: uninit-value in vcs_read+0x18ba/0x1cc0 drivers/tty/vt/vc_screen.c:352
+CPU: 0 PID: 4513 Comm: syz-executor273 Not tainted 4.16.0+ #87
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:53
+ kmsan_report+0x142/0x240 mm/kmsan/kmsan.c:1067
+ kmsan_internal_check_memory+0x174/0x1e0 mm/kmsan/kmsan.c:1176
+ kmsan_copy_to_user+0x69/0x160 mm/kmsan/kmsan.c:1199
+ copy_to_user include/linux/uaccess.h:184 [inline]
+ vcs_read+0x18ba/0x1cc0 drivers/tty/vt/vc_screen.c:352
+ do_loop_readv_writev fs/read_write.c:673 [inline]
+ do_iter_read+0x880/0xd70 fs/read_write.c:897
+ vfs_readv fs/read_write.c:959 [inline]
+ do_preadv+0x3a1/0x580 fs/read_write.c:1043
+ SYSC_preadv+0xc6/0xe0 fs/read_write.c:1093
+ SyS_preadv+0x77/0xa0 fs/read_write.c:1088
+ do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+RIP: 0033:0x4491e9
+RSP: 002b:00007f7f4909bda8 EFLAGS: 00000246 ORIG_RAX: 0000000000000127
+RAX: ffffffffffffffda RBX: 00000000006dac24 RCX: 00000000004491e9
+RDX: 0000000000000002 RSI: 0000000020000540 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dac20
+R13: 7363762f7665642f R14: 00007f7f4909c9c0 R15: 0000000000000001
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:278 [inline]
+ kmsan_save_stack mm/kmsan/kmsan.c:293 [inline]
+ kmsan_internal_chain_origin+0x12b/0x210 mm/kmsan/kmsan.c:684
+ __msan_chain_origin+0x69/0xc0 mm/kmsan/kmsan_instr.c:528
+ vcs_read+0x17a3/0x1cc0 drivers/tty/vt/vc_screen.c:333
+ do_loop_readv_writev fs/read_write.c:673 [inline]
+ do_iter_read+0x880/0xd70 fs/read_write.c:897
+ vfs_readv fs/read_write.c:959 [inline]
+ do_preadv+0x3a1/0x580 fs/read_write.c:1043
+ SYSC_preadv+0xc6/0xe0 fs/read_write.c:1093
+ SyS_preadv+0x77/0xa0 fs/read_write.c:1088
+ do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:278 [inline]
+ kmsan_internal_poison_shadow+0xb8/0x1b0 mm/kmsan/kmsan.c:188
+ kmsan_kmalloc+0x94/0x100 mm/kmsan/kmsan.c:314
+ __kmalloc+0x23c/0x350 mm/slub.c:3791
+ kmalloc include/linux/slab.h:517 [inline]
+ vc_allocate+0x438/0x800 drivers/tty/vt/vt.c:787
+ con_install+0x8c/0x640 drivers/tty/vt/vt.c:2876
+ tty_driver_install_tty drivers/tty/tty_io.c:1224 [inline]
+ tty_init_dev+0x1b0/0x1020 drivers/tty/tty_io.c:1324
+ tty_open_by_driver drivers/tty/tty_io.c:1959 [inline]
+ tty_open+0x15e9/0x2ea0 drivers/tty/tty_io.c:2007
+ chrdev_open+0xc20/0xd90 fs/char_dev.c:417
+ do_dentry_open+0xcc6/0x1430 fs/open.c:752
+ vfs_open+0x1b7/0x2e0 fs/open.c:866
+ do_last fs/namei.c:3379 [inline]
+ path_openat+0x481d/0x6610 fs/namei.c:3520
+ do_filp_open+0x261/0x640 fs/namei.c:3554
+ do_sys_open+0x624/0x960 fs/open.c:1059
+ SYSC_open+0xab/0xc0 fs/open.c:1077
+ SyS_open+0x54/0x80 fs/open.c:1072
+ do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+
+Bytes 4-8 of 9 are uninitialized
+==================================================================

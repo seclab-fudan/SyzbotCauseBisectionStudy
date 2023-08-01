@@ -1,0 +1,72 @@
+ __do_sys_mkdirat fs/namei.c:4076 [inline]
+ __se_sys_mkdirat fs/namei.c:4074 [inline]
+ __arm64_sys_mkdirat+0x40/0x54 fs/namei.c:4074
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000016
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000000109ae4000
+[0000000000000016] pgd=080000010afab003, p4d=080000010afab003, pud=080000010afaa003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 3075 Comm: syz-executor365 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : is_rec_inuse fs/ntfs3/ntfs.h:313 [inline]
+pc : ni_write_inode+0xac/0x798 fs/ntfs3/frecord.c:3232
+lr : ni_write_inode+0xa0/0x798 fs/ntfs3/frecord.c:3226
+sp : ffff80000fff3a20
+x29: ffff80000fff3a80 x28: 0000000010000000 x27: ffff0000cb71d000
+x26: ffff0000cabae830 x25: ffff0000cabae798 x24: 0000000000000000
+x23: ffff80000cc459a4 x22: ffff0000cb71e000 x21: ffff0000cb71d000
+x20: 0000000000000001 x19: ffff0000cabae9e8 x18: 0000000000000227
+x17: 6e69676e45206574 x16: ffff80000dbe6158 x15: ffff0000c4321a40
+x14: 00000000000000c8 x13: 0000000000000000 x12: ffff0000c4321a40
+x11: ff80800008bfce4c x10: 0000000000000000 x9 : ffff0000c4321a40
+x8 : 0000000000000000 x7 : ffff800008bfce3c x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : ffff80000cc45da1
+x2 : 0000000000000008 x1 : 0000000000000001 x0 : 0000000000000000
+Call trace:
+ is_rec_inuse fs/ntfs3/ntfs.h:313 [inline]
+ ni_write_inode+0xac/0x798 fs/ntfs3/frecord.c:3232
+ ntfs_evict_inode+0x54/0x84 fs/ntfs3/inode.c:1741
+ evict+0xec/0x334 fs/inode.c:664
+ iput_final fs/inode.c:1747 [inline]
+ iput+0x2c4/0x324 fs/inode.c:1773
+ ntfs_new_inode+0x7c/0xe0 fs/ntfs3/fsntfs.c:1660
+ ntfs_create_inode+0x20c/0xe78 fs/ntfs3/inode.c:1275
+ ntfs_mkdir+0x54/0x74 fs/ntfs3/namei.c:204
+ vfs_mkdir+0x1f8/0x2b0 fs/namei.c:4036
+ do_mkdirat+0xe4/0x22c fs/namei.c:4061
+ __do_sys_mkdirat fs/namei.c:4076 [inline]
+ __se_sys_mkdirat fs/namei.c:4074 [inline]
+ __arm64_sys_mkdirat+0x40/0x54 fs/namei.c:4074
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 97daa83d 340001b4 f9401328 2a1f03e0 (79402d14) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	97daa83d 	bl	0xffffffffff6aa0f4
+   4:	340001b4 	cbz	w20, 0x38
+   8:	f9401328 	ldr	x8, [x25, #32]
+   c:	2a1f03e0 	mov	w0, wzr
+* 10:	79402d14 	ldrh	w20, [x8, #22] <-- trapping instruction

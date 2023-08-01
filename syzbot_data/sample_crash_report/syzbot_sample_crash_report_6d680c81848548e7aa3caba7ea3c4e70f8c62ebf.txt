@@ -1,0 +1,85 @@
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
+==================================================================
+BUG: KASAN: use-after-free in tipc_service_delete net/tipc/name_table.c:751 [inline]
+BUG: KASAN: use-after-free in tipc_nametbl_stop+0x94e/0xd70 net/tipc/name_table.c:780
+Read of size 8 at addr ffff8801cccdd2b0 by task kworker/u4:2/61
+
+CPU: 1 PID: 61 Comm: kworker/u4:2 Not tainted 4.16.0+ #4
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ tipc_service_delete net/tipc/name_table.c:751 [inline]
+ tipc_nametbl_stop+0x94e/0xd70 net/tipc/name_table.c:780
+ tipc_exit_net+0x2d/0x40 net/tipc/core.c:103
+ ops_exit_list.isra.7+0xb0/0x160 net/core/net_namespace.c:152
+ cleanup_net+0x51d/0xb20 net/core/net_namespace.c:523
+ process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+ worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+
+Allocated by task 4490:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x780 mm/slab.c:3620
+ kmalloc include/linux/slab.h:512 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ tipc_service_create_range net/tipc/name_table.c:183 [inline]
+ tipc_service_insert_publ net/tipc/name_table.c:207 [inline]
+ tipc_nametbl_insert_publ+0x569/0x1910 net/tipc/name_table.c:371
+ tipc_nametbl_publish+0x6c3/0xba0 net/tipc/name_table.c:618
+ tipc_sk_publish+0x22a/0x510 net/tipc/socket.c:2604
+ tipc_bind+0x206/0x330 net/tipc/socket.c:647
+ __sys_bind+0x331/0x440 net/socket.c:1484
+ SYSC_bind net/socket.c:1495 [inline]
+ SyS_bind+0x24/0x30 net/socket.c:1493
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 61:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ tipc_service_remove_publ.isra.8+0x909/0xc30 net/tipc/name_table.c:283
+ tipc_service_delete net/tipc/name_table.c:753 [inline]
+ tipc_nametbl_stop+0x746/0xd70 net/tipc/name_table.c:780
+ tipc_exit_net+0x2d/0x40 net/tipc/core.c:103
+ ops_exit_list.isra.7+0xb0/0x160 net/core/net_namespace.c:152
+ cleanup_net+0x51d/0xb20 net/core/net_namespace.c:523
+ process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+ worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+
+The buggy address belongs to the object at ffff8801cccdd280
+ which belongs to the cache kmalloc-64 of size 64
+The buggy address is located 48 bytes inside of
+ 64-byte region [ffff8801cccdd280, ffff8801cccdd2c0)
+The buggy address belongs to the page:
+page:ffffea0007333740 count:1 mapcount:0 mapping:ffff8801cccdd000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801cccdd000 0000000000000000 0000000100000020
+raw: ffffea00073a66a0 ffffea000735db60 ffff8801dac00340 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cccdd180: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+ ffff8801cccdd200: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+>ffff8801cccdd280: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                                     ^
+ ffff8801cccdd300: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+ ffff8801cccdd380: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================

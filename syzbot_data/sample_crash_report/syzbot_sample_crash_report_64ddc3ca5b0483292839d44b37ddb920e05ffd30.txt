@@ -1,0 +1,58 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in csd_lock_record+0xd2/0xe0 kernel/smp.c:119
+Read of size 8 at addr ffffc900021f7ad8 by task syz-executor259/6813
+
+CPU: 1 PID: 6813 Comm: syz-executor259 Not tainted 5.8.0-rc3-next-20200703-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0x5/0x436 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ csd_lock_record+0xd2/0xe0 kernel/smp.c:119
+ flush_smp_call_function_queue+0x285/0x730 kernel/smp.c:391
+ __sysvec_call_function_single+0x98/0x490 arch/x86/kernel/smp.c:248
+ asm_call_on_stack+0xf/0x20 arch/x86/entry/entry_64.S:706
+ </IRQ>
+ __run_on_irqstack arch/x86/include/asm/irq_stack.h:22 [inline]
+ run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:48 [inline]
+ sysvec_call_function_single+0xe0/0x120 arch/x86/kernel/smp.c:243
+ asm_sysvec_call_function_single+0x12/0x20 arch/x86/include/asm/idtentry.h:604
+RIP: 0010:__free_object+0x0/0xdd0 lib/debugobjects.c:342
+Code: 78 16 fe e9 4f fd ff ff 48 c7 c7 00 ff b4 89 e8 86 77 16 fe e9 5c fe ff ff 48 c7 c7 00 ff b4 89 e8 75 77 16 fe e9 da fc ff ff <48> ba 00 00 00 00 00 fc ff df 41 57 41 56 41 55 41 54 55 53 48 81
+RSP: 0018:ffffc90001657d60 EFLAGS: 00000286
+RAX: 0000000080000000 RBX: ffff88808ff1e348 RCX: 0000000000000000
+RDX: 0000000000000001 RSI: 0000000000000000 RDI: ffff8880a7906f18
+RBP: ffff8880a7906f18 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: ffffffff8cb44cf8
+R13: ffffffff89bd2c80 R14: ffffc90001657de0 R15: ffffffff8cb44d00
+ free_object lib/debugobjects.c:429 [inline]
+ debug_object_free lib/debugobjects.c:828 [inline]
+ debug_object_free+0x1c8/0x350 lib/debugobjects.c:800
+ destroy_hrtimer_on_stack kernel/time/hrtimer.c:453 [inline]
+ hrtimer_nanosleep+0x228/0x430 kernel/time/hrtimer.c:1947
+ __do_sys_nanosleep kernel/time/hrtimer.c:1966 [inline]
+ __se_sys_nanosleep kernel/time/hrtimer.c:1953 [inline]
+ __x64_sys_nanosleep+0x1dc/0x260 kernel/time/hrtimer.c:1953
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:367
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x44e130
+Code: Bad RIP value.
+RSP: 002b:00007fff66af1958 EFLAGS: 00000246 ORIG_RAX: 0000000000000023
+RAX: ffffffffffffffda RBX: 0000000000190195 RCX: 000000000044e130
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007fff66af1960
+RBP: 00000000000023e4 R08: 0000000000000001 R09: 0000000001c64940
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000dec
+R13: 000000000040c8a0 R14: 0000000000000000 R15: 0000000000000000
+
+
+Memory state around the buggy address:
+ ffffc900021f7980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffc900021f7a00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffffc900021f7a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+                                                    ^
+ ffffc900021f7b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffc900021f7b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

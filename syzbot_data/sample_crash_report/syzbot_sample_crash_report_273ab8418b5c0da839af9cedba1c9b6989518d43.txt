@@ -1,0 +1,52 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: null-ptr-deref in atomic_fetch_add_relaxed include/asm-generic/atomic-instrumented.h:142 [inline]
+BUG: KASAN: null-ptr-deref in __refcount_add include/linux/refcount.h:193 [inline]
+BUG: KASAN: null-ptr-deref in __refcount_inc include/linux/refcount.h:250 [inline]
+BUG: KASAN: null-ptr-deref in refcount_inc include/linux/refcount.h:267 [inline]
+BUG: KASAN: null-ptr-deref in start_transaction+0x158/0x1170 fs/btrfs/transaction.c:541
+Write of size 4 at addr 000000000000003a by task syz-executor154/8513
+
+CPU: 1 PID: 8513 Comm: syz-executor154 Not tainted 5.10.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:118
+ __kasan_report mm/kasan/report.c:549 [inline]
+ kasan_report.cold+0x5/0x37 mm/kasan/report.c:562
+ check_memory_region_inline mm/kasan/generic.c:186 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:192
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_fetch_add_relaxed include/asm-generic/atomic-instrumented.h:142 [inline]
+ __refcount_add include/linux/refcount.h:193 [inline]
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ start_transaction+0x158/0x1170 fs/btrfs/transaction.c:541
+ flush_space+0x1c0/0xf60 fs/btrfs/space-info.c:685
+ priority_reclaim_metadata_space fs/btrfs/space-info.c:1154 [inline]
+ handle_reserve_ticket fs/btrfs/space-info.c:1238 [inline]
+ __reserve_bytes+0xd2c/0x1480 fs/btrfs/space-info.c:1403
+ btrfs_reserve_metadata_bytes+0x75/0x260 fs/btrfs/space-info.c:1429
+ btrfs_delalloc_reserve_metadata+0x261/0xb90 fs/btrfs/delalloc-space.c:332
+ btrfs_buffered_write.isra.0+0x445/0xf10 fs/btrfs/file.c:1703
+ __btrfs_direct_write fs/btrfs/file.c:1874 [inline]
+ btrfs_file_write_iter+0xda6/0x16d0 fs/btrfs/file.c:2046
+ call_write_iter include/linux/fs.h:1887 [inline]
+ do_iter_readv_writev+0x46f/0x740 fs/read_write.c:740
+ do_iter_write+0x188/0x670 fs/read_write.c:866
+ vfs_writev+0x1aa/0x2e0 fs/read_write.c:939
+ do_pwritev fs/read_write.c:1036 [inline]
+ __do_sys_pwritev fs/read_write.c:1083 [inline]
+ __se_sys_pwritev fs/read_write.c:1078 [inline]
+ __x64_sys_pwritev+0x231/0x310 fs/read_write.c:1078
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x44d959
+Code: 7d cb fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 4b cb fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f78b0d8bce8 EFLAGS: 00000246 ORIG_RAX: 0000000000000128
+RAX: ffffffffffffffda RBX: 00000000006e1c28 RCX: 000000000044d959
+RDX: 0000000000000001 RSI: 00000000200014c0 RDI: 0000000000000003
+RBP: 00000000006e1c20 R08: 0000000000000020 R09: 0000000000000000
+R10: 0000000000000002 R11: 0000000000000246 R12: 00000000006e1c2c
+R13: 00007ffefe638f4f R14: 00007f78b0d8c9c0 R15: 20c49ba5e353f7cf
+==================================================================

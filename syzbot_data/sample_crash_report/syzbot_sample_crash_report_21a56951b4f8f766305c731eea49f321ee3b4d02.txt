@@ -1,0 +1,52 @@
+audit: type=1400 audit(1519836182.953:6): avc:  denied  { map } for  pid=4237 comm="bash" path="/bin/bash" dev="sda1" ino=1457 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:file_t:s0 tclass=file permissive=1
+audit: type=1400 audit(1519836189.261:7): avc:  denied  { map } for  pid=4251 comm="syzkaller092998" path="/root/syzkaller092998485" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+------------[ cut here ]------------
+kernel BUG at ./include/linux/skbuff.h:2073!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 4251 Comm: syzkaller092998 Not tainted 4.16.0-rc3+ #332
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__skb_pull include/linux/skbuff.h:2073 [inline]
+RIP: 0010:__ip6_make_skb+0x1ac8/0x2190 net/ipv6/ip6_output.c:1636
+RSP: 0018:ffff8801c381f1f0 EFLAGS: 00010293
+RAX: ffff8801ae58a180 RBX: 00000000000006e0 RCX: ffffffff84efbde8
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: ffff8801b1243d18
+RBP: ffff8801c381f460 R08: ffff8801b0c19b04 R09: 0000000000000000
+R10: ffff8801c381f480 R11: fd676b049aac0ae7 R12: 00000000000005a1
+R13: ffff8801b1243840 R14: dffffc0000000000 R15: ffff8801b0c19a80
+FS:  00000000006d1880(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000280 CR3: 00000001ca0ff005 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ ip6_finish_skb include/net/ipv6.h:969 [inline]
+ udp_v6_push_pending_frames+0x269/0x3b0 net/ipv6/udp.c:1073
+ udpv6_sendmsg+0x2a96/0x3400 net/ipv6/udp.c:1343
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:764
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x4402a9
+RSP: 002b:00007ffcbb6929c8 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0100000000000000 RCX: 00000000004402a9
+RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 00000000006cb018 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000001 R11: 0000000000000217 R12: 0000000000401bd0
+R13: 0000000000401c60 R14: 0000000000000000 R15: 0000000000000000
+Code: ff e8 6d 74 b9 fc e9 15 e9 ff ff e8 63 74 b9 fc e9 44 e8 ff ff e8 79 74 b9 fc e9 c0 e6 ff ff e8 5f 36 81 fc 0f 0b e8 58 36 81 fc <0f> 0b 49 8d 87 80 00 00 00 4d 8d 87 84 00 00 00 48 89 85 20 fe 
+RIP: __skb_pull include/linux/skbuff.h:2073 [inline] RSP: ffff8801c381f1f0
+RIP: __ip6_make_skb+0x1ac8/0x2190 net/ipv6/ip6_output.c:1636 RSP: ffff8801c381f1f0
+---[ end trace 07ff165e0714390f ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,82 @@
+audit: type=1400 audit(1515782899.456:8): avc:  denied  { sys_admin } for  pid=3501 comm="syzkaller937663" capability=21  scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=cap_userns permissive=1
+audit: type=1400 audit(1515782899.512:9): avc:  denied  { sys_chroot } for  pid=3502 comm="syzkaller937663" capability=18  scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=cap_userns permissive=1
+==================================================================
+BUG: KASAN: slab-out-of-bounds in memcpy include/linux/string.h:344 [inline]
+BUG: KASAN: slab-out-of-bounds in map_lookup_elem+0x4dc/0xbd0 kernel/bpf/syscall.c:584
+Read of size 2097153 at addr ffff8801bfc7e690 by task syzkaller937663/3502
+
+CPU: 0 PID: 3502 Comm: syzkaller937663 Not tainted 4.15.0-rc7+ #185
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x23/0x50 mm/kasan/kasan.c:302
+ memcpy include/linux/string.h:344 [inline]
+ map_lookup_elem+0x4dc/0xbd0 kernel/bpf/syscall.c:584
+ SYSC_bpf kernel/bpf/syscall.c:1808 [inline]
+ SyS_bpf+0x922/0x4400 kernel/bpf/syscall.c:1782
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x440ab9
+RSP: 002b:00000000007dff68 EFLAGS: 00000203 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00007fffc494ea60 RCX: 0000000000440ab9
+RDX: 0000000000000018 RSI: 0000000020eab000 RDI: 0000000000000001
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000203 R12: 0000000000402290
+R13: 0000000000402320 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3502:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc_node mm/slab.c:3672 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3679
+ kmalloc_node include/linux/slab.h:541 [inline]
+ bpf_map_area_alloc+0x32/0x80 kernel/bpf/syscall.c:123
+ array_map_alloc+0x351/0xa00 kernel/bpf/arraymap.c:96
+ find_and_alloc_map kernel/bpf/syscall.c:105 [inline]
+ map_create kernel/bpf/syscall.c:404 [inline]
+ SYSC_bpf kernel/bpf/syscall.c:1805 [inline]
+ SyS_bpf+0x7f8/0x4400 kernel/bpf/syscall.c:1782
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+Freed by task 1966:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ seq_release fs/seq_file.c:366 [inline]
+ single_release+0x80/0xb0 fs/seq_file.c:602
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x296/0x310 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x98/0x9a
+
+The buggy address belongs to the object at ffff8801bfc7e5c0
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 208 bytes inside of
+ 256-byte region [ffff8801bfc7e5c0, ffff8801bfc7e6c0)
+The buggy address belongs to the page:
+page:ffffea0006ff1f80 count:1 mapcount:0 mapping:ffff8801bfc7e0c0 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801bfc7e0c0 0000000000000000 000000010000000c
+raw: ffffea00070149e0 ffffea0006ff2be0 ffff8801dac007c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bfc7e580: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+ ffff8801bfc7e600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801bfc7e680: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+                                           ^
+ ffff8801bfc7e700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bfc7e780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

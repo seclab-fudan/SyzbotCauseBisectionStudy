@@ -1,0 +1,105 @@
+==================================================================
+BUG: KASAN: use-after-free in __read_once_size include/linux/compiler.h:183 [inline]
+BUG: KASAN: use-after-free in bpf_fd_array_map_lookup_elem+0x440/0x4c0 kernel/bpf/arraymap.c:374
+Read of size 8 at addr ffff8801bf2662b8 by task syz-executor7/5017
+
+CPU: 0 PID: 5017 Comm: syz-executor7 Not tainted 4.15.0-rc8+ #263
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ __read_once_size include/linux/compiler.h:183 [inline]
+ bpf_fd_array_map_lookup_elem+0x440/0x4c0 kernel/bpf/arraymap.c:374
+ map_lookup_elem+0x6b5/0xbd0 kernel/bpf/syscall.c:577
+ SYSC_bpf kernel/bpf/syscall.c:1711 [inline]
+ SyS_bpf+0x922/0x4400 kernel/bpf/syscall.c:1685
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x452df9
+RSP: 002b:00007f897d720c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000452df9
+RDX: 0000000000000018 RSI: 00000000206d1fe8 RDI: 0000000000000001
+RBP: 00000000000000fd R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006ef858
+R13: 00000000ffffffff R14: 00007f897d7216d4 R15: 0000000000000000
+
+Allocated by task 4983:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3610
+ kmalloc include/linux/slab.h:499 [inline]
+ kzalloc include/linux/slab.h:688 [inline]
+ snd_timer_instance_new+0xda/0x610 sound/core/timer.c:108
+ snd_timer_open+0xa74/0x1b20 sound/core/timer.c:312
+ snd_seq_timer_open+0x22f/0x710 sound/core/seq/seq_timer.c:287
+ queue_use+0x8f/0x1e0 sound/core/seq/seq_queue.c:524
+ snd_seq_queue_alloc+0x337/0x580 sound/core/seq/seq_queue.c:199
+ snd_seq_ioctl_create_queue+0xad/0x2f0 sound/core/seq/seq_clientmgr.c:1515
+ snd_seq_kernel_client_ctl+0x122/0x160 sound/core/seq/seq_clientmgr.c:2347
+ alloc_seq_queue.isra.1+0x11f/0x200 sound/core/seq/oss/seq_oss_init.c:370
+ snd_seq_oss_open+0x223/0x8b0 sound/core/seq/oss/seq_oss_init.c:228
+ odev_open+0x6a/0x90 sound/core/seq/oss/seq_oss.c:138
+ soundcore_open+0x321/0x630 sound/sound_core.c:639
+ chrdev_open+0x257/0x730 fs/char_dev.c:417
+ do_dentry_open+0x667/0xd40 fs/open.c:752
+ vfs_open+0x107/0x220 fs/open.c:866
+ do_last fs/namei.c:3379 [inline]
+ path_openat+0x1151/0x3530 fs/namei.c:3519
+ do_filp_open+0x25b/0x3b0 fs/namei.c:3554
+ do_sys_open+0x502/0x6d0 fs/open.c:1059
+ SYSC_openat fs/open.c:1086 [inline]
+ SyS_openat+0x30/0x40 fs/open.c:1080
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 4990:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ snd_timer_close_locked+0x8ec/0xf90 sound/core/timer.c:399
+ snd_timer_close+0x2d/0x60 sound/core/timer.c:424
+ snd_seq_timer_close+0x90/0xd0 sound/core/seq/seq_timer.c:326
+ queue_delete+0x4e/0xb0 sound/core/seq/seq_queue.c:147
+ snd_seq_queue_delete+0x3c/0x50 sound/core/seq/seq_queue.c:219
+ snd_seq_ioctl_delete_queue+0x6a/0x90 sound/core/seq/seq_clientmgr.c:1537
+ snd_seq_kernel_client_ctl+0x122/0x160 sound/core/seq/seq_clientmgr.c:2347
+ delete_seq_queue+0xce/0x150 sound/core/seq/oss/seq_oss_init.c:389
+ snd_seq_oss_release+0xf1/0x120 sound/core/seq/oss/seq_oss_init.c:434
+ odev_release+0x52/0x70 sound/core/seq/oss/seq_oss.c:153
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x73f/0x16c0 kernel/signal.c:2335
+ do_signal+0x90/0x1eb0 arch/x86/kernel/signal.c:809
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x9e/0xa0
+
+The buggy address belongs to the object at ffff8801bf2661c0
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 248 bytes inside of
+ 256-byte region [ffff8801bf2661c0, ffff8801bf2662c0)
+The buggy address belongs to the page:
+page:ffffea0006fc9980 count:1 mapcount:0 mapping:ffff8801bf266080 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801bf266080 0000000000000000 000000010000000c
+raw: ffffea0006fbf8a0 ffffea0006f97460 ffff8801dac007c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bf266180: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8801bf266200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801bf266280: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                                        ^
+ ffff8801bf266300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bf266380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

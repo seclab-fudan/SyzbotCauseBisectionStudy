@@ -1,0 +1,75 @@
+------------[ cut here ]------------
+refcount_t: increment on 0; use-after-free.
+WARNING: CPU: 0 PID: 11160 at lib/refcount.c:156 refcount_inc_checked+0x4b/0x50 lib/refcount.c:156
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 11160 Comm: syz-executor947 Not tainted 5.3.0-rc1+ #52
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d8/0x2f8 lib/dump_stack.c:113
+ panic+0x29b/0x7d9 kernel/panic.c:219
+ __warn+0x22f/0x230 kernel/panic.c:576
+ report_bug+0x190/0x290 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:179 [inline]
+ do_error_trap+0xd7/0x440 arch/x86/kernel/traps.c:272
+ do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:291
+ invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1026
+RIP: 0010:refcount_inc_checked+0x4b/0x50 lib/refcount.c:156
+Code: 3d b8 a7 93 05 01 75 08 e8 c2 d6 10 fe 5b 5d c3 e8 ba d6 10 fe c6 05 a2 a7 93 05 01 48 c7 c7 d9 4c 88 88 31 c0 e8 95 ec e1 fd <0f> 0b eb df 90 55 48 89 e5 41 57 41 56 41 55 41 54 53 48 83 e4 e0
+RSP: 0018:ffff8880aea09b40 EFLAGS: 00010246
+RAX: 09334eb5cae21900 RBX: ffff8880a80ef280 RCX: ffff8880a915c680
+RDX: 0000000000000301 RSI: 0000000000000301 RDI: 0000000000000000
+RBP: ffff8880aea09b48 R08: ffffffff816063f4 R09: fffffbfff119a92f
+R10: fffffbfff119a92f R11: 0000000000000000 R12: ffff88809ad7f400
+R13: dffffc0000000000 R14: 0000000000000004 R15: ffff8880a80ef200
+ sock_hold include/net/sock.h:649 [inline]
+ sk_add_node include/net/sock.h:701 [inline]
+ nr_insert_socket net/netrom/af_netrom.c:137 [inline]
+ nr_rx_frame+0x17bc/0x1e40 net/netrom/af_netrom.c:1023
+ nr_loopback_timer+0x6a/0x140 net/netrom/nr_loopback.c:59
+ call_timer_fn+0xec/0x200 kernel/time/timer.c:1322
+ expire_timers kernel/time/timer.c:1366 [inline]
+ __run_timers+0x7cd/0x9c0 kernel/time/timer.c:1685
+ run_timer_softirq+0x4a/0x90 kernel/time/timer.c:1698
+ __do_softirq+0x333/0x7c4 arch/x86/include/asm/paravirt.h:778
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x227/0x230 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:537 [inline]
+ smp_apic_timer_interrupt+0x113/0x280 arch/x86/kernel/apic/apic.c:1095
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:828
+ </IRQ>
+RIP: 0010:kobject_add_internal+0x1/0xd50 lib/kobject.c:226
+Code: e8 34 6c 07 fa e9 da fe ff ff 89 f9 80 e1 07 38 c1 0f 8c 2a ff ff ff e8 3d 6b 07 fa e9 20 ff ff ff 0f 1f 84 00 00 00 00 00 55 <48> 89 e5 41 57 41 56 41 55 41 54 53 48 83 ec 40 49 89 fc e8 17 c1
+RSP: 0018:ffff888091def908 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 1ffff1101536b600 RBX: ffff8880a9b5b550 RCX: 0000000000000000
+RDX: 0000000000000010 RSI: 0000000000000000 RDI: ffff8880a9b5b548
+RBP: ffff888091def948 R08: dffffc0000000000 R09: ffff8880a9b5b530
+R10: ffffed101536b6a8 R11: 0000000000000000 R12: ffff888098d747a0
+R13: dffffc0000000000 R14: ffff8880a9b5b548 R15: ffff8880a9b5b500
+ register_queue_kobjects net/core/net-sysfs.c:1519 [inline]
+ netdev_register_kobject+0x17e/0x2f0 net/core/net-sysfs.c:1750
+ register_netdevice+0xd27/0x1500 net/core/dev.c:8723
+ register_netdev+0x3c/0x50 net/core/dev.c:8841
+ ip6gre_init_net+0x228/0x2f0 net/ipv6/ip6_gre.c:1581
+ ops_init+0x355/0x430 net/core/net_namespace.c:137
+ setup_net+0x230/0x7e0 net/core/net_namespace.c:334
+ copy_net_ns+0x2f9/0x460 net/core/net_namespace.c:475
+ create_new_namespaces+0x4ec/0x700 kernel/nsproxy.c:103
+ unshare_nsproxy_namespaces+0x12a/0x190 kernel/nsproxy.c:202
+ ksys_unshare+0x544/0xac0 kernel/fork.c:2831
+ __do_sys_unshare kernel/fork.c:2899 [inline]
+ __se_sys_unshare kernel/fork.c:2897 [inline]
+ __x64_sys_unshare+0x38/0x40 kernel/fork.c:2897
+ do_syscall_64+0xfe/0x140 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x44a9a9
+Code: e8 dc 15 03 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb 05 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f50921fbcc8 EFLAGS: 00000246 ORIG_RAX: 0000000000000110
+RAX: ffffffffffffffda RBX: 00000000006e6a18 RCX: 000000000044a9a9
+RDX: 000000000044a9a9 RSI: 000000000044a9a9 RDI: 0000000040000000
+RBP: 00000000006e6a10 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006e6a1c
+R13: 00007ffd1f53641f R14: 00007f50921fc9c0 R15: 0000000000000001
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

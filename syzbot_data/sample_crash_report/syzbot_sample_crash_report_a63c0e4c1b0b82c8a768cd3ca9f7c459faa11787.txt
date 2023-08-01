@@ -1,0 +1,83 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in clusterip_config_init_nodelist net/ipv4/netfilter/ipt_CLUSTERIP.c:172 [inline]
+BUG: KASAN: slab-out-of-bounds in clusterip_config_init net/ipv4/netfilter/ipt_CLUSTERIP.c:227 [inline]
+BUG: KASAN: slab-out-of-bounds in clusterip_tg_check+0x150f/0x1570 net/ipv4/netfilter/ipt_CLUSTERIP.c:478
+Read of size 2 at addr ffff8801d96d50c0 by task syzkaller761522/3685
+
+CPU: 0 PID: 3685 Comm: syzkaller761522 Not tainted 4.15.0-rc9+ #283
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load2_noabort+0x14/0x20 mm/kasan/report.c:428
+ clusterip_config_init_nodelist net/ipv4/netfilter/ipt_CLUSTERIP.c:172 [inline]
+ clusterip_config_init net/ipv4/netfilter/ipt_CLUSTERIP.c:227 [inline]
+ clusterip_tg_check+0x150f/0x1570 net/ipv4/netfilter/ipt_CLUSTERIP.c:478
+ xt_check_target+0x22c/0x7d0 net/netfilter/x_tables.c:845
+ check_target net/ipv4/netfilter/ip_tables.c:518 [inline]
+ find_check_entry.isra.8+0x8c8/0xcb0 net/ipv4/netfilter/ip_tables.c:559
+ translate_table+0xed1/0x1610 net/ipv4/netfilter/ip_tables.c:730
+ do_replace net/ipv4/netfilter/ip_tables.c:1148 [inline]
+ do_ipt_set_ctl+0x370/0x5f0 net/ipv4/netfilter/ip_tables.c:1682
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0xa1/0xb0 net/ipv4/ip_sockglue.c:1256
+ udp_setsockopt+0x45/0x80 net/ipv4/udp.c:2408
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+ SYSC_setsockopt net/socket.c:1831 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1810
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x440b49
+RSP: 002b:00007ffca8f45648 EFLAGS: 00000203 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000440b49
+RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 00000000006cb018 R08: 0000000000000320 R09: 0000000000000000
+R10: 0000000020027000 R11: 0000000000000203 R12: 0000000000402470
+R13: 0000000000402500 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3685:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc_node mm/slab.c:3672 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3679
+ kmalloc_node include/linux/slab.h:541 [inline]
+ kvmalloc_node+0x99/0xd0 mm/util.c:397
+ kvmalloc include/linux/mm.h:541 [inline]
+ xt_alloc_table_info+0x64/0xe0 net/netfilter/x_tables.c:1006
+ do_replace net/ipv4/netfilter/ip_tables.c:1137 [inline]
+ do_ipt_set_ctl+0x29b/0x5f0 net/ipv4/netfilter/ip_tables.c:1682
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0xa1/0xb0 net/ipv4/ip_sockglue.c:1256
+ udp_setsockopt+0x45/0x80 net/ipv4/udp.c:2408
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+ SYSC_setsockopt net/socket.c:1831 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1810
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801d96d4dc0
+ which belongs to the cache kmalloc-1024 of size 1024
+The buggy address is located 768 bytes inside of
+ 1024-byte region [ffff8801d96d4dc0, ffff8801d96d51c0)
+The buggy address belongs to the page:
+page:ffffea000765b500 count:1 mapcount:0 mapping:ffff8801d96d4040 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801d96d4040 0000000000000000 0000000100000007
+raw: ffffea0006ebb120 ffffea0007641220 ffff8801dac00ac0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d96d4f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801d96d5000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801d96d5080: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+                                           ^
+ ffff8801d96d5100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801d96d5180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

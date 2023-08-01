@@ -1,0 +1,353 @@
+dst_release: dst:(____ptrval____) refcnt:-7
+dst_release: dst:(____ptrval____) refcnt:-8
+dst_release: dst:(____ptrval____) refcnt:-9
+dst_release: dst:(____ptrval____) refcnt:-10
+==================================================================
+BUG: KASAN: use-after-free in atomic_dec_return include/asm-generic/atomic-instrumented.h:198 [inline]
+BUG: KASAN: use-after-free in dst_release+0x2a/0xb0 net/core/dst.c:186
+Write of size 4 at addr ffff8801c86e9900 by task syz-executor087/4814
+
+CPU: 0 PID: 4814 Comm: syz-executor087 Not tainted 4.18.0-rc7+ #172
+kasan: CONFIG_KASAN_INLINE enabled
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+general protection fault: 0000 [#1] SMP KASAN
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+CPU: 1 PID: 4815 Comm: syz-executor087 Not tainted 4.18.0-rc7+ #172
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+ kasan_check_write+0x14/0x20 mm/kasan/kasan.c:278
+RIP: 0010:ip6_dst_hoplimit+0x3b5/0x4d0 net/ipv6/output_core.c:137
+ atomic_dec_return include/asm-generic/atomic-instrumented.h:198 [inline]
+ dst_release+0x2a/0xb0 net/core/dst.c:186
+Code: 
+ inet_sock_destruct+0x6ae/0x9c0 net/ipv4/af_inet.c:159
+80 
+3c 
+02 
+00 
+0f 
+85 
+2e 
+01 
+ udp_destruct_sock+0x350/0x4a0 net/ipv4/udp.c:1445
+00 
+00 
+ l2tp_tunnel_destruct+0x174/0x290 net/l2tp/l2tp_core.c:1187
+4d 
+8b 
+ __sk_destruct+0x107/0xa60 net/core/sock.c:1573
+a7 
+78 
+05 
+00 
+00 
+48 
+b8 
+00 
+00 
+00 
+00 
+00 
+fc 
+ff 
+ __rcu_reclaim kernel/rcu/rcu.h:178 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2558 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2818 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2785 [inline]
+ rcu_process_callbacks+0xed5/0x1850 kernel/rcu/tree.c:2802
+df 
+49 
+8d 
+bc 
+24 
+d0 
+0a 
+00 
+00 
+48 
+89 
+fa 
+ __do_softirq+0x2e8/0xb17 kernel/softirq.c:292
+48 
+c1 
+ea 
+03 
+<80> 
+3c 
+02 
+00 
+0f 
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1046
+85 fa 
+ </IRQ>
+00 
+ do_softirq.part.17+0x155/0x1a0 kernel/softirq.c:336
+00 
+00 
+ do_softirq arch/x86/include/asm/preempt.h:23 [inline]
+ __local_bh_enable_ip+0x1ec/0x230 kernel/softirq.c:189
+4d 
+ local_bh_enable include/linux/bottom_half.h:32 [inline]
+ pppol2tp_sendmsg+0x4c4/0x6c0 net/l2tp/l2tp_ppp.c:342
+8b 
+a4 
+24 
+ sock_sendmsg_nosec net/socket.c:642 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:652
+d0 
+ ___sys_sendmsg+0x51d/0x930 net/socket.c:2126
+0a 
+00 
+00 
+48 
+b8 
+00 
+00 
+ __sys_sendmmsg+0x240/0x6f0 net/socket.c:2221
+RSP: 0018:ffff8801bc60f3c8 EFLAGS: 00010206
+RAX: dffffc0000000000 RBX: 1ffff100378c1e79 RCX: ffffffff85d036fa
+RDX: 000000000000015a RSI: ffffffff85d03833 RDI: 0000000000000ad0
+RBP: ffff8801bc60f450 R08: ffff8801be4fe400 R09: ffffed003b6246d6
+R10: ffffed003b6246d6 R11: ffff8801db1236b3 R12: 0000000000000000
+R13: 0000000000000001 R14: ffff8801bc60f428 R15: ffff8801c6293680
+FS:  00007ff6b7fb5700(0000) GS:ffff8801db100000(0000) knlGS:0000000000000000
+ __do_sys_sendmmsg net/socket.c:2250 [inline]
+ __se_sys_sendmmsg net/socket.c:2247 [inline]
+ __x64_sys_sendmmsg+0x9d/0x100 net/socket.c:2247
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+CR2: 00007ff6b7fb4e78 CR3: 00000001c63b3000 CR4: 00000000001406e0
+Call Trace:
+ ip6_sk_dst_hoplimit include/net/ipv6.h:773 [inline]
+ udpv6_sendmsg+0x2edb/0x35f0 net/ipv6/udp.c:1365
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x446a29
+Code: e8 
+ac 
+b8 
+02 
+00 
+48 
+83 
+c4 
+ inet_sendmsg+0x1a1/0x690 net/ipv4/af_inet.c:798
+18 
+c3 
+0f 
+1f 
+80 
+00 
+00 
+ sock_sendmsg_nosec net/socket.c:642 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:652
+00 
+ ___sys_sendmsg+0x51d/0x930 net/socket.c:2126
+00 
+48 89 
+f8 
+48 
+89 
+f7 
+48 
+ __sys_sendmmsg+0x240/0x6f0 net/socket.c:2221
+89 
+d6 
+48 
+89 
+ca 
+4d 
+89 
+ __do_sys_sendmmsg net/socket.c:2250 [inline]
+ __se_sys_sendmmsg net/socket.c:2247 [inline]
+ __x64_sys_sendmmsg+0x9d/0x100 net/socket.c:2247
+c2 
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+4d 
+89 
+c8 
+4c 
+8b 
+4c 
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+24 
+RIP: 0033:0x446a29
+08 
+Code: 
+0f 
+e8 
+05 
+ac 
+<48> 
+b8 
+3d 
+02 
+01 
+00 
+f0 
+48 
+ff 
+83 
+ff 
+c4 
+0f 
+18 
+83 
+c3 
+eb 
+0f 
+08 
+1f 
+fc 
+80 
+ff 
+00 
+c3 
+00 
+66 
+00 
+2e 
+00 
+0f 
+48 
+1f 
+89 
+84 
+f8 
+00 
+48 
+00 
+89 
+00 
+f7 
+00 
+48 
+89 
+RSP: 002b:00007ff6b7fd5db8 EFLAGS: 00000297
+d6 
+ ORIG_RAX: 0000000000000133
+48 
+RAX: ffffffffffffffda RBX: 00000000006dcc28 RCX: 0000000000446a29
+89 
+RDX: 00000000000003e8 RSI: 0000000020005fc0 RDI: 0000000000000004
+ca 
+RBP: 00000000006dcc20 R08: 0000000000000000 R09: 0000000000000000
+4d 
+R10: 0000000000000000 R11: 0000000000000297 R12: 00000000006dcc2c
+89 
+R13: 00007ffd01de1edf R14: 00007ff6b7fd69c0 R15: 0000000000000000
+c2 
+
+4d 
+Allocated by task 4687:
+89 
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+c8 
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+4c 
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+8b 
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+4c 
+ dst_alloc+0xbb/0x1d0 net/core/dst.c:105
+24 
+ ip6_dst_alloc+0x35/0xa0 net/ipv6/route.c:353
+08 
+ ip6_rt_pcpu_alloc net/ipv6/route.c:1229 [inline]
+ rt6_make_pcpu_route net/ipv6/route.c:1259 [inline]
+ ip6_pol_route+0x83f/0x1250 net/ipv6/route.c:1925
+0f 
+ ip6_pol_route_output+0x54/0x70 net/ipv6/route.c:2098
+05 <48> 
+ fib6_rule_lookup+0x26e/0x700 net/ipv6/fib6_rules.c:122
+3d 
+ ip6_route_output_flags+0x2c5/0x350 net/ipv6/route.c:2126
+01 
+ ip6_route_output include/net/ip6_route.h:88 [inline]
+ ip6_dst_lookup_tail+0xe3f/0x1da0 net/ipv6/ip6_output.c:951
+f0 
+ ip6_dst_lookup_flow+0xc8/0x270 net/ipv6/ip6_output.c:1079
+ff 
+ ip6_datagram_dst_update+0x75b/0xf80 net/ipv6/datagram.c:91
+ff 
+ __ip6_datagram_connect+0x5fe/0x1470 net/ipv6/datagram.c:250
+0f 
+ ip6_datagram_connect+0x2f/0x50 net/ipv6/datagram.c:273
+83 
+ inet_dgram_connect+0x154/0x2e0 net/ipv4/af_inet.c:571
+eb 
+ __sys_connect+0x37d/0x4c0 net/socket.c:1674
+08 
+ __do_sys_connect net/socket.c:1685 [inline]
+ __se_sys_connect net/socket.c:1682 [inline]
+ __x64_sys_connect+0x73/0xb0 net/socket.c:1682
+fc 
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ff 
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+c3 
+
+66 
+Freed by task 4814:
+2e 
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+0f 
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+1f 
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+84 
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+00 
+ dst_destroy+0x267/0x3c0 net/core/dst.c:141
+00 
+ dst_destroy_rcu+0x16/0x20 net/core/dst.c:154
+00 
+ __rcu_reclaim kernel/rcu/rcu.h:178 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2558 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2818 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2785 [inline]
+ rcu_process_callbacks+0xed5/0x1850 kernel/rcu/tree.c:2802
+00 
+ __do_softirq+0x2e8/0xb17 kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff8801c86e98c0
+ which belongs to the cache ip6_dst_cache of size 240
+RSP: 002b:00007ff6b7fb4db8 EFLAGS: 00000246
+The buggy address is located 64 bytes inside of
+ 240-byte region [ffff8801c86e98c0, ffff8801c86e99b0)
+ ORIG_RAX: 0000000000000133
+The buggy address belongs to the page:
+RAX: ffffffffffffffda RBX: 00000000006dcc38 RCX: 0000000000446a29
+page:ffffea000721ba40 count:1 mapcount:0 mapping:ffff8801cddcec40 index:0x0
+RDX: 00000000000000b8 RSI: 0000000020001b00 RDI: 0000000000000003
+RBP: 00000000006dcc30 R08: 00007ff6b7fb5700 R09: 0000000000000000
+flags: 0x2fffc0000000100(slab)
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dcc3c
+raw: 02fffc0000000100 ffffea0006d35888 ffffea00075de088 ffff8801cddcec40
+R13: 00007ffd01de1edf R14: 00007ff6b7fb59c0 R15: 0000000000000001
+raw: 0000000000000000 ffff8801c86e9000 000000010000000c 0000000000000000
+Modules linked in:
+page dumped because: kasan: bad access detected
+
+Dumping ftrace buffer:
+Memory state around the buggy address:
+   (ftrace buffer empty)
+ ffff8801c86e9800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fc fc
+---[ end trace ce18b2247f7f6c70 ]---
+ ffff8801c86e9880: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>ffff8801c86e9900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8801c86e9980: fb fb fb fb fb fb fc fc fc fc fc fc fc fc fc fc
+RIP: 0010:ip6_dst_hoplimit+0x3b5/0x4d0 net/ipv6/output_core.c:137
+ ffff8801c86e9a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

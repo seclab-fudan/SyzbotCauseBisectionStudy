@@ -1,0 +1,69 @@
+usb 2-1: New USB device found, idVendor=0cf3, idProduct=9271, bcdDevice= 1.08
+usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 2-1: Product: syz
+usb 2-1: Manufacturer: syz
+usb 2-1: SerialNumber: syz
+Kernel panic - not syncing: corrupted stack end detected inside scheduler
+CPU: 0 PID: 2198 Comm: kworker/0:1 Not tainted 5.17.0-rc1-syzkaller-00002-g0966d385830d #0
+Hardware name: riscv-virtio,qemu (DT)
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+[<ffffffff8000a228>] dump_backtrace+0x2e/0x3c arch/riscv/kernel/stacktrace.c:113
+[<ffffffff831668cc>] show_stack+0x34/0x40 arch/riscv/kernel/stacktrace.c:119
+[<ffffffff831756ba>] __dump_stack lib/dump_stack.c:88 [inline]
+[<ffffffff831756ba>] dump_stack_lvl+0xe4/0x150 lib/dump_stack.c:106
+[<ffffffff83175742>] dump_stack+0x1c/0x24 lib/dump_stack.c:113
+[<ffffffff83166fa8>] panic+0x24a/0x634 kernel/panic.c:233
+[<ffffffff831a688a>] schedule_debug kernel/sched/core.c:5541 [inline]
+[<ffffffff831a688a>] schedule+0x0/0x14c kernel/sched/core.c:6187
+[<ffffffff831a6b00>] preempt_schedule_common+0x4e/0xde kernel/sched/core.c:6462
+[<ffffffff831a6bc4>] preempt_schedule+0x34/0x36 kernel/sched/core.c:6487
+[<ffffffff831afd78>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+[<ffffffff831afd78>] _raw_spin_unlock_irqrestore+0x8c/0x98 kernel/locking/spinlock.c:194
+[<ffffffff80b09fdc>] __debug_check_no_obj_freed lib/debugobjects.c:1002 [inline]
+[<ffffffff80b09fdc>] debug_check_no_obj_freed+0x14c/0x24a lib/debugobjects.c:1023
+[<ffffffff804697a6>] slab_free_hook mm/slub.c:1703 [inline]
+[<ffffffff804697a6>] slab_free_freelist_hook+0xe4/0x1cc mm/slub.c:1754
+[<ffffffff8046d302>] slab_free mm/slub.c:3509 [inline]
+[<ffffffff8046d302>] kfree+0xe0/0x3e4 mm/slub.c:4562
+[<ffffffff80393834>] kfree_const+0x70/0x84 mm/util.c:40
+[<ffffffff806686bc>] kernfs_put.part.0+0x102/0x3b2 fs/kernfs/dir.c:530
+[<ffffffff806690be>] kernfs_put fs/kernfs/dir.c:513 [inline]
+[<ffffffff806690be>] __kernfs_remove+0x658/0x804 fs/kernfs/dir.c:1388
+[<ffffffff8066b75c>] kernfs_remove_by_name_ns+0x7e/0xde fs/kernfs/dir.c:1565
+[<ffffffff80671248>] kernfs_remove_by_name include/linux/kernfs.h:574 [inline]
+[<ffffffff80671248>] sysfs_remove_link+0x42/0x70 fs/sysfs/symlink.c:152
+[<ffffffff813eee40>] driver_sysfs_remove drivers/base/dd.c:457 [inline]
+[<ffffffff813eee40>] really_probe+0x3fa/0x89e drivers/base/dd.c:660
+[<ffffffff813ef52e>] __driver_probe_device+0x24a/0x2d4 drivers/base/dd.c:752
+[<ffffffff813ef618>] driver_probe_device+0x60/0x1a4 drivers/base/dd.c:782
+[<ffffffff813f02f4>] __device_attach_driver+0x17c/0x224 drivers/base/dd.c:899
+[<ffffffff813e9f2c>] bus_for_each_drv+0x132/0x1a6 drivers/base/bus.c:427
+[<ffffffff813efc2a>] __device_attach+0x1e0/0x372 drivers/base/dd.c:970
+[<ffffffff813f06f6>] device_initial_probe+0x1c/0x26 drivers/base/dd.c:1017
+[<ffffffff813eca88>] bus_probe_device+0x144/0x154 drivers/base/bus.c:487
+[<ffffffff813e7012>] device_add+0x91e/0x129e drivers/base/core.c:3405
+[<ffffffff81a4f87a>] usb_set_configuration+0xafe/0xf6a drivers/usb/core/message.c:2170
+[<ffffffff81a6818a>] usb_generic_driver_probe+0xb2/0x122 drivers/usb/core/generic.c:238
+[<ffffffff81a52b94>] usb_probe_device+0xa8/0x204 drivers/usb/core/driver.c:293
+[<ffffffff813eebec>] call_driver_probe drivers/base/dd.c:517 [inline]
+[<ffffffff813eebec>] really_probe+0x1a6/0x89e drivers/base/dd.c:596
+[<ffffffff813ef52e>] __driver_probe_device+0x24a/0x2d4 drivers/base/dd.c:752
+[<ffffffff813ef618>] driver_probe_device+0x60/0x1a4 drivers/base/dd.c:782
+[<ffffffff813f02f4>] __device_attach_driver+0x17c/0x224 drivers/base/dd.c:899
+[<ffffffff813e9f2c>] bus_for_each_drv+0x132/0x1a6 drivers/base/bus.c:427
+[<ffffffff813efc2a>] __device_attach+0x1e0/0x372 drivers/base/dd.c:970
+[<ffffffff813f06f6>] device_initial_probe+0x1c/0x26 drivers/base/dd.c:1017
+[<ffffffff813eca88>] bus_probe_device+0x144/0x154 drivers/base/bus.c:487
+[<ffffffff813e7012>] device_add+0x91e/0x129e drivers/base/core.c:3405
+[<ffffffff81a3808a>] usb_new_device+0x5c8/0xd78 drivers/usb/core/hub.c:2566
+[<ffffffff81a3c4d6>] hub_port_connect drivers/usb/core/hub.c:5358 [inline]
+[<ffffffff81a3c4d6>] hub_port_connect_change drivers/usb/core/hub.c:5502 [inline]
+[<ffffffff81a3c4d6>] port_event drivers/usb/core/hub.c:5660 [inline]
+[<ffffffff81a3c4d6>] hub_event+0x1b3e/0x3364 drivers/usb/core/hub.c:5742
+[<ffffffff80093b44>] process_one_work+0x654/0xffe kernel/workqueue.c:2307
+[<ffffffff8009484e>] worker_thread+0x360/0x8fa kernel/workqueue.c:2454
+[<ffffffff800a7f58>] kthread+0x19e/0x1fa kernel/kthread.c:377
+[<ffffffff80005724>] ret_from_exception+0x0/0x10
+SMP: stopping secondary CPUs
+Rebooting in 86400 seconds..

@@ -1,0 +1,113 @@
+==================================================================
+BUG: KCSAN: data-race in mod_timer / run_timer_softirq
+
+read to 0xffff88812c01da88 of 8 bytes by interrupt on cpu 1:
+ __mod_timer kernel/time/timer.c:1026 [inline]
+ mod_timer+0x1ec/0x7a0 kernel/time/timer.c:1100
+ sk_reset_timer+0x2d/0xd0 net/core/sock.c:2840
+ inet_csk_reset_xmit_timer include/net/inet_connection_sock.h:234 [inline]
+ tcp_reset_xmit_timer include/net/tcp.h:1296 [inline]
+ tcp_rearm_rto net/ipv4/tcp_input.c:3011 [inline]
+ tcp_rearm_rto+0x1e7/0x2a0 net/ipv4/tcp_input.c:2987
+ tcp_event_new_data_sent+0x218/0x220 net/ipv4/tcp_output.c:77
+ tcp_write_xmit+0xa97/0x3190 net/ipv4/tcp_output.c:2448
+ __tcp_push_pending_frames+0x7b/0x1d0 net/ipv4/tcp_output.c:2617
+ tcp_push_pending_frames include/net/tcp.h:1827 [inline]
+ tcp_data_snd_check net/ipv4/tcp_input.c:5217 [inline]
+ tcp_rcv_established+0xda0/0xf50 net/ipv4/tcp_input.c:5626
+ tcp_v4_do_rcv+0x3b5/0x520 net/ipv4/tcp_ipv4.c:1562
+ tcp_v4_rcv+0x1b2a/0x1d20 net/ipv4/tcp_ipv4.c:1943
+ ip_protocol_deliver_rcu+0x4d/0x420 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish+0x110/0x140 net/ipv4/ip_input.c:231
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ip_local_deliver+0x133/0x210 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:442 [inline]
+ ip_sublist_rcv_finish+0xf8/0x140 net/ipv4/ip_input.c:549
+ ip_list_rcv_finish net/ipv4/ip_input.c:599 [inline]
+ ip_sublist_rcv+0x418/0x550 net/ipv4/ip_input.c:607
+ ip_list_rcv+0x2f5/0x322 net/ipv4/ip_input.c:642
+ __netif_receive_skb_list_ptype net/core/dev.c:5193 [inline]
+ __netif_receive_skb_list_ptype net/core/dev.c:5182 [inline]
+ __netif_receive_skb_list_core+0x350/0x5c0 net/core/dev.c:5241
+ __netif_receive_skb_list net/core/dev.c:5293 [inline]
+ netif_receive_skb_list_internal+0x5d8/0x830 net/core/dev.c:5388
+ gro_normal_list.part.0+0x3a/0xb0 net/core/dev.c:5810
+ gro_normal_list net/core/dev.c:6216 [inline]
+ napi_complete_done+0x1e4/0x3c0 net/core/dev.c:6203
+ virtqueue_napi_complete+0x3a/0xa0 drivers/net/virtio_net.c:329
+ virtnet_poll+0x7a6/0x7d0 drivers/net/virtio_net.c:1432
+ napi_poll net/core/dev.c:6532 [inline]
+ net_rx_action+0x3ae/0xa90 net/core/dev.c:6600
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0xbb/0xe0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ do_IRQ+0x81/0x130 arch/x86/kernel/irq.c:263
+ ret_from_intr+0x0/0x21
+ arch_local_irq_restore arch/x86/include/asm/paravirt.h:752 [inline]
+ kcsan_setup_watchpoint+0x1d4/0x460 kernel/kcsan/core.c:429
+ check_access kernel/kcsan/core.c:459 [inline]
+ __tsan_read8+0xc6/0x100 kernel/kcsan/core.c:589
+ generic_write_end+0x61/0x1f0 fs/buffer.c:2170
+ ext4_da_write_end+0x158/0x620 fs/ext4/inode.c:3091
+ generic_perform_write+0x1d3/0x320 mm/filemap.c:3320
+ ext4_buffered_write_iter+0x143/0x290 fs/ext4/file.c:252
+ ext4_file_write_iter+0xf4/0xd40 fs/ext4/file.c:547
+ call_write_iter include/linux/fs.h:1902 [inline]
+ do_iter_readv_writev+0x487/0x5b0 fs/read_write.c:693
+ do_iter_write fs/read_write.c:970 [inline]
+ do_iter_write+0x13b/0x3c0 fs/read_write.c:951
+ vfs_iter_write+0x5c/0x80 fs/read_write.c:983
+ iter_file_splice_write+0x530/0x840 fs/splice.c:760
+ do_splice_from fs/splice.c:863 [inline]
+ direct_splice_actor+0xa0/0xc0 fs/splice.c:1037
+ splice_direct_to_actor+0x22b/0x540 fs/splice.c:992
+ do_splice_direct+0x161/0x1e0 fs/splice.c:1080
+ do_sendfile+0x384/0x7f0 fs/read_write.c:1464
+ __do_sys_sendfile64 fs/read_write.c:1519 [inline]
+ __se_sys_sendfile64 fs/read_write.c:1511 [inline]
+ __x64_sys_sendfile64+0xbe/0x140 fs/read_write.c:1511
+ do_syscall_64+0xcc/0x3a0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+write to 0xffff88812c01da88 of 8 bytes by interrupt on cpu 0:
+ expire_timers kernel/time/timer.c:1445 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x496/0xcd0 kernel/time/timer.c:1786
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0xbb/0xe0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0xe6/0x280 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ is_atomic kernel/kcsan/core.c:174 [inline]
+ should_watch kernel/kcsan/core.c:203 [inline]
+ check_access kernel/kcsan/core.c:458 [inline]
+ __tsan_read1+0x8a/0x100 kernel/kcsan/core.c:586
+ tomoyo_domain_quota_is_ok+0xe9/0x2b0 security/tomoyo/util.c:1035
+ tomoyo_supervisor+0x22b/0xd20 security/tomoyo/common.c:2087
+ tomoyo_audit_path_log security/tomoyo/file.c:168 [inline]
+ tomoyo_path_permission security/tomoyo/file.c:587 [inline]
+ tomoyo_path_permission+0x121/0x160 security/tomoyo/file.c:573
+ tomoyo_check_open_permission+0x2fd/0x320 security/tomoyo/file.c:777
+ tomoyo_file_open security/tomoyo/tomoyo.c:319 [inline]
+ tomoyo_file_open+0x75/0x90 security/tomoyo/tomoyo.c:314
+ security_file_open+0x69/0x210 security/security.c:1497
+ do_dentry_open+0x211/0x970 fs/open.c:784
+ vfs_open+0x62/0x80 fs/open.c:914
+ do_last fs/namei.c:3420 [inline]
+ path_openat+0xf9f/0x3580 fs/namei.c:3537
+ do_filp_open+0x11e/0x1b0 fs/namei.c:3567
+ do_sys_open+0x3b3/0x4f0 fs/open.c:1097
+ __do_sys_open fs/open.c:1115 [inline]
+ __se_sys_open fs/open.c:1110 [inline]
+ __x64_sys_open+0x55/0x70 fs/open.c:1110
+ do_syscall_64+0xcc/0x3a0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 12210 Comm: syz-executor.3 Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

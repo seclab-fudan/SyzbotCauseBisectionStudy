@@ -1,0 +1,67 @@
+INFO: rcu_sched self-detected stall on CPU
+	0-...!: (124999 ticks this GP) idle=e9e/1/4611686018427387906 softirq=20143/20143 fqs=0 
+	 (t=125000 jiffies g=9955 c=9954 q=7)
+rcu_sched kthread starved for 125000 jiffies! g9955 c9954 f0x0 RCU_GP_WAIT_FQS(3) ->state=0x0 ->cpu=0
+RCU grace-period kthread stack dump:
+rcu_sched       R  running task    23896     9      2 0x80000000
+Call Trace:
+ context_switch kernel/sched/core.c:2859 [inline]
+ __schedule+0x801/0x1e30 kernel/sched/core.c:3501
+ schedule+0xef/0x430 kernel/sched/core.c:3545
+ schedule_timeout+0x138/0x240 kernel/time/timer.c:1801
+ rcu_gp_kthread+0x6b5/0x1940 kernel/rcu/tree.c:2231
+ kthread+0x345/0x410 kernel/kthread.c:240
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+NMI backtrace for cpu 0
+CPU: 0 PID: 4555 Comm: syz-executor826 Not tainted 4.17.0-rc6+ #67
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.4+0x19/0xce lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x151/0x192 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:156 [inline]
+ rcu_dump_cpu_stacks+0x175/0x1c2 kernel/rcu/tree.c:1376
+ print_cpu_stall kernel/rcu/tree.c:1525 [inline]
+ check_cpu_stall.isra.61.cold.80+0x36c/0x59a kernel/rcu/tree.c:1593
+ __rcu_pending kernel/rcu/tree.c:3356 [inline]
+ rcu_pending kernel/rcu/tree.c:3401 [inline]
+ rcu_check_callbacks+0x21b/0xad0 kernel/rcu/tree.c:2763
+ update_process_times+0x2d/0x70 kernel/time/timer.c:1636
+ tick_sched_handle+0x9f/0x180 kernel/time/tick-sched.c:164
+ tick_sched_timer+0x45/0x130 kernel/time/tick-sched.c:1274
+ __run_hrtimer kernel/time/hrtimer.c:1398 [inline]
+ __hrtimer_run_queues+0x3e3/0x10a0 kernel/time/hrtimer.c:1460
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x15d/0x710 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:lock_acquire+0x257/0x520 kernel/locking/lockdep.c:3923
+RSP: 0018:ffff8801ac7178f0 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: 1ffff100358e2f23 RCX: 0000000000000000
+RDX: 1ffffffff11a31ad RSI: ffff8801d9332d78 RDI: 0000000000000286
+RBP: ffff8801ac7179e0 R08: 0000000000000008 R09: 0000000000000004
+R10: ffff8801d9332e18 R11: ffff8801d9332540 R12: ffff8801d9332540
+R13: 0000000000000002 R14: 0000000000000000 R15: 0000000000000000
+ rcu_lock_acquire include/linux/rcupdate.h:246 [inline]
+ rcu_read_lock include/linux/rcupdate.h:632 [inline]
+ d_walk+0x49b/0xc80 fs/dcache.c:1303
+ shrink_dcache_parent+0x179/0x230 fs/dcache.c:1486
+ vfs_rmdir+0x202/0x470 fs/namei.c:3850
+ do_rmdir+0x523/0x610 fs/namei.c:3911
+ __do_sys_rmdir fs/namei.c:3929 [inline]
+ __se_sys_rmdir fs/namei.c:3927 [inline]
+ __x64_sys_rmdir+0x36/0x40 fs/namei.c:3927
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441437
+RSP: 002b:00007ffc44f5bd88 EFLAGS: 00000207 ORIG_RAX: 0000000000000054
+RAX: ffffffffffffffda RBX: 0000000000000065 RCX: 0000000000441437
+RDX: 0000000000000000 RSI: 00000000006cd858 RDI: 00007ffc44f5ce70
+RBP: 00007ffc44f5ce70 R08: 0000000000000000 R09: 0000000000000001
+R10: 0000000000000005 R11: 0000000000000207 R12: 00000000014bd8a0
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000

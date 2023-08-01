@@ -1,0 +1,29 @@
+BUG: memory leak
+unreferenced object 0xffff888122d87400 (size 1024):
+  comm "syz-executor.0", pid 8505, jiffies 4294980087 (age 20.250s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<0000000064d06a78>] kmalloc_array include/linux/slab.h:592 [inline]
+    [<0000000064d06a78>] kcalloc include/linux/slab.h:621 [inline]
+    [<0000000064d06a78>] veth_alloc_queues drivers/net/veth.c:1029 [inline]
+    [<0000000064d06a78>] veth_dev_init+0x88/0x150 drivers/net/veth.c:1056
+    [<000000008ec9a7bb>] register_netdevice+0x17f/0x8d0 net/core/dev.c:9976
+    [<000000004be6384a>] veth_newlink+0x2fc/0x500 drivers/net/veth.c:1390
+    [<00000000c50ef185>] __rtnl_newlink+0xa57/0xdc0 net/core/rtnetlink.c:3443
+    [<000000003be4d002>] rtnl_newlink+0x49/0x70 net/core/rtnetlink.c:3502
+    [<00000000e1675b5e>] rtnetlink_rcv_msg+0x1fc/0x520 net/core/rtnetlink.c:5564
+    [<00000000c1a885ce>] netlink_rcv_skb+0x87/0x1d0 net/netlink/af_netlink.c:2494
+    [<00000000f6811cb5>] netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
+    [<00000000f6811cb5>] netlink_unicast+0x392/0x4c0 net/netlink/af_netlink.c:1330
+    [<000000008159bca1>] netlink_sendmsg+0x368/0x6a0 net/netlink/af_netlink.c:1919
+    [<000000004bd252b8>] sock_sendmsg_nosec net/socket.c:652 [inline]
+    [<000000004bd252b8>] sock_sendmsg+0x56/0x80 net/socket.c:672
+    [<00000000ed9955f6>] __sys_sendto+0x15c/0x200 net/socket.c:1975
+    [<000000009f0ac067>] __do_sys_sendto net/socket.c:1987 [inline]
+    [<000000009f0ac067>] __se_sys_sendto net/socket.c:1983 [inline]
+    [<000000009f0ac067>] __x64_sys_sendto+0x26/0x30 net/socket.c:1983
+    [<00000000b1330c7d>] do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+    [<000000005f7f3892>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+

@@ -1,0 +1,65 @@
+usb 1-1: new high-speed USB device number 2 using dummy_hcd
+usb 1-1: New USB device found, idVendor=0eb1, idProduct=7007, bcdDevice= 2.05
+usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+usb 1-1: config 0 descriptor??
+general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.7.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+RIP: 0010:go7007_usb_probe+0x4ba/0x1d49 drivers/media/usb/go7007/go7007-usb.c:1145
+Code: c1 ee 03 80 3c 0e 00 0f 85 59 16 00 00 4c 8b a2 e8 05 00 00 48 b9 00 00 00 00 00 fc ff df 49 8d 7c 24 03 48 89 fe 48 c1 ee 03 <0f> b6 0c 0e 48 89 fe 83 e6 07 40 38 f1 7f 08 84 c9 0f 85 11 16 00
+RSP: 0018:ffff8881da21f110 EFLAGS: 00010246
+RAX: ffff8881cd9c4800 RBX: ffff8881c5f7b000 RCX: dffffc0000000000
+RDX: ffff8881c5f7a000 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: ffff8881c3634000 R08: 0000000000000001 R09: fffffbfff126c8c6
+R10: ffffffff8936462f R11: fffffbfff126c8c5 R12: 0000000000000000
+R13: ffff8881c5f7a0a0 R14: ffff8881d9032100 R15: ffffffff86789720
+FS:  0000000000000000(0000) GS:ffff8881db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9e79e09000 CR3: 00000001c7973000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ usb_probe_interface+0x310/0x800 drivers/usb/core/driver.c:374
+ really_probe+0x290/0xac0 drivers/base/dd.c:520
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:697
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:804
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x21a/0x390 drivers/base/dd.c:870
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1367/0x1c40 drivers/base/core.c:2538
+ usb_set_configuration+0xed4/0x1850 drivers/usb/core/message.c:2032
+ usb_generic_driver_probe+0x9d/0xe0 drivers/usb/core/generic.c:241
+ usb_probe_device+0xd9/0x230 drivers/usb/core/driver.c:272
+ really_probe+0x290/0xac0 drivers/base/dd.c:520
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:697
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:804
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x21a/0x390 drivers/base/dd.c:870
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1367/0x1c40 drivers/base/core.c:2538
+ usb_new_device.cold+0x552/0xf6e drivers/usb/core/hub.c:2554
+ hub_port_connect drivers/usb/core/hub.c:5208 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5348 [inline]
+ port_event drivers/usb/core/hub.c:5494 [inline]
+ hub_event+0x226d/0x43c0 drivers/usb/core/hub.c:5576
+ process_one_work+0x965/0x1630 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x326/0x430 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:351
+Modules linked in:
+---[ end trace 1f3abb564b3c9839 ]---
+RIP: 0010:go7007_usb_probe+0x4ba/0x1d49 drivers/media/usb/go7007/go7007-usb.c:1145
+Code: c1 ee 03 80 3c 0e 00 0f 85 59 16 00 00 4c 8b a2 e8 05 00 00 48 b9 00 00 00 00 00 fc ff df 49 8d 7c 24 03 48 89 fe 48 c1 ee 03 <0f> b6 0c 0e 48 89 fe 83 e6 07 40 38 f1 7f 08 84 c9 0f 85 11 16 00
+RSP: 0018:ffff8881da21f110 EFLAGS: 00010246
+RAX: ffff8881cd9c4800 RBX: ffff8881c5f7b000 RCX: dffffc0000000000
+RDX: ffff8881c5f7a000 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: ffff8881c3634000 R08: 0000000000000001 R09: fffffbfff126c8c6
+R10: ffffffff8936462f R11: fffffbfff126c8c5 R12: 0000000000000000
+R13: ffff8881c5f7a0a0 R14: ffff8881d9032100 R15: ffffffff86789720
+FS:  0000000000000000(0000) GS:ffff8881db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9e79e09000 CR3: 0000000007024000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

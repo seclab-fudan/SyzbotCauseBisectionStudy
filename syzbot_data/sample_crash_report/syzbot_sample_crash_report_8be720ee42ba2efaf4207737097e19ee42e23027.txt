@@ -1,0 +1,121 @@
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+==================================================================
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail.cold.4+0xa/0x1a lib/fault-inject.c:149
+BUG: KASAN: use-after-free in alloc_pid+0x9e8/0xa50 kernel/pid.c:236
+Read of size 4 at addr ffff8801ad357898 by task syzkaller392486/4543
+
+ __should_failslab+0x124/0x180 mm/failslab.c:32
+ should_failslab+0x9/0x14 mm/slab_common.c:1522
+ slab_pre_alloc_hook mm/slab.h:423 [inline]
+ slab_alloc mm/slab.c:3378 [inline]
+ kmem_cache_alloc+0x2af/0x760 mm/slab.c:3552
+ __d_alloc+0xc1/0xc00 fs/dcache.c:1624
+ d_alloc+0x8e/0x370 fs/dcache.c:1702
+ d_alloc_name+0xb3/0x110 fs/dcache.c:1756
+ proc_setup_self+0xbe/0x375 fs/proc/self.c:43
+ proc_fill_super+0x24d/0x2f5 fs/proc/inode.c:514
+ mount_ns+0x12a/0x1d0 fs/super.c:1036
+ proc_mount+0x73/0xa0 fs/proc/root.c:101
+ mount_fs+0xae/0x328 fs/super.c:1222
+ vfs_kern_mount.part.34+0xd4/0x4d0 fs/namespace.c:1037
+ vfs_kern_mount fs/namespace.c:3303 [inline]
+ kern_mount_data+0x50/0xc0 fs/namespace.c:3303
+ pid_ns_prepare_proc+0x1e/0x90 fs/proc/root.c:222
+ alloc_pid+0x8cf/0xa50 kernel/pid.c:208
+ copy_process.part.38+0x36bf/0x6ee0 kernel/fork.c:1809
+ copy_process kernel/fork.c:1608 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2089
+ SYSC_clone kernel/fork.c:2196 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2190
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x442639
+RSP: 002b:00007ffd890f8138 EFLAGS: 00000206 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 0000000000442639
+RDX: 00000000200008c0 RSI: 0000000020000800 RDI: 000000002000c100
+RBP: 00007ffd890f8250 R08: 0000000020000940 R09: 0000000400000000
+R10: 0000000020000900 R11: 0000000000000206 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000001380 R15: 00007ffd890f8278
+CPU: 1 PID: 4543 Comm: syzkaller392486 Not tainted 4.16.0+ #17
+proc_fill_super: can't allocate /proc/self
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0xac/0x2f5 mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ alloc_pid+0x9e8/0xa50 kernel/pid.c:236
+ copy_process.part.38+0x36bf/0x6ee0 kernel/fork.c:1809
+ copy_process kernel/fork.c:1608 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2089
+ SYSC_clone kernel/fork.c:2196 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2190
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x442639
+RSP: 002b:00007ffd890f8138 EFLAGS: 00000206 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000442639
+RDX: 00000000200008c0 RSI: 0000000020000800 RDI: 000000002000c100
+RBP: 00007ffd890f8250 R08: 0000000020000940 R09: 0000000000000000
+R10: 0000000020000900 R11: 0000000000000206 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 00007ffd890f8278
+
+Allocated by task 4543:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ kmem_cache_zalloc include/linux/slab.h:691 [inline]
+ create_pid_namespace kernel/pid_namespace.c:97 [inline]
+ copy_pid_ns+0x2c3/0xb40 kernel/pid_namespace.c:156
+ create_new_namespaces+0x48a/0x8f0 kernel/nsproxy.c:94
+ copy_namespaces+0x3f7/0x4c0 kernel/nsproxy.c:165
+ copy_process.part.38+0x353a/0x6ee0 kernel/fork.c:1798
+ copy_process kernel/fork.c:1608 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2089
+ SYSC_clone kernel/fork.c:2196 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2190
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 4397:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+ delayed_free_pidns+0xaa/0xe0 kernel/pid_namespace.c:138
+ __rcu_reclaim kernel/rcu/rcu.h:178 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2675 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2930 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2897 [inline]
+ rcu_process_callbacks+0x941/0x15f0 kernel/rcu/tree.c:2914
+ __do_softirq+0x2e0/0xaf5 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801ad357850
+ which belongs to the cache pid_namespace of size 240
+The buggy address is located 72 bytes inside of
+ 240-byte region [ffff8801ad357850, ffff8801ad357940)
+The buggy address belongs to the page:
+page:ffffea0006b4d5c0 count:1 mapcount:0 mapping:ffff8801ad357000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801ad357000 0000000000000000 000000010000000d
+raw: ffffea0007641de0 ffff8801d47f3248 ffff8801d4f030c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ad357780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801ad357800: 00 00 fc fc fc fc fc fc fc fc fb fb fb fb fb fb
+>ffff8801ad357880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff8801ad357900: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801ad357980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

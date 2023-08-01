@@ -1,0 +1,751 @@
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 0 PID: 10139 Comm: bpf_preload Not tainted 5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9130 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 0000000000000000 R09: 00000000009b9130
+R10: 00007fff2985e64c R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_sk_storage_map_iter_init+0x6a/0x85 net/core/bpf_sk_storage.c:942
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 0 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9130 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 0000000000000000 R09: 00000000009b9130
+R10: 00007fff2985e64c R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_sockmap_iter_init+0x6a/0x85 net/core/sock_map.c:1601
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 0 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9130 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 0000000000000000 R09: 00000000009b9130
+R10: 00007fff2985e64c R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_prog_iter_init+0x6a/0x85 kernel/bpf/prog_iter.c:104
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 0 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9130 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 0000000000000000 R09: 00000000009b9130
+R10: 00007fff2985e64c R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ task_iter_init+0x141/0x1b7 kernel/bpf/task_iter.c:342
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 0 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9130 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 0000000000000000 R09: 00000000009b9130
+R10: 00007fff2985e64c R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ task_iter_init+0x6c/0x1b7 kernel/bpf/task_iter.c:336
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 0 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9130 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 0000000000000000 R09: 00000000009b9130
+R10: 00007fff2985e64c R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_map_iter_init+0xd4/0x11e kernel/bpf/map_iter.c:192
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 0 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9130 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 0000000000000000 R09: 00000000009b9130
+R10: 00007fff2985e64c R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_map_iter_init+0x6f/0x11e kernel/bpf/map_iter.c:188
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 1 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9050 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 00007fff2985e64c R09: 00000000009b9050
+R10: 0000000000050b00 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_sk_storage_map_iter_init+0x6a/0x85 net/core/bpf_sk_storage.c:942
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 1 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9050 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 00007fff2985e64c R09: 00000000009b9050
+R10: 0000000000050b00 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_sockmap_iter_init+0x6a/0x85 net/core/sock_map.c:1601
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+CPU: 1 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_prog_supported+0x3dd/0x6a0 kernel/bpf/bpf_iter.c:343
+ check_attach_btf_id kernel/bpf/verifier.c:11911 [inline]
+ bpf_check+0x11650/0x1c220 kernel/bpf/verifier.c:12039
+ bpf_prog_load kernel/bpf/syscall.c:2204 [inline]
+ __do_sys_bpf+0x16fc9/0x1a840 kernel/bpf/syscall.c:4382
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985e388 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b9050 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985e440 RDI: 0000000000000005
+RBP: 00007fff2985e500 R08: 00007fff2985e64c R09: 00000000009b9050
+R10: 0000000000050b00 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000ffffff R14: 00007fff2985e470 R15: 00007fff2985e440
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_prog_iter_init+0x6a/0x85 kernel/bpf/prog_iter.c:104
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+CPU: 1 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+ link_create kernel/bpf/syscall.c:4003 [inline]
+ __do_sys_bpf+0x844c/0x1a840 kernel/bpf/syscall.c:4452
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985fcd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009ba8c0 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985fce0 RDI: 000000000000001c
+RBP: 0000000000000006 R08: 0000000000000000 R09: 0000000000000006
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000009b9110
+R13: 0000000000000000 R14: 00000000009b9280 R15: 00000000009b9280
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_sk_storage_map_iter_init+0x6a/0x85 net/core/bpf_sk_storage.c:942
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+CPU: 1 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+ link_create kernel/bpf/syscall.c:4003 [inline]
+ __do_sys_bpf+0x844c/0x1a840 kernel/bpf/syscall.c:4452
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985fcd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009ba8c0 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985fce0 RDI: 000000000000001c
+RBP: 0000000000000006 R08: 0000000000000000 R09: 0000000000000006
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000009b9110
+R13: 0000000000000000 R14: 00000000009b9280 R15: 00000000009b9280
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_sockmap_iter_init+0x6a/0x85 net/core/sock_map.c:1601
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+CPU: 1 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+ link_create kernel/bpf/syscall.c:4003 [inline]
+ __do_sys_bpf+0x844c/0x1a840 kernel/bpf/syscall.c:4452
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985fcd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009ba8c0 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985fce0 RDI: 000000000000001c
+RBP: 0000000000000006 R08: 0000000000000000 R09: 0000000000000006
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000009b9110
+R13: 0000000000000000 R14: 00000000009b9280 R15: 00000000009b9280
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ task_iter_init+0x141/0x1b7 kernel/bpf/task_iter.c:342
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+CPU: 1 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+ link_create kernel/bpf/syscall.c:4003 [inline]
+ __do_sys_bpf+0x844c/0x1a840 kernel/bpf/syscall.c:4452
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985fcd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009ba8c0 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985fce0 RDI: 000000000000001c
+RBP: 0000000000000006 R08: 0000000000000000 R09: 0000000000000006
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000009b9110
+R13: 0000000000000000 R14: 00000000009b9280 R15: 00000000009b9280
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ task_iter_init+0x6c/0x1b7 kernel/bpf/task_iter.c:336
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+CPU: 1 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+ link_create kernel/bpf/syscall.c:4003 [inline]
+ __do_sys_bpf+0x844c/0x1a840 kernel/bpf/syscall.c:4452
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985fcd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009ba8c0 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985fce0 RDI: 000000000000001c
+RBP: 0000000000000006 R08: 0000000000000000 R09: 0000000000000006
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000009b9110
+R13: 0000000000000000 R14: 00000000009b9280 R15: 00000000009b9280
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_map_iter_init+0xd4/0x11e kernel/bpf/map_iter.c:192
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+CPU: 0 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+ link_create kernel/bpf/syscall.c:4003 [inline]
+ __do_sys_bpf+0x844c/0x1a840 kernel/bpf/syscall.c:4452
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985fcd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b90b0 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985fce0 RDI: 000000000000001c
+RBP: 0000000000000007 R08: 0000000000000000 R09: 0000000000000007
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000009b9030
+R13: 0000000000000001 R14: 00000000009b9358 R15: 00000000009b9358
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_sk_storage_map_iter_init+0x6a/0x85 net/core/bpf_sk_storage.c:942
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================
+=====================================================
+BUG: KMSAN: uninit-value in bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+CPU: 0 PID: 10139 Comm: bpf_preload Tainted: G    B             5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:197
+ bpf_iter_link_attach+0x509/0xa30 kernel/bpf/bpf_iter.c:510
+ link_create kernel/bpf/syscall.c:4003 [inline]
+ __do_sys_bpf+0x844c/0x1a840 kernel/bpf/syscall.c:4452
+ __se_sys_bpf+0x8e/0xa0 kernel/bpf/syscall.c:4340
+ __x64_sys_bpf+0x4a/0x70 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7f8e51e3d469
+Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ff 49 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fff2985fcd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000009b90b0 RCX: 00007f8e51e3d469
+RDX: 0000000000000078 RSI: 00007fff2985fce0 RDI: 000000000000001c
+RBP: 0000000000000007 R08: 0000000000000000 R09: 0000000000000007
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000009b9030
+R13: 0000000000000001 R14: 00000000009b9358 R15: 00000000009b9358
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8d/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2907 [inline]
+ slab_alloc mm/slub.c:2916 [inline]
+ kmem_cache_alloc_trace+0x8ca/0x1020 mm/slub.c:2933
+ kmalloc include/linux/slab.h:552 [inline]
+ bpf_iter_reg_target+0x81/0x3f0 kernel/bpf/bpf_iter.c:290
+ bpf_sockmap_iter_init+0x6a/0x85 net/core/sock_map.c:1601
+ do_one_initcall+0x362/0x8d0 init/main.c:1226
+ do_initcall_level+0x1e7/0x35a init/main.c:1299
+ do_initcalls+0x127/0x1cb init/main.c:1315
+ do_basic_setup+0x33/0x36 init/main.c:1335
+ kernel_init_freeable+0x23d/0x390 init/main.c:1536
+ kernel_init+0x1f/0x840 init/main.c:1424
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+=====================================================

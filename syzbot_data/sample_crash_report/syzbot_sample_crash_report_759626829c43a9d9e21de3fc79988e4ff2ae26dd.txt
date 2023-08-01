@@ -1,0 +1,33 @@
+------------[ cut here ]------------
+refcount_t: decrement hit 0; leaking memory.
+WARNING: CPU: 0 PID: 13 at lib/refcount.c:31 refcount_warn_saturate+0x17c/0x1a0 lib/refcount.c:31
+Modules linked in:
+CPU: 0 PID: 13 Comm: ksoftirqd/0 Not tainted 5.16.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:refcount_warn_saturate+0x17c/0x1a0 lib/refcount.c:31
+Code: d5 8a 31 c0 e8 a5 47 38 fd 0f 0b e9 64 ff ff ff e8 f9 6d 6e fd c6 05 34 3c d5 09 01 48 c7 c7 80 02 d5 8a 31 c0 e8 84 47 38 fd <0f> 0b e9 43 ff ff ff 89 d9 80 e1 07 80 c1 03 38 c1 0f 8c a2 fe ff
+RSP: 0000:ffffc90000d27a58 EFLAGS: 00010246
+RAX: 48e9c2b90499d800 RBX: 0000000000000004 RCX: ffff888011fe8000
+RDX: 0000000000000100 RSI: 0000000000000100 RDI: 0000000000000000
+RBP: 0000000000000004 R08: ffffffff8169fd72 R09: ffffed10173467b1
+R10: ffffed10173467b1 R11: 0000000000000000 R12: dffffc0000000000
+R13: ffff88806f012000 R14: ffff88806f0125b0 R15: ffff88806cd74800
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f252537b210 CR3: 0000000076574000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __refcount_dec include/linux/refcount.h:344 [inline]
+ refcount_dec include/linux/refcount.h:359 [inline]
+ dev_put include/linux/netdevice.h:4166 [inline]
+ in_dev_finish_destroy+0x16d/0x190 net/ipv4/devinet.c:246
+ rcu_do_batch kernel/rcu/tree.c:2506 [inline]
+ rcu_core+0x9b8/0x1610 kernel/rcu/tree.c:2741
+ __do_softirq+0x392/0x7a3 kernel/softirq.c:558
+ run_ksoftirqd+0xc1/0x120 kernel/softirq.c:920
+ smpboot_thread_fn+0x533/0x9d0 kernel/smpboot.c:164
+ kthread+0x468/0x490 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+ </TASK>

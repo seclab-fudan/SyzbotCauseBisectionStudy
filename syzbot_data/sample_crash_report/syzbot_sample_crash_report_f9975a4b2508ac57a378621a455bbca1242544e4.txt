@@ -1,0 +1,125 @@
+==================================================================
+BUG: KASAN: use-after-free in psock_write_space+0x143/0x160 net/kcm/kcmsock.c:418
+Read of size 8 at addr ffff8801bb731d20 by task syzkaller858097/3665
+
+CPU: 0 PID: 3665 Comm: syzkaller858097 Not tainted 4.15.0-rc8+ #263
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ psock_write_space+0x143/0x160 net/kcm/kcmsock.c:418
+ sock_wfree+0x10b/0x140 net/core/sock.c:1805
+ skb_orphan include/linux/skbuff.h:2521 [inline]
+ loopback_xmit+0x12e/0x6b0 drivers/net/loopback.c:78
+ __netdev_start_xmit include/linux/netdevice.h:4042 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4051 [inline]
+ xmit_one net/core/dev.c:3003 [inline]
+ dev_hard_start_xmit+0x24e/0xac0 net/core/dev.c:3019
+ __dev_queue_xmit+0x206d/0x2920 net/core/dev.c:3500
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3533
+ neigh_hh_output include/net/neighbour.h:472 [inline]
+ neigh_output include/net/neighbour.h:480 [inline]
+ ip6_finish_output2+0x1498/0x23a0 net/ipv6/ip6_output.c:120
+ ip6_finish_output+0x302/0x930 net/ipv6/ip6_output.c:146
+ NF_HOOK_COND include/linux/netfilter.h:239 [inline]
+ ip6_output+0x1eb/0x840 net/ipv6/ip6_output.c:163
+ dst_output include/net/dst.h:460 [inline]
+ NF_HOOK include/linux/netfilter.h:250 [inline]
+ ip6_xmit+0xd84/0x2090 net/ipv6/ip6_output.c:269
+ inet6_csk_xmit+0x2fc/0x580 net/ipv6/inet6_connection_sock.c:139
+ dccp_transmit_skb+0x9ac/0x10f0 net/dccp/output.c:142
+ dccp_send_reset+0x21c/0x2a0 net/dccp/output.c:530
+ dccp_disconnect+0x90e/0xbb0 net/dccp/proto.c:276
+ inet_child_forget+0x6b/0x320 net/ipv4/inet_connection_sock.c:899
+ inet_csk_listen_stop+0x128/0x920 net/ipv4/inet_connection_sock.c:987
+ dccp_close+0x780/0xc20 net/dccp/proto.c:1007
+ inet_release+0xed/0x1c0 net/ipv4/af_inet.c:426
+ inet6_release+0x50/0x70 net/ipv6/af_inet6.c:432
+ sock_release+0x8d/0x1e0 net/socket.c:602
+ sock_close+0x16/0x20 net/socket.c:1131
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x73f/0x16c0 kernel/signal.c:2335
+ do_signal+0x90/0x1eb0 arch/x86/kernel/signal.c:809
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x9e/0xa0
+RIP: 0033:0x445819
+RSP: 002b:00007fad17780da8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 00000000006dac3c RCX: 0000000000445819
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00000000006dac3c
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dac38
+R13: 0100000000000000 R14: 656c6c616b7a7973 R15: 000000000000000b
+
+Allocated by task 3664:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3544
+ kmem_cache_zalloc include/linux/slab.h:678 [inline]
+ kcm_attach net/kcm/kcmsock.c:1394 [inline]
+ kcm_attach_ioctl net/kcm/kcmsock.c:1460 [inline]
+ kcm_ioctl+0x2d2/0x1690 net/kcm/kcmsock.c:1665
+ sock_do_ioctl+0x65/0xb0 net/socket.c:966
+ sock_ioctl+0x2c2/0x440 net/socket.c:1063
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 3665:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3746
+ kcm_unattach+0xe53/0x1510 net/kcm/kcmsock.c:1563
+ release_mux net/kcm/kcmsock.c:1727 [inline]
+ kcm_done+0x5c7/0x1990 net/kcm/kcmsock.c:1787
+ kcm_release+0x478/0x860 net/kcm/kcmsock.c:1861
+ sock_release+0x8d/0x1e0 net/socket.c:602
+ sock_close+0x16/0x20 net/socket.c:1131
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x73f/0x16c0 kernel/signal.c:2335
+ do_signal+0x90/0x1eb0 arch/x86/kernel/signal.c:809
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x9e/0xa0
+
+The buggy address belongs to the object at ffff8801bb731bc0
+ which belongs to the cache kcm_psock_cache of size 544
+The buggy address is located 352 bytes inside of
+ 544-byte region [ffff8801bb731bc0, ffff8801bb731de0)
+The buggy address belongs to the page:
+page:ffffea0006edcc00 count:1 mapcount:0 mapping:ffff8801bb730040 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801bb730040 0000000000000000 000000010000000b
+raw: ffff8801d3271348 ffff8801d3271348 ffff8801d3255780 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bb731c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bb731c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801bb731d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                               ^
+ ffff8801bb731d80: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff8801bb731e00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

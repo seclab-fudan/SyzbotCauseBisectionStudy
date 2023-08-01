@@ -1,0 +1,75 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/l1tf.html for details.
+general protection fault, probably for non-canonical address 0xdffffc000000001d: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x00000000000000e8-0x00000000000000ef]
+CPU: 0 PID: 3601 Comm: syz-executor163 Not tainted 5.19.0-rc4-next-20220627-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:kvm_vcpu_ioctl_x86_setup_mce arch/x86/kvm/x86.c:4899 [inline]
+RIP: 0010:kvm_arch_vcpu_ioctl+0x10d1/0x3d40 arch/x86/kvm/x86.c:5608
+Code: 80 3c 02 00 0f 85 91 28 00 00 4d 8b ac 24 b0 02 00 00 48 b8 00 00 00 00 00 fc ff df 49 8d bd ec 00 00 00 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 62
+RSP: 0018:ffffc90002eaf960 EFLAGS: 00010207
+RAX: dffffc0000000000 RBX: 0000000000000006 RCX: 0000000000000000
+RDX: 000000000000001d RSI: ffffffff8110c6ee RDI: 00000000000000ec
+RBP: ffffc90002eafd20 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000000 R11: 1ffffffff1fc765f R12: ffff888078e10000
+R13: 0000000000000000 R14: 1ffff920005d5f36 R15: dffffc0000000000
+FS:  0000555556de0300(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fc02f8affb8 CR3: 0000000075d2c000 CR4: 00000000003526f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ kvm_vcpu_ioctl+0x973/0xf30 arch/x86/kvm/../../../virt/kvm/kvm_main.c:4200
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+RIP: 0033:0x7fc02f868b69
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffcc8febd88 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fc02f868b69
+RDX: 0000000020000040 RSI: 000000004008ae9c RDI: 0000000000000005
+RBP: 00007fc02f82cd10 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fc02f82cda0
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:kvm_vcpu_ioctl_x86_setup_mce arch/x86/kvm/x86.c:4899 [inline]
+RIP: 0010:kvm_arch_vcpu_ioctl+0x10d1/0x3d40 arch/x86/kvm/x86.c:5608
+Code: 80 3c 02 00 0f 85 91 28 00 00 4d 8b ac 24 b0 02 00 00 48 b8 00 00 00 00 00 fc ff df 49 8d bd ec 00 00 00 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 62
+RSP: 0018:ffffc90002eaf960 EFLAGS: 00010207
+RAX: dffffc0000000000 RBX: 0000000000000006 RCX: 0000000000000000
+RDX: 000000000000001d RSI: ffffffff8110c6ee RDI: 00000000000000ec
+RBP: ffffc90002eafd20 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000000 R11: 1ffffffff1fc765f R12: ffff888078e10000
+R13: 0000000000000000 R14: 1ffff920005d5f36 R15: dffffc0000000000
+FS:  0000555556de0300(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000056206923aa70 CR3: 0000000075d2c000 CR4: 00000000003526e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+   4:	0f 85 91 28 00 00    	jne    0x289b
+   a:	4d 8b ac 24 b0 02 00 	mov    0x2b0(%r12),%r13
+  11:	00
+  12:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  19:	fc ff df
+  1c:	49 8d bd ec 00 00 00 	lea    0xec(%r13),%rdi
+  23:	48 89 fa             	mov    %rdi,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	0f b6 14 02          	movzbl (%rdx,%rax,1),%edx <-- trapping instruction
+  2e:	48 89 f8             	mov    %rdi,%rax
+  31:	83 e0 07             	and    $0x7,%eax
+  34:	83 c0 03             	add    $0x3,%eax
+  37:	38 d0                	cmp    %dl,%al
+  39:	7c 08                	jl     0x43
+  3b:	84 d2                	test   %dl,%dl
+  3d:	0f                   	.byte 0xf
+  3e:	85                   	.byte 0x85
+  3f:	62                   	.byte 0x62

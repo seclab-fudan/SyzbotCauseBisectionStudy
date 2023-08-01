@@ -1,0 +1,48 @@
+audit: type=1400 audit(1515570465.495:9): avc:  denied  { prog_run } for  pid=3493 comm="syzkaller448397" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=bpf permissive=1
+------------[ cut here ]------------
+kernel BUG at net/l2tp/l2tp_ppp.c:176!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 3493 Comm: syzkaller448397 Not tainted 4.15.0-rc7+ #255
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:pppol2tp_sock_to_session net/l2tp/l2tp_ppp.c:176 [inline]
+RIP: 0010:pppol2tp_sendmsg+0x512/0x670 net/l2tp/l2tp_ppp.c:304
+RSP: 0018:ffff8801c045f438 EFLAGS: 00010293
+RAX: ffff8801c009c140 RBX: ffff8801c01f4580 RCX: ffffffff84fd4842
+RDX: 0000000000000000 RSI: ffff8801c045f598 RDI: ffff8801c01f4960
+RBP: ffff8801c045f4a8 R08: 0000000000000000 R09: 1ffff1003808be17
+R10: 0000000000000003 R11: 0000000000000001 R12: ffff8801c052fbc0
+R13: 0000000000000000 R14: 0000000000008000 R15: 0000000000000000
+FS:  00000000011ec880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020ea0000 CR3: 00000001c098a004 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:646
+ kernel_sendmsg+0x47/0x60 net/socket.c:654
+ sock_no_sendpage+0x1cc/0x280 net/core/sock.c:2571
+ kernel_sendpage+0xbf/0xe0 net/socket.c:3366
+ kcm_write_msgs+0x404/0x1b80 net/kcm/kcmsock.c:646
+ kcm_sendmsg+0x148d/0x22d0 net/kcm/kcmsock.c:1035
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:646
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2026
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2060
+ SYSC_sendmsg net/socket.c:2071 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2067
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x440159
+RSP: 002b:00007ffde0df83f8 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000440159
+RDX: 0000000000000000 RSI: 00000000201fcfc8 RDI: 0000000000000005
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000401ac0
+R13: 0000000000401b50 R14: 0000000000000000 R15: 0000000000000000
+Code: 65 cf 72 fc 48 8b 7d d0 e8 6c 45 5d fd 84 c0 74 0d e8 53 cf 72 fc 48 89 df e8 5b 9b 30 ff 41 bd f7 ff ff ff eb 86 e8 3e cf 72 fc <0f> 0b 41 bd 95 ff ff ff e9 74 ff ff ff e8 5c be a9 fc e9 77 fb 
+RIP: pppol2tp_sock_to_session net/l2tp/l2tp_ppp.c:176 [inline] RSP: ffff8801c045f438
+RIP: pppol2tp_sendmsg+0x512/0x670 net/l2tp/l2tp_ppp.c:304 RSP: ffff8801c045f438
+---[ end trace 2854fd2630fc8815 ]---

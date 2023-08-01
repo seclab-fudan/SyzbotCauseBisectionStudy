@@ -1,0 +1,97 @@
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+	(detected by 0, t=10502 jiffies, g=11281, q=21)
+rcu: All QSes seen, last rcu_preempt kthread activity 10502 (4295032521-4295022019), jiffies_till_next_fqs=1, root ->qsmask 0x0
+rcu: rcu_preempt kthread starved for 10502 jiffies! g11281 f0x2 RCU_GP_WAIT_FQS(5) ->state=0x0 ->cpu=0
+rcu: 	Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+rcu: RCU grace-period kthread stack dump:
+task:rcu_preempt     state:R  running task     stack:28688 pid:   14 ppid:     2 flags:0x00004000
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:4984 [inline]
+ __schedule+0xa9a/0x4940 kernel/sched/core.c:6265
+ schedule+0xd2/0x260 kernel/sched/core.c:6338
+ schedule_timeout+0x14a/0x2a0 kernel/time/timer.c:1881
+ rcu_gp_fqs_loop+0x186/0x810 kernel/rcu/tree.c:1966
+ rcu_gp_kthread+0x1de/0x320 kernel/rcu/tree.c:2139
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+rcu: Stack dump where RCU GP kthread last ran:
+NMI backtrace for cpu 0
+CPU: 0 PID: 8 Comm: kworker/u4:0 Not tainted 5.15.0-rc7-next-20211029-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound io_ring_exit_work
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x47/0x144 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1ae/0x220 lib/nmi_backtrace.c:62
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_check_gp_kthread_starvation.cold+0x1fb/0x200 kernel/rcu/tree_stall.h:458
+ print_other_cpu_stall kernel/rcu/tree_stall.h:563 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:706 [inline]
+ rcu_pending kernel/rcu/tree.c:3922 [inline]
+ rcu_sched_clock_irq+0x2125/0x2200 kernel/rcu/tree.c:2620
+ update_process_times+0x16d/0x200 kernel/time/timer.c:1785
+ tick_sched_handle+0x9b/0x180 kernel/time/tick-sched.c:226
+ tick_sched_timer+0x1b0/0x2d0 kernel/time/tick-sched.c:1428
+ __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+ __hrtimer_run_queues+0x1c0/0xe50 kernel/time/hrtimer.c:1749
+ hrtimer_interrupt+0x31c/0x790 kernel/time/hrtimer.c:1811
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1086 [inline]
+ __sysvec_apic_timer_interrupt+0x146/0x530 arch/x86/kernel/apic/apic.c:1103
+ sysvec_apic_timer_interrupt+0x8e/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:__sanitizer_cov_trace_cmp8+0x0/0x70 kernel/kcov.c:266
+Code: fe 72 22 44 89 c6 48 83 c2 01 48 89 4c 38 f0 48 c7 44 38 e0 04 00 00 00 48 89 74 38 e8 4e 89 54 c8 20 48 89 10 c3 0f 1f 40 00 <49> 89 f8 bf 03 00 00 00 4c 8b 14 24 48 89 f1 65 48 8b 34 25 40 70
+RSP: 0018:ffffc90000cd7a40 EFLAGS: 00000207
+RAX: 0000000000000000 RBX: ffff888081a80cc0 RCX: 0000000000000000
+RDX: ffff888010a657c0 RSI: 0000000081a80cc0 RDI: ffff888101a80cc0
+RBP: ffff888101a80cc0 R08: ffff888081a80cc0 R09: ffffffff8fa48acf
+R10: ffffffff81350cb8 R11: 000000000000003f R12: 0000000081a80cc0
+R13: ffffffff81bdef86 R14: ffffc90000cd7b18 R15: ffff888081a80cc0
+ __phys_addr+0x4e/0x140 arch/x86/mm/physaddr.c:28
+ virt_to_head_page include/linux/mm.h:861 [inline]
+ ____kasan_slab_free mm/kasan/common.c:344 [inline]
+ __kasan_slab_free+0x38/0x130 mm/kasan/common.c:374
+ kasan_slab_free include/linux/kasan.h:235 [inline]
+ slab_free_hook mm/slub.c:1723 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1749
+ slab_free mm/slub.c:3513 [inline]
+ kfree+0xf6/0x560 mm/slub.c:4561
+ __io_remove_buffers.part.0+0x115/0x220 fs/io_uring.c:4328
+ __io_remove_buffers fs/io_uring.c:9272 [inline]
+ io_destroy_buffers fs/io_uring.c:9272 [inline]
+ io_ring_ctx_free fs/io_uring.c:9328 [inline]
+ io_ring_exit_work+0x74d/0xbe8 fs/io_uring.c:9504
+ process_one_work+0x9b2/0x1690 kernel/workqueue.c:2298
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2445
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+----------------
+Code disassembly (best guess), 1 bytes skipped:
+   0:	72 22                	jb     0x24
+   2:	44 89 c6             	mov    %r8d,%esi
+   5:	48 83 c2 01          	add    $0x1,%rdx
+   9:	48 89 4c 38 f0       	mov    %rcx,-0x10(%rax,%rdi,1)
+   e:	48 c7 44 38 e0 04 00 	movq   $0x4,-0x20(%rax,%rdi,1)
+  15:	00 00
+  17:	48 89 74 38 e8       	mov    %rsi,-0x18(%rax,%rdi,1)
+  1c:	4e 89 54 c8 20       	mov    %r10,0x20(%rax,%r9,8)
+  21:	48 89 10             	mov    %rdx,(%rax)
+  24:	c3                   	retq
+  25:	0f 1f 40 00          	nopl   0x0(%rax)
+* 29:	49 89 f8             	mov    %rdi,%r8 <-- trapping instruction
+  2c:	bf 03 00 00 00       	mov    $0x3,%edi
+  31:	4c 8b 14 24          	mov    (%rsp),%r10
+  35:	48 89 f1             	mov    %rsi,%rcx
+  38:	65                   	gs
+  39:	48                   	rex.W
+  3a:	8b                   	.byte 0x8b
+  3b:	34 25                	xor    $0x25,%al
+  3d:	40                   	rex
+  3e:	70                   	.byte 0x70

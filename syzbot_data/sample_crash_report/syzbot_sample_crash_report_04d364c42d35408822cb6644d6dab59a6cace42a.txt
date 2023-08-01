@@ -1,0 +1,82 @@
+F2FS-fs (loop0): Corrupted max_depth of 3: 2049
+syz-executor636[5056]: segfault at 0 ip 00007f87a3aa9b00 sp 00007fff12e041e8 error 4 in syz-executor636318669[7f87a3a43000+88000] likely on CPU 0 (core 0, socket 0)
+Code: 66 0f ef c0 66 0f ef c9 66 0f ef d2 66 0f ef db 48 89 f8 48 89 f9 48 81 e1 ff 0f 00 00 48 81 f9 cf 0f 00 00 77 74 48 83 e0 f0 <66> 0f 74 00 66 0f 74 48 10 66 0f 74 50 20 66 0f 74 58 30 66 0f d7
+------------[ cut here ]------------
+kernel BUG at fs/f2fs/inode.c:864!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 5056 Comm: syz-executor636 Not tainted 6.2.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+RIP: 0010:f2fs_evict_inode+0x1761/0x1df0 fs/f2fs/inode.c:864
+Code: ff df 48 c1 ea 03 80 3c 02 00 0f 85 91 06 00 00 8b 75 40 ba 01 00 00 00 4c 89 e7 e8 79 99 06 00 e9 fc fc ff ff e8 1f c8 e6 fd <0f> 0b e8 18 c8 e6 fd be 08 00 00 00 49 8d bc 24 b8 00 00 00 e8 16
+RSP: 0018:ffffc90003e5f7d8 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: ffff88807a3b0000 RSI: ffffffff839a9aa1 RDI: 0000000000000007
+RBP: ffff8880731408f0 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000005 R12: ffff88807563c000
+R13: ffff888073140da0 R14: ffff88807563c0b8 R15: ffff88807563d490
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000056240959dbc0 CR3: 000000002a3c4000 CR4: 0000000000350ee0
+Call Trace:
+ <TASK>
+ evict+0x2ed/0x6b0 fs/inode.c:664
+ dispose_list+0x117/0x1e0 fs/inode.c:697
+ evict_inodes+0x356/0x450 fs/inode.c:747
+ generic_shutdown_super+0xaf/0x410 fs/super.c:480
+ kill_block_super+0x9b/0xf0 fs/super.c:1386
+ kill_f2fs_super+0x2af/0x3c0 fs/f2fs/super.c:4640
+ deactivate_locked_super+0x98/0x160 fs/super.c:332
+ deactivate_super+0xb1/0xd0 fs/super.c:363
+ cleanup_mnt+0x2ae/0x3d0 fs/namespace.c:1291
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0xaa8/0x2950 kernel/exit.c:867
+ do_group_exit+0xd4/0x2a0 kernel/exit.c:1012
+ get_signal+0x21c3/0x2450 kernel/signal.c:2859
+ arch_do_signal_or_restart+0x79/0x5c0 arch/x86/kernel/signal.c:306
+ exit_to_user_mode_loop kernel/entry/common.c:168 [inline]
+ exit_to_user_mode_prepare+0x15f/0x250 kernel/entry/common.c:203
+ irqentry_exit_to_user_mode+0x9/0x40 kernel/entry/common.c:309
+ exc_page_fault+0xc0/0x170 arch/x86/mm/fault.c:1578
+ asm_exc_page_fault+0x26/0x30 arch/x86/include/asm/idtentry.h:570
+RIP: 0033:0x7f87a3aa9b00
+Code: Unable to access opcode bytes at 0x7f87a3aa9ad6.
+RSP: 002b:00007fff12e041e8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 00000000000000e0 RCX: 0000000000000000
+RDX: 00000000000000e0 RSI: 00000000000000e0 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000000
+R10: 00000000000000c0 R11: 00000000000000e0 R12: 0000000020000100
+R13: 00007fff12e042b0 R14: 0000000000000000 R15: 00007fff12e042b0
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:f2fs_evict_inode+0x1761/0x1df0 fs/f2fs/inode.c:864
+Code: ff df 48 c1 ea 03 80 3c 02 00 0f 85 91 06 00 00 8b 75 40 ba 01 00 00 00 4c 89 e7 e8 79 99 06 00 e9 fc fc ff ff e8 1f c8 e6 fd <0f> 0b e8 18 c8 e6 fd be 08 00 00 00 49 8d bc 24 b8 00 00 00 e8 16
+RSP: 0018:ffffc90003e5f7d8 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: ffff88807a3b0000 RSI: ffffffff839a9aa1 RDI: 0000000000000007
+RBP: ffff8880731408f0 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000005 R12: ffff88807563c000
+R13: ffff888073140da0 R14: ffff88807563c0b8 R15: ffff88807563d490
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000056240959dbc0 CR3: 000000000c48e000 CR4: 0000000000350ee0
+----------------
+Code disassembly (best guess):
+   0:	66 0f ef c0          	pxor   %xmm0,%xmm0
+   4:	66 0f ef c9          	pxor   %xmm1,%xmm1
+   8:	66 0f ef d2          	pxor   %xmm2,%xmm2
+   c:	66 0f ef db          	pxor   %xmm3,%xmm3
+  10:	48 89 f8             	mov    %rdi,%rax
+  13:	48 89 f9             	mov    %rdi,%rcx
+  16:	48 81 e1 ff 0f 00 00 	and    $0xfff,%rcx
+  1d:	48 81 f9 cf 0f 00 00 	cmp    $0xfcf,%rcx
+  24:	77 74                	ja     0x9a
+  26:	48 83 e0 f0          	and    $0xfffffffffffffff0,%rax
+* 2a:	66 0f 74 00          	pcmpeqb (%rax),%xmm0 <-- trapping instruction
+  2e:	66 0f 74 48 10       	pcmpeqb 0x10(%rax),%xmm1
+  33:	66 0f 74 50 20       	pcmpeqb 0x20(%rax),%xmm2
+  38:	66 0f 74 58 30       	pcmpeqb 0x30(%rax),%xmm3
+  3d:	66                   	data16
+  3e:	0f                   	.byte 0xf
+  3f:	d7                   	xlat   %ds:(%rbx)

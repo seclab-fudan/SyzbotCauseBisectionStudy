@@ -1,0 +1,168 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in profile_pc+0xa8/0xe0 arch/x86/kernel/time.c:42
+Read of size 8 at addr ffffc90003c2f100 by task syz-executor376/5072
+
+CPU: 1 PID: 5072 Comm: syz-executor376 Not tainted 6.3.0-rc3-syzkaller-00026-gfff5a5e7f528 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:319 [inline]
+ print_report+0x163/0x540 mm/kasan/report.c:430
+ kasan_report+0x176/0x1b0 mm/kasan/report.c:536
+ profile_pc+0xa8/0xe0 arch/x86/kernel/time.c:42
+ profile_tick+0xd8/0x130 kernel/profile.c:339
+ tick_sched_handle kernel/time/tick-sched.c:244 [inline]
+ tick_sched_timer+0x394/0x550 kernel/time/tick-sched.c:1480
+ __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+ __hrtimer_run_queues+0x562/0xd10 kernel/time/hrtimer.c:1749
+ hrtimer_interrupt+0x396/0x980 kernel/time/hrtimer.c:1811
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1096 [inline]
+ __sysvec_apic_timer_interrupt+0x13f/0x480 arch/x86/kernel/apic/apic.c:1113
+ sysvec_apic_timer_interrupt+0x90/0xb0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xd8/0x140 kernel/locking/spinlock.c:194
+Code: 9c 8f 44 24 20 42 80 3c 23 00 74 08 4c 89 f7 e8 6e fb 35 f7 f6 44 24 21 02 75 4e 41 f7 c7 00 02 00 00 74 01 fb bf 01 00 00 00 <e8> d3 29 b4 f6 65 8b 05 24 91 59 75 85 c0 74 3f 48 c7 04 24 0e 36
+RSP: 0018:ffffc90003c2f100 EFLAGS: 00000206
+RAX: 9a04483aef095100 RBX: 1ffff92000785e24 RCX: ffffffff816a859a
+RDX: dffffc0000000000 RSI: ffffffff8aea7d60 RDI: 0000000000000001
+RBP: ffffc90003c2f190 R08: dffffc0000000000 R09: fffffbfff205be39
+R10: 0000000000000000 R11: dffffc0000000001 R12: dffffc0000000000
+R13: 1ffff92000785e20 R14: ffffc90003c2f120 R15: 0000000000000246
+ spin_unlock_irqrestore include/linux/spinlock.h:405 [inline]
+ rmqueue_bulk mm/page_alloc.c:3175 [inline]
+ __rmqueue_pcplist+0x1e71/0x2190 mm/page_alloc.c:3781
+ rmqueue_pcplist mm/page_alloc.c:3823 [inline]
+ rmqueue mm/page_alloc.c:3866 [inline]
+ get_page_from_freelist+0x791/0x33c0 mm/page_alloc.c:4322
+ __alloc_pages+0x255/0x670 mm/page_alloc.c:5591
+ __get_free_pages+0xc/0x30 mm/page_alloc.c:5641
+ kasan_populate_vmalloc_pte+0x2e/0xd0 mm/kasan/shadow.c:323
+ apply_to_pte_range mm/memory.c:2578 [inline]
+ apply_to_pmd_range mm/memory.c:2622 [inline]
+ apply_to_pud_range mm/memory.c:2658 [inline]
+ apply_to_p4d_range mm/memory.c:2694 [inline]
+ __apply_to_page_range+0x9c5/0xcc0 mm/memory.c:2728
+ alloc_vmap_area+0x1acc/0x1c00 mm/vmalloc.c:1638
+ __get_vm_area_node+0x16e/0x370 mm/vmalloc.c:2495
+ __vmalloc_node_range+0x3a2/0x12f0 mm/vmalloc.c:3141
+ __vmalloc_node mm/vmalloc.c:3246 [inline]
+ vzalloc+0x79/0x90 mm/vmalloc.c:3319
+ profile_init+0xee/0x130 kernel/profile.c:131
+ profiling_store+0x5e/0xc0 kernel/ksysfs.c:104
+ kernfs_fop_write_iter+0x3a6/0x4f0 fs/kernfs/file.c:334
+ call_write_iter include/linux/fs.h:1851 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x7b2/0xbb0 fs/read_write.c:584
+ ksys_write+0x1a0/0x2c0 fs/read_write.c:637
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f2c63ea0da9
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffc81a20b58 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f2c63ea0da9
+RDX: 0000000000000012 RSI: 00000000200001c0 RDI: 0000000000000003
+RBP: 00007f2c63e64cc0 R08: 0000000000000012 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f2c63e64d50
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+The buggy address belongs to stack of task syz-executor376/5072
+ and is located at offset 0 in frame:
+ _raw_spin_unlock_irqrestore+0x0/0x140 kernel/locking/spinlock.c:187
+
+This frame has 1 object:
+ [32, 40) 'flags.i.i.i.i'
+
+The buggy address belongs to the virtual mapping at
+ [ffffc90003c28000, ffffc90003c31000) created by:
+ copy_process+0x5bd/0x3fc0 kernel/fork.c:2100
+
+The buggy address belongs to the physical page:
+page:ffffea0001ccab40 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x732ad
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 0000000000000000 dead000000000122 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x2dc2(GFP_KERNEL|__GFP_HIGHMEM|__GFP_NOWARN|__GFP_ZERO), pid 5069, tgid 5069 (strace-static-x), ts 59701233039, free_ts 59636928543
+ prep_new_page mm/page_alloc.c:2552 [inline]
+ get_page_from_freelist+0x3246/0x33c0 mm/page_alloc.c:4325
+ __alloc_pages+0x255/0x670 mm/page_alloc.c:5591
+ vm_area_alloc_pages mm/vmalloc.c:2943 [inline]
+ __vmalloc_area_node mm/vmalloc.c:3011 [inline]
+ __vmalloc_node_range+0x959/0x12f0 mm/vmalloc.c:3181
+ alloc_thread_stack_node kernel/fork.c:311 [inline]
+ dup_task_struct+0x3e5/0x750 kernel/fork.c:984
+ copy_process+0x5bd/0x3fc0 kernel/fork.c:2100
+ kernel_clone+0x222/0x800 kernel/fork.c:2684
+ __do_sys_clone kernel/fork.c:2825 [inline]
+ __se_sys_clone kernel/fork.c:2809 [inline]
+ __x64_sys_clone+0x235/0x280 kernel/fork.c:2809
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1453 [inline]
+ free_pcp_prepare mm/page_alloc.c:1503 [inline]
+ free_unref_page_prepare+0xe2f/0xe70 mm/page_alloc.c:3387
+ free_unref_page_list+0x596/0x830 mm/page_alloc.c:3528
+ release_pages+0x219e/0x2470 mm/swap.c:1042
+ tlb_batch_pages_flush mm/mmu_gather.c:97 [inline]
+ tlb_flush_mmu_free mm/mmu_gather.c:292 [inline]
+ tlb_flush_mmu+0x100/0x210 mm/mmu_gather.c:299
+ tlb_finish_mmu+0xd4/0x1f0 mm/mmu_gather.c:391
+ exit_mmap+0x2c9/0x850 mm/mmap.c:3047
+ __mmput+0x115/0x3c0 kernel/fork.c:1209
+ exec_mmap+0x4eb/0x580 fs/exec.c:1034
+ begin_new_exec+0x665/0xf10 fs/exec.c:1293
+ load_elf_binary+0x95d/0x2820 fs/binfmt_elf.c:1001
+ search_binary_handler fs/exec.c:1736 [inline]
+ exec_binprm fs/exec.c:1778 [inline]
+ bprm_execve+0x90e/0x1740 fs/exec.c:1853
+ do_execveat_common+0x580/0x720 fs/exec.c:1960
+ do_execve fs/exec.c:2034 [inline]
+ __do_sys_execve fs/exec.c:2110 [inline]
+ __se_sys_execve fs/exec.c:2105 [inline]
+ __x64_sys_execve+0x92/0xa0 fs/exec.c:2105
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Memory state around the buggy address:
+ ffffc90003c2f000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffc90003c2f080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffffc90003c2f100: f1 f1 f1 f1 00 f3 f3 f3 00 00 00 00 00 00 00 00
+                   ^
+ ffffc90003c2f180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffc90003c2f200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================
+----------------
+Code disassembly (best guess):
+   0:	9c                   	pushfq
+   1:	8f 44 24 20          	popq   0x20(%rsp)
+   5:	42 80 3c 23 00       	cmpb   $0x0,(%rbx,%r12,1)
+   a:	74 08                	je     0x14
+   c:	4c 89 f7             	mov    %r14,%rdi
+   f:	e8 6e fb 35 f7       	callq  0xf735fb82
+  14:	f6 44 24 21 02       	testb  $0x2,0x21(%rsp)
+  19:	75 4e                	jne    0x69
+  1b:	41 f7 c7 00 02 00 00 	test   $0x200,%r15d
+  22:	74 01                	je     0x25
+  24:	fb                   	sti
+  25:	bf 01 00 00 00       	mov    $0x1,%edi
+* 2a:	e8 d3 29 b4 f6       	callq  0xf6b42a02 <-- trapping instruction
+  2f:	65 8b 05 24 91 59 75 	mov    %gs:0x75599124(%rip),%eax        # 0x7559915a
+  36:	85 c0                	test   %eax,%eax
+  38:	74 3f                	je     0x79
+  3a:	48                   	rex.W
+  3b:	c7                   	.byte 0xc7
+  3c:	04 24                	add    $0x24,%al
+  3e:	0e                   	(bad)
+  3f:	36                   	ss

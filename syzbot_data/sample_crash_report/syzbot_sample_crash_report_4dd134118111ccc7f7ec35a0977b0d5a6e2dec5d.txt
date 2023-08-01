@@ -1,0 +1,60 @@
+EXT4-fs (sda1): re-mounted. Opts: debug_want_extra_isize=64648
+EXT4-fs (sda1): re-mounted. Opts: debug_want_extra_isize=64648
+EXT4-fs (sda1): re-mounted. Opts: debug_want_extra_isize=64648
+EXT4-fs (sda1): re-mounted. Opts: debug_want_extra_isize=64648
+==================================================================
+BUG: KASAN: use-after-free in memset include/linux/string.h:330 [inline]
+BUG: KASAN: use-after-free in __ext4_expand_extra_isize+0x178/0x240 fs/ext4/inode.c:5789
+Write of size 64616 at addr ffff8801c3a660a0 by task syz-executor956/4449
+
+CPU: 0 PID: 4449 Comm: syz-executor956 Not tainted 4.17.0-rc7+ #80
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ memset+0x23/0x40 mm/kasan/kasan.c:285
+ memset include/linux/string.h:330 [inline]
+ __ext4_expand_extra_isize+0x178/0x240 fs/ext4/inode.c:5789
+ ext4_try_to_expand_extra_isize fs/ext4/inode.c:5841 [inline]
+ ext4_mark_inode_dirty+0x72f/0xb20 fs/ext4/inode.c:5917
+ ext4_dirty_inode+0x97/0xc0 fs/ext4/inode.c:5951
+ __mark_inode_dirty+0x811/0x1530 fs/fs-writeback.c:2129
+ generic_update_time+0x255/0x420 fs/inode.c:1657
+ update_time fs/inode.c:1673 [inline]
+ touch_atime+0x292/0x310 fs/inode.c:1745
+ file_accessed include/linux/fs.h:2063 [inline]
+ iterate_dir+0x394/0x5d0 fs/readdir.c:56
+ __do_sys_getdents fs/readdir.c:231 [inline]
+ __se_sys_getdents fs/readdir.c:212 [inline]
+ __x64_sys_getdents+0x293/0x4e0 fs/readdir.c:212
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x445ceb
+RSP: 002b:00007ffd5d921990 EFLAGS: 00000206 ORIG_RAX: 000000000000004e
+RAX: ffffffffffffffda RBX: 0000000002672990 RCX: 0000000000445ceb
+RDX: 0000000000008000 RSI: 0000000002672990 RDI: 0000000000000003
+RBP: 0000000002672990 R08: 0000000000001161 R09: 0000000002671940
+R10: 0000000000000000 R11: 0000000000000206 R12: ffffffffffffffd4
+R13: 0000000000000016 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea00070e9980 count:2 mapcount:0 mapping:ffff8801ce85e660 index:0x4a8
+flags: 0x2fffc0000001064(referenced|lru|active|private)
+raw: 02fffc0000001064 ffff8801ce85e660 00000000000004a8 00000002ffffffff
+raw: ffffea00070e9960 ffffea00070e99e0 ffff8801aee00348 ffff8801d9a42c80
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff8801d9a42c80
+
+Memory state around the buggy address:
+ ffff8801c3a6cf00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801c3a6cf80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8801c3a6d000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                   ^
+ ffff8801c3a6d080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801c3a6d100: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

@@ -1,0 +1,27 @@
+==================================================================
+BUG: KCSAN: data-race in copy_process / release_task
+
+write to 0xffffffff8927b410 of 4 bytes by task 24890 on cpu 1:
+ __unhash_process kernel/exit.c:73 [inline]
+ __exit_signal kernel/exit.c:147 [inline]
+ release_task+0x6c8/0xb90 kernel/exit.c:198
+ exit_notify kernel/exit.c:680 [inline]
+ do_exit+0x1140/0x16e0 kernel/exit.c:826
+ call_usermodehelper_exec_async+0x2da/0x2e0 kernel/umh.c:125
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+read to 0xffffffff8927b410 of 4 bytes by task 7 on cpu 0:
+ copy_process+0xac4/0x3300 kernel/fork.c:1980
+ _do_fork+0xf1/0x660 kernel/fork.c:2443
+ kernel_thread+0x85/0xb0 kernel/fork.c:2531
+ call_usermodehelper_exec_work+0x4f/0x1b0 kernel/umh.c:195
+ process_one_work+0x3e1/0x9a0 kernel/workqueue.c:2269
+ worker_thread+0x665/0xbe0 kernel/workqueue.c:2415
+ kthread+0x20d/0x230 kernel/kthread.c:291
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 7 Comm: kworker/u4:0 Not tainted 5.8.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound call_usermodehelper_exec_work
+==================================================================

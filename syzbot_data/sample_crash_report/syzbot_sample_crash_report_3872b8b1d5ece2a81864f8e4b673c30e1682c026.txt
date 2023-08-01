@@ -1,0 +1,38 @@
+==================================================================
+BUG: KCSAN: data-race in __rcu_read_unlock / sync_rcu_exp_select_node_cpus
+
+write to 0xffffffff872851a0 of 8 bytes by task 10538 on cpu 1:
+ sync_rcu_exp_select_node_cpus+0x21a/0x500 kernel/rcu/tree_exp.h:376
+ sync_rcu_exp_select_cpus+0x31f/0x5a0 kernel/rcu/tree_exp.h:441
+ rcu_exp_sel_wait_wake kernel/rcu/tree_exp.h:614 [inline]
+ wait_rcu_exp_gp+0x25/0x40 kernel/rcu/tree_exp.h:628
+ process_one_work+0x424/0x930 kernel/workqueue.c:2268
+ worker_thread+0x9a/0x7e0 kernel/workqueue.c:2414
+ kthread+0x203/0x230 kernel/kthread.c:268
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+read to 0xffffffff872851a0 of 8 bytes by task 2178 on cpu 0:
+ rcu_read_unlock_special kernel/rcu/tree_plugin.h:618 [inline]
+ __rcu_read_unlock+0x1cf/0x390 kernel/rcu/tree_plugin.h:400
+ rcu_read_unlock include/linux/rcupdate.h:654 [inline]
+ filemap_map_pages+0x6e8/0xa50 mm/filemap.c:2652
+ do_fault_around mm/memory.c:3807 [inline]
+ do_read_fault mm/memory.c:3841 [inline]
+ do_fault mm/memory.c:3975 [inline]
+ handle_pte_fault mm/memory.c:4215 [inline]
+ __handle_mm_fault+0x2ba6/0x2da0 mm/memory.c:4345
+ handle_mm_fault+0x21c/0x540 mm/memory.c:4382
+ faultin_page mm/gup.c:879 [inline]
+ __get_user_pages+0x533/0x11c0 mm/gup.c:1098
+ populate_vma_page_range+0xdc/0x100 mm/gup.c:1430
+ __mm_populate+0x168/0x2b0 mm/gup.c:1478
+ mm_populate include/linux/mm.h:2562 [inline]
+ vm_mmap_pgoff+0x185/0x190 mm/util.c:511
+ ksys_mmap_pgoff+0x96/0x420 mm/mmap.c:1595
+ do_syscall_64+0xc7/0x3b0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 2178 Comm: syz-executor.2 Not tainted 5.7.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

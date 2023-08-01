@@ -1,0 +1,211 @@
+usb 1-1: ath: unknown panic pattern!
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read include/linux/instrumented.h:71 [inline]
+BUG: KASAN: use-after-free in atomic_read include/linux/atomic/atomic-instrumented.h:27 [inline]
+BUG: KASAN: use-after-free in refcount_read include/linux/refcount.h:147 [inline]
+BUG: KASAN: use-after-free in skb_unref include/linux/skbuff.h:1359 [inline]
+BUG: KASAN: use-after-free in kfree_skb_reason+0x2f/0x110 net/core/skbuff.c:772
+Read of size 4 at addr ffff888021880364 by task strace-static-x/3605
+
+CPU: 1 PID: 3605 Comm: strace-static-x Not tainted 5.19.0-syzkaller-00428-g9de1f9c8ca51 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0xeb/0x467 mm/kasan/report.c:313
+ print_report mm/kasan/report.c:429 [inline]
+ kasan_report.cold+0xf4/0x1c6 mm/kasan/report.c:491
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read include/linux/instrumented.h:71 [inline]
+ atomic_read include/linux/atomic/atomic-instrumented.h:27 [inline]
+ refcount_read include/linux/refcount.h:147 [inline]
+ skb_unref include/linux/skbuff.h:1359 [inline]
+ kfree_skb_reason+0x2f/0x110 net/core/skbuff.c:772
+ kfree_skb include/linux/skbuff.h:1375 [inline]
+ ath9k_hif_usb_reg_in_cb+0x4c5/0x640 drivers/net/wireless/ath/ath9k/hif_usb.c:770
+ __usb_hcd_giveback_urb+0x2b0/0x5c0 drivers/usb/core/hcd.c:1670
+ usb_hcd_giveback_urb+0x367/0x410 drivers/usb/core/hcd.c:1747
+ dummy_timer+0x11f9/0x32b0 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers.part.0+0x679/0xa80 kernel/time/timer.c:1790
+ __run_timers kernel/time/timer.c:1768 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1803
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1106
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:__sanitizer_cov_trace_switch+0x12/0x90 kernel/kcov.c:316
+Code: 89 fe bf 07 00 00 00 e9 7c fe ff ff 66 66 2e 0f 1f 84 00 00 00 00 00 90 41 56 41 55 41 54 49 89 fc 55 48 89 f5 53 48 8b 46 08 <48> 83 f8 20 74 63 77 44 48 83 f8 08 74 53 48 83 f8 10 75 2f 41 bd
+RSP: 0018:ffffc90002fb7d30 EFLAGS: 00000246
+RAX: 0000000000000040 RBX: 00000000000102f9 RCX: 0000000000000000
+RDX: ffff888021b361c0 RSI: ffffffff89cb5860 RDI: 0000000000000018
+RBP: ffffffff89cb5860 R08: 0000000000000018 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000018
+R13: 0000000000000000 R14: 0000000000000018 R15: ffff88807050a070
+ ptrace_request+0xcc/0x10c0 kernel/ptrace.c:1040
+ arch_ptrace+0x36/0x510 arch/x86/kernel/ptrace.c:828
+ __do_sys_ptrace kernel/ptrace.c:1296 [inline]
+ __se_sys_ptrace kernel/ptrace.c:1269 [inline]
+ __x64_sys_ptrace+0x178/0x2a0 kernel/ptrace.c:1269
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x4e6c1a
+Code: 70 41 83 f8 03 c7 44 24 10 08 00 00 00 48 89 44 24 18 48 8d 44 24 30 8b 70 08 4c 0f 43 d1 48 89 44 24 20 b8 65 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 3e 48 85 c0 78 06 41 83 f8 02 76 1b 48 8b 4c
+RSP: 002b:00007fff62878830 EFLAGS: 00000206 ORIG_RAX: 0000000000000065
+RAX: ffffffffffffffda RBX: 0000000000fae2f8 RCX: 00000000004e6c1a
+RDX: 0000000000000000 RSI: 0000000000000e18 RDI: 0000000000000018
+RBP: 0000000000000018 R08: 0000000000000017 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000206 R12: 0000000000fafa50
+R13: 0000000000000000 R14: 000000000000857f R15: 0000000000617180
+ </TASK>
+
+Allocated by task 3615:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:437 [inline]
+ __kasan_slab_alloc+0x85/0xb0 mm/kasan/common.c:470
+ kasan_slab_alloc include/linux/kasan.h:224 [inline]
+ slab_post_alloc_hook mm/slab.h:727 [inline]
+ slab_alloc_node mm/slab.c:3239 [inline]
+ kmem_cache_alloc_node+0x2e7/0x590 mm/slab.c:3593
+ __alloc_skb+0x215/0x340 net/core/skbuff.c:414
+ alloc_skb include/linux/skbuff.h:1426 [inline]
+ ath9k_hif_usb_alloc_reg_in_urbs drivers/net/wireless/ath/ath9k/hif_usb.c:963 [inline]
+ ath9k_hif_usb_alloc_urbs+0x936/0x1070 drivers/net/wireless/ath/ath9k/hif_usb.c:1022
+ ath9k_hif_usb_dev_init drivers/net/wireless/ath/ath9k/hif_usb.c:1108 [inline]
+ ath9k_hif_usb_firmware_cb+0x148/0x530 drivers/net/wireless/ath/ath9k/hif_usb.c:1241
+ request_firmware_work_func+0x12c/0x230 drivers/base/firmware_loader/main.c:1107
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Freed by task 3605:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:367 [inline]
+ ____kasan_slab_free+0x13d/0x180 mm/kasan/common.c:329
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ __cache_free mm/slab.c:3426 [inline]
+ kmem_cache_free.part.0+0x10f/0x2e0 mm/slab.c:3735
+ kfree_skbmem+0xef/0x1b0 net/core/skbuff.c:700
+ kfree_skb_reason+0x85/0x110 include/linux/refcount.h:279
+ kfree_skb include/linux/skbuff.h:1375 [inline]
+ ath9k_htc_rx_msg+0x1f0/0xb70 drivers/net/wireless/ath/ath9k/htc_hst.c:456
+ ath9k_hif_usb_reg_in_cb+0x1ac/0x640 drivers/net/wireless/ath/ath9k/hif_usb.c:739
+ __usb_hcd_giveback_urb+0x2b0/0x5c0 drivers/usb/core/hcd.c:1670
+ usb_hcd_giveback_urb+0x367/0x410 drivers/usb/core/hcd.c:1747
+ dummy_timer+0x11f9/0x32b0 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers.part.0+0x679/0xa80 kernel/time/timer.c:1790
+ __run_timers kernel/time/timer.c:1768 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1803
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:571
+
+The buggy address belongs to the object at ffff888021880280
+ which belongs to the cache skbuff_head_cache of size 240
+The buggy address is located 228 bytes inside of
+ 240-byte region [ffff888021880280, ffff888021880370)
+
+The buggy address belongs to the physical page:
+page:ffffea0000862000 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x21880
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea000060d8c8 ffffea0000874c88 ffff888140165900
+raw: 0000000000000000 ffff888021880000 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x2420c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_COMP|__GFP_THISNODE), pid 3615, tgid 3615 (kworker/1:4), ts 59282830293, free_ts 59044686005
+ prep_new_page mm/page_alloc.c:2457 [inline]
+ get_page_from_freelist+0x1298/0x3b80 mm/page_alloc.c:4203
+ __alloc_pages+0x1c7/0x510 mm/page_alloc.c:5431
+ __alloc_pages_node include/linux/gfp.h:587 [inline]
+ kmem_getpages mm/slab.c:1363 [inline]
+ cache_grow_begin+0x75/0x350 mm/slab.c:2569
+ cache_alloc_refill+0x27f/0x380 mm/slab.c:2942
+ ____cache_alloc mm/slab.c:3024 [inline]
+ ____cache_alloc mm/slab.c:3007 [inline]
+ slab_alloc_node mm/slab.c:3227 [inline]
+ kmem_cache_alloc_node+0x502/0x590 mm/slab.c:3593
+ __alloc_skb+0x215/0x340 net/core/skbuff.c:414
+ alloc_skb include/linux/skbuff.h:1426 [inline]
+ ath9k_hif_usb_alloc_rx_urbs drivers/net/wireless/ath/ath9k/hif_usb.c:888 [inline]
+ ath9k_hif_usb_alloc_urbs+0x689/0x1070 drivers/net/wireless/ath/ath9k/hif_usb.c:1018
+ ath9k_hif_usb_dev_init drivers/net/wireless/ath/ath9k/hif_usb.c:1108 [inline]
+ ath9k_hif_usb_firmware_cb+0x148/0x530 drivers/net/wireless/ath/ath9k/hif_usb.c:1241
+ request_firmware_work_func+0x12c/0x230 drivers/base/firmware_loader/main.c:1107
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1371 [inline]
+ free_pcp_prepare+0x549/0xd20 mm/page_alloc.c:1421
+ free_unref_page_prepare mm/page_alloc.c:3344 [inline]
+ free_unref_page+0x19/0x6a0 mm/page_alloc.c:3439
+ slab_destroy mm/slab.c:1615 [inline]
+ slabs_destroy+0x89/0xc0 mm/slab.c:1635
+ cache_flusharray mm/slab.c:3397 [inline]
+ ___cache_free+0x2a8/0x3d0 mm/slab.c:3460
+ qlink_free mm/kasan/quarantine.c:168 [inline]
+ qlist_free_all+0x4f/0x1b0 mm/kasan/quarantine.c:187
+ kasan_quarantine_reduce+0x180/0x200 mm/kasan/quarantine.c:294
+ __kasan_slab_alloc+0x97/0xb0 mm/kasan/common.c:447
+ kasan_slab_alloc include/linux/kasan.h:224 [inline]
+ slab_post_alloc_hook mm/slab.h:727 [inline]
+ slab_alloc mm/slab.c:3302 [inline]
+ kmem_cache_alloc_trace+0x262/0x4b0 mm/slab.c:3567
+ kmalloc include/linux/slab.h:600 [inline]
+ usb_control_msg+0xb9/0x4a0 drivers/usb/core/message.c:143
+ ath9k_hif_usb_download_fw+0x192/0x380 drivers/net/wireless/ath/ath9k/hif_usb.c:1058
+ ath9k_hif_usb_dev_init drivers/net/wireless/ath/ath9k/hif_usb.c:1099 [inline]
+ ath9k_hif_usb_firmware_cb+0x126/0x530 drivers/net/wireless/ath/ath9k/hif_usb.c:1241
+ request_firmware_work_func+0x12c/0x230 drivers/base/firmware_loader/main.c:1107
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Memory state around the buggy address:
+ ffff888021880200: 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc
+ ffff888021880280: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888021880300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fc fc
+                                                       ^
+ ffff888021880380: fc fc fc fc fc fc fc fc fa fb fb fb fb fb fb fb
+ ffff888021880400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
+----------------
+Code disassembly (best guess):
+   0:	89 fe                	mov    %edi,%esi
+   2:	bf 07 00 00 00       	mov    $0x7,%edi
+   7:	e9 7c fe ff ff       	jmpq   0xfffffe88
+   c:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
+  13:	00 00 00 00
+  17:	90                   	nop
+  18:	41 56                	push   %r14
+  1a:	41 55                	push   %r13
+  1c:	41 54                	push   %r12
+  1e:	49 89 fc             	mov    %rdi,%r12
+  21:	55                   	push   %rbp
+  22:	48 89 f5             	mov    %rsi,%rbp
+  25:	53                   	push   %rbx
+  26:	48 8b 46 08          	mov    0x8(%rsi),%rax
+* 2a:	48 83 f8 20          	cmp    $0x20,%rax <-- trapping instruction
+  2e:	74 63                	je     0x93
+  30:	77 44                	ja     0x76
+  32:	48 83 f8 08          	cmp    $0x8,%rax
+  36:	74 53                	je     0x8b
+  38:	48 83 f8 10          	cmp    $0x10,%rax
+  3c:	75 2f                	jne    0x6d
+  3e:	41                   	rex.B
+  3f:	bd                   	.byte 0xbd

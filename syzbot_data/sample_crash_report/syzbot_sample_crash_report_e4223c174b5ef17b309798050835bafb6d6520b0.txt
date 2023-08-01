@@ -1,0 +1,97 @@
+==================================================================
+BUG: KASAN: use-after-free in atomic_dec_and_test include/asm-generic/atomic-instrumented.h:222 [inline]
+BUG: KASAN: use-after-free in put_task_struct include/linux/sched/task.h:95 [inline]
+BUG: KASAN: use-after-free in _free_event+0x48d/0x1440 kernel/events/core.c:4451
+Write of size 4 at addr ffff8801aab60760 by task syz-executor361/6988
+
+CPU: 1 PID: 6988 Comm: syz-executor361 Not tainted 4.18.0-rc5+ #159
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ kasan_check_write+0x14/0x20 mm/kasan/kasan.c:278
+ atomic_dec_and_test include/asm-generic/atomic-instrumented.h:222 [inline]
+ put_task_struct include/linux/sched/task.h:95 [inline]
+ _free_event+0x48d/0x1440 kernel/events/core.c:4451
+ free_event+0xb4/0x180 kernel/events/core.c:4472
+ perf_event_release_kernel+0x7d5/0x1050 kernel/events/core.c:4633
+ perf_release+0x37/0x50 kernel/events/core.c:4647
+ __fput+0x355/0x8b0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x1ec/0x2a0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1b08/0x2750 kernel/exit.c:865
+ do_group_exit+0x177/0x440 kernel/exit.c:968
+ get_signal+0x88e/0x1970 kernel/signal.c:2468
+ do_signal+0x9c/0x21c0 arch/x86/kernel/signal.c:816
+ exit_to_usermode_loop+0x2e0/0x370 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode+0x342/0x3b0 arch/x86/entry/common.c:197
+ retint_user+0x8/0x18
+RIP: 0033:0x445ea5
+Code: 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 48 3d 01 f0 ff ff 0f 83 fb 0d fc ff <c3> 66 2e 0f 1f 84 00 00 00 00 00 48 85 ff 41 57 4d 89 cf 41 56 41 
+RSP: 002b:0000000020000040 EFLAGS: 00010217
+RAX: 0000000000000000 RBX: 00000000006dbc24 RCX: 0000000000445e99
+RDX: 0000000020000100 RSI: 0000000020000040 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000020000080 R09: 0000000000000000
+R10: 0000000020000000 R11: 0000000000000246 R12: 00000000006dbc20
+R13: 0030656c69662f2e R14: 0001000000000002 R15: 0000000000000006
+
+Allocated by task 6959:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc_node+0x144/0x780 mm/slab.c:3644
+ alloc_task_struct_node kernel/fork.c:157 [inline]
+ dup_task_struct kernel/fork.c:804 [inline]
+ copy_process.part.39+0x16a1/0x70b0 kernel/fork.c:1666
+ copy_process kernel/fork.c:1641 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2124
+ __do_sys_clone kernel/fork.c:2231 [inline]
+ __se_sys_clone kernel/fork.c:2225 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2225
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 6959:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+ free_task_struct kernel/fork.c:162 [inline]
+ free_task+0x16e/0x1f0 kernel/fork.c:417
+ copy_process.part.39+0x15b5/0x70b0 kernel/fork.c:2059
+ copy_process kernel/fork.c:1641 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2124
+ __do_sys_clone kernel/fork.c:2231 [inline]
+ __se_sys_clone kernel/fork.c:2225 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2225
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801aab60740
+ which belongs to the cache task_struct of size 5952
+The buggy address is located 32 bytes inside of
+ 5952-byte region [ffff8801aab60740, ffff8801aab61e80)
+The buggy address belongs to the page:
+page:ffffea0006aad800 count:1 mapcount:0 mapping:ffff8801da94b200 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffffea0007592388 ffffea0006aa2a08 ffff8801da94b200
+raw: 0000000000000000 ffff8801aab60740 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801aab60600: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801aab60680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801aab60700: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                       ^
+ ffff8801aab60780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801aab60800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

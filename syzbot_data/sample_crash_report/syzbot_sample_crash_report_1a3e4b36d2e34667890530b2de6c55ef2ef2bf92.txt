@@ -1,0 +1,64 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 9 Comm: ksoftirqd/0 Not tainted 5.3.0-rc7+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:rxrpc_lookup_peer_icmp_rcu net/rxrpc/peer_event.c:37 [inline]
+RIP: 0010:rxrpc_error_report+0x23b/0x1a80 net/rxrpc/peer_event.c:175
+Code: ff ff ff ba 24 00 00 00 31 f6 48 89 df e8 ed ff 0f fb 49 8d be 5c 02 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 01 38 d0 7c 08 84 d2 0f 85 16
+RSP: 0018:ffff8880a98b74a0 EFLAGS: 00010207
+RAX: dffffc0000000000 RBX: ffff8880a98b7500 RCX: 0000000000000000
+RDX: 000000000000004b RSI: 0000000000000000 RDI: 000000000000025c
+RBP: ffff8880a98b75a0 R08: 0000000000000004 R09: ffff8880a98b7500
+R10: ffffed1015316ea4 R11: 0000000000000003 R12: ffff8880a1eda580
+R13: ffff8880a03252b0 R14: 0000000000000000 R15: ffff8880a98b7640
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000040 CR3: 0000000008c6d000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ sock_queue_err_skb+0x34c/0x7c0 net/core/skbuff.c:4401
+ ip_icmp_error+0x3e3/0x580 net/ipv4/ip_sockglue.c:415
+ __udp4_lib_err+0x609/0x1320 net/ipv4/udp.c:713
+ udp_err+0x25/0x30 net/ipv4/udp.c:723
+ icmp_socket_deliver+0x1ea/0x370 net/ipv4/icmp.c:768
+ icmp_unreach+0x34a/0xaa0 net/ipv4/icmp.c:885
+ icmp_rcv+0xede/0x15a0 net/ipv4/icmp.c:1067
+ ip_protocol_deliver_rcu+0x5a/0x8b0 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish+0x23b/0x390 net/ipv4/ip_input.c:231
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_local_deliver+0x1e9/0x520 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:442 [inline]
+ ip_rcv_finish+0x1d9/0x2e0 net/ipv4/ip_input.c:413
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_rcv+0xe8/0x3f0 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core+0x113/0x1a0 net/core/dev.c:5004
+ __netif_receive_skb+0x2c/0x1d0 net/core/dev.c:5118
+ process_backlog+0x206/0x750 net/core/dev.c:5929
+ napi_poll net/core/dev.c:6352 [inline]
+ net_rx_action+0x4d6/0x1030 net/core/dev.c:6418
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ run_ksoftirqd kernel/softirq.c:603 [inline]
+ run_ksoftirqd+0x8e/0x110 kernel/softirq.c:595
+ smpboot_thread_fn+0x6a3/0xa40 kernel/smpboot.c:165
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+---[ end trace c8653ea2a1b90651 ]---
+RIP: 0010:rxrpc_lookup_peer_icmp_rcu net/rxrpc/peer_event.c:37 [inline]
+RIP: 0010:rxrpc_error_report+0x23b/0x1a80 net/rxrpc/peer_event.c:175
+Code: ff ff ff ba 24 00 00 00 31 f6 48 89 df e8 ed ff 0f fb 49 8d be 5c 02 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 01 38 d0 7c 08 84 d2 0f 85 16
+RSP: 0018:ffff8880a98b74a0 EFLAGS: 00010207
+RAX: dffffc0000000000 RBX: ffff8880a98b7500 RCX: 0000000000000000
+RDX: 000000000000004b RSI: 0000000000000000 RDI: 000000000000025c
+RBP: ffff8880a98b75a0 R08: 0000000000000004 R09: ffff8880a98b7500
+R10: ffffed1015316ea4 R11: 0000000000000003 R12: ffff8880a1eda580
+R13: ffff8880a03252b0 R14: 0000000000000000 R15: ffff8880a98b7640
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000040 CR3: 0000000008c6d000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

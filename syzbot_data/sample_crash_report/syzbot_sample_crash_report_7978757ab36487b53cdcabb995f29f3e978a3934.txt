@@ -1,0 +1,33 @@
+------------[ cut here ]------------
+refcount_t: decrement hit 0; leaking memory.
+WARNING: CPU: 3 PID: 20417 at lib/refcount.c:31 refcount_warn_saturate+0xbf/0x1e0 lib/refcount.c:31
+Modules linked in:
+CPU: 3 PID: 20417 Comm: kworker/3:2 Not tainted 5.16.0-rc2-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Workqueue: events linkwatch_event
+RIP: 0010:refcount_warn_saturate+0xbf/0x1e0 lib/refcount.c:31
+Code: 1d 34 db a1 09 31 ff 89 de e8 3d 4b 9c fd 84 db 75 e0 e8 54 47 9c fd 48 c7 c7 e0 4c 04 8a c6 05 14 db a1 09 01 e8 45 af 25 05 <0f> 0b eb c4 e8 38 47 9c fd 0f b6 1d 03 db a1 09 31 ff 89 de e8 08
+RSP: 0018:ffffc900007bfc28 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff88800ef8c2c0 RSI: ffffffff815e40a8 RDI: fffff520000f7f77
+RBP: 0000000000000004 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff815dde4e R11: 0000000000000000 R12: ffff888075b985b0
+R13: 0000000000000063 R14: 0000000000000000 R15: ffff888075b98000
+FS:  0000000000000000(0000) GS:ffff88802cd00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000558ead405bd8 CR3: 000000001fa93000 CR4: 0000000000150ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __refcount_dec include/linux/refcount.h:344 [inline]
+ refcount_dec include/linux/refcount.h:359 [inline]
+ dev_put include/linux/netdevice.h:4166 [inline]
+ linkwatch_do_dev+0x134/0x150 net/core/link_watch.c:169
+ __linkwatch_run_queue+0x233/0x6a0 net/core/link_watch.c:213
+ linkwatch_event+0x4a/0x60 net/core/link_watch.c:252
+ process_one_work+0x9b2/0x1690 kernel/workqueue.c:2298
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2445
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>

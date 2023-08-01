@@ -1,0 +1,58 @@
+audit: type=1400 audit(1514230284.652:7): avc:  denied  { map } for  pid=3146 comm="syzkaller250869" path="/root/syzkaller250869911" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: wild-memory-access in memcpy include/linux/string.h:344 [inline]
+BUG: KASAN: wild-memory-access in memcpy_dir crypto/scatterwalk.c:28 [inline]
+BUG: KASAN: wild-memory-access in scatterwalk_copychunks+0x206/0x480 crypto/scatterwalk.c:43
+Write of size 16 at addr 00050800c7c5a698 by task syzkaller250869/3146
+
+CPU: 1 PID: 3146 Comm: syzkaller250869 Not tainted 4.15.0-rc5+ #237
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ kasan_report_error mm/kasan/report.c:349 [inline]
+ kasan_report+0x13b/0x340 mm/kasan/report.c:409
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x37/0x50 mm/kasan/kasan.c:303
+ memcpy include/linux/string.h:344 [inline]
+ memcpy_dir crypto/scatterwalk.c:28 [inline]
+ scatterwalk_copychunks+0x206/0x480 crypto/scatterwalk.c:43
+ blkcipher_done_slow crypto/blkcipher.c:81 [inline]
+ blkcipher_walk_done+0xa4b/0xde0 crypto/blkcipher.c:118
+ glue_ctr_crypt_128bit+0x597/0xc20 arch/x86/crypto/glue_helper.c:289
+ ctr_crypt+0x34/0x40 arch/x86/crypto/serpent_avx2_glue.c:168
+ __ablk_encrypt+0x1d1/0x2d0 crypto/ablk_helper.c:64
+ ablk_encrypt+0x23e/0x2c0 crypto/ablk_helper.c:84
+ skcipher_crypt_ablkcipher crypto/skcipher.c:712 [inline]
+ skcipher_decrypt_ablkcipher+0x312/0x420 crypto/skcipher.c:730
+ crypto_skcipher_decrypt include/crypto/skcipher.h:463 [inline]
+ chacha_decrypt crypto/chacha20poly1305.c:152 [inline]
+ poly_tail_continue+0x42a/0x6b0 crypto/chacha20poly1305.c:167
+ poly_tail+0x40f/0x520 crypto/chacha20poly1305.c:201
+ poly_cipherpad+0x33e/0x470 crypto/chacha20poly1305.c:231
+ poly_cipher+0x303/0x440 crypto/chacha20poly1305.c:262
+ poly_adpad+0x347/0x480 crypto/chacha20poly1305.c:292
+ poly_ad+0x25c/0x300 crypto/chacha20poly1305.c:316
+ poly_setkey+0x2fc/0x3e0 crypto/chacha20poly1305.c:343
+ poly_init+0x16c/0x1d0 crypto/chacha20poly1305.c:366
+ poly_genkey+0x422/0x590 crypto/chacha20poly1305.c:406
+ chachapoly_decrypt+0x73/0x90 crypto/chacha20poly1305.c:488
+ crypto_aead_decrypt include/crypto/aead.h:362 [inline]
+ _aead_recvmsg crypto/algif_aead.c:314 [inline]
+ aead_recvmsg+0x154a/0x1cf0 crypto/algif_aead.c:335
+ sock_recvmsg_nosec net/socket.c:809 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:816
+ ___sys_recvmsg+0x2a4/0x640 net/socket.c:2185
+ __sys_recvmsg+0xe2/0x210 net/socket.c:2230
+ SYSC_recvmsg net/socket.c:2242 [inline]
+ SyS_recvmsg+0x2d/0x50 net/socket.c:2237
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x43fef9
+RSP: 002b:00007ffe46e63528 EFLAGS: 00000217 ORIG_RAX: 000000000000002f
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fef9
+RDX: 0000000000000000 RSI: 000000002022efc8 RDI: 0000000000000004
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000401860
+R13: 00000000004018f0 R14: 0000000000000000 R15: 0000000000000000
+==================================================================

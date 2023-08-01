@@ -1,0 +1,122 @@
+IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+protocol 0800 is buggy, dev ip6_vti0
+==================================================================
+BUG: KASAN: use-after-free in _decode_session4+0x15f0/0x1990 net/ipv4/xfrm4_policy.c:115
+Read of size 1 at addr ffff8801b4117398 by task syzkaller030703/4418
+
+CPU: 1 PID: 4418 Comm: syzkaller030703 Not tainted 4.16.0-rc7+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+ _decode_session4+0x15f0/0x1990 net/ipv4/xfrm4_policy.c:115
+ __xfrm_decode_session+0x68/0x110 net/xfrm/xfrm_policy.c:2368
+ xfrm_decode_session include/net/xfrm.h:1206 [inline]
+ vti6_tnl_xmit+0x36d/0x1820 net/ipv6/ip6_vti.c:546
+ __netdev_start_xmit include/linux/netdevice.h:4066 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4075 [inline]
+ xmit_one net/core/dev.c:3026 [inline]
+ dev_hard_start_xmit+0x24e/0xac0 net/core/dev.c:3042
+protocol 0800 is buggy, dev ip6_vti0
+protocol 0800 is buggy, dev ip6_vti0
+protocol 0800 is buggy, dev ip6_vti0
+ __dev_queue_xmit+0x26bf/0x2fc0 net/core/dev.c:3557
+protocol 0800 is buggy, dev ip6_vti0
+protocol 0800 is buggy, dev ip6_vti0
+protocol 0800 is buggy, dev ip6_vti0
+protocol 0800 is buggy, dev ip6_vti0
+protocol 0800 is buggy, dev ip6_vti0
+protocol 0800 is buggy, dev ip6_vti0
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3590
+ packet_snd net/packet/af_packet.c:2944 [inline]
+ packet_sendmsg+0x3aed/0x60b0 net/packet/af_packet.c:2969
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1747
+ SyS_sendto+0x40/0x50 net/socket.c:1715
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x4417e9
+RSP: 002b:00007ffd4f154978 EFLAGS: 00000216 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 1650e23d775d273d RCX: 00000000004417e9
+RDX: 0000000000000000 RSI: 00000000200001c0 RDI: 0000000000000004
+RBP: 00000000004a335c R08: 0000000020000000 R09: 000000000000001c
+R10: 0000000000000000 R11: 0000000000000216 R12: 00007ffd4f154a50
+R13: 00000000004024c0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4418:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ __do_kmalloc_node mm/slab.c:3670 [inline]
+ __kmalloc_node_track_caller+0x47/0x70 mm/slab.c:3684
+ __kmalloc_reserve.isra.39+0x41/0xd0 net/core/skbuff.c:137
+ __alloc_skb+0x13b/0x780 net/core/skbuff.c:205
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ alloc_skb_with_frags+0x10d/0x750 net/core/skbuff.c:5227
+ sock_alloc_send_pskb+0x787/0x9b0 net/core/sock.c:2085
+ packet_alloc_skb net/packet/af_packet.c:2803 [inline]
+ packet_snd net/packet/af_packet.c:2894 [inline]
+ packet_sendmsg+0x1ece/0x60b0 net/packet/af_packet.c:2969
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1747
+ SyS_sendto+0x40/0x50 net/socket.c:1715
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 4418:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3486 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3801
+ skb_free_head+0x74/0xb0 net/core/skbuff.c:550
+ skb_release_data+0x58c/0x790 net/core/skbuff.c:570
+ skb_release_all+0x4a/0x60 net/core/skbuff.c:627
+ __kfree_skb net/core/skbuff.c:641 [inline]
+ consume_skb+0x153/0x490 net/core/skbuff.c:701
+ packet_rcv+0x15b/0x16c0 net/packet/af_packet.c:2162
+ dev_queue_xmit_nit+0x866/0xc40 net/core/dev.c:1991
+ xmit_one net/core/dev.c:3022 [inline]
+ dev_hard_start_xmit+0x16b/0xac0 net/core/dev.c:3042
+ __dev_queue_xmit+0x26bf/0x2fc0 net/core/dev.c:3557
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3590
+ packet_snd net/packet/af_packet.c:2944 [inline]
+ packet_sendmsg+0x3aed/0x60b0 net/packet/af_packet.c:2969
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1747
+ SyS_sendto+0x40/0x50 net/socket.c:1715
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+The buggy address belongs to the object at ffff8801b4117280
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 280 bytes inside of
+ 512-byte region [ffff8801b4117280, ffff8801b4117480)
+The buggy address belongs to the page:
+page:ffffea0006d045c0 count:1 mapcount:0 mapping:ffff8801b4117000 index:0x0
+IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801b4117000 0000000000000000 0000000100000006
+raw: ffffea0007243760 ffffea0007246a20 ffff8801dac00940 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+8021q: adding VLAN 0 to HW filter on device bond0
+ ffff8801b4117280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801b4117300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801b4117380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff8801b4117400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801b4117480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

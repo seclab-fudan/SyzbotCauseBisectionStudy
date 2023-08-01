@@ -1,0 +1,63 @@
+==================================================================
+BUG: KASAN: use-after-free in memset include/linux/string.h:365 [inline]
+BUG: KASAN: use-after-free in __alloc_skb+0x37b/0x5e0 net/core/skbuff.c:238
+Write of size 32 at addr ffff88819e4233c0 by task net.agent/10042
+
+CPU: 0 PID: 10042 Comm: net.agent Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:639
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ memset+0x24/0x40 mm/kasan/common.c:108
+ memset include/linux/string.h:365 [inline]
+ __alloc_skb+0x37b/0x5e0 net/core/skbuff.c:238
+ alloc_skb include/linux/skbuff.h:1049 [inline]
+ igmpv3_newpack+0x1b9/0x1110 net/ipv4/igmp.c:361
+ add_grhead.isra.0+0x235/0x300 net/ipv4/igmp.c:442
+ add_grec+0x842/0x1230 net/ipv4/igmp.c:575
+ igmpv3_send_cr net/ipv4/igmp.c:712 [inline]
+ igmp_ifc_timer_expire+0x4af/0xab0 net/ipv4/igmp.c:809
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:browse_rb mm/mmap.c:360 [inline]
+RIP: 0010:validate_mm+0x349/0x620 mm/mmap.c:426
+Code: 01 00 e8 ba d9 d0 ff 48 8b 7d c8 e8 a1 15 24 06 49 8d 7c 24 18 48 be 00 00 00 00 00 fc ff df 48 89 f8 48 c1 e8 03 80 3c 30 00 <0f> 85 03 02 00 00 48 8b 7d c0 4d 8b 6c 24 18 e8 53 f6 ff ff 48 89
+RSP: 0018:ffffc90001ccfaf8 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 1ffff11014d511dd RBX: 00007ffc1b7a7000 RCX: ffffffff815bfd3a
+RDX: 1ffff11010920269 RSI: dffffc0000000000 RDI: ffff8880a6a88ee8
+RBP: ffffc90001ccfb50 R08: 0000000000000004 R09: fffff52000399f4d
+R10: fffff52000399f4c R11: 0000000000000003 R12: ffff8880a6a88ed0
+R13: 00007ffc1b786000 R14: ffff8880a6a88eb8 R15: ffff8880a6a88eb0
+ vma_link+0x114/0x170 mm/mmap.c:666
+ mmap_region+0x1297/0x1760 mm/mmap.c:1807
+ do_mmap+0x837/0x1150 mm/mmap.c:1555
+ do_mmap_pgoff include/linux/mm.h:2338 [inline]
+ vm_mmap_pgoff+0x1c5/0x230 mm/util.c:506
+ ksys_mmap_pgoff+0xf7/0x630 mm/mmap.c:1607
+ __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+ __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x7ff4837cc3ea
+Code: 48 8d 3d 81 69 00 00 b2 84 e8 52 ec ff ff f7 d8 89 05 ae ad 20 00 eb c6 90 90 90 90 90 90 90 90 49 89 ca b8 09 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8d 0d 8a ad 20 00 31 d2 48 29 c2 89
+RSP: 002b:00007ffc1b7a4f18 EFLAGS: 00000202 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 00007ff4839d44c0 RCX: 00007ff4837cc3ea
+RDX: 0000000000000003 RSI: 0000000000004838 RDI: 00007ff4837b1000
+RBP: 00007ffc1b7a5270 R08: 00000000ffffffff R09: 00

@@ -1,0 +1,81 @@
+INFO: task syz-executor919:5075 blocked for more than 143 seconds.
+      Not tainted 6.3.0-rc4-syzkaller-00161-g62bad54b26db #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor919 state:D stack:25080 pid:5075  ppid:5074   flags:0x00004004
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5307 [inline]
+ __schedule+0xc91/0x5770 kernel/sched/core.c:6625
+ schedule+0xde/0x1a0 kernel/sched/core.c:6701
+ io_schedule+0xbe/0x130 kernel/sched/core.c:8887
+ bit_wait_io+0x16/0xe0 kernel/sched/wait_bit.c:209
+ __wait_on_bit_lock+0x11f/0x1a0 kernel/sched/wait_bit.c:90
+ out_of_line_wait_on_bit_lock+0xd9/0x110 kernel/sched/wait_bit.c:117
+ wait_on_bit_lock_io include/linux/wait_bit.h:208 [inline]
+ __lock_buffer fs/buffer.c:70 [inline]
+ lock_buffer include/linux/buffer_head.h:400 [inline]
+ __sync_dirty_buffer+0x30e/0x380 fs/buffer.c:2780
+ __ext4_handle_dirty_metadata+0x2b7/0x8e0 fs/ext4/ext4_jbd2.c:387
+ ext4_handle_dirty_dirblock+0x371/0x470 fs/ext4/namei.c:438
+ ext4_finish_convert_inline_dir fs/ext4/inline.c:1180 [inline]
+ ext4_convert_inline_data_nolock+0xac1/0xf10 fs/ext4/inline.c:1257
+ ext4_try_add_inline_entry+0x473/0x8d0 fs/ext4/inline.c:1330
+ ext4_add_entry+0x80d/0xe30 fs/ext4/namei.c:2384
+ ext4_mkdir+0x42e/0xb20 fs/ext4/namei.c:3006
+ vfs_mkdir+0x242/0x460 fs/namei.c:4038
+ do_mkdirat+0x28d/0x310 fs/namei.c:4061
+ __do_sys_mkdirat fs/namei.c:4076 [inline]
+ __se_sys_mkdirat fs/namei.c:4074 [inline]
+ __x64_sys_mkdirat+0x119/0x170 fs/namei.c:4074
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fe994ab31e9
+RSP: 002b:00007ffe43658be8 EFLAGS: 00000246 ORIG_RAX: 0000000000000102
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fe994ab31e9
+RDX: 0000000000000000 RSI: 0000000020000400 RDI: 00000000ffffff9c
+RBP: 0000000000000000 R08: 0000000000000743 R09: 0000000000000001
+R10: 00007ffe43658ab0 R11: 0000000000000246 R12: 00007ffe43658c10
+R13: 0000000000000000 R14: 431bde82d7b634db R15: 0000000000000000
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/12:
+ #0: ffffffff8c794a70 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+1 lock held by rcu_tasks_trace/13:
+ #0: ffffffff8c794770 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+1 lock held by khungtaskd/28:
+ #0: ffffffff8c7955c0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x55/0x340 kernel/locking/lockdep.c:6495
+1 lock held by klogd/4429:
+ #0: ffff8880b983c298 (&rq->__lock){-.-.}-{2:2}, at: raw_spin_rq_lock_nested+0x2f/0x120 kernel/sched/core.c:539
+2 locks held by getty/4759:
+ #0: ffff88802bc42098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x26/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc900015b02f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xef4/0x13e0 drivers/tty/n_tty.c:2177
+3 locks held by syz-executor919/5075:
+ #0: ffff88807ab42460 (sb_writers#4){.+.+}-{0:0}, at: filename_create+0xf1/0x4a0 fs/namei.c:3801
+ #1: ffff8880764cca38 (&type->i_mutex_dir_key#3/1){+.+.}-{3:3}, at: inode_lock_nested include/linux/fs.h:793 [inline]
+ #1: ffff8880764cca38 (&type->i_mutex_dir_key#3/1){+.+.}-{3:3}, at: filename_create+0x1aa/0x4a0 fs/namei.c:3808
+ #2: ffff8880764cc700 (&ei->xattr_sem){++++}-{3:3}, at: ext4_write_lock_xattr fs/ext4/xattr.h:155 [inline]
+ #2: ffff8880764cc700 (&ei->xattr_sem){++++}-{3:3}, at: ext4_try_add_inline_entry+0x10c/0x8d0 fs/ext4/inline.c:1288
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 28 Comm: khungtaskd Not tainted 6.3.0-rc4-syzkaller-00161-g62bad54b26db #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ nmi_cpu_backtrace+0x29c/0x350 lib/nmi_backtrace.c:113
+ nmi_trigger_cpumask_backtrace+0x2a4/0x300 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:222 [inline]
+ watchdog+0xe16/0x1090 kernel/hung_task.c:379
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0 skipped: idling at native_safe_halt arch/x86/include/asm/irqflags.h:48 [inline]
+NMI backtrace for cpu 0 skipped: idling at arch_safe_halt arch/x86/include/asm/irqflags.h:86 [inline]
+NMI backtrace for cpu 0 skipped: idling at acpi_safe_halt+0x40/0x50 drivers/acpi/processor_idle.c:112

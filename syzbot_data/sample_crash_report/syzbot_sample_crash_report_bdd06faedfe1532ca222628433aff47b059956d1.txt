@@ -1,0 +1,68 @@
+==================================================================
+BUG: KASAN: use-after-free in css_task_iter_advance+0x49b/0x540 kernel/cgroup/cgroup.c:4507
+Read of size 4 at addr ffff88808629f8dc by task syz-executor.4/25995
+
+CPU: 1 PID: 25995 Comm: syz-executor.4 Not tainted 5.2.0-rc3-next-20190607 #11
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0xd4/0x306 mm/kasan/report.c:351
+ __kasan_report.cold+0x1b/0x36 mm/kasan/report.c:482
+ kasan_report+0x12/0x20 mm/kasan/common.c:614
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:131
+ css_task_iter_advance+0x49b/0x540 kernel/cgroup/cgroup.c:4507
+ css_task_iter_start+0x18b/0x230 kernel/cgroup/cgroup.c:4543
+ mem_cgroup_scan_tasks+0xaf/0x180 mm/memcontrol.c:1167
+ select_bad_process mm/oom_kill.c:374 [inline]
+ out_of_memory mm/oom_kill.c:1088 [inline]
+ out_of_memory+0x6b2/0x1280 mm/oom_kill.c:1035
+ mem_cgroup_out_of_memory+0x1ca/0x230 mm/memcontrol.c:1573
+ mem_cgroup_oom mm/memcontrol.c:1905 [inline]
+ try_charge+0xfbe/0x1480 mm/memcontrol.c:2468
+ mem_cgroup_try_charge+0x24d/0x5e0 mm/memcontrol.c:6073
+ mem_cgroup_try_charge_delay+0x1f/0xa0 mm/memcontrol.c:6088
+ shmem_getpage_gfp+0x69e/0x2500 mm/shmem.c:1854
+ shmem_fault+0x22d/0x760 mm/shmem.c:2048
+ __do_fault+0x111/0x4d0 mm/memory.c:3122
+ do_read_fault mm/memory.c:3532 [inline]
+ do_fault mm/memory.c:3661 [inline]
+ handle_pte_fault mm/memory.c:3892 [inline]
+ __handle_mm_fault+0x2c67/0x3eb0 mm/memory.c:4016
+ handle_mm_fault+0x3b7/0xa90 mm/memory.c:4053
+ faultin_page mm/gup.c:654 [inline]
+ __get_user_pages+0x7b6/0x1a40 mm/gup.c:857
+ populate_vma_page_range+0x20d/0x2a0 mm/gup.c:1560
+ __mm_populate+0x204/0x380 mm/gup.c:1608
+ mm_populate include/linux/mm.h:2387 [inline]
+ vm_mmap_pgoff+0x213/0x230 mm/util.c:443
+ ksys_mmap_pgoff+0xf7/0x630 mm/mmap.c:1611
+ __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+ __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+ do_syscall_64+0xfd/0x680 arch/x86/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x459279
+Code: fd b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f3f4d9e3c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 0000000000000006 RCX: 0000000000459279
+RDX: 0000000001000004 RSI: 0000000000b36000 RDI: 0000000020000000
+RBP: 000000000075bf20 R08: ffffffffffffffff R09: 0000000000000000
+R10: 0000000000008031 R11: 0000000000000246 R12: 00007f3f4d9e46d4
+R13: 00000000004c5567 R14: 00000000004d9918 R15: 00000000ffffffff
+
+The buggy address belongs to the page:
+page:ffffea000218a7c0 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x1fffc0000000000()
+raw: 01fffc0000000000 0000000000000000 ffffffff00000101 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808629f780: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88808629f800: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff88808629f880: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                                    ^
+ ffff88808629f900: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88808629f980: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

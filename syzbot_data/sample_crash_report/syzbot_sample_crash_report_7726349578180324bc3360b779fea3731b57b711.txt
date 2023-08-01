@@ -1,0 +1,84 @@
+BUG: sleeping function called from invalid context at kernel/locking/mutex.c:908
+in_atomic(): 1, irqs_disabled(): 0, pid: 0, name: swapper/1
+1 lock held by swapper/1/0:
+ #0: 0000000015869b86 ((&toneport->timer)){+.-.}, at: lockdep_copy_map include/linux/lockdep.h:170 [inline]
+ #0: 0000000015869b86 ((&toneport->timer)){+.-.}, at: call_timer_fn+0xc9/0x5e0 kernel/time/timer.c:1315
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.1.0-rc3+ #8
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ ___might_sleep.cold+0x10f/0x129 kernel/sched/core.c:6190
+ __mutex_lock_common kernel/locking/mutex.c:908 [inline]
+ __mutex_lock+0xc8/0x12b0 kernel/locking/mutex.c:1072
+ line6_pcm_acquire+0x30/0x210 sound/usb/line6/pcm.c:311
+ call_timer_fn+0x15c/0x5e0 kernel/time/timer.c:1325
+ expire_timers kernel/time/timer.c:1362 [inline]
+ __run_timers kernel/time/timer.c:1681 [inline]
+ __run_timers kernel/time/timer.c:1649 [inline]
+ run_timer_softirq+0x586/0x1400 kernel/time/timer.c:1694
+ __do_softirq+0x21f/0x8bc kernel/softirq.c:293
+ invoke_softirq kernel/softirq.c:374 [inline]
+ irq_exit+0x17c/0x1a0 kernel/softirq.c:414
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0xf1/0x490 arch/x86/kernel/apic/apic.c:1062
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+RIP: 0010:default_idle+0x1c/0x2a0 arch/x86/kernel/process.c:577
+Code: c1 fd ff ff 66 2e 0f 1f 84 00 00 00 00 00 41 56 41 55 41 54 55 53 65 44 8b 2d 30 0d 99 7a 0f 1f 44 00 00 e8 16 0d d9 fb fb f4 <65> 44 8b 2d 1c 0d 99 7a 0f 1f 44 00 00 5b 5d 41 5c 41 5d 41 5e c3
+RSP: 0018:ffff8881d9e17de0 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000007 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000006 RDI: ffff8881d9dfb834
+RBP: ffffed103b3bf600 R08: ffff8881d9dfb000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8881d9dfb000
+R13: 0000000000000001 R14: 0000000000000000 R15: ffff8881d9dfb000
+ cpuidle_idle_call kernel/sched/idle.c:153 [inline]
+ do_idle+0x2de/0x380 kernel/sched/idle.c:262
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:353
+ start_secondary+0x2df/0x3a0 arch/x86/kernel/smpboot.c:267
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+==================================================================
+BUG: KASAN: null-ptr-deref in memset include/linux/string.h:337 [inline]
+BUG: KASAN: null-ptr-deref in submit_audio_out_urb+0x919/0x1780 sound/usb/line6/playback.c:246
+Write of size 20 at addr 0000000000000010 by task swapper/1/0
+
+CPU: 1 PID: 0 Comm: swapper/1 Tainted: G        W         5.1.0-rc3+ #8
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ kasan_report.cold+0x5/0x35 mm/kasan/report.c:321
+ memset+0x20/0x40 mm/kasan/common.c:115
+ memset include/linux/string.h:337 [inline]
+ submit_audio_out_urb+0x919/0x1780 sound/usb/line6/playback.c:246
+ line6_submit_audio_out_all_urbs+0xc9/0x120 sound/usb/line6/playback.c:295
+ line6_stream_start+0x156/0x1f0 sound/usb/line6/pcm.c:199
+ line6_pcm_acquire+0x134/0x210 sound/usb/line6/pcm.c:322
+ call_timer_fn+0x15c/0x5e0 kernel/time/timer.c:1325
+ expire_timers kernel/time/timer.c:1362 [inline]
+ __run_timers kernel/time/timer.c:1681 [inline]
+ __run_timers kernel/time/timer.c:1649 [inline]
+ run_timer_softirq+0x586/0x1400 kernel/time/timer.c:1694
+ __do_softirq+0x21f/0x8bc kernel/softirq.c:293
+ invoke_softirq kernel/softirq.c:374 [inline]
+ irq_exit+0x17c/0x1a0 kernel/softirq.c:414
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0xf1/0x490 arch/x86/kernel/apic/apic.c:1062
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+RIP: 0010:default_idle+0x1c/0x2a0 arch/x86/kernel/process.c:577
+Code: c1 fd ff ff 66 2e 0f 1f 84 00 00 00 00 00 41 56 41 55 41 54 55 53 65 44 8b 2d 30 0d 99 7a 0f 1f 44 00 00 e8 16 0d d9 fb fb f4 <65> 44 8b 2d 1c 0d 99 7a 0f 1f 44 00 00 5b 5d 41 5c 41 5d 41 5e c3
+RSP: 0018:ffff8881d9e17de0 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000007 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000006 RDI: ffff8881d9dfb834
+RBP: ffffed103b3bf600 R08: ffff8881d9dfb000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8881d9dfb000
+R13: 0000000000000001 R14: 0000000000000000 R15: ffff8881d9dfb000
+ cpuidle_idle_call kernel/sched/idle.c:153 [inline]
+ do_idle+0x2de/0x380 kernel/sched/idle.c:262
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:353
+ start_secondary+0x2df/0x3a0 arch/x86/kernel/smpboot.c:267
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+==================================================================

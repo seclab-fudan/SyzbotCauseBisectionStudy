@@ -1,0 +1,92 @@
+INFO: rcu_sched self-detected stall on CPU
+	0-....: (119993 ticks this GP) idle=306/1/4611686018427387908 softirq=32127/32127 fqs=29849 
+	 (t=120000 jiffies g=18077 c=18076 q=477445)
+NMI backtrace for cpu 0
+CPU: 0 PID: 8087 Comm: syz-executor4 Not tainted 4.17.0-rc5+ #102
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:113
+ nmi_cpu_backtrace lib/nmi_backtrace.c:103 [inline]
+ nmi_trigger_cpumask_backtrace+0x262/0x4b0 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x2c/0x40 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:156 [inline]
+ rcu_dump_cpu_stacks+0x307/0x4b0 kernel/rcu/tree.c:1376
+ print_cpu_stall kernel/rcu/tree.c:1525 [inline]
+ check_cpu_stall kernel/rcu/tree.c:1593 [inline]
+ __rcu_pending kernel/rcu/tree.c:3356 [inline]
+ rcu_pending kernel/rcu/tree.c:3401 [inline]
+ rcu_check_callbacks+0x1924/0x2a00 kernel/rcu/tree.c:2763
+ update_process_times+0x132/0x1a0 kernel/time/timer.c:1636
+ tick_sched_handle kernel/time/tick-sched.c:164 [inline]
+ tick_sched_timer+0x3ba/0x520 kernel/time/tick-sched.c:1274
+ __run_hrtimer kernel/time/hrtimer.c:1398 [inline]
+ __hrtimer_run_queues+0xc03/0x15d0 kernel/time/hrtimer.c:1460
+ hrtimer_interrupt+0x451/0x13c0 kernel/time/hrtimer.c:1518
+ local_apic_timer_interrupt+0x66/0x230 arch/x86/kernel/apic/apic.c:1025
+ smp_apic_timer_interrupt+0x5a/0x90 arch/x86/kernel/apic/apic.c:1053
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+RIP: 0010:skb_clone+0x2b6/0x590 net/core/skbuff.c:1280
+RSP: 0018:ffff88021fc0ec18 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000000 RBX: ffff880137116f8e RCX: 00000000ffffffff
+RDX: ffff8801378caf90 RSI: aaaaaaaaaaaab000 RDI: ffffea0000000000
+RBP: ffff88021fc0ec78 R08: 0000000001080020 R09: 0000000000000002
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff880137116f00
+R13: ffff88021fc3a070 R14: ffff880137116f90 R15: 0000000000000000
+ dev_queue_xmit_nit+0x4ea/0x11e0 net/core/dev.c:1986
+ xmit_one net/core/dev.c:3049 [inline]
+ dev_hard_start_xmit+0x27c/0xc70 net/core/dev.c:3069
+ __dev_queue_xmit+0x2311/0x3510 net/core/dev.c:3584
+ dev_queue_xmit+0x4b/0x60 net/core/dev.c:3617
+ neigh_hh_output include/net/neighbour.h:472 [inline]
+ neigh_output include/net/neighbour.h:480 [inline]
+ ip6_finish_output2+0x1c4f/0x2120 net/ipv6/ip6_output.c:120
+ ip6_finish_output+0xae6/0xba0 net/ipv6/ip6_output.c:154
+ NF_HOOK_COND include/linux/netfilter.h:277 [inline]
+ ip6_output+0x597/0x6c0 net/ipv6/ip6_output.c:171
+ dst_output include/net/dst.h:444 [inline]
+ NF_HOOK include/linux/netfilter.h:288 [inline]
+ ip6_xmit+0x205c/0x23d0 net/ipv6/ip6_output.c:277
+ sctp_v6_xmit+0x48d/0x570 net/sctp/ipv6.c:225
+ sctp_packet_transmit+0x3eb2/0x4360 net/sctp/output.c:650
+ sctp_outq_flush+0x1a7a/0x6320 net/sctp/outqueue.c:1197
+ sctp_outq_uncork+0xd2/0xf0 net/sctp/outqueue.c:776
+ sctp_cmd_interpreter net/sctp/sm_sideeffect.c:1820 [inline]
+ sctp_side_effects net/sctp/sm_sideeffect.c:1220 [inline]
+ sctp_do_sm+0x8707/0x8d20 net/sctp/sm_sideeffect.c:1191
+ sctp_generate_heartbeat_event+0x3cf/0x5c0 net/sctp/sm_sideeffect.c:406
+ call_timer_fn+0x26a/0x5a0 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0xda7/0x11c0 kernel/time/timer.c:1666
+ run_timer_softirq+0x43/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x56d/0x93d kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x202/0x240 kernel/softirq.c:405
+ exiting_irq+0xe/0x10 arch/x86/include/asm/apic.h:525
+ smp_apic_timer_interrupt+0x64/0x90 arch/x86/kernel/apic/apic.c:1055
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+RIP: 0010:__clear_bit arch/x86/include/asm/bitops.h:140 [inline]
+RIP: 0010:__clear_open_fd fs/file.c:250 [inline]
+RIP: 0010:__put_unused_fd fs/file.c:551 [inline]
+RIP: 0010:put_unused_fd+0x127/0x2a0 fs/file.c:560
+RSP: 0018:ffff8801360efcb0 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000017 RBX: 0000000000000000 RCX: ffff880000000000
+RDX: ffff88013b4362e0 RSI: aaaaaaaaaaaab000 RDI: ffffea0000000000
+RBP: ffff8801360efd08 R08: 0000000001080020 R09: 0000000000000002
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: ffff88013abcb4c0 R14: ffff880134ee9e40 R15: 0000000099400089
+ __sys_accept4+0x7a2/0x10d0 net/socket.c:1619
+ __do_sys_accept4 net/socket.c:1626 [inline]
+ __se_sys_accept4 net/socket.c:1623 [inline]
+ __x64_sys_accept4+0x116/0x170 net/socket.c:1623
+ do_syscall_64+0x152/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x455a09
+RSP: 002b:00007f65d18c6c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000120
+RAX: ffffffffffffffda RBX: 00007f65d18c76d4 RCX: 0000000000455a09
+RDX: 0000000020000380 RSI: 00000000200003c0 RDI: 0000000000000016
+RBP: 000000000072bf50 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 000000000000000a R14: 00000000006f4190 R15: 0000000000000001

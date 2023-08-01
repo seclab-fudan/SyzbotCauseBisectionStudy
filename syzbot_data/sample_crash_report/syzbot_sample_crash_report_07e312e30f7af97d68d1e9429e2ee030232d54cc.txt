@@ -1,0 +1,106 @@
+==================================================================
+BUG: KASAN: use-after-free in rt6_select net/ipv6/route.c:754 [inline]
+BUG: KASAN: use-after-free in ip6_pol_route+0x2989/0x2bb0 net/ipv6/route.c:1090
+Read of size 4 at addr ffff8801ccbd4f68 by task syz-executor6/18068
+
+CPU: 0 PID: 18068 Comm: syz-executor6 Not tainted 4.13.0-rc5+ #17
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ rt6_select net/ipv6/route.c:754 [inline]
+ ip6_pol_route+0x2989/0x2bb0 net/ipv6/route.c:1090
+ ip6_pol_route_output+0x4c/0x60 net/ipv6/route.c:1214
+ fib6_rule_lookup+0x9e/0x2a0 net/ipv6/ip6_fib.c:281
+ ip6_route_output_flags+0x1f1/0x2b0 net/ipv6/route.c:1242
+ ip6_route_output include/net/ip6_route.h:80 [inline]
+ ip6_dst_lookup_tail+0x4ea/0x970 net/ipv6/ip6_output.c:953
+ ip6_dst_lookup_flow+0xc8/0x270 net/ipv6/ip6_output.c:1076
+ ip6_sk_dst_lookup_flow+0x44a/0x590 net/ipv6/ip6_output.c:1107
+ udpv6_sendmsg+0x20eb/0x31a0 net/ipv6/udp.c:1312
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:762
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ SYSC_sendto+0x352/0x5a0 net/socket.c:1750
+sit0: Invalid MTU 131169 requested, hw max 65508
+ SyS_sendto+0x40/0x50 net/socket.c:1718
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x4512e9
+RSP: 002b:00007f555f3e9c08 EFLAGS: 00000216 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000718000 RCX: 00000000004512e9
+RDX: 0000000000000002 RSI: 0000000020f09ffe RDI: 0000000000000006
+RBP: 0000000000000086 R08: 0000000020f05fe4 R09: 000000000000001c
+R10: 0000000000000000 R11: 0000000000000216 R12: 0000000000000423
+R13: 00000000ffffffff R14: 0000000000000423 R15: 00000000206f9fd6
+
+Allocated by task 14614:
+sit0: Invalid MTU 131169 requested, hw max 65508
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x127/0x750 mm/slab.c:3561
+ dst_alloc+0x11f/0x1a0 net/core/dst.c:107
+ __ip6_dst_alloc+0x34/0x60 net/ipv6/route.c:355
+ ip6_dst_alloc+0x2d/0x1f0 net/ipv6/route.c:368
+ ip6_route_info_create+0x4b2/0x24c0 net/ipv6/route.c:1863
+ ip6_route_add+0xa2/0x1a0 net/ipv6/route.c:2100
+ inet6_rtm_newroute+0x139/0x150 net/ipv6/route.c:3283
+ rtnetlink_rcv_msg+0x733/0x1090 net/core/rtnetlink.c:4246
+ netlink_rcv_skb+0x216/0x440 net/netlink/af_netlink.c:2397
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4258
+ netlink_unicast_kernel net/netlink/af_netlink.c:1265 [inline]
+ netlink_unicast+0x4e8/0x6f0 net/netlink/af_netlink.c:1291
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1854
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ sock_write_iter+0x31a/0x5d0 net/socket.c:912
+ call_write_iter include/linux/fs.h:1743 [inline]
+ do_iter_readv_writev+0x525/0x7f0 fs/read_write.c:650
+ do_iter_write+0x154/0x540 fs/read_write.c:929
+ vfs_writev+0x18a/0x340 fs/read_write.c:975
+ do_writev+0xfc/0x2a0 fs/read_write.c:1011
+ SYSC_writev fs/read_write.c:1084 [inline]
+ SyS_writev+0x27/0x30 fs/read_write.c:1081
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 17937:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kmem_cache_free+0x77/0x280 mm/slab.c:3763
+ dst_destroy+0x1de/0x2d0 net/core/dst.c:138
+ dst_destroy_rcu+0x16/0x20 net/core/dst.c:151
+ __rcu_reclaim kernel/rcu/rcu.h:195 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2777 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:3031 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2998 [inline]
+ rcu_process_callbacks+0xd3e/0x17b0 kernel/rcu/tree.c:3015
+ __do_softirq+0x2f5/0xba3 kernel/softirq.c:284
+
+The buggy address belongs to the object at ffff8801ccbd4e00
+ which belongs to the cache ip6_dst_cache of size 384
+The buggy address is located 360 bytes inside of
+ 384-byte region [ffff8801ccbd4e00, ffff8801ccbd4f80)
+The buggy address belongs to the page:
+page:ffffea000732f500 count:1 mapcount:0 mapping:ffff8801ccbd4000 index:0x0
+flags: 0x200000000000100(slab)
+raw: 0200000000000100 ffff8801ccbd4000 0000000000000000 0000000100000009
+raw: ffffea000732b020 ffffea00073296e0 ffff8801d3ea8980 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ccbd4e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ccbd4e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801ccbd4f00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                          ^
+ ffff8801ccbd4f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801ccbd5000: 00 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc
+==================================================================

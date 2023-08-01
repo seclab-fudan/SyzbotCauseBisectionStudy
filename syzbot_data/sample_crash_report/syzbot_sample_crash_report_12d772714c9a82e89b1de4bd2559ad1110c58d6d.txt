@@ -1,0 +1,50 @@
+QAT: Invalid ioctl
+==================================================================
+BUG: KASAN: stack-out-of-bounds in csum_and_copy_from_iter_full+0xb61/0xf30 lib/iov_iter.c:1228
+Read of size 4 at addr ffff880187a67a98 by task syz-executor0/3674
+
+CPU: 0 PID: 3674 Comm: syz-executor0 Not tainted 4.14.0-mm1+ #25
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ csum_and_copy_from_iter_full+0xb61/0xf30 lib/iov_iter.c:1228
+ ip_generic_getfrag+0x169/0x260 net/ipv4/ip_output.c:837
+ raw_getfrag+0x139/0x210 net/ipv4/raw.c:499
+ __ip_append_data.isra.46+0x1779/0x2550 net/ipv4/ip_output.c:1018
+ ip_append_data.part.48+0xde/0x150 net/ipv4/ip_output.c:1170
+ ip_append_data+0x5a/0x80 net/ipv4/ip_output.c:1159
+ raw_sendmsg+0x1704/0x3920 net/ipv4/raw.c:658
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:763
+ sock_sendmsg_nosec net/socket.c:632 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:642
+ SYSC_sendto+0x358/0x5a0 net/socket.c:1749
+ SyS_sendto+0x40/0x50 net/socket.c:1717
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x452879
+RSP: 002b:00007f3b55cdebe8 EFLAGS: 00000212 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 00000000007580d8 RCX: 0000000000452879
+RDX: 0000000000000028 RSI: 000000002000c000 RDI: 0000000000000016
+RBP: 0000000000000086 R08: 000000002000b000 R09: 0000000000000010
+R10: 0000000000000000 R11: 0000000000000212 R12: 0000000000000000
+R13: 0000000000a6f7ff R14: 00007f3b55cdf9c0 R15: 0000000000000001
+
+The buggy address belongs to the page:
+page:ffffea00061e99c0 count:0 mapcount:0 mapping:          (null) index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: 0000000000000000 0000000100000001 ffff8801db217180 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff880187a67980: f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2 00 00 00 f2
+ ffff880187a67a00: f2 f2 f2 f2 00 00 00 00 f2 f2 f2 f2 00 00 00 00
+>ffff880187a67a80: 00 00 f2 f2 f2 f2 f2 f2 00 00 00 00 00 00 00 f2
+                            ^
+ ffff880187a67b00: f2 f2 f2 f2 00 00 00 00 00 00 00 00 00 f2 f2 f2
+ ffff880187a67b80: f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 f1 f1
+==================================================================

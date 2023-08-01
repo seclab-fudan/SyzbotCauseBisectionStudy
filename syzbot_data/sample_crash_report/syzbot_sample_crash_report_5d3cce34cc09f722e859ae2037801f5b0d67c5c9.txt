@@ -1,0 +1,49 @@
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 2995 Comm: syzkaller758499 Not tainted 4.14.0-rc5-mm1+ #20
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801d1e70180 task.stack: ffff8801c05e0000
+RIP: 0010:__read_once_size include/linux/compiler.h:276 [inline]
+RIP: 0010:hrtimer_active+0x211/0x410 kernel/time/hrtimer.c:1142
+RSP: 0018:ffff8801c05e73f0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 1ffff100380bceab RCX: ffffffff815ef93f
+RDX: 0000000000000000 RSI: ffffffff85b377a0 RDI: ffff8801d1f38ea0
+RBP: ffff8801c05e7530 R08: ffffffff83f9f367 R09: 0000000000000004
+R10: ffff8801c05e7898 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffffed00380bce89 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020511fd8 CR3: 0000000005a22000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ hrtimer_try_to_cancel+0x91/0x5c0 kernel/time/hrtimer.c:1006
+ hrtimer_cancel+0x22/0x40 kernel/time/hrtimer.c:1032
+ napi_disable+0x87/0xa0 net/core/dev.c:5552
+ tun_napi_disable drivers/net/tun.c:290 [inline]
+ __tun_detach+0xe26/0x1570 drivers/net/tun.c:617
+ tun_detach drivers/net/tun.c:664 [inline]
+ tun_chr_close+0x44/0x60 drivers/net/tun.c:2835
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:112
+ exit_task_work include/linux/task_work.h:21 [inline]
+ do_exit+0x9b5/0x1ad0 kernel/exit.c:869
+ do_group_exit+0x149/0x400 kernel/exit.c:972
+ SYSC_exit_group kernel/exit.c:983 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:981
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x442aa8
+RSP: 002b:00007ffdcb6208d8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000442aa8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 0000000000000082 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000000 R11: 0000000000000246 R12: 74656e2f7665642f
+R13: 0000000000401b80 R14: 0000000000000000 R15: 0000000000000000
+Code: c6 00 00 48 8b 85 d8 fe ff ff 48 c1 e8 03 42 80 3c 38 00 0f 85 f2 01 00 00 48 8b 85 e8 fe ff ff 4c 8b 60 30 4c 89 e0 48 c1 e8 03 <42> 80 3c 38 00 0f 85 c8 01 00 00 48 8b 85 f0 fe ff ff 49 8b 1c 
+RIP: __read_once_size include/linux/compiler.h:276 [inline] RSP: ffff8801c05e73f0
+RIP: hrtimer_active+0x211/0x410 kernel/time/hrtimer.c:1142 RSP: ffff8801c05e73f0
+---[ end trace 16d64b9edc71d4d0 ]---

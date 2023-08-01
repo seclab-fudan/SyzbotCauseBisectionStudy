@@ -1,0 +1,83 @@
+==================================================================
+BUG: KASAN: use-after-free in rxrpc_send_keepalive+0x8a2/0x940 net/rxrpc/output.c:634
+Read of size 8 at addr ffff88809d9e8018 by task kworker/1:0/17
+
+CPU: 1 PID: 17 Comm: kworker/1:0 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: krxrpcd rxrpc_peer_keepalive_worker
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:634
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ rxrpc_send_keepalive+0x8a2/0x940 net/rxrpc/output.c:634
+ rxrpc_peer_keepalive_dispatch net/rxrpc/peer_event.c:369 [inline]
+ rxrpc_peer_keepalive_worker+0x7be/0xd02 net/rxrpc/peer_event.c:430
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 16303:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:510 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:483
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:524
+ kmem_cache_alloc_trace+0x158/0x790 mm/slab.c:3550
+ kmalloc include/linux/slab.h:556 [inline]
+ kzalloc include/linux/slab.h:690 [inline]
+ rxrpc_alloc_connection+0x86/0x5f0 net/rxrpc/conn_object.c:41
+ rxrpc_alloc_client_connection net/rxrpc/conn_client.c:176 [inline]
+ rxrpc_get_client_conn net/rxrpc/conn_client.c:339 [inline]
+ rxrpc_connect_call+0x648/0x4c00 net/rxrpc/conn_client.c:697
+ rxrpc_new_client_call+0x978/0x19d0 net/rxrpc/call_object.c:289
+ rxrpc_new_client_call_for_sendmsg net/rxrpc/sendmsg.c:595 [inline]
+ rxrpc_do_sendmsg+0xff5/0x1d53 net/rxrpc/sendmsg.c:652
+ rxrpc_sendmsg+0x4d6/0x5f0 net/rxrpc/af_rxrpc.c:585
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:657
+ ___sys_sendmsg+0x3e2/0x920 net/socket.c:2311
+ __sys_sendmmsg+0x1bf/0x4d0 net/socket.c:2413
+ __do_sys_sendmmsg net/socket.c:2442 [inline]
+ __se_sys_sendmmsg net/socket.c:2439 [inline]
+ __x64_sys_sendmmsg+0x9d/0x100 net/socket.c:2439
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 16:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ kasan_set_free_info mm/kasan/common.c:332 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:471
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:480
+ __cache_free mm/slab.c:3425 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3756
+ rxrpc_destroy_connection+0x1f2/0x2d0 net/rxrpc/conn_object.c:372
+ __rcu_reclaim kernel/rcu/rcu.h:222 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2157 [inline]
+ rcu_core+0x581/0x1560 kernel/rcu/tree.c:2377
+ rcu_core_si+0x9/0x10 kernel/rcu/tree.c:2386
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff88809d9e8000
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 24 bytes inside of
+ 1024-byte region [ffff88809d9e8000, ffff88809d9e8400)
+The buggy address belongs to the page:
+page:ffffea0002767a00 refcount:1 mapcount:0 mapping:ffff8880aa400c40 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea00026f78c8 ffffea00023ce148 ffff8880aa400c40
+raw: 0000000000000000 ffff88809d9e8000 0000000100000002 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809d9e7f00: fc fb fb fb fb fb fb fb fb fb fc fc fc fc fb fb
+ ffff88809d9e7f80: fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc fc
+>ffff88809d9e8000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff88809d9e8080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88809d9e8100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

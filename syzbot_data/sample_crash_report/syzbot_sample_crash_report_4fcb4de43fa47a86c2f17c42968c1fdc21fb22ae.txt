@@ -1,0 +1,173 @@
+INFO: task kworker/1:2:4201 blocked for more than 143 seconds.
+      Not tainted 5.14.0-rc7-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:kworker/1:2     state:D stack:25568 pid: 4201 ppid:     2 flags:0x00004000
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ context_switch kernel/sched/core.c:4681 [inline]
+ __schedule+0x93a/0x26f0 kernel/sched/core.c:5938
+ schedule+0xd3/0x270 kernel/sched/core.c:6017
+ schedule_timeout+0x1db/0x2a0 kernel/time/timer.c:1857
+ do_wait_for_common kernel/sched/completion.c:85 [inline]
+ __wait_for_common kernel/sched/completion.c:106 [inline]
+ wait_for_common kernel/sched/completion.c:117 [inline]
+ wait_for_completion+0x176/0x280 kernel/sched/completion.c:138
+ pn533_send_cmd_sync drivers/nfc/pn533/pn533.c:631 [inline]
+ pn533_get_firmware_version drivers/nfc/pn533/pn533.c:2521 [inline]
+ pn533_finalize_setup+0x102/0x170 drivers/nfc/pn533/pn533.c:2718
+ pn533_usb_probe+0x969/0xf10 drivers/nfc/pn533/usb.c:544
+ usb_probe_interface+0x315/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x23c/0xcd0 drivers/base/dd.c:595
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:747
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:777
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:894
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:965
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xc2f/0x2180 drivers/base/core.c:3355
+ usb_set_configuration+0x113f/0x1910 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd9/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:517 [inline]
+ really_probe+0x23c/0xcd0 drivers/base/dd.c:595
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:747
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:777
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:894
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x228/0x4a0 drivers/base/dd.c:965
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xc2f/0x2180 drivers/base/core.c:3355
+ usb_new_device.cold+0x63f/0x108e drivers/usb/core/hub.c:2563
+ hub_port_connect drivers/usb/core/hub.c:5348 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5488 [inline]
+ port_event drivers/usb/core/hub.c:5634 [inline]
+ hub_event+0x2357/0x4330 drivers/usb/core/hub.c:5716
+ process_one_work+0x98d/0x1630 kernel/workqueue.c:2276
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2422
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1655:
+ #0: ffffffff8b97c280 (rcu_read_lock){....}-{1:2}
+, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6446
+5 locks held by kworker/u4:6/3103:
+ #0: ffff8880b9d51b18 (&rq->__lock){-.-.}-{2:2}, at: raw_spin_rq_lock_nested kernel/sched/core.c:460 [inline]
+ #0: ffff8880b9d51b18 (&rq->__lock){-.-.}-{2:2}, at: raw_spin_rq_lock kernel/sched/sched.h:1307 [inline]
+ #0: ffff8880b9d51b18 (&rq->__lock){-.-.}-{2:2}, at: rq_lock kernel/sched/sched.h:1610 [inline]
+ #0: ffff8880b9d51b18 (&rq->__lock){-.-.}-{2:2}, at: __schedule+0x233/0x26f0 kernel/sched/core.c:5852
+ #1: ffff8880b9d1f9c8 (&per_cpu_ptr(group->pcpu, cpu)->seq){-.-.}-{0:0}, at: psi_task_switch+0x39d/0x480 kernel/sched/psi.c:880
+ #2: ffff8880b9d40298 (&base->lock){-.-.}-{2:2}, at: lock_timer_base+0x5a/0x1f0 kernel/time/timer.c:946
+ #3: ffffffff903c0b58 (&obj_hash[i].lock){-.-.}-{2:2}, at: debug_object_activate+0x12e/0x3e0 lib/debugobjects.c:656
+ #4: ffffffff8b847e48 (text_mutex){+.+.}-{3:3}
+, at: arch_jump_label_transform_apply+0xe/0x20 arch/x86/kernel/jump_label.c:145
+5 locks held by kworker/1:2/4201:
+ #0: ffff888018ac7138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888018ac7138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: atomic64_set include/asm-generic/atomic-instrumented.h:620 [inline]
+ #0: ffff888018ac7138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: atomic_long_set include/asm-generic/atomic-long.h:41 [inline]
+ #0: ffff888018ac7138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:617 [inline]
+ #0: ffff888018ac7138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+ #0: ffff888018ac7138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: process_one_work+0x871/0x1630 kernel/workqueue.c:2247
+ #1: ffffc90006cffdb0 ((work_completion)(&hub->events)){+.+.}-{0:0}, at: process_one_work+0x8a5/0x1630 kernel/workqueue.c:2251
+ #2: ffff888146c62220 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:756 [inline]
+ #2: ffff888146c62220 (&dev->mutex){....}-{3:3}, at: hub_event+0x1c1/0x4330 drivers/usb/core/hub.c:5662
+ #3: ffff88801f965220 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:756 [inline]
+ #3: ffff88801f965220 (&dev->mutex){....}-{3:3}, at: __device_attach+0x7a/0x4a0 drivers/base/dd.c:940
+ #4: ffff88801f9631a8 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:756 [inline]
+ #4: ffff88801f9631a8 (&dev->mutex){....}-{3:3}, at: __device_attach+0x7a/0x4a0 drivers/base/dd.c:940
+1 lock held by in:imklog/8178:
+ #0: ffff888010a1dc70 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:974
+3 locks held by syz-executor976/7770:
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 1655 Comm: khungtaskd Not tainted 5.14.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ nmi_cpu_backtrace.cold+0x44/0xd7 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1b3/0x230 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:210 [inline]
+ watchdog+0xd0a/0xfc0 kernel/hung_task.c:295
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 3103 Comm: kworker/u4:6 Not tainted 5.14.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound toggle_allocation_gate
+RIP: 0010:bytes_is_nonzero mm/kasan/generic.c:85 [inline]
+RIP: 0010:memory_is_nonzero mm/kasan/generic.c:102 [inline]
+RIP: 0010:memory_is_poisoned_n mm/kasan/generic.c:128 [inline]
+RIP: 0010:memory_is_poisoned mm/kasan/generic.c:159 [inline]
+RIP: 0010:check_region_inline mm/kasan/generic.c:180 [inline]
+RIP: 0010:kasan_check_range+0xde/0x180 mm/kasan/generic.c:189
+Code: 74 f2 48 89 c2 b8 01 00 00 00 48 85 d2 75 56 5b 5d 41 5c c3 48 85 d2 74 5e 48 01 ea eb 09 48 83 c0 01 48 39 d0 74 50 80 38 00 <74> f2 eb d4 41 bc 08 00 00 00 48 89 ea 45 29 dc 4d 8d 1c 2c eb 0c
+RSP: 0018:ffffc90002b2f8b0 EFLAGS: 00000246
+RAX: fffffbfff1ad9002 RBX: fffffbfff1ad9003 RCX: ffffffff815b2958
+RDX: fffffbfff1ad9003 RSI: 0000000000000008 RDI: ffffffff8d6c8010
+RBP: fffffbfff1ad9002 R08: 0000000000000000 R09: ffffffff8d6c8017
+R10: fffffbfff1ad9002 R11: 000000000000003f R12: 0000000000000000
+R13: 0000000000000000 R14: ffff8880109ae138 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000014ba5d0 CR3: 000000000b68e000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ instrument_atomic_read include/linux/instrumented.h:71 [inline]
+ test_bit include/asm-generic/bitops/instrumented-non-atomic.h:134 [inline]
+ cpumask_test_cpu include/linux/cpumask.h:344 [inline]
+ cpu_online include/linux/cpumask.h:895 [inline]
+ trace_lock_acquire include/trace/events/lock.h:13 [inline]
+ lock_acquire+0xb8/0x510 kernel/locking/lockdep.c:5596
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+ spin_lock include/linux/spinlock.h:354 [inline]
+ __get_locked_pte+0x2b6/0x4d0 mm/memory.c:1736
+ get_locked_pte include/linux/mm.h:2051 [inline]
+ __text_poke+0x1ab/0x8c0 arch/x86/kernel/alternative.c:817
+ text_poke_bp_batch+0x2eb/0x560 arch/x86/kernel/alternative.c:1127
+ text_poke_flush arch/x86/kernel/alternative.c:1268 [inline]
+ text_poke_flush arch/x86/kernel/alternative.c:1265 [inline]
+ text_poke_finish+0x16/0x30 arch/x86/kernel/alternative.c:1275
+ arch_jump_label_transform_apply+0x13/0x20 arch/x86/kernel/jump_label.c:146
+ jump_label_update+0x1d5/0x430 kernel/jump_label.c:830
+ static_key_enable_cpuslocked+0x1b1/0x260 kernel/jump_label.c:177
+ static_key_enable+0x16/0x20 kernel/jump_label.c:190
+ toggle_allocation_gate mm/kfence/core.c:623 [inline]
+ toggle_allocation_gate+0x100/0x390 mm/kfence/core.c:615
+ process_one_work+0x98d/0x1630 kernel/workqueue.c:2276
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2422
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+----------------
+Code disassembly (best guess):
+   0:	74 f2                	je     0xfffffff4
+   2:	48 89 c2             	mov    %rax,%rdx
+   5:	b8 01 00 00 00       	mov    $0x1,%eax
+   a:	48 85 d2             	test   %rdx,%rdx
+   d:	75 56                	jne    0x65
+   f:	5b                   	pop    %rbx
+  10:	5d                   	pop    %rbp
+  11:	41 5c                	pop    %r12
+  13:	c3                   	retq
+  14:	48 85 d2             	test   %rdx,%rdx
+  17:	74 5e                	je     0x77
+  19:	48 01 ea             	add    %rbp,%rdx
+  1c:	eb 09                	jmp    0x27
+  1e:	48 83 c0 01          	add    $0x1,%rax
+  22:	48 39 d0             	cmp    %rdx,%rax
+  25:	74 50                	je     0x77
+  27:	80 38 00             	cmpb   $0x0,(%rax)
+* 2a:	74 f2                	je     0x1e <-- trapping instruction
+  2c:	eb d4                	jmp    0x2
+  2e:	41 bc 08 00 00 00    	mov    $0x8,%r12d
+  34:	48 89 ea             	mov    %rbp,%rdx
+  37:	45 29 dc             	sub    %r11d,%r12d
+  3a:	4d 8d 1c 2c          	lea    (%r12,%rbp,1),%r11
+  3e:	eb 0c                	jmp    0x4c

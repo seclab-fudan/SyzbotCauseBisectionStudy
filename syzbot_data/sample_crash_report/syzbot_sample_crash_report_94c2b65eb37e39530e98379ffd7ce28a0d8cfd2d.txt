@@ -1,0 +1,120 @@
+==================================================================
+BUG: KASAN: use-after-free in tcp_v6_send_reset+0xd07/0xf90 net/ipv6/tcp_ipv6.c:928
+Read of size 1 at addr ffff888091bac11d by task ksoftirqd/0/9
+
+CPU: 0 PID: 9 Comm: ksoftirqd/0 Not tainted 5.0.0+ #108
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/generic_report.c:129
+ tcp_v6_send_reset+0xd07/0xf90 net/ipv6/tcp_ipv6.c:928
+ tcp_v6_do_rcv+0xe81/0x12c0 net/ipv6/tcp_ipv6.c:1368
+ tcp_v6_rcv+0x2c7c/0x3580 net/ipv6/tcp_ipv6.c:1568
+ ip6_protocol_deliver_rcu+0x303/0x16c0 net/ipv6/ip6_input.c:394
+ ip6_input_finish+0x84/0x170 net/ipv6/ip6_input.c:434
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ip6_input+0xe4/0x3f0 net/ipv6/ip6_input.c:443
+ dst_input include/net/dst.h:439 [inline]
+ ip6_rcv_finish+0x1e7/0x320 net/ipv6/ip6_input.c:76
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ipv6_rcv+0x10e/0x420 net/ipv6/ip6_input.c:272
+ __netif_receive_skb_one_core+0x115/0x1a0 net/core/dev.c:4980
+ __netif_receive_skb+0x2c/0x1c0 net/core/dev.c:5090
+ process_backlog+0x206/0x750 net/core/dev.c:5930
+ napi_poll net/core/dev.c:6353 [inline]
+ net_rx_action+0x4fa/0x1070 net/core/dev.c:6419
+ __do_softirq+0x266/0x95a kernel/softirq.c:293
+ run_ksoftirqd kernel/softirq.c:655 [inline]
+ run_ksoftirqd+0x8e/0x110 kernel/softirq.c:647
+ smpboot_thread_fn+0x6ab/0xa10 kernel/smpboot.c:164
+ kthread+0x357/0x430 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Allocated by task 24042:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:511
+ __do_kmalloc_node mm/slab.c:3686 [inline]
+ __kmalloc_node_track_caller+0x4e/0x70 mm/slab.c:3700
+ __kmalloc_reserve.isra.0+0x40/0xf0 net/core/skbuff.c:140
+ __alloc_skb+0x10b/0x5e0 net/core/skbuff.c:208
+ alloc_skb_fclone include/linux/skbuff.h:1107 [inline]
+ sk_stream_alloc_skb+0x113/0xd10 net/ipv4/tcp.c:889
+ tcp_connect+0xfd8/0x4280 net/ipv4/tcp_output.c:3521
+ tcp_v6_connect+0x150b/0x20a0 net/ipv6/tcp_ipv6.c:330
+ __inet_stream_connect+0x83f/0xea0 net/ipv4/af_inet.c:659
+ tcp_sendmsg_fastopen net/ipv4/tcp.c:1158 [inline]
+ tcp_sendmsg_locked+0x2314/0x34d0 net/ipv4/tcp.c:1200
+ tcp_sendmsg+0x30/0x50 net/ipv4/tcp.c:1434
+ inet_sendmsg+0x147/0x5e0 net/ipv4/af_inet.c:802
+ sock_sendmsg_nosec net/socket.c:651 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:661
+ __sys_sendto+0x262/0x380 net/socket.c:1932
+ __do_sys_sendto net/socket.c:1944 [inline]
+ __se_sys_sendto net/socket.c:1940 [inline]
+ __x64_sys_sendto+0xe1/0x1a0 net/socket.c:1940
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 9:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3821
+ skb_free_head+0x93/0xb0 net/core/skbuff.c:557
+ skb_release_data+0x576/0x7a0 net/core/skbuff.c:577
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:631
+ __kfree_skb+0x16/0x30 net/core/skbuff.c:645
+ sk_wmem_free_skb include/net/sock.h:1475 [inline]
+ sk_wmem_free_skb include/net/sock.h:1466 [inline]
+ tcp_rtx_queue_purge net/ipv4/tcp.c:2530 [inline]
+ tcp_write_queue_purge+0x3f9/0xa60 net/ipv4/tcp.c:2543
+ tcp_reset+0x109/0x4b0 net/ipv4/tcp_input.c:4053
+ tcp_rcv_state_process+0x10c8/0x4d93 net/ipv4/tcp_input.c:6216
+ tcp_v6_do_rcv+0x7da/0x12c0 net/ipv6/tcp_ipv6.c:1361
+ tcp_v6_rcv+0x2c7c/0x3580 net/ipv6/tcp_ipv6.c:1568
+ ip6_protocol_deliver_rcu+0x303/0x16c0 net/ipv6/ip6_input.c:394
+ ip6_input_finish+0x84/0x170 net/ipv6/ip6_input.c:434
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ip6_input+0xe4/0x3f0 net/ipv6/ip6_input.c:443
+ dst_input include/net/dst.h:439 [inline]
+ ip6_rcv_finish+0x1e7/0x320 net/ipv6/ip6_input.c:76
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ipv6_rcv+0x10e/0x420 net/ipv6/ip6_input.c:272
+ __netif_receive_skb_one_core+0x115/0x1a0 net/core/dev.c:4980
+ __netif_receive_skb+0x2c/0x1c0 net/core/dev.c:5090
+ process_backlog+0x206/0x750 net/core/dev.c:5930
+ napi_poll net/core/dev.c:6353 [inline]
+ net_rx_action+0x4fa/0x1070 net/core/dev.c:6419
+ __do_softirq+0x266/0x95a kernel/softirq.c:293
+
+The buggy address belongs to the object at ffff888091bac000
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 285 bytes inside of
+ 1024-byte region [ffff888091bac000, ffff888091bac400)
+The buggy address belongs to the page:
+page:ffffea000246eb00 count:1 mapcount:0 mapping:ffff88812c3f0ac0 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea0001acbb88 ffffea000257db88 ffff88812c3f0ac0
+raw: 0000000000000000 ffff888091bac000 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888091bac000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888091bac080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888091bac100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff888091bac180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888091bac200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

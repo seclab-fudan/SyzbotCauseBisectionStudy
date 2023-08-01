@@ -1,0 +1,89 @@
+==================================================================
+BUG: KMSAN: uninit-value in is_valid_ether_addr include/linux/etherdevice.h:199 [inline]
+BUG: KMSAN: uninit-value in eth_prepare_mac_addr_change net/ethernet/eth.c:275 [inline]
+BUG: KMSAN: uninit-value in eth_mac_addr+0x203/0x2b0 net/ethernet/eth.c:308
+CPU: 1 PID: 8074 Comm: syz-executor0 Not tainted 4.17.0+ #22
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:113
+ kmsan_report+0x188/0x2a0 mm/kmsan/kmsan.c:990
+ __msan_warning_32+0x70/0xc0 mm/kmsan/kmsan_instr.c:640
+ is_valid_ether_addr include/linux/etherdevice.h:199 [inline]
+ eth_prepare_mac_addr_change net/ethernet/eth.c:275 [inline]
+ eth_mac_addr+0x203/0x2b0 net/ethernet/eth.c:308
+ dev_set_mac_address+0x267/0x530 net/core/dev.c:7157
+ do_setlink+0xbca/0x6010 net/core/rtnetlink.c:2317
+ rtnl_group_changelink net/core/rtnetlink.c:2824 [inline]
+ rtnl_newlink+0x1fdc/0x37a0 net/core/rtnetlink.c:2976
+ rtnetlink_rcv_msg+0xa44/0x1570 net/core/rtnetlink.c:4646
+ netlink_rcv_skb+0x37e/0x600 net/netlink/af_netlink.c:2448
+ rtnetlink_rcv+0x50/0x60 net/core/rtnetlink.c:4664
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x1680/0x1750 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0x104f/0x1350 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg net/socket.c:639 [inline]
+ ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
+ __sys_sendmsg net/socket.c:2155 [inline]
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x455ba9
+RSP: 002b:00007f49937f8c68 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f49937f96d4 RCX: 0000000000455ba9
+RDX: 0000000000000000 RSI: 00000000200003c0 RDI: 0000000000000015
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000004c1186 R14: 00000000004d1350 R15: 0000000000000000
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:256 [inline]
+ kmsan_save_stack mm/kmsan/kmsan.c:271 [inline]
+ kmsan_internal_chain_origin+0x12b/0x210 mm/kmsan/kmsan.c:581
+ kmsan_memcpy_origins+0x11d/0x170 mm/kmsan/kmsan.c:425
+ __msan_memcpy+0xda/0x130 mm/kmsan/kmsan_instr.c:432
+ do_setlink+0xb8b/0x6010 net/core/rtnetlink.c:2315
+ rtnl_group_changelink net/core/rtnetlink.c:2824 [inline]
+ rtnl_newlink+0x1fdc/0x37a0 net/core/rtnetlink.c:2976
+ rtnetlink_rcv_msg+0xa44/0x1570 net/core/rtnetlink.c:4646
+ netlink_rcv_skb+0x37e/0x600 net/netlink/af_netlink.c:2448
+ rtnetlink_rcv+0x50/0x60 net/core/rtnetlink.c:4664
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x1680/0x1750 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0x104f/0x1350 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg net/socket.c:639 [inline]
+ ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
+ __sys_sendmsg net/socket.c:2155 [inline]
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:256 [inline]
+ kmsan_internal_poison_shadow+0xb8/0x1b0 mm/kmsan/kmsan.c:181
+ kmsan_kmalloc+0x94/0x100 mm/kmsan/kmsan_hooks.c:91
+ kmsan_slab_alloc+0x10/0x20 mm/kmsan/kmsan_hooks.c:100
+ slab_post_alloc_hook mm/slab.h:446 [inline]
+ slab_alloc_node mm/slub.c:2753 [inline]
+ __kmalloc_node_track_caller+0xb35/0x11b0 mm/slub.c:4395
+ __kmalloc_reserve net/core/skbuff.c:138 [inline]
+ __alloc_skb+0x2cb/0x9e0 net/core/skbuff.c:206
+ alloc_skb include/linux/skbuff.h:988 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1182 [inline]
+ netlink_sendmsg+0x76e/0x1350 net/netlink/af_netlink.c:1876
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg net/socket.c:639 [inline]
+ ___sys_sendmsg+0xec8/0x1320 net/socket.c:2117
+ __sys_sendmsg net/socket.c:2155 [inline]
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x331/0x460 net/socket.c:2162
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+==================================================================

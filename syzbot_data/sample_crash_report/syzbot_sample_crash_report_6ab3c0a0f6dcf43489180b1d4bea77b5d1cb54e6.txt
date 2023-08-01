@@ -1,0 +1,74 @@
+general protection fault, probably for non-canonical address 0xdffffc000000003e: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x00000000000001f0-0x00000000000001f7]
+CPU: 1 PID: 19 Comm: ksoftirqd/1 Not tainted 5.16.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:dev_index_hash net/core/dev.c:222 [inline]
+RIP: 0010:dev_get_by_index_rcu+0x28/0x140 net/core/dev.c:885
+Code: 00 00 41 55 41 54 55 89 f5 53 48 89 fb e8 00 9d 4d fa 48 8d bb f0 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 fc 00 00 00 48 8b 93 f0 01 00 00 40 0f b6 c5 48
+RSP: 0018:ffffc90000d97608 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000100
+RDX: 000000000000003e RSI: ffffffff872a14d0 RDI: 00000000000001f0
+RBP: 0000000000000003 R08: 0000000000000000 R09: 0000000000000001
+R10: ffffffff873745ad R11: 000000000008808a R12: ffff88806a062100
+R13: 0000000000000003 R14: ffff88806a062100 R15: ffffc90001116000
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055555733a848 CR3: 000000001479e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ ____bpf_clone_redirect net/core/filter.c:2410 [inline]
+ bpf_clone_redirect+0x91/0x420 net/core/filter.c:2401
+ bpf_prog_bebbfe2050753572+0x56/0xcc0
+ __bpf_prog_run include/linux/filter.h:626 [inline]
+ bpf_prog_run_xdp include/linux/filter.h:801 [inline]
+ veth_xdp_rcv_skb+0x64b/0x1b20 drivers/net/veth.c:775
+ veth_xdp_rcv+0x3ac/0x810 drivers/net/veth.c:881
+ veth_poll+0x134/0x850 drivers/net/veth.c:913
+ __napi_poll+0xaf/0x440 net/core/dev.c:7023
+ napi_poll net/core/dev.c:7090 [inline]
+ net_rx_action+0x801/0xb40 net/core/dev.c:7177
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ run_ksoftirqd kernel/softirq.c:921 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:913
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+Modules linked in:
+---[ end trace 86b7d5782a67ad32 ]---
+RIP: 0010:dev_index_hash net/core/dev.c:222 [inline]
+RIP: 0010:dev_get_by_index_rcu+0x28/0x140 net/core/dev.c:885
+Code: 00 00 41 55 41 54 55 89 f5 53 48 89 fb e8 00 9d 4d fa 48 8d bb f0 01 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 fc 00 00 00 48 8b 93 f0 01 00 00 40 0f b6 c5 48
+RSP: 0018:ffffc90000d97608 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000100
+RDX: 000000000000003e RSI: ffffffff872a14d0 RDI: 00000000000001f0
+RBP: 0000000000000003 R08: 0000000000000000 R09: 0000000000000001
+R10: ffffffff873745ad R11: 000000000008808a R12: ffff88806a062100
+R13: 0000000000000003 R14: ffff88806a062100 R15: ffffc90001116000
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055555733a848 CR3: 000000001479e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	00 00                	add    %al,(%rax)
+   2:	41 55                	push   %r13
+   4:	41 54                	push   %r12
+   6:	55                   	push   %rbp
+   7:	89 f5                	mov    %esi,%ebp
+   9:	53                   	push   %rbx
+   a:	48 89 fb             	mov    %rdi,%rbx
+   d:	e8 00 9d 4d fa       	callq  0xfa4d9d12
+  12:	48 8d bb f0 01 00 00 	lea    0x1f0(%rbx),%rdi
+  19:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  20:	fc ff df
+  23:	48 89 fa             	mov    %rdi,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	0f 85 fc 00 00 00    	jne    0x130
+  34:	48 8b 93 f0 01 00 00 	mov    0x1f0(%rbx),%rdx
+  3b:	40 0f b6 c5          	movzbl %bpl,%eax
+  3f:	48                   	rex.W

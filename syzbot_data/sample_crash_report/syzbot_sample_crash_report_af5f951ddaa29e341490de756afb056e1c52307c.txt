@@ -1,0 +1,83 @@
+=====================================================
+BUG: KMSAN: use-after-free in ip6_ignore_linkdown include/net/addrconf.h:402 [inline]
+BUG: KMSAN: use-after-free in find_match+0x317/0x1480 net/ipv6/route.c:749
+CPU: 0 PID: 2765 Comm: kworker/0:2 Not tainted 5.6.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: ipv6_addrconf addrconf_dad_work
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ ip6_ignore_linkdown include/net/addrconf.h:402 [inline]
+ find_match+0x317/0x1480 net/ipv6/route.c:749
+ __find_rr_leaf+0x3f9/0x1160 net/ipv6/route.c:837
+ find_rr_leaf net/ipv6/route.c:858 [inline]
+ rt6_select net/ipv6/route.c:902 [inline]
+ fib6_table_lookup+0x586/0x1420 net/ipv6/route.c:2170
+ ip6_pol_route+0x203/0x2960 net/ipv6/route.c:2206
+ ip6_pol_route_input+0x123/0x140 net/ipv6/route.c:2264
+ fib6_rule_lookup+0x38f/0xa10 net/ipv6/fib6_rules.c:114
+ ip6_route_input_lookup net/ipv6/route.c:2276 [inline]
+ ip6_route_input+0xb9d/0xcf0 net/ipv6/route.c:2445
+ ip6_rcv_finish_core+0x1f9/0x470 net/ipv6/ip6_input.c:63
+ ip6_rcv_finish net/ipv6/ip6_input.c:74 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ipv6_rcv+0x628/0x710 net/ipv6/ip6_input.c:306
+ __netif_receive_skb_one_core net/core/dev.c:5198 [inline]
+ __netif_receive_skb net/core/dev.c:5312 [inline]
+ process_backlog+0xa41/0x1410 net/core/dev.c:6144
+ napi_poll net/core/dev.c:6582 [inline]
+ net_rx_action+0x786/0x1aa0 net/core/dev.c:6650
+ __do_softirq+0x311/0x83d kernel/softirq.c:293
+ do_softirq_own_stack+0x49/0x80 arch/x86/entry/entry_64.S:1091
+ </IRQ>
+ do_softirq kernel/softirq.c:338 [inline]
+ __local_bh_enable_ip+0x184/0x1d0 kernel/softirq.c:190
+ local_bh_enable+0x36/0x40 include/linux/bottom_half.h:32
+ rcu_read_unlock_bh include/linux/rcupdate.h:690 [inline]
+ ip6_finish_output2+0x2113/0x2640 net/ipv6/ip6_output.c:117
+ __ip6_finish_output+0x824/0x8e0 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x166/0x410 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x60a/0x770 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ndisc_send_skb+0x1047/0x15a0 net/ipv6/ndisc.c:505
+ ndisc_send_ns+0xe38/0xe80 net/ipv6/ndisc.c:647
+ addrconf_dad_work+0xc0b/0x2aa0 net/ipv6/addrconf.c:4120
+ process_one_work+0x1555/0x1f40 kernel/workqueue.c:2264
+ worker_thread+0xef6/0x2450 kernel/workqueue.c:2410
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:353
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_poison_shadow+0x66/0xd0 mm/kmsan/kmsan.c:127
+ kmsan_slab_free+0x6e/0xb0 mm/kmsan/kmsan_hooks.c:107
+ slab_free_freelist_hook mm/slub.c:1477 [inline]
+ slab_free mm/slub.c:3040 [inline]
+ kfree+0x565/0x30a0 mm/slub.c:3993
+ __netdev_name_node_alt_destroy net/core/dev.c:322 [inline]
+ netdev_name_node_alt_destroy+0x587/0x690 net/core/dev.c:334
+ rtnl_alt_ifname net/core/rtnetlink.c:3518 [inline]
+ rtnl_linkprop+0x939/0xc00 net/core/rtnetlink.c:3567
+ rtnl_dellinkprop+0x9d/0xb0 net/core/rtnetlink.c:3588
+ rtnetlink_rcv_msg+0x1153/0x1570 net/core/rtnetlink.c:5438
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2477
+ rtnetlink_rcv+0x50/0x60 net/core/rtnetlink.c:5456
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2343
+ ___sys_sendmsg net/socket.c:2397 [inline]
+ __sys_sendmsg+0x451/0x5f0 net/socket.c:2430
+ __do_sys_sendmsg net/socket.c:2439 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2437
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2437
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+=====================================================

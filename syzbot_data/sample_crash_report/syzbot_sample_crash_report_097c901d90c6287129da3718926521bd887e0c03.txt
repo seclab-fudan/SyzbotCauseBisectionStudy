@@ -1,0 +1,178 @@
+INFO: trying to register non-static key.
+The code is fine but needs lockdep annotation, or maybe
+you didn't initialize this object before use?
+turning off the locking correctness validator.
+CPU: 1 PID: 14685 Comm: syz-executor.0 Not tainted 6.0.0-rc7-syzkaller-18095-gbbed346d5a96 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x54 arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ assign_lock_key+0x134/0x140 kernel/locking/lockdep.c:979
+ register_lock_class+0xc4/0x2f8 kernel/locking/lockdep.c:1292
+ __lock_acquire+0xa8/0x30a4 kernel/locking/lockdep.c:4932
+ lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5666
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+ _raw_spin_lock_bh+0x54/0x6c kernel/locking/spinlock.c:178
+ spin_lock_bh include/linux/spinlock.h:354 [inline]
+ __fib6_clean_all+0xf0/0x2c4 net/ipv6/ip6_fib.c:2256
+ fib6_clean_all+0x3c/0x50 net/ipv6/ip6_fib.c:2268
+ rt6_sync_down_dev net/ipv6/route.c:4894 [inline]
+ rt6_disable_ip+0x80/0xc8 net/ipv6/route.c:4899
+ addrconf_ifdown+0x90/0xc30 net/ipv6/addrconf.c:3750
+ addrconf_notify+0x218/0x848
+ notifier_call_chain kernel/notifier.c:87 [inline]
+ raw_notifier_call_chain+0x7c/0x108 kernel/notifier.c:455
+ call_netdevice_notifiers_info net/core/dev.c:1945 [inline]
+ call_netdevice_notifiers_extack net/core/dev.c:1983 [inline]
+ call_netdevice_notifiers net/core/dev.c:1997 [inline]
+ netdev_wait_allrefs_any net/core/dev.c:10250 [inline]
+ netdev_run_todo+0x340/0x6f0 net/core/dev.c:10364
+ rtnl_unlock+0x14/0x20 net/core/rtnetlink.c:147
+ tun_detach drivers/net/tun.c:704 [inline]
+ tun_chr_close+0xe8/0xfc drivers/net/tun.c:3455
+ __fput+0x198/0x3dc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x14c kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbe0 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb40 kernel/signal.c:2857
+ do_signal+0x128/0x438 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1f0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 14685 at net/ipv6/ip6_fib.c:2068 fib6_walk_continue+0x278/0x2b0 net/ipv6/ip6_fib.c:2068
+Modules linked in:
+CPU: 1 PID: 14685 Comm: syz-executor.0 Not tainted 6.0.0-rc7-syzkaller-18095-gbbed346d5a96 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : fib6_walk_continue+0x278/0x2b0 net/ipv6/ip6_fib.c:2068
+lr : fib6_walk_continue+0x278/0x2b0 net/ipv6/ip6_fib.c:2068
+sp : ffff80001fbbb790
+x29: ffff80001fbbb790 x28: 0000000000000000 x27: ffff0000e5721000
+x26: ffff0000e5312510 x25: ffff0000e5721018 x24: ffff0000e5312510
+x23: ffff0000e5312520 x22: ffff0000e5311a80 x21: ffff80000b765440
+x20: 0000000000000000 x19: ffff80001fbbb7f8 x18: 0000000000000162
+x17: 6e69676e45206574 x16: 0000000000000202 x15: 0000000000000000
+x14: 0000000000000000 x13: 205d353836343154 x12: 5b5d313336323838
+x11: ff8080000b77912c x10: 0000000000000000 x9 : ffff80000b77912c
+x8 : ffff0000e77e3500 x7 : 545b5d3133363238 x6 : ffff80000b777988
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0000e77e3500 x1 : 0000000000000000 x0 : 0000000000000000
+Call trace:
+ fib6_walk_continue+0x278/0x2b0 net/ipv6/ip6_fib.c:2068
+ fib6_walk net/ipv6/ip6_fib.c:2161 [inline]
+ fib6_clean_tree net/ipv6/ip6_fib.c:2241 [inline]
+ __fib6_clean_all+0x16c/0x2c4 net/ipv6/ip6_fib.c:2257
+ fib6_clean_all+0x3c/0x50 net/ipv6/ip6_fib.c:2268
+ rt6_sync_down_dev net/ipv6/route.c:4894 [inline]
+ rt6_disable_ip+0x80/0xc8 net/ipv6/route.c:4899
+ addrconf_ifdown+0x90/0xc30 net/ipv6/addrconf.c:3750
+ addrconf_notify+0x218/0x848
+ notifier_call_chain kernel/notifier.c:87 [inline]
+ raw_notifier_call_chain+0x7c/0x108 kernel/notifier.c:455
+ call_netdevice_notifiers_info net/core/dev.c:1945 [inline]
+ call_netdevice_notifiers_extack net/core/dev.c:1983 [inline]
+ call_netdevice_notifiers net/core/dev.c:1997 [inline]
+ netdev_wait_allrefs_any net/core/dev.c:10250 [inline]
+ netdev_run_todo+0x340/0x6f0 net/core/dev.c:10364
+ rtnl_unlock+0x14/0x20 net/core/rtnetlink.c:147
+ tun_detach drivers/net/tun.c:704 [inline]
+ tun_chr_close+0xe8/0xfc drivers/net/tun.c:3455
+ __fput+0x198/0x3dc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x14c kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbe0 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb40 kernel/signal.c:2857
+ do_signal+0x128/0x438 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1f0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+irq event stamp: 6986
+hardirqs last  enabled at (6985): [<ffff800008102154>] __local_bh_enable_ip+0x13c/0x1a4 kernel/softirq.c:401
+hardirqs last disabled at (6983): [<ffff8000081020dc>] __local_bh_enable_ip+0xc4/0x1a4 kernel/softirq.c:378
+softirqs last  enabled at (6984): [<ffff80000b6aa7a4>] spin_unlock_bh include/linux/spinlock.h:394 [inline]
+softirqs last  enabled at (6984): [<ffff80000b6aa7a4>] clusterip_netdev_event+0x188/0x1ac net/ipv4/netfilter/ipt_CLUSTERIP.c:233
+softirqs last disabled at (6986): [<ffff80000b777950>] spin_lock_bh include/linux/spinlock.h:354 [inline]
+softirqs last disabled at (6986): [<ffff80000b777950>] __fib6_clean_all+0xf0/0x2c4 net/ipv6/ip6_fib.c:2256
+---[ end trace 0000000000000000 ]---
+Unable to handle kernel NULL pointer dereference at virtual address 00000000000000a0
+Mem abort info:
+  ESR = 0x0000000096000007
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x07: level 3 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000007
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=00000001091dd000
+[00000000000000a0] pgd=0800000109073003, p4d=0800000109073003, pud=080000010ccea003, pmd=080000010aab3003, pte=0000000000000000
+Internal error: Oops: 0000000096000007 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 14685 Comm: syz-executor.0 Tainted: G        W          6.0.0-rc7-syzkaller-18095-gbbed346d5a96 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __mutex_lock_common+0x78/0xca8 kernel/locking/mutex.c:582
+lr : __mutex_lock_common+0x6c/0xca8 kernel/locking/mutex.c:580
+sp : ffff80001fbbb900
+x29: ffff80001fbbb970 x28: ffff80000ee2b000 x27: ffff80001fbbbaa8
+x26: 0000000000000000 x25: 0000000000000001 x24: 0000000000000002
+x23: ffff80000b4689d8 x22: 0000000000000000 x21: 0000000000000000
+x20: 0000000000000000 x19: 0000000000000040 x18: 0000000000000189
+x17: 000000000000b67e x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 000000000000000b x12: ffff80000d8094f0
+x11: ff8080000b44ee74 x10: ffff80000d309358 x9 : 0000000000000000
+x8 : 0000000000000000 x7 : 0000000000000000 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : ffff80000b4689d8 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 00000000ffffffff x0 : 0000000000000000
+Call trace:
+ __mutex_lock_common+0x78/0xca8 kernel/locking/mutex.c:582
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x38/0x44 kernel/locking/mutex.c:799
+ nf_tables_flowtable_event+0x60/0x1bc net/netfilter/nf_tables_api.c:8160
+ notifier_call_chain kernel/notifier.c:87 [inline]
+ raw_notifier_call_chain+0x7c/0x108 kernel/notifier.c:455
+ call_netdevice_notifiers_info net/core/dev.c:1945 [inline]
+ call_netdevice_notifiers_extack net/core/dev.c:1983 [inline]
+ call_netdevice_notifiers net/core/dev.c:1997 [inline]
+ netdev_wait_allrefs_any net/core/dev.c:10250 [inline]
+ netdev_run_todo+0x340/0x6f0 net/core/dev.c:10364
+ rtnl_unlock+0x14/0x20 net/core/rtnetlink.c:147
+ tun_detach drivers/net/tun.c:704 [inline]
+ tun_chr_close+0xe8/0xfc drivers/net/tun.c:3455
+ __fput+0x198/0x3dc fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:353
+ task_work_run+0xc4/0x14c kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x26c/0xbe0 kernel/exit.c:795
+ do_group_exit+0x70/0xe8 kernel/exit.c:925
+ get_signal+0xb0c/0xb40 kernel/signal.c:2857
+ do_signal+0x128/0x438 arch/arm64/kernel/signal.c:1071
+ do_notify_resume+0xc0/0x1f0 arch/arm64/kernel/signal.c:1124
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+Code: 970671c3 b001735c b94a2b88 35000088 (f9403268) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	970671c3 	bl	0xfffffffffc19c70c
+   4:	b001735c 	adrp	x28, 0x2e69000
+   8:	b94a2b88 	ldr	w8, [x28, #2600]
+   c:	35000088 	cbnz	w8, 0x1c
+* 10:	f9403268 	ldr	x8, [x19, #96] <-- trapping instruction

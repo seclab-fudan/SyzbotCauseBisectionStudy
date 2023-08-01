@@ -1,0 +1,42 @@
+==================================================================
+BUG: KASAN: unknown-crash in stack_not_used include/linux/sched/task_stack.h:101 [inline]
+BUG: KASAN: unknown-crash in check_stack_usage kernel/exit.c:692 [inline]
+BUG: KASAN: unknown-crash in do_exit+0x24a6/0x29f0 kernel/exit.c:849
+Read of size 8 at addr ffffc9000cf30130 by task syz-executor624/10359
+
+CPU: 1 PID: 10359 Comm: syz-executor624 Not tainted 5.9.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0x5/0x497 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ stack_not_used include/linux/sched/task_stack.h:101 [inline]
+ check_stack_usage kernel/exit.c:692 [inline]
+ do_exit+0x24a6/0x29f0 kernel/exit.c:849
+ do_group_exit+0x125/0x310 kernel/exit.c:903
+ get_signal+0x428/0x1f00 kernel/signal.c:2757
+ arch_do_signal+0x82/0x2520 arch/x86/kernel/signal.c:811
+ exit_to_user_mode_loop kernel/entry/common.c:159 [inline]
+ exit_to_user_mode_prepare+0x1ae/0x200 kernel/entry/common.c:190
+ syscall_exit_to_user_mode+0x7e/0x2e0 kernel/entry/common.c:265
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x446b99
+Code: Bad RIP value.
+RSP: 002b:00007f70f5ed9d18 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+RAX: 0000000000002878 RBX: 00000000006dbc58 RCX: 0000000000446b99
+RDX: 9999999999999999 RSI: 0000000000000000 RDI: 0000020002004ffc
+RBP: 00000000006dbc50 R08: ffffffffffffffff R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc5c
+R13: 00007f70f5ed9d20 R14: 00007f70f5ed9d20 R15: 000000000000002d
+
+
+Memory state around the buggy address:
+ ffffc9000cf30000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffc9000cf30080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffffc9000cf30100: 00 00 00 00 00 00 70 07 00 00 77 00 00 00 00 00
+                                     ^
+ ffffc9000cf30180: 00 00 70 07 00 00 70 07 00 00 00 00 77 00 70 07
+ ffffc9000cf30200: 00 70 07 00 77 00 00 00 00 00 70 07 00 00 00 00
+==================================================================

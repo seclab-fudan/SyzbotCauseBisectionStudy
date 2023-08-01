@@ -1,0 +1,94 @@
+ntfs: (device loop0): is_boot_sector_ntfs(): Invalid end of sector marker.
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ntfs_attr_find+0x99a/0xa00 fs/ntfs/attrib.c:613
+Read of size 4 at addr ffff8801d96bfbb5 by task syzkaller786329/4469
+
+CPU: 0 PID: 4469 Comm: syzkaller786329 Not tainted 4.16.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load_n_noabort+0xf/0x20 mm/kasan/report.c:443
+ ntfs_attr_find+0x99a/0xa00 fs/ntfs/attrib.c:613
+ ntfs_attr_lookup+0x10e1/0x22a0 fs/ntfs/attrib.c:1203
+ ntfs_read_inode_mount+0x6cd/0x20f0 fs/ntfs/inode.c:1858
+ ntfs_fill_super+0x13df/0x2fb0 fs/ntfs/super.c:2871
+ mount_bdev+0x2b7/0x370 fs/super.c:1119
+ ntfs_mount+0x34/0x40 fs/ntfs/super.c:3065
+ mount_fs+0x66/0x2d0 fs/super.c:1222
+ vfs_kern_mount.part.26+0xc6/0x4a0 fs/namespace.c:1037
+ vfs_kern_mount fs/namespace.c:2509 [inline]
+ do_new_mount fs/namespace.c:2512 [inline]
+ do_mount+0xea4/0x2bb0 fs/namespace.c:2842
+ SYSC_mount fs/namespace.c:3058 [inline]
+ SyS_mount+0xab/0x120 fs/namespace.c:3035
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x442eca
+RSP: 002b:00007ffce22e1a98 EFLAGS: 00000202 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000442eca
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007ffce22e1aa0
+RBP: 00000000006cb018 R08: 000000002007e200 R09: 000000000000000a
+R10: 0000000000000000 R11: 0000000000000202 R12: 0000000000000004
+R13: 0000000000401dc0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 2834:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ __do_kmalloc_node mm/slab.c:3670 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3677
+ kmalloc_node include/linux/slab.h:554 [inline]
+ kvmalloc_node+0x99/0xd0 mm/util.c:419
+ kvmalloc include/linux/mm.h:541 [inline]
+ seq_buf_alloc fs/seq_file.c:29 [inline]
+ seq_read+0x7fc/0x1410 fs/seq_file.c:208
+ __vfs_read+0xef/0xa00 fs/read_write.c:411
+ vfs_read+0x11e/0x350 fs/read_write.c:447
+ SYSC_read fs/read_write.c:573 [inline]
+ SyS_read+0xef/0x220 fs/read_write.c:566
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 2834:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3486 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3801
+ kvfree+0x36/0x60 mm/util.c:438
+ seq_release fs/seq_file.c:368 [inline]
+ single_release+0x78/0xb0 fs/seq_file.c:605
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x275/0x2f0 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+ do_syscall_64+0x6ec/0x940 arch/x86/entry/common.c:292
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+The buggy address belongs to the object at ffff8801d96be180
+ which belongs to the cache kmalloc-4096 of size 4096
+The buggy address is located 2613 bytes to the right of
+ 4096-byte region [ffff8801d96be180, ffff8801d96bf180)
+The buggy address belongs to the page:
+page:ffffea000765af80 count:1 mapcount:0 mapping:ffff8801d96be180 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801d96be180 0000000000000000 0000000100000001
+raw: ffffea0006b1b820 ffffea0007622ba0 ffff8801dac00dc0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d96bfa80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801d96bfb00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801d96bfb80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                     ^
+ ffff8801d96bfc00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801d96bfc80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

@@ -1,0 +1,48 @@
+==================================================================
+BUG: KCSAN: data-race in tcp_event_new_data_sent / tcp_stream_memory_free
+
+write to 0xffff888126af05c4 of 4 bytes by interrupt on cpu 1:
+ tcp_event_new_data_sent+0x5f/0x1c0 net/ipv4/tcp_output.c:70
+ tcp_write_xmit+0xa16/0x3080 net/ipv4/tcp_output.c:2447
+ __tcp_push_pending_frames+0x7b/0x1d0 net/ipv4/tcp_output.c:2616
+ tcp_push_pending_frames include/net/tcp.h:1809 [inline]
+ tcp_data_snd_check net/ipv4/tcp_input.c:5215 [inline]
+ tcp_rcv_established+0x56a/0xf50 net/ipv4/tcp_input.c:5707
+ tcp_v4_do_rcv+0x381/0x4e0 net/ipv4/tcp_ipv4.c:1561
+ tcp_v4_rcv+0x19dc/0x1bb0 net/ipv4/tcp_ipv4.c:1942
+ ip_protocol_deliver_rcu+0x4d/0x420 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish+0x110/0x140 net/ipv4/ip_input.c:231
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_local_deliver+0x133/0x210 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:442 [inline]
+ ip_rcv_finish+0x121/0x160 net/ipv4/ip_input.c:413
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_rcv+0x18f/0x1a0 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core+0xa7/0xe0 net/core/dev.c:5010
+ __netif_receive_skb+0x37/0xf0 net/core/dev.c:5124
+ netif_receive_skb_internal+0x59/0x190 net/core/dev.c:5214
+
+read to 0xffff888126af05c4 of 4 bytes by task 7312 on cpu 0:
+ tcp_stream_memory_free+0x3c/0xc0 include/net/tcp.h:1919
+ __sk_stream_memory_free include/net/sock.h:1214 [inline]
+ __sk_stream_memory_free include/net/sock.h:1208 [inline]
+ __sk_stream_is_writeable include/net/sock.h:1225 [inline]
+ sk_stream_is_writeable include/net/sock.h:1230 [inline]
+ tcp_poll+0x49a/0x6b0 net/ipv4/tcp.c:558
+ sock_poll+0xed/0x250 net/socket.c:1256
+ vfs_poll include/linux/poll.h:90 [inline]
+ do_select+0x7d0/0x1020 fs/select.c:534
+ core_sys_select+0x381/0x550 fs/select.c:677
+ kern_select+0x106/0x170 fs/select.c:718
+ __do_sys_select fs/select.c:725 [inline]
+ __se_sys_select fs/select.c:722 [inline]
+ __x64_sys_select+0x70/0x90 fs/select.c:722
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 7312 Comm: sshd Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

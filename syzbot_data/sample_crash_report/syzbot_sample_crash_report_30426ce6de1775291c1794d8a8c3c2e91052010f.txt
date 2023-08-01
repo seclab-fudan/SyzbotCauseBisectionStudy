@@ -1,0 +1,178 @@
+=========================
+WARNING: held lock freed!
+5.11.0-rc6-next-20210205-syzkaller #0 Not tainted
+-------------------------
+syz-executor146/8424 is freeing memory ffff888014c83800-ffff888014c839ff, with a lock still held there!
+ffff888014c83890 (&uprobe->register_rwsem){+.+.}-{3:3}, at: uprobe_unregister+0x37/0x70 kernel/events/uprobes.c:1115
+2 locks held by syz-executor146/8424:
+ #0: ffffffff8bfe1328 (event_mutex){+.+.}-{3:3}, at: perf_uprobe_destroy+0x23/0x130 kernel/trace/trace_event_perf.c:347
+ #1: ffff888014c83890 (&uprobe->register_rwsem){+.+.}-{3:3}, at: uprobe_unregister+0x37/0x70 kernel/events/uprobes.c:1115
+
+stack backtrace:
+CPU: 0 PID: 8424 Comm: syz-executor146 Not tainted 5.11.0-rc6-next-20210205-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ print_freed_lock_bug kernel/locking/lockdep.c:6256 [inline]
+ debug_check_no_locks_freed.cold+0x9d/0xa9 kernel/locking/lockdep.c:6289
+ slab_free_hook mm/slub.c:1549 [inline]
+ slab_free_freelist_hook+0xd8/0x1d0 mm/slub.c:1600
+ slab_free mm/slub.c:3161 [inline]
+ kfree+0xe5/0x7b0 mm/slub.c:4202
+ put_uprobe kernel/events/uprobes.c:612 [inline]
+ put_uprobe+0x13b/0x190 kernel/events/uprobes.c:601
+ delete_uprobe kernel/events/uprobes.c:947 [inline]
+ __uprobe_unregister+0x1e5/0x260 kernel/events/uprobes.c:1098
+ uprobe_unregister+0x42/0x70 kernel/events/uprobes.c:1116
+ __probe_event_disable+0x11e/0x240 kernel/trace/trace_uprobe.c:1084
+ probe_event_disable+0x155/0x1c0 kernel/trace/trace_uprobe.c:1171
+ trace_uprobe_register+0x45a/0x880 kernel/trace/trace_uprobe.c:1459
+ perf_trace_event_unreg.isra.0+0xac/0x250 kernel/trace/trace_event_perf.c:162
+ perf_uprobe_destroy+0xbb/0x130 kernel/trace/trace_event_perf.c:349
+ _free_event+0x2ee/0x1380 kernel/events/core.c:4830
+ put_event kernel/events/core.c:4924 [inline]
+ perf_event_release_kernel+0xa24/0xe00 kernel/events/core.c:5039
+ perf_release+0x33/0x40 kernel/events/core.c:5049
+ __fput+0x283/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x190 kernel/task_work.c:140
+ exit_task_work include/linux/task_work.h:30 [inline]
+ do_exit+0xc5c/0x2ae0 kernel/exit.c:825
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ __do_sys_exit_group kernel/exit.c:933 [inline]
+ __se_sys_exit_group kernel/exit.c:931 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:931
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x43db19
+Code: Unable to access opcode bytes at RIP 0x43daef.
+RSP: 002b:00007ffd9444ab48 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00000000004ae230 RCX: 000000000043db19
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffffffffffc0 R09: 0000000000000000
+R10: 00000000ffffffff R11: 0000000000000246 R12: 00000000004ae230
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+==================================================================
+BUG: KASAN: use-after-free in __up_write kernel/locking/rwsem.c:1311 [inline]
+BUG: KASAN: use-after-free in up_write+0x488/0x560 kernel/locking/rwsem.c:1459
+Read of size 8 at addr ffff888014c83888 by task syz-executor146/8424
+
+CPU: 0 PID: 8424 Comm: syz-executor146 Not tainted 5.11.0-rc6-next-20210205-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ print_address_description.constprop.0.cold+0x5b/0x2f8 mm/kasan/report.c:232
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report.cold+0x7c/0xd8 mm/kasan/report.c:416
+ __up_write kernel/locking/rwsem.c:1311 [inline]
+ up_write+0x488/0x560 kernel/locking/rwsem.c:1459
+ uprobe_unregister+0x4a/0x70 kernel/events/uprobes.c:1117
+ __probe_event_disable+0x11e/0x240 kernel/trace/trace_uprobe.c:1084
+ probe_event_disable+0x155/0x1c0 kernel/trace/trace_uprobe.c:1171
+ trace_uprobe_register+0x45a/0x880 kernel/trace/trace_uprobe.c:1459
+ perf_trace_event_unreg.isra.0+0xac/0x250 kernel/trace/trace_event_perf.c:162
+ perf_uprobe_destroy+0xbb/0x130 kernel/trace/trace_event_perf.c:349
+ _free_event+0x2ee/0x1380 kernel/events/core.c:4830
+ put_event kernel/events/core.c:4924 [inline]
+ perf_event_release_kernel+0xa24/0xe00 kernel/events/core.c:5039
+ perf_release+0x33/0x40 kernel/events/core.c:5049
+ __fput+0x283/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x190 kernel/task_work.c:140
+ exit_task_work include/linux/task_work.h:30 [inline]
+ do_exit+0xc5c/0x2ae0 kernel/exit.c:825
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ __do_sys_exit_group kernel/exit.c:933 [inline]
+ __se_sys_exit_group kernel/exit.c:931 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:931
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x43db19
+Code: Unable to access opcode bytes at RIP 0x43daef.
+RSP: 002b:00007ffd9444ab48 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00000000004ae230 RCX: 000000000043db19
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffffffffffc0 R09: 0000000000000000
+R10: 00000000ffffffff R11: 0000000000000246 R12: 00000000004ae230
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+
+Allocated by task 8424:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:403 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc.constprop.0+0xa0/0xd0 mm/kasan/common.c:406
+ kmalloc include/linux/slab.h:556 [inline]
+ kzalloc include/linux/slab.h:686 [inline]
+ alloc_uprobe kernel/events/uprobes.c:731 [inline]
+ __uprobe_register+0x19c/0x850 kernel/events/uprobes.c:1167
+ trace_uprobe_enable kernel/trace/trace_uprobe.c:1063 [inline]
+ probe_event_enable+0x441/0xa00 kernel/trace/trace_uprobe.c:1129
+ trace_uprobe_register+0x443/0x880 kernel/trace/trace_uprobe.c:1456
+ perf_trace_event_reg kernel/trace/trace_event_perf.c:129 [inline]
+ perf_trace_event_init+0x549/0xa20 kernel/trace/trace_event_perf.c:204
+ perf_uprobe_init+0x16f/0x210 kernel/trace/trace_event_perf.c:336
+ perf_uprobe_event_init+0xff/0x1c0 kernel/events/core.c:9721
+ perf_try_init_event+0x12a/0x560 kernel/events/core.c:11038
+ perf_init_event kernel/events/core.c:11090 [inline]
+ perf_event_alloc.part.0+0xe3b/0x3960 kernel/events/core.c:11370
+ perf_event_alloc kernel/events/core.c:11749 [inline]
+ __do_sys_perf_event_open+0x647/0x2e60 kernel/events/core.c:11847
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 8424:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:357
+ ____kasan_slab_free.part.0+0xe1/0x110 mm/kasan/common.c:364
+ kasan_slab_free include/linux/kasan.h:191 [inline]
+ slab_free_hook mm/slub.c:1562 [inline]
+ slab_free_freelist_hook+0x82/0x1d0 mm/slub.c:1600
+ slab_free mm/slub.c:3161 [inline]
+ kfree+0xe5/0x7b0 mm/slub.c:4202
+ put_uprobe kernel/events/uprobes.c:612 [inline]
+ put_uprobe+0x13b/0x190 kernel/events/uprobes.c:601
+ delete_uprobe kernel/events/uprobes.c:947 [inline]
+ __uprobe_unregister+0x1e5/0x260 kernel/events/uprobes.c:1098
+ uprobe_unregister+0x42/0x70 kernel/events/uprobes.c:1116
+ __probe_event_disable+0x11e/0x240 kernel/trace/trace_uprobe.c:1084
+ probe_event_disable+0x155/0x1c0 kernel/trace/trace_uprobe.c:1171
+ trace_uprobe_register+0x45a/0x880 kernel/trace/trace_uprobe.c:1459
+ perf_trace_event_unreg.isra.0+0xac/0x250 kernel/trace/trace_event_perf.c:162
+ perf_uprobe_destroy+0xbb/0x130 kernel/trace/trace_event_perf.c:349
+ _free_event+0x2ee/0x1380 kernel/events/core.c:4830
+ put_event kernel/events/core.c:4924 [inline]
+ perf_event_release_kernel+0xa24/0xe00 kernel/events/core.c:5039
+ perf_release+0x33/0x40 kernel/events/core.c:5049
+ __fput+0x283/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x190 kernel/task_work.c:140
+ exit_task_work include/linux/task_work.h:30 [inline]
+ do_exit+0xc5c/0x2ae0 kernel/exit.c:825
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ __do_sys_exit_group kernel/exit.c:933 [inline]
+ __se_sys_exit_group kernel/exit.c:931 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:931
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The buggy address belongs to the object at ffff888014c83800
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 136 bytes inside of
+ 512-byte region [ffff888014c83800, ffff888014c83a00)
+The buggy address belongs to the page:
+page:0000000084dcae2b refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x14c82
+head:0000000084dcae2b order:1 compound_mapcount:0
+flags: 0xfff00000010200(slab|head)
+raw: 00fff00000010200 0000000000000000 0000000600000001 ffff888010841c80
+raw: 0000000000000000 0000000080080008 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888014c83780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888014c83800: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888014c83880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff888014c83900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888014c83980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,110 @@
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(lock->magic != lock)
+WARNING: CPU: 1 PID: 20110 at kernel/locking/mutex.c:582 __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+Modules linked in:
+CPU: 1 PID: 20110 Comm: syz-executor.2 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+lr : __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+sp : ffff80001411bc90
+x29: ffff80001411bd00 x28: ffff80000eec8000 x27: 0000000000000000
+x26: 0000000000000000 x25: 0000000000000000 x24: 0000000000000002
+x23: ffff80000879fb08 x22: 0000000000000000 x21: 0000000000000000
+x20: 0000000000000000 x19: ffff0000f881f828 x18: 0000000000000146
+x17: ffff80000c0cd83c x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000012 x12: 0000000000040000
+x11: 0000000000001575 x10: ffff800016d9f000 x9 : 0ce787aa69fd4c00
+x8 : 0ce787aa69fd4c00 x7 : 4e5241575f534b43 x6 : ffff80000c091ebc
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000000 x0 : 0000000000000028
+Call trace:
+ __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x38/0x44 kernel/locking/mutex.c:799
+ reiserfs_write_lock+0x3c/0x64 fs/reiserfs/lock.c:27
+ reiserfs_dir_fsync+0x70/0xb8 fs/reiserfs/dir.c:42
+ vfs_fsync_range fs/sync.c:188 [inline]
+ vfs_fsync fs/sync.c:202 [inline]
+ do_fsync fs/sync.c:212 [inline]
+ __do_sys_fsync fs/sync.c:220 [inline]
+ __se_sys_fsync fs/sync.c:218 [inline]
+ __arm64_sys_fsync+0xb4/0xf8 fs/sync.c:218
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+irq event stamp: 4901
+hardirqs last  enabled at (4901): [<ffff80000c086240>] __exit_to_kernel_mode arch/arm64/kernel/entry-common.c:84 [inline]
+hardirqs last  enabled at (4901): [<ffff80000c086240>] exit_to_kernel_mode+0xe8/0x118 arch/arm64/kernel/entry-common.c:94
+hardirqs last disabled at (4900): [<ffff80000c08f64c>] preempt_schedule_irq+0x80/0x110 kernel/sched/core.c:6834
+softirqs last  enabled at (4890): [<ffff80000801c82c>] local_bh_enable+0x10/0x34 include/linux/bottom_half.h:32
+softirqs last disabled at (4888): [<ffff80000801c7f8>] local_bh_disable+0x10/0x34 include/linux/bottom_half.h:19
+---[ end trace 0000000000000000 ]---
+Unable to handle kernel paging request at virtual address ffff80000d2e2cb0
+Mem abort info:
+  ESR = 0x0000000096000047
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x07: level 3 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000047
+  CM = 0, WnR = 1
+swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000001c54dc000
+[ffff80000d2e2cb0] pgd=100000023ffff003, p4d=100000023ffff003, pud=100000023fffe003, pmd=100000023fffa003, pte=0000000000000000
+Internal error: Oops: 0000000096000047 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 20110 Comm: syz-executor.2 Tainted: G        W          6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 00400005 (nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : queued_spin_lock_slowpath+0x198/0x394 kernel/locking/qspinlock.c:474
+lr : queued_spin_lock_slowpath+0x114/0x394 kernel/locking/qspinlock.c:405
+sp : ffff80001411bc00
+x29: ffff80001411bc00 x28: ffff80000eec8000 x27: ffff80000cbb7427
+x26: 0000000000000000 x25: 0000000000000000 x24: ffff0001fefd0c80
+x23: 0000000000000000 x22: ffff80000d37d050 x21: ffff80000d2e2c80
+x20: 0000000000000000 x19: ffff0000f881f830 x18: 0000000000000396
+x17: 0000000000000000 x16: 0000000000000002 x15: 0000000000000000
+x14: 0000000040000000 x13: 000000000000cc2b x12: 0000000000000000
+x11: ffff80000d2e2cb0 x10: 0000000000040000 x9 : ffff0001fefd0c88
+x8 : ffff0001fefd0c80 x7 : 0000000000000000 x6 : ffff80000c090ed0
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000001 x1 : ffff80000ce893cb x0 : 0000000000000001
+Call trace:
+ decode_tail kernel/locking/qspinlock.c:131 [inline]
+ queued_spin_lock_slowpath+0x198/0x394 kernel/locking/qspinlock.c:471
+ queued_spin_lock include/asm-generic/qspinlock.h:114 [inline]
+ do_raw_spin_lock+0x10c/0x110 kernel/locking/spinlock_debug.c:115
+ __raw_spin_lock include/linux/spinlock_api_smp.h:134 [inline]
+ _raw_spin_lock+0x5c/0x6c kernel/locking/spinlock.c:154
+ __mutex_lock_common+0x2a4/0xca8 kernel/locking/mutex.c:617
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x38/0x44 kernel/locking/mutex.c:799
+ reiserfs_write_lock+0x3c/0x64 fs/reiserfs/lock.c:27
+ reiserfs_dir_fsync+0x70/0xb8 fs/reiserfs/dir.c:42
+ vfs_fsync_range fs/sync.c:188 [inline]
+ vfs_fsync fs/sync.c:202 [inline]
+ do_fsync fs/sync.c:212 [inline]
+ __do_sys_fsync fs/sync.c:220 [inline]
+ __se_sys_fsync fs/sync.c:218 [inline]
+ __arm64_sys_fsync+0xb4/0xf8 fs/sync.c:218
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 8b2c4ecc f85f818c 1200056b 8b2b52ab (f82b6988) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	8b2c4ecc 	add	x12, x22, w12, uxtw #3
+   4:	f85f818c 	ldur	x12, [x12, #-8]
+   8:	1200056b 	and	w11, w11, #0x3
+   c:	8b2b52ab 	add	x11, x21, w11, uxtw #4
+* 10:	f82b6988 	str	x8, [x12, x11] <-- trapping instruction

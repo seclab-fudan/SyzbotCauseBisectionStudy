@@ -1,0 +1,90 @@
+==================================================================
+BUG: KASAN: use-after-free in __fput+0x6b1/0x7f0 fs/file_table.c:212
+Read of size 2 at addr ffff8801aeb56630 by task syz-executor6/3235
+
+CPU: 1 PID: 3235 Comm: syz-executor6 Not tainted 4.14.0+ #183
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load2_noabort+0x14/0x20 mm/kasan/report.c:428
+ __fput+0x6b1/0x7f0 fs/file_table.c:212
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x296/0x310 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x94/0x96
+RIP: 0033:0x452879
+RSP: 002b:00007f6c78319be8 EFLAGS: 00000212 ORIG_RAX: 0000000000000010
+RAX: fffffffffffffff4 RBX: 0000000000758020 RCX: 0000000000452879
+RDX: 000000002091b000 RSI: 00000000000089e2 RDI: 0000000000000013
+RBP: 000000000000034a R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f1f90
+R13: 0000000000000014 R14: 00007f6c7831a6d4 R15: ffffffffffffffff
+
+Allocated by task 3235:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3547
+ sock_alloc_inode+0x70/0x300 net/socket.c:250
+ alloc_inode+0x65/0x180 fs/inode.c:208
+ new_inode_pseudo+0x69/0x190 fs/inode.c:890
+ sock_alloc+0x41/0x270 net/socket.c:565
+ kcm_clone net/kcm/kcmsock.c:1637 [inline]
+ kcm_ioctl+0x864/0x1610 net/kcm/kcmsock.c:1713
+ sock_do_ioctl+0x65/0xb0 net/socket.c:960
+ sock_ioctl+0x2c2/0x440 net/socket.c:1057
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1530 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 3235:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3491 [inline]
+ kmem_cache_free+0x77/0x280 mm/slab.c:3749
+ sock_destroy_inode+0x56/0x70 net/socket.c:280
+ destroy_inode+0x15d/0x200 fs/inode.c:265
+ evict+0x57e/0x920 fs/inode.c:570
+ iput_final fs/inode.c:1515 [inline]
+ iput+0x7b9/0xaf0 fs/inode.c:1542
+ sock_release+0x168/0x1e0 net/socket.c:606
+ sock_close+0x16/0x20 net/socket.c:1125
+ __fput+0x333/0x7f0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x296/0x310 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x94/0x96
+
+The buggy address belongs to the object at ffff8801aeb56600
+ which belongs to the cache sock_inode_cache of size 1048
+The buggy address is located 48 bytes inside of
+ 1048-byte region [ffff8801aeb56600, ffff8801aeb56a18)
+The buggy address belongs to the page:
+page:ffffea0006bad580 count:1 mapcount:0 mapping:ffff8801aeb56140 index:0xffff8801aeb56ffd
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801aeb56140 ffff8801aeb56ffd 0000000100000003
+raw: ffffea00073ddea0 ffffea0006abe220 ffff8801d9c9c380 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801aeb56500: 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc
+ ffff8801aeb56580: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801aeb56600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff8801aeb56680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801aeb56700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

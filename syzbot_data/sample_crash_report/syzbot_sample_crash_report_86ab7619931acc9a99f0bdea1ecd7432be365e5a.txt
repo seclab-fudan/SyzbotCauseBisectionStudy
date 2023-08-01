@@ -1,0 +1,55 @@
+=============================
+WARNING: suspicious RCU usage
+5.16.0-rc4-syzkaller #0 Not tainted
+-----------------------------
+include/linux/netfilter_netdev.h:97 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+6 locks held by kworker/0:5/3608:
+ #0: ffff888147552538 ((wq_completion)wg-crypt-wg0){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888147552538 ((wq_completion)wg-crypt-wg0){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888147552538 ((wq_completion)wg-crypt-wg0){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1198 [inline]
+ #0: ffff888147552538 ((wq_completion)wg-crypt-wg0){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:635 [inline]
+ #0: ffff888147552538 ((wq_completion)wg-crypt-wg0){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:662 [inline]
+ #0: ffff888147552538 ((wq_completion)wg-crypt-wg0){+.+.}-{0:0}, at: process_one_work+0x896/0x1690 kernel/workqueue.c:2269
+ #1: ffffc90001f7fdb0 ((work_completion)(&peer->transmit_packet_work)){+.+.}-{0:0}, at: process_one_work+0x8ca/0x1690 kernel/workqueue.c:2273
+ #2: ffff888022a30ad8 (&peer->endpoint_lock){++..}-{2:2}, at: wg_socket_send_skb_to_peer+0x5e/0x220 drivers/net/wireguard/socket.c:172
+ #3: ffffffff8bb83cc0 (rcu_read_lock_bh){....}-{1:2}, at: send6+0x2db/0xcc0 drivers/net/wireguard/socket.c:116
+ #4: ffffffff8bb83cc0 (rcu_read_lock_bh){....}-{1:2}, at: lwtunnel_xmit_redirect include/net/lwtunnel.h:95 [inline]
+ #4: ffffffff8bb83cc0 (rcu_read_lock_bh){....}-{1:2}, at: ip6_finish_output2+0x2ad/0x14e0 net/ipv6/ip6_output.c:112
+ #5: ffffffff8bb83cc0 (rcu_read_lock_bh){....}-{1:2}, at: __dev_queue_xmit+0x1e3/0x3650 net/core/dev.c:4153
+
+stack backtrace:
+CPU: 0 PID: 3608 Comm: kworker/0:5 Not tainted 5.16.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: wg-crypt-wg0 wg_packet_tx_worker
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nf_hook_egress include/linux/netfilter_netdev.h:97 [inline]
+ __dev_queue_xmit+0x2ec3/0x3650 net/core/dev.c:4170
+ neigh_hh_output include/net/neighbour.h:511 [inline]
+ neigh_output include/net/neighbour.h:525 [inline]
+ ip6_finish_output2+0xf63/0x14e0 net/ipv6/ip6_output.c:126
+ __ip6_finish_output net/ipv6/ip6_output.c:191 [inline]
+ __ip6_finish_output+0x4c1/0x1050 net/ipv6/ip6_output.c:170
+ ip6_finish_output+0x32/0x200 net/ipv6/ip6_output.c:201
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x1e4/0x530 net/ipv6/ip6_output.c:224
+ dst_output include/net/dst.h:450 [inline]
+ ip6_local_out+0xaf/0x1a0 net/ipv6/output_core.c:161
+ ip6tunnel_xmit include/net/ip6_tunnel.h:160 [inline]
+ udp_tunnel6_xmit_skb+0x72e/0xc90 net/ipv6/ip6_udp_tunnel.c:109
+ send6+0x4ab/0xcc0 drivers/net/wireguard/socket.c:152
+ wg_socket_send_skb_to_peer+0xf5/0x220 drivers/net/wireguard/socket.c:177
+ wg_packet_create_data_done drivers/net/wireguard/send.c:251 [inline]
+ wg_packet_tx_worker+0x1a7/0x720 drivers/net/wireguard/send.c:276
+ process_one_work+0x9b2/0x1690 kernel/workqueue.c:2298
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2445
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>

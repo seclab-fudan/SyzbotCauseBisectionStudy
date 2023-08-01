@@ -1,0 +1,52 @@
+==================================================================
+BUG: KASAN: use-after-free in ext4_xattr_set_entry+0x35de/0x3770 fs/ext4/xattr.c:1580
+Read of size 4 at addr ffff888082265183 by task syz-executor968/9741
+
+CPU: 1 PID: 9741 Comm: syz-executor968 Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:639
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:134
+ ext4_xattr_set_entry+0x35de/0x3770 fs/ext4/xattr.c:1580
+ ext4_xattr_ibody_set+0x80/0x2d0 fs/ext4/xattr.c:2216
+ ext4_xattr_set_handle+0x933/0x1200 fs/ext4/xattr.c:2372
+ ext4_initxattrs+0xc0/0x130 fs/ext4/xattr_security.c:43
+ security_inode_init_security security/security.c:996 [inline]
+ security_inode_init_security+0x2c8/0x3b0 security/security.c:969
+ ext4_init_security+0x34/0x40 fs/ext4/xattr_security.c:57
+ __ext4_new_inode+0x4288/0x4f30 fs/ext4/ialloc.c:1155
+ ext4_mkdir+0x3d5/0xe20 fs/ext4/namei.c:2774
+ vfs_mkdir+0x42e/0x670 fs/namei.c:3819
+ do_mkdirat+0x234/0x2a0 fs/namei.c:3842
+ __do_sys_mkdir fs/namei.c:3858 [inline]
+ __se_sys_mkdir fs/namei.c:3856 [inline]
+ __x64_sys_mkdir+0x5c/0x80 fs/namei.c:3856
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x44c637
+Code: 1f 40 00 b8 5a 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 4d d6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 b8 53 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 2d d6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffedabe5578 EFLAGS: 00000206 ORIG_RAX: 0000000000000053
+RAX: ffffffffffffffda RBX: 000000000001632d RCX: 000000000044c637
+RDX: 00007ffedabe55e3 RSI: 00000000000001ff RDI: 00007ffedabe55e0
+RBP: 0000000000000002 R08: 0000000000000000 R09: 0000000000000003
+R10: 0000000000000064 R11: 0000000000000206 R12: 0000000000000001
+R13: 000000000040a180 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0002089940 refcount:0 mapcount:0 mapping:0000000000000000 index:0x1
+raw: 00fffe0000000000 ffffea0002082c88 ffffea0002089908 0000000000000000
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888082265080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888082265100: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff888082265180: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                   ^
+ ffff888082265200: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888082265280: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

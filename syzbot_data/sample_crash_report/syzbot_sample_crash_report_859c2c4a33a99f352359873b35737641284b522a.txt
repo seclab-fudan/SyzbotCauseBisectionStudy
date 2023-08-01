@@ -1,0 +1,75 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	0-...!: (10499 ticks this GP) idle=2ba/1/0x4000000000000002 softirq=21838/21841 fqs=1271 
+	(t=10500 jiffies g=22525 q=2261)
+rcu: rcu_preempt kthread starved for 7942 jiffies! g22525 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402 ->cpu=1
+rcu: RCU grace-period kthread stack dump:
+rcu_preempt     I28896    10      2 0x80004000
+Call Trace:
+ context_switch kernel/sched/core.c:3254 [inline]
+ __schedule+0x877/0xc50 kernel/sched/core.c:3880
+ schedule+0x131/0x1e0 kernel/sched/core.c:3947
+ schedule_timeout+0x14f/0x240 kernel/time/timer.c:1807
+ rcu_gp_fqs_loop kernel/rcu/tree.c:1611 [inline]
+ rcu_gp_kthread+0xef8/0x1790 kernel/rcu/tree.c:1768
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+NMI backtrace for cpu 0
+CPU: 0 PID: 9251 Comm: kworker/0:4 Not tainted 5.3.0-rc8+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events rt6_probe_deferred
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d8/0x2f8 lib/dump_stack.c:113
+ nmi_cpu_backtrace+0xaf/0x1a0 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x174/0x290 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x10/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x15a/0x220 kernel/rcu/tree_stall.h:254
+ print_cpu_stall kernel/rcu/tree_stall.h:455 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:529 [inline]
+ rcu_pending kernel/rcu/tree.c:2736 [inline]
+ rcu_sched_clock_irq+0xb95/0x16d0 kernel/rcu/tree.c:2183
+ update_process_times+0x134/0x190 kernel/time/timer.c:1639
+ tick_sched_handle kernel/time/tick-sched.c:167 [inline]
+ tick_sched_timer+0x263/0x420 kernel/time/tick-sched.c:1296
+ __run_hrtimer kernel/time/hrtimer.c:1389 [inline]
+ __hrtimer_run_queues+0x403/0x850 kernel/time/hrtimer.c:1451
+ hrtimer_interrupt+0x38c/0xda0 kernel/time/hrtimer.c:1509
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1110 [inline]
+ smp_apic_timer_interrupt+0x109/0x280 arch/x86/kernel/apic/apic.c:1135
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+ </IRQ>
+RIP: 0010:__list_del_entry_valid+0x7a/0x100 lib/list_debug.c:51
+Code: 00 ad de 49 8b 1e 48 39 d3 74 54 48 83 c2 22 49 39 d7 74 5e 4c 89 f8 48 c1 e8 03 42 80 3c 20 00 74 08 4c 89 ff e8 f6 c2 58 fe <49> 8b 17 4c 39 f2 75 53 48 83 c3 08 48 89 d8 48 c1 e8 03 42 80 3c
+RSP: 0018:ffff88805a8ff5a8 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 1ffff11013ea5fd2 RBX: ffff88809f52fe90 RCX: ffff88805a8f41c0
+RDX: dead000000000122 RSI: 0000000000000000 RDI: ffff88809f52fe00
+RBP: ffff88805a8ff5c8 R08: ffffffff860c5d6a R09: 0000000000000000
+R10: fffffbfff117be8d R11: 0000000000000000 R12: dffffc0000000000
+R13: ffff88809f52fb00 R14: ffff88809f52fdf8 R15: ffff88809f52fe90
+ __list_del_entry include/linux/list.h:131 [inline]
+ list_move_tail include/linux/list.h:213 [inline]
+ hhf_dequeue+0x487/0xaa0 net/sched/sch_hhf.c:439
+ dequeue_skb net/sched/sch_generic.c:258 [inline]
+ qdisc_restart net/sched/sch_generic.c:361 [inline]
+ __qdisc_run+0x217/0x1b30 net/sched/sch_generic.c:379
+ __dev_xmit_skb net/core/dev.c:3533 [inline]
+ __dev_queue_xmit+0x1161/0x3020 net/core/dev.c:3838
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3902
+ neigh_resolve_output+0x60c/0x6b0 net/core/neighbour.c:1490
+ neigh_output include/net/neighbour.h:511 [inline]
+ ip6_finish_output2+0x102c/0x13d0 net/ipv6/ip6_output.c:116
+ __ip6_finish_output+0x693/0x910 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x52/0x1e0 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0x26f/0x390 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ndisc_send_skb+0xa35/0xe40 net/ipv6/ndisc.c:504
+ ndisc_send_ns+0x5ce/0x7b0 net/ipv6/ndisc.c:646
+ rt6_probe_deferred+0xe1/0x1a0 net/ipv6/route.c:615
+ process_one_work+0x7ef/0x10e0 kernel/workqueue.c:2269
+ worker_thread+0xc01/0x1630 kernel/workqueue.c:2415
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352

@@ -1,0 +1,51 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc3-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+1 lock held by syz-executor.1/8484:
+ #0: 
+ffff888027c1cd88
+ (
+&xt[i].mutex
+){+.+.}-{3:3}
+, at: xt_find_table_lock+0x18d/0xae0 net/netfilter/x_tables.c:1226
+
+stack backtrace:
+CPU: 1 PID: 8484 Comm: syz-executor.1 Not tainted 5.13.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ __might_fault+0x6e/0x180 mm/memory.c:5067
+ __clear_user+0x1e/0x70 arch/x86/lib/usercopy_64.c:20
+ clear_user+0xd3/0x110 arch/x86/lib/usercopy_64.c:54
+ xt_data_to_user+0xbb/0xf0 net/netfilter/x_tables.c:305
+ xt_target_to_user net/netfilter/x_tables.c:330 [inline]
+ xt_target_to_user+0x165/0x200 net/netfilter/x_tables.c:326
+ copy_entries_to_user net/ipv6/netfilter/ip6_tables.c:876 [inline]
+ get_entries net/ipv6/netfilter/ip6_tables.c:1040 [inline]
+ do_ip6t_get_ctl+0x852/0xa10 net/ipv6/netfilter/ip6_tables.c:1671
+ nf_getsockopt+0x72/0xd0 net/netfilter/nf_sockopt.c:116
+ ipv6_getsockopt+0x1be/0x270 net/ipv6/ipv6_sockglue.c:1486
+ tcp_getsockopt+0x86/0xd0 net/ipv4/tcp.c:4252
+ __sys_getsockopt+0x21f/0x5f0 net/socket.c:2161
+ __do_sys_getsockopt net/socket.c:2176 [inline]
+ __se_sys_getsockopt net/socket.c:2173 [inline]
+ __x64_sys_getsockopt+0xba/0x150 net/socket.c:2173
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x467bea
+Code: 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 49 89 ca b8 37 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:0000000000a9f678 EFLAGS: 00000212 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 0000000000000029 RCX: 0000000000467bea
+RDX: 0000000000000041 RSI: 0000000000000029 RDI: 0000000000000003
+RBP: 0000000000a9f6a0 R08: 0000000000a9f69c R09: 0079746972756365
+R10: 0000000000a9f700 R11: 0000000000000212 R12: 0000000000a9f700
+R13: 0000000000000003 R14: 0000000000a9f69c R15: 0000000000542b40

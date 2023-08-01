@@ -1,0 +1,96 @@
+INFO: rcu_sched self-detected stall on CPU
+	1-...!: (124939 ticks this GP) idle=32e/1/4611686018427387906 softirq=20668/20668 fqs=9 
+	 (t=125000 jiffies g=11060 c=11059 q=615133)
+rcu_sched kthread starved for 124935 jiffies! g11060 c11059 f0x2 RCU_GP_WAIT_FQS(3) ->state=0x0 ->cpu=0
+RCU grace-period kthread stack dump:
+rcu_sched       R  running task    23768     9      2 0x80000000
+Call Trace:
+ context_switch kernel/sched/core.c:2848 [inline]
+ __schedule+0x801/0x1e30 kernel/sched/core.c:3490
+ schedule+0xef/0x430 kernel/sched/core.c:3549
+ schedule_timeout+0x138/0x240 kernel/time/timer.c:1801
+ rcu_gp_kthread+0x6b5/0x1940 kernel/rcu/tree.c:2231
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+NMI backtrace for cpu 1
+CPU: 1 PID: 17 Comm: ksoftirqd/1 Not tainted 4.17.0-rc4+ #54
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.4+0x19/0xce lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x151/0x192 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:156 [inline]
+ rcu_dump_cpu_stacks+0x175/0x1c2 kernel/rcu/tree.c:1376
+ print_cpu_stall kernel/rcu/tree.c:1525 [inline]
+ check_cpu_stall.isra.61.cold.80+0x36c/0x59a kernel/rcu/tree.c:1593
+ __rcu_pending kernel/rcu/tree.c:3356 [inline]
+ rcu_pending kernel/rcu/tree.c:3401 [inline]
+ rcu_check_callbacks+0x21b/0xad0 kernel/rcu/tree.c:2763
+ update_process_times+0x2d/0x70 kernel/time/timer.c:1636
+ tick_sched_handle+0x9f/0x180 kernel/time/tick-sched.c:164
+ tick_sched_timer+0x45/0x130 kernel/time/tick-sched.c:1274
+ __run_hrtimer kernel/time/hrtimer.c:1398 [inline]
+ __hrtimer_run_queues+0x3e3/0x10a0 kernel/time/hrtimer.c:1460
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x15d/0x710 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+RIP: 0010:unwind_next_frame.part.7+0x347/0x9c0 arch/x86/kernel/unwind_frame.c:282
+RSP: 0018:ffff8801d9b3ebb0 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000001 RBX: ffff8801d9b3ecc8 RCX: 0000000000000001
+RDX: ffffed003b367d7b RSI: ffff8801d9b3ef90 RDI: ffff8801d9b3ed10
+RBP: ffff8801d9b3eca0 R08: ffff8801d9b3ed00 R09: ffff8801d9b32480
+R10: ffffed003b367da3 R11: ffff8801d9b3ed1f R12: 1ffff1003b367d7b
+R13: ffff8801d9b3ef80 R14: 1ffff1003b367d7f R15: ffff8801d9b3ed18
+ unwind_next_frame+0x3e/0x50 arch/x86/kernel/unwind_frame.c:287
+ __save_stack_trace+0x6e/0xd0 arch/x86/kernel/stacktrace.c:44
+ save_stack_trace+0x1a/0x20 arch/x86/kernel/stacktrace.c:60
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ kmem_cache_zalloc include/linux/slab.h:691 [inline]
+ sctp_chunkify+0xce/0x400 net/sctp/sm_make_chunk.c:1340
+ _sctp_make_chunk+0x157/0x280 net/sctp/sm_make_chunk.c:1413
+ sctp_make_control net/sctp/sm_make_chunk.c:1449 [inline]
+ sctp_make_heartbeat+0x8f/0x430 net/sctp/sm_make_chunk.c:1156
+ sctp_sf_heartbeat.isra.23+0x26/0x180 net/sctp/sm_statefuns.c:1005
+ sctp_sf_sendbeat_8_3+0x38e/0x550 net/sctp/sm_statefuns.c:1049
+ sctp_do_sm+0x1ab/0x7160 net/sctp/sm_sideeffect.c:1188
+ sctp_generate_heartbeat_event+0x218/0x450 net/sctp/sm_sideeffect.c:406
+ call_timer_fn+0x230/0x940 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0x79e/0xc50 kernel/time/timer.c:1666
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x2e0/0xaf5 kernel/softirq.c:285
+ run_ksoftirqd+0x86/0x100 kernel/softirq.c:646
+ smpboot_thread_fn+0x417/0x870 kernel/smpboot.c:164
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+BUG: workqueue lockup - pool cpus=0 node=0 flags=0x0 nice=0 stuck for 125s!
+BUG: workqueue lockup - pool cpus=0-1 flags=0x4 nice=0 stuck for 123s!
+Showing busy workqueues and worker pools:
+workqueue events: flags=0x0
+  pwq 0: cpus=0 node=0 flags=0x0 nice=0 active=8/256
+    pending: defense_work_handler, defense_work_handler, defense_work_handler, defense_work_handler, defense_work_handler, check_corruption, vmstat_shepherd, cache_reap
+workqueue events_power_efficient: flags=0x80
+  pwq 2: cpus=1 node=0 flags=0x0 nice=0 active=1/256
+    in-flight: 24:neigh_periodic_work
+  pwq 0: cpus=0 node=0 flags=0x0 nice=0 active=3/256
+    pending: reg_check_chans_work, check_lifetime, gc_worker
+workqueue writeback: flags=0x4e
+  pwq 4: cpus=0-1 flags=0x4 nice=0 active=1/256
+    in-flight: 4912:wb_workfn
+workqueue kblockd: flags=0x18
+  pwq 1: cpus=0 node=0 flags=0x0 nice=-20 active=1/256
+    pending: blk_mq_timeout_work
+workqueue dm_bufio_cache: flags=0x8
+  pwq 0: cpus=0 node=0 flags=0x0 nice=0 active=1/256
+    pending: work_fn
+pool 2: cpus=1 node=0 flags=0x0 nice=0 hung=0s workers=4 idle: 4845 18 4940
+pool 4: cpus=0-1 flags=0x4 nice=0 hung=0s workers=7 idle: 22 44 7003 89 6739 6

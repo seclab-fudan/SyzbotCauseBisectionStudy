@@ -1,0 +1,47 @@
+==================================================================
+BUG: KASAN: global-out-of-bounds in ip6_xmit+0x1f80/0x2260 net/ipv6/ip6_output.c:264
+TCP: request_sock_TCP: Possible SYN flooding on port 20002. Sending cookies.  Check SNMP counters.
+Read of size 8 at addr ffffffff885e2950 by task syz-executor2/6857
+
+CPU: 0 PID: 6857 Comm: syz-executor2 Not tainted 4.16.0-rc4+ #265
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x178/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ ip6_xmit+0x1f80/0x2260 net/ipv6/ip6_output.c:264
+ inet6_csk_xmit+0x2fc/0x580 net/ipv6/inet6_connection_sock.c:139
+ l2tp_xmit_core net/l2tp/l2tp_core.c:1053 [inline]
+ l2tp_xmit_skb+0x105f/0x1410 net/l2tp/l2tp_core.c:1148
+ pppol2tp_sendmsg+0x470/0x670 net/l2tp/l2tp_ppp.c:341
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:639
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1748
+ SyS_sendto+0x40/0x50 net/socket.c:1716
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+kauditd_printk_skb: 18 callbacks suppressed
+audit: type=1400 audit(1521050508.473:41): avc:  denied  { create } for  pid=6895 comm="syz-executor7" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_rdma_socket permissive=1
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x453e69
+RSP: 002b:00007f7a2ac11c68 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 00007f7a2ac126d4 RCX: 0000000000453e69
+RDX: 000000000000100b RSI: 0000000020001180 RDI: 0000000000000014
+RBP: 000000000072bea0 R08: 00000000200021c0 R09: 0000000000000080
+R10: 0000000000040001 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000000004ca R14: 00000000006f7390 R15: 0000000000000000
+
+audit: type=1400 audit(1521050508.486:42): avc:  denied  { setopt } for  pid=6895 comm="syz-executor7" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_rdma_socket permissive=1
+The buggy address belongs to the variable:
+ __key.41867+0x10/0x40
+
+Memory state around the buggy address:
+ ffffffff885e2800: 00 fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+ ffffffff885e2880: 00 00 00 fa fa fa fa fa 00 fa fa fa fa fa fa fa
+>ffffffff885e2900: 00 fa fa fa fa fa fa fa 00 fa fa fa fa fa fa fa
+                                                 ^
+ ffffffff885e2980: 00 fa fa fa fa fa fa fa 00 fa fa fa fa fa fa fa
+ ffffffff885e2a00: 00 fa fa fa fa fa fa fa 00 fa fa fa fa fa fa fa
+==================================================================

@@ -1,0 +1,85 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ip6_dst_idev include/net/ip6_fib.h:192 [inline]
+BUG: KASAN: slab-out-of-bounds in ip6_xmit+0x1f76/0x2260 net/ipv6/ip6_output.c:264
+Read of size 8 at addr ffff8801d8f08018 by task syzkaller469575/4639
+
+CPU: 1 PID: 4639 Comm: syzkaller469575 Not tainted 4.16.0-rc5+ #357
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ ip6_dst_idev include/net/ip6_fib.h:192 [inline]
+ ip6_xmit+0x1f76/0x2260 net/ipv6/ip6_output.c:264
+ inet6_csk_xmit+0x2fc/0x580 net/ipv6/inet6_connection_sock.c:139
+ l2tp_xmit_core net/l2tp/l2tp_core.c:1053 [inline]
+ l2tp_xmit_skb+0x105f/0x1410 net/l2tp/l2tp_core.c:1148
+ pppol2tp_sendmsg+0x470/0x670 net/l2tp/l2tp_ppp.c:341
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x4429a9
+RSP: 002b:00007ffee0431108 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004429a9
+RDX: 0000000000000081 RSI: 000000002037ffc8 RDI: 0000000000000004
+RBP: 0000000000000000 R08: 0000000000000020 R09: 0000000000000020
+R10: 0000000000000020 R11: 0000000000000217 R12: 0000000000006cfb
+R13: 00000000006cf448 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3097:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3541
+ getname_flags+0xcb/0x580 fs/namei.c:138
+ user_path_at_empty+0x2d/0x50 fs/namei.c:2569
+ user_path_at include/linux/namei.h:57 [inline]
+ SYSC_faccessat fs/open.c:384 [inline]
+ SyS_faccessat+0x237/0x6b0 fs/open.c:353
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 3097:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3485 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3743
+ putname+0xee/0x130 fs/namei.c:258
+ filename_lookup+0x315/0x500 fs/namei.c:2324
+ user_path_at_empty+0x40/0x50 fs/namei.c:2569
+ user_path_at include/linux/namei.h:57 [inline]
+ SYSC_faccessat fs/open.c:384 [inline]
+ SyS_faccessat+0x237/0x6b0 fs/open.c:353
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+The buggy address belongs to the object at ffff8801d8f08d00
+ which belongs to the cache names_cache of size 4096
+The buggy address is located 3304 bytes to the left of
+ 4096-byte region [ffff8801d8f08d00, ffff8801d8f09d00)
+The buggy address belongs to the page:
+page:ffffea000763c200 count:1 mapcount:0 mapping:ffff8801d8f08d00 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801d8f08d00 0000000000000000 0000000100000001
+raw: ffffea0007636420 ffffea0006b1a2a0 ffff8801da5d6600 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d8f07f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801d8f07f80: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801d8f08000: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                            ^
+ ffff8801d8f08080: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801d8f08100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

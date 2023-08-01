@@ -1,0 +1,82 @@
+watchdog: BUG: soft lockup - CPU#1 stuck for 134s! [syz-executor4:4588]
+Modules linked in:
+irq event stamp: 76609500
+hardirqs last  enabled at (76609499): [<ffffffff81c66ccf>] seqcount_lockdep_reader_access include/linux/seqlock.h:83 [inline]
+hardirqs last  enabled at (76609499): [<ffffffff81c66ccf>] read_seqcount_begin include/linux/seqlock.h:164 [inline]
+hardirqs last  enabled at (76609499): [<ffffffff81c66ccf>] read_seqbegin include/linux/seqlock.h:433 [inline]
+hardirqs last  enabled at (76609499): [<ffffffff81c66ccf>] read_seqbegin_or_lock include/linux/seqlock.h:529 [inline]
+hardirqs last  enabled at (76609499): [<ffffffff81c66ccf>] d_walk+0x80f/0xc80 fs/dcache.c:1248
+hardirqs last disabled at (76609500): [<ffffffff87800905>] interrupt_entry+0xb5/0xf0 arch/x86/entry/entry_64.S:625
+softirqs last  enabled at (468244): [<ffffffff87a00778>] __do_softirq+0x778/0xaf5 kernel/softirq.c:311
+softirqs last disabled at (468177): [<ffffffff814762c1>] invoke_softirq kernel/softirq.c:365 [inline]
+softirqs last disabled at (468177): [<ffffffff814762c1>] irq_exit+0x1d1/0x200 kernel/softirq.c:405
+CPU: 1 PID: 4588 Comm: syz-executor4 Not tainted 4.17.0-rc7+ #81
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:seqcount_lockdep_reader_access include/linux/seqlock.h:83 [inline]
+RIP: 0010:read_seqcount_begin include/linux/seqlock.h:164 [inline]
+RIP: 0010:read_seqbegin include/linux/seqlock.h:433 [inline]
+RIP: 0010:read_seqbegin_or_lock include/linux/seqlock.h:529 [inline]
+RIP: 0010:d_walk+0x840/0xc80 fs/dcache.c:1248
+RSP: 0018:ffff880183f5f9f8 EFLAGS: 00000293 ORIG_RAX: ffffffffffffff13
+RAX: ffff8801b0d3c680 RBX: 0000000000000293 RCX: 1ffff100361a79e5
+RDX: 0000000000000000 RSI: ffffffff81c66cfb RDI: 0000000000000293
+RBP: ffff880183f5fb78 R08: ffff8801b0d3ceb8 R09: 0000000000000006
+R10: ffff8801b0d3c680 R11: 0000000000000000 R12: 0000000000000200
+R13: dffffc0000000000 R14: 1ffff100307ebf82 R15: ffff880183f5fb50
+FS:  000000000217c940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffca8309eac CR3: 0000000183eb2000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ shrink_dcache_parent+0x179/0x230 fs/dcache.c:1486
+ vfs_rmdir+0x202/0x470 fs/namei.c:3855
+ do_rmdir+0x523/0x610 fs/namei.c:3916
+ __do_sys_rmdir fs/namei.c:3934 [inline]
+ __se_sys_rmdir fs/namei.c:3932 [inline]
+ __x64_sys_rmdir+0x36/0x40 fs/namei.c:3932
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455777
+RSP: 002b:00007ffca830a5b8 EFLAGS: 00000206 ORIG_RAX: 0000000000000054
+RAX: ffffffffffffffda RBX: 0000000000000065 RCX: 0000000000455777
+RDX: 0000000000000000 RSI: 00007ffca830c360 RDI: 00007ffca830c360
+RBP: 00007ffca830c360 R08: 0000000000000000 R09: 0000000000000001
+R10: 0000000000000006 R11: 0000000000000206 R12: 000000000217d940
+R13: 0000000000000000 R14: 0000000000000198 R15: 000000000001f12d
+Code: 88 48 89 f8 48 c1 e8 03 42 80 3c 28 00 0f 85 1e 04 00 00 48 83 3d 78 20 0b 07 00 0f 84 29 02 00 00 e8 e5 d7 b2 ff 48 89 df 57 9d <0f> 1f 44 00 00 e8 d6 d7 b2 ff 49 8d 5f 80 48 c1 eb 03 4c 01 eb 
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 4581 Comm: syz-executor6 Not tainted 4.17.0-rc7+ #81
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:select_collect+0x249/0x5f0 fs/dcache.c:1443
+RSP: 0018:ffff880189947908 EFLAGS: 00000286
+RAX: 0000000000000000 RBX: ffffed0031328f24 RCX: ffffffff81c5c3b4
+RDX: 0000000000000000 RSI: ffffffff81c5c4fa RDI: ffff880189947c28
+RBP: ffff8801899479e8 R08: ffff88018993e5c0 R09: ffffed0039dde7a4
+R10: ffffed0039dde7a4 R11: ffff8801ceef3d23 R12: 0000000000000000
+R13: 1ffff10031328f28 R14: ffff880189947c18 R15: dffffc0000000000
+FS:  0000000001790940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffebea69e9c CR3: 000000018989f000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ d_walk+0x3c3/0xc80 fs/dcache.c:1276
+ shrink_dcache_parent+0x179/0x230 fs/dcache.c:1486
+ vfs_rmdir+0x202/0x470 fs/namei.c:3855
+ do_rmdir+0x523/0x610 fs/namei.c:3916
+ __do_sys_rmdir fs/namei.c:3934 [inline]
+ __se_sys_rmdir fs/namei.c:3932 [inline]
+ __x64_sys_rmdir+0x36/0x40 fs/namei.c:3932
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455777
+RSP: 002b:00007ffebea6a5a8 EFLAGS: 00000202 ORIG_RAX: 0000000000000054
+RAX: ffffffffffffffda RBX: 0000000000000065 RCX: 0000000000455777
+RDX: 0000000000000000 RSI: 00007ffebea6c350 RDI: 00007ffebea6c350
+RBP: 00007ffebea6c350 R08: 0000000000000000 R09: 0000000000000001
+R10: 0000000000000006 R11: 0000000000000202 R12: 0000000001791940
+R13: 0000000000000000 R14: 0000000000000192 R15: 000000000001f12b
+Code: 0f b6 e4 41 83 c4 01 e8 e6 7f b3 ff 48 b8 00 00 00 00 00 fc ff df 48 01 c3 44 89 e0 48 c7 03 00 00 00 00 48 c7 43 08 00 00 00 00 <c7> 43 10 00 00 00 00 48 81 c4 b8 00 00 00 5b 41 5c 41 5d 41 5e 

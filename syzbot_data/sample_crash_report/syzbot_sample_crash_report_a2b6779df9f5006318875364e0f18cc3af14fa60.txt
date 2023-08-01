@@ -1,0 +1,63 @@
+INFO: task syz-executor238:6861 blocked for more than 143 seconds.
+      Not tainted 5.9.0-rc3-next-20200903-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor238 state:D stack:28104 pid: 6861 ppid:  6855 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:3777 [inline]
+ __schedule+0xea9/0x2230 kernel/sched/core.c:4526
+ schedule+0xd0/0x2a0 kernel/sched/core.c:4601
+ schedule_timeout+0x1d8/0x250 kernel/time/timer.c:1855
+ do_wait_for_common kernel/sched/completion.c:85 [inline]
+ __wait_for_common kernel/sched/completion.c:106 [inline]
+ wait_for_common kernel/sched/completion.c:117 [inline]
+ wait_for_completion+0x163/0x260 kernel/sched/completion.c:138
+ io_sq_thread_stop fs/io_uring.c:6906 [inline]
+ io_finish_async fs/io_uring.c:6920 [inline]
+ io_sq_offload_create fs/io_uring.c:7595 [inline]
+ io_uring_create fs/io_uring.c:8671 [inline]
+ io_uring_setup+0x1495/0x29a0 fs/io_uring.c:8744
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x440299
+Code: Bad RIP value.
+RSP: 002b:00007fffdcad1e18 EFLAGS: 00000246 ORIG_RAX: 00000000000001a9
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440299
+RDX: 0000000000400b40 RSI: 00000000200000c0 RDI: 00000000000057a4
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000ffffffff R11: 0000000000000246 R12: 0000000000401aa0
+R13: 0000000000401b30 R14: 0000000000000000 R15: 0000000000000000
+INFO: task io_uring-sq:6862 blocked for more than 143 seconds.
+      Not tainted 5.9.0-rc3-next-20200903-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:io_uring-sq     state:D stack:31200 pid: 6862 ppid:     2 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:3777 [inline]
+ __schedule+0xea9/0x2230 kernel/sched/core.c:4526
+ schedule+0xd0/0x2a0 kernel/sched/core.c:4601
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:4660
+ kthread+0x2ac/0x4a0 kernel/kthread.c:285
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1169:
+ #0: ffffffff89c67500 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:5829
+1 lock held by in:imklog/6541:
+ #0: ffff8880a46f3130 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:930
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1169 Comm: khungtaskd Not tainted 5.9.0-rc3-next-20200903-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x44/0xd7 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1b3/0x223 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:147 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:253 [inline]
+ watchdog+0xd89/0xf30 kernel/hung_task.c:339
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1 skipped: idling at native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:60

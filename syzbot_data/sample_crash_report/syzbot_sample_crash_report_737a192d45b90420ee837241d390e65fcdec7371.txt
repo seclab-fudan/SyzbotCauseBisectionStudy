@@ -1,0 +1,75 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KMSAN: kernel-infoleak in copy_to_user include/linux/uaccess.h:184 [inline]
+BUG: KMSAN: kernel-infoleak in vcs_read+0x18ba/0x1cc0 drivers/tty/vt/vc_screen.c:352
+CPU: 0 PID: 4540 Comm: syz-executor524 Not tainted 4.17.0+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:113
+ kmsan_report+0x188/0x2a0 mm/kmsan/kmsan.c:1117
+ kmsan_internal_check_memory+0x138/0x1f0 mm/kmsan/kmsan.c:1211
+ kmsan_copy_to_user+0x7a/0x160 mm/kmsan/kmsan.c:1253
+ copy_to_user include/linux/uaccess.h:184 [inline]
+ vcs_read+0x18ba/0x1cc0 drivers/tty/vt/vc_screen.c:352
+ __vfs_read+0x1b2/0x9d0 fs/read_write.c:416
+ vfs_read+0x36c/0x6b0 fs/read_write.c:452
+ ksys_read fs/read_write.c:578 [inline]
+ __do_sys_read fs/read_write.c:588 [inline]
+ __se_sys_read fs/read_write.c:586 [inline]
+ __x64_sys_read+0x1bf/0x3e0 fs/read_write.c:586
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x443d39
+RSP: 002b:00007ffe1f341578 EFLAGS: 00000213 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000443d39
+RDX: 00000000000000f0 RSI: 0000000020000400 RDI: 0000000000000003
+RBP: 00000000006ce018 R08: 00000000004002e0 R09: 00000000004002e0
+R10: 000000000000000f R11: 0000000000000213 R12: 00000000004019e0
+R13: 0000000000401a70 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:279 [inline]
+ kmsan_save_stack mm/kmsan/kmsan.c:294 [inline]
+ kmsan_internal_chain_origin+0x12b/0x210 mm/kmsan/kmsan.c:685
+ __msan_chain_origin+0x69/0xc0 mm/kmsan/kmsan_instr.c:464
+ vcs_read+0xd01/0x1cc0 drivers/tty/vt/vc_screen.c:274
+ __vfs_read+0x1b2/0x9d0 fs/read_write.c:416
+ vfs_read+0x36c/0x6b0 fs/read_write.c:452
+ ksys_read fs/read_write.c:578 [inline]
+ __do_sys_read fs/read_write.c:588 [inline]
+ __se_sys_read fs/read_write.c:586 [inline]
+ __x64_sys_read+0x1bf/0x3e0 fs/read_write.c:586
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:279 [inline]
+ kmsan_internal_poison_shadow+0xb8/0x1b0 mm/kmsan/kmsan.c:189
+ kmsan_kmalloc+0x94/0x100 mm/kmsan/kmsan.c:315
+ __kmalloc+0x13a/0x350 mm/slub.c:3818
+ kmalloc include/linux/slab.h:517 [inline]
+ vc_allocate+0x438/0x800 drivers/tty/vt/vt.c:787
+ con_install+0x8c/0x640 drivers/tty/vt/vt.c:2880
+ tty_driver_install_tty drivers/tty/tty_io.c:1224 [inline]
+ tty_init_dev+0x1b5/0x1020 drivers/tty/tty_io.c:1324
+ tty_open_by_driver drivers/tty/tty_io.c:1959 [inline]
+ tty_open+0x17b4/0x2ed0 drivers/tty/tty_io.c:2007
+ chrdev_open+0xc25/0xd90 fs/char_dev.c:417
+ do_dentry_open+0xccc/0x1440 fs/open.c:794
+ vfs_open+0x1b6/0x2f0 fs/open.c:908
+ do_last fs/namei.c:3365 [inline]
+ path_openat+0x4771/0x6640 fs/namei.c:3506
+ do_filp_open+0x261/0x640 fs/namei.c:3540
+ do_sys_open+0x624/0x960 fs/open.c:1101
+ __do_sys_open fs/open.c:1119 [inline]
+ __se_sys_open fs/open.c:1114 [inline]
+ __x64_sys_open+0xf2/0x130 fs/open.c:1114
+ do_syscall_64+0x15b/0x230 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Bytes 0-79 of 240 are uninitialized
+Memory access starts at ffff8801925b8000
+==================================================================

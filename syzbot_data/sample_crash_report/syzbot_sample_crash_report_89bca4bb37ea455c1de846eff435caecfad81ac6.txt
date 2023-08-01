@@ -1,0 +1,57 @@
+RDS: rds_bind could not find a transport for 172.20.0.170, load rds_tcp or rds_rdma?
+
+============================================
+WARNING: possible recursive locking detected
+4.14.0+ #179 Not tainted
+--------------------------------------------
+syz-executor1/25688 is trying to acquire lock:
+ (&q->blk_trace_mutex){+.+.}, at: [<ffffffff81762cd1>] blk_trace_remove+0x21/0x40 kernel/trace/blktrace.c:373
+
+but task is already holding lock:
+ (&q->blk_trace_mutex){+.+.}, at: [<ffffffff817665a8>] blk_trace_setup+0x38/0x70 kernel/trace/blktrace.c:606
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&q->blk_trace_mutex);
+  lock(&q->blk_trace_mutex);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+1 lock held by syz-executor1/25688:
+ #0:  (&q->blk_trace_mutex){+.+.}, at: [<ffffffff817665a8>] blk_trace_setup+0x38/0x70 kernel/trace/blktrace.c:606
+
+stack backtrace:
+CPU: 1 PID: 25688 Comm: syz-executor1 Not tainted 4.14.0+ #179
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_deadlock_bug kernel/locking/lockdep.c:1809 [inline]
+ check_deadlock kernel/locking/lockdep.c:1856 [inline]
+ validate_chain kernel/locking/lockdep.c:2457 [inline]
+ __lock_acquire+0x11c1/0x4840 kernel/locking/lockdep.c:3500
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:4004
+ __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+ __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+ blk_trace_remove+0x21/0x40 kernel/trace/blktrace.c:373
+ __blk_trace_setup+0x12b/0x140 kernel/trace/blktrace.c:594
+ blk_trace_setup+0x4d/0x70 kernel/trace/blktrace.c:607
+ sg_ioctl+0xc77/0x2da0 drivers/scsi/sg.c:1089
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1530 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x452879
+RSP: 002b:00007f49f6f3ebe8 EFLAGS: 00000212 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000007580d8 RCX: 0000000000452879
+RDX: 000000002084cf90 RSI: 00000000c0481273 RDI: 0000000000000014
+RBP: 0000000000000082 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f6ef0
+R13: 00000000ffffffff R14: 00007f49f6f3f6d4 R15: 0000000000000013

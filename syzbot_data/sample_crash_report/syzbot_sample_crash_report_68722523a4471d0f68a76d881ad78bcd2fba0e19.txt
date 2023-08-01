@@ -1,0 +1,50 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc5-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-sched read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+3 locks held by kworker/u4:5/440:
+ #0: 
+ffff888143d83138
+ (
+(wq_completion)netns
+){+.+.}-{0:0}
+, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+, at: atomic64_set include/asm-generic/atomic-instrumented.h:856 [inline]
+, at: atomic_long_set include/asm-generic/atomic-long.h:41 [inline]
+, at: set_work_data kernel/workqueue.c:617 [inline]
+, at: set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+, at: process_one_work+0x871/0x1600 kernel/workqueue.c:2247
+ #1: 
+ffffc9000269fda8
+ (
+net_cleanup_work
+){+.+.}-{0:0}
+, at: process_one_work+0x8a5/0x1600 kernel/workqueue.c:2251
+ #2: 
+ffffffff8d692550
+ (
+pernet_ops_rwsem
+){++++}-{3:3}
+, at: cleanup_net+0x9b/0xb10 net/core/net_namespace.c:557
+
+stack backtrace:
+CPU: 0 PID: 440 Comm: kworker/u4:5 Not tainted 5.13.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x266/0x2c0 kernel/sched/core.c:8304
+ inet_twsk_purge+0xe8/0x7c0 net/ipv4/inet_timewait_sock.c:267
+ ops_exit_list+0x10d/0x160 net/core/net_namespace.c:178
+ cleanup_net+0x4ea/0xb10 net/core/net_namespace.c:595
+ process_one_work+0x98d/0x1600 kernel/workqueue.c:2276
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2422
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294

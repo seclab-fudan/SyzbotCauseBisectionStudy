@@ -1,0 +1,127 @@
+INFO: task kworker/0:2:1979 blocked for more than 120 seconds.
+      Not tainted 4.17.0-rc2+ #24
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+kworker/0:2     D19800  1979      2 0x80000000
+Workqueue: events cgwb_release_workfn
+Call Trace:
+ context_switch kernel/sched/core.c:2848 [inline]
+ __schedule+0x801/0x1e30 kernel/sched/core.c:3490
+ schedule+0xef/0x430 kernel/sched/core.c:3549
+ bit_wait+0x18/0x90 kernel/sched/wait_bit.c:197
+ __wait_on_bit+0xb3/0x130 kernel/sched/wait_bit.c:48
+ out_of_line_wait_on_bit+0x204/0x3a0 kernel/sched/wait_bit.c:63
+ wait_on_bit include/linux/wait_bit.h:76 [inline]
+ wb_shutdown+0x370/0x470 mm/backing-dev.c:366
+ cgwb_release_workfn+0x87/0x750 mm/backing-dev.c:509
+ process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+ worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Showing all locks held in the system:
+2 locks held by kworker/u4:2/29:
+ #0: 00000000ff50c69d ((wq_completion)"events_unbound"){+.+.}, at: __write_once_size include/linux/compiler.h:215 [inline]
+ #0: 00000000ff50c69d ((wq_completion)"events_unbound"){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: 00000000ff50c69d ((wq_completion)"events_unbound"){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:40 [inline]
+ #0: 00000000ff50c69d ((wq_completion)"events_unbound"){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:57 [inline]
+ #0: 00000000ff50c69d ((wq_completion)"events_unbound"){+.+.}, at: set_work_data kernel/workqueue.c:617 [inline]
+ #0: 00000000ff50c69d ((wq_completion)"events_unbound"){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+ #0: 00000000ff50c69d ((wq_completion)"events_unbound"){+.+.}, at: process_one_work+0xaef/0x1b50 kernel/workqueue.c:2116
+ #1: 00000000c57fea68 ((work_completion)(&sub_info->work)){+.+.}, at: process_one_work+0xb46/0x1b50 kernel/workqueue.c:2120
+2 locks held by khungtaskd/892:
+ #0: 00000000f3191291 (rcu_read_lock){....}, at: check_hung_uninterruptible_tasks kernel/hung_task.c:175 [inline]
+ #0: 00000000f3191291 (rcu_read_lock){....}, at: watchdog+0x1ff/0xf60 kernel/hung_task.c:249
+ #1: 00000000b5f4a652 (tasklist_lock){.+.+}, at: debug_show_all_locks+0xde/0x34a kernel/locking/lockdep.c:4470
+2 locks held by kworker/0:2/1979:
+ #0: 0000000067d9af8b ((wq_completion)"events"){+.+.}, at: __write_once_size include/linux/compiler.h:215 [inline]
+ #0: 0000000067d9af8b ((wq_completion)"events"){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: 0000000067d9af8b ((wq_completion)"events"){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:40 [inline]
+ #0: 0000000067d9af8b ((wq_completion)"events"){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:57 [inline]
+ #0: 0000000067d9af8b ((wq_completion)"events"){+.+.}, at: set_work_data kernel/workqueue.c:617 [inline]
+ #0: 0000000067d9af8b ((wq_completion)"events"){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+ #0: 0000000067d9af8b ((wq_completion)"events"){+.+.}, at: process_one_work+0xaef/0x1b50 kernel/workqueue.c:2116
+ #1: 00000000a4607626 ((work_completion)(&wb->release_work)){+.+.}, at: process_one_work+0xb46/0x1b50 kernel/workqueue.c:2120
+2 locks held by getty/4463:
+ #0: 00000000a1d45b98 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000da655b8c (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4464:
+ #0: 00000000913f5485 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000c9c0da09 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4465:
+ #0: 00000000f2d2ba72 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000395b83c8 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4466:
+ #0: 0000000066555597 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000c4a84ec3 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4467:
+ #0: 00000000b9152073 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 000000008ac29ae3 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4468:
+ #0: 0000000043fffd7f (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000830701e4 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4469:
+ #0: 00000000cf701e19 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000e5618399 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+1 lock held by syz-executor2/4537:
+ #0: 00000000b5f4a652 (tasklist_lock){.+.+}, at: release_task.part.15+0x2b8/0x1b90 kernel/exit.c:197
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 892 Comm: khungtaskd Not tainted 4.17.0-rc2+ #24
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+TCP: request_sock_TCPv6: Possible SYN flooding on port 20000. Sending cookies.  Check SNMP counters.
+ nmi_cpu_backtrace.cold.4+0x19/0xce lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x151/0x192 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:138 [inline]
+ check_hung_task kernel/hung_task.c:132 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:190 [inline]
+ watchdog+0xc10/0xf60 kernel/hung_task.c:249
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 25208 Comm: syz-executor3 Not tainted 4.17.0-rc2+ #24
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:get_current arch/x86/include/asm/current.h:15 [inline]
+RIP: 0010:debug_lockdep_rcu_enabled.part.1+0x18/0x60 kernel/rcu/update.c:301
+RSP: 0018:ffff8801b54c7778 EFLAGS: 00000002
+RAX: dffffc0000000000 RBX: ffff8801cfdfe200 RCX: 0000000000000000
+RDX: 0000000000000004 RSI: dffffc0000000000 RDI: ffffffff8909cc20
+RBP: ffff8801b54c7780 R08: ffffffff8a7158c8 R09: ffff8801b54c7628
+R10: ffff8801cfdfea60 R11: ffff8801cfdfe200 R12: ffff8801b54c78a8
+R13: ffffffff8a7158c8 R14: dffffc0000000000 R15: ffff8801bcb29da8
+FS:  00000000027a1940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000625208 CR3: 00000001ae14c000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ debug_lockdep_rcu_enabled+0x77/0x90 kernel/rcu/update.c:300
+ trace_lock_release include/trace/events/lock.h:58 [inline]
+ lock_release+0x6f2/0xa10 kernel/locking/lockdep.c:3938
+ seqcount_lockdep_reader_access include/linux/seqlock.h:82 [inline]
+ read_seqcount_begin include/linux/seqlock.h:164 [inline]
+ ktime_get+0x15b/0x430 kernel/time/timekeeping.c:763
+ __hrtimer_start_range_ns kernel/time/hrtimer.c:1080 [inline]
+ hrtimer_start_range_ns+0x1d9/0xd10 kernel/time/hrtimer.c:1115
+ hrtimer_start_expires include/linux/hrtimer.h:412 [inline]
+ do_nanosleep+0x1ad/0x730 kernel/time/hrtimer.c:1686
+ hrtimer_nanosleep+0x2cc/0x610 kernel/time/hrtimer.c:1743
+ __do_sys_nanosleep kernel/time/hrtimer.c:1775 [inline]
+ __se_sys_nanosleep kernel/time/hrtimer.c:1762 [inline]
+ __x64_sys_nanosleep+0x1df/0x270 kernel/time/hrtimer.c:1762
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4810a1
+RSP: 002b:0000000000a3e950 EFLAGS: 00000293 ORIG_RAX: 0000000000000023
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004810a1
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000a3e960
+RBP: 0000000000000001 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000a3e940 R11: 0000000000000293 R12: 0000000000000000
+R13: 0000000000000002 R14: 000000000072bea0 R15: 000000000005a91b
+Code: 00 e9 9c fd ff ff 0f 1f 00 66 2e 0f 1f 84 00 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 55 48 89 e5 53 65 48 8b 1c 25 c0 ed 01 00 <48> 8d bb 34 08 00 00 48 89 fa 48 c1 ea 03 0f b6 14 02 48 89 f8 

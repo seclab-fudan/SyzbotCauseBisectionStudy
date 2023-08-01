@@ -1,0 +1,60 @@
+------------[ cut here ]------------
+Looking for class "&ea_inode->i_rwsem" with key ext4_fs_type, but found a different class "&sb->s_type->i_mutex_key" with the same key
+WARNING: CPU: 0 PID: 4452 at kernel/locking/lockdep.c:940 look_up_lock_class+0x158/0x160
+Modules linked in:
+CPU: 0 PID: 4452 Comm: syz-executor318 Not tainted 6.2.0-rc2-syzkaller-16046-gae87308093bc #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 604000c5 (nZCv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : look_up_lock_class+0x158/0x160
+lr : look_up_lock_class+0x154/0x160 kernel/locking/lockdep.c:937
+sp : ffff80000ff434e0
+x29: ffff80000ff434e0 x28: 0000000000000000 x27: 0000000000000000
+x26: ffff0000cafac6f0 x25: ffff800008877514 x24: 0000000000000000
+x23: ffff80000f058000 x22: 0000000000000001 x21: ffff80000d6a1e68
+x20: 0000000000000000 x19: ffff80000ddabc98 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000001 x15: 0000000000000000
+x14: 000000000000000d x13: 205d323534345420 x12: 5b5d303330383736
+x11: ff808000081cbbc8 x10: 0000000000000000 x9 : b4969308ab43b000
+x8 : b4969308ab43b000 x7 : 205b5d3033303837 x6 : ffff80000c121738
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000000 x0 : ffff80000ddabc98
+Call trace:
+ look_up_lock_class+0x158/0x160
+ register_lock_class+0x4c/0x2f8 kernel/locking/lockdep.c:1289
+ __lock_acquire+0xa8/0x3084 kernel/locking/lockdep.c:4934
+ lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5668
+ down_write+0x5c/0x88 kernel/locking/rwsem.c:1562
+ inode_lock include/linux/fs.h:756 [inline]
+ ext4_xattr_inode_update_ref+0x4c/0x2cc fs/ext4/xattr.c:998
+ ext4_xattr_inode_dec_ref fs/ext4/xattr.c:1049 [inline]
+ ext4_xattr_block_set+0x4b4/0x1404 fs/ext4/xattr.c:2150
+ ext4_xattr_set_handle+0x724/0x9a0 fs/ext4/xattr.c:2390
+ ext4_xattr_set+0x104/0x1d4 fs/ext4/xattr.c:2492
+ ext4_xattr_trusted_set+0x4c/0x64 fs/ext4/xattr_trusted.c:38
+ __vfs_setxattr+0x290/0x29c fs/xattr.c:202
+ __vfs_setxattr_noperm+0xcc/0x320 fs/xattr.c:236
+ __vfs_setxattr_locked+0x16c/0x194 fs/xattr.c:297
+ vfs_setxattr+0xf4/0x1f4 fs/xattr.c:323
+ do_setxattr fs/xattr.c:608 [inline]
+ setxattr fs/xattr.c:631 [inline]
+ path_setxattr+0x32c/0x424 fs/xattr.c:650
+ __do_sys_setxattr fs/xattr.c:666 [inline]
+ __se_sys_setxattr fs/xattr.c:662 [inline]
+ __arm64_sys_setxattr+0x2c/0x40 fs/xattr.c:662
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+irq event stamp: 5901
+hardirqs last  enabled at (5901): [<ffff80000c1268a4>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+hardirqs last  enabled at (5901): [<ffff80000c1268a4>] _raw_spin_unlock_irqrestore+0x48/0x8c kernel/locking/spinlock.c:194
+hardirqs last disabled at (5900): [<ffff80000c1266e0>] __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:108 [inline]
+hardirqs last disabled at (5900): [<ffff80000c1266e0>] _raw_spin_lock_irqsave+0xa4/0xb4 kernel/locking/spinlock.c:162
+softirqs last  enabled at (5822): [<ffff8000080102e4>] _stext+0x2e4/0x37c
+softirqs last disabled at (5811): [<ffff800008017c90>] ____do_softirq+0x14/0x20 arch/arm64/kernel/irq.c:80
+---[ end trace 0000000000000000 ]---
+
+======================================================

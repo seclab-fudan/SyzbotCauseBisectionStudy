@@ -1,0 +1,46 @@
+=============================
+WARNING: suspicious RCU usage
+5.12.0-rc6-syzkaller #0 Not tainted
+-----------------------------
+include/linux/skmsg.h:286 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by syz-executor430/8428:
+ #0: ffff88802dd583c8 (clock-AF_INET){++..}-{2:2}, at: sk_psock_drop+0x2a/0x3d0 net/core/skmsg.c:789
+
+stack backtrace:
+CPU: 1 PID: 8428 Comm: syz-executor430 Not tainted 5.12.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ sk_psock include/linux/skmsg.h:286 [inline]
+ tcp_bpf_update_proto+0x5d3/0x6c0 net/ipv4/tcp_bpf.c:504
+ sk_psock_restore_proto include/linux/skmsg.h:407 [inline]
+ sk_psock_drop+0x68/0x3d0 net/core/skmsg.c:790
+ sk_psock_put include/linux/skmsg.h:445 [inline]
+ tcp_bpf_recvmsg+0x42d/0x480 net/ipv4/tcp_bpf.c:208
+ inet_recvmsg+0x11b/0x5d0 net/ipv4/af_inet.c:852
+ sock_recvmsg_nosec net/socket.c:888 [inline]
+ sock_recvmsg net/socket.c:906 [inline]
+ sock_recvmsg net/socket.c:902 [inline]
+ ____sys_recvmsg+0x2c4/0x600 net/socket.c:2569
+ ___sys_recvmsg+0x127/0x200 net/socket.c:2611
+ do_recvmmsg+0x24d/0x6d0 net/socket.c:2705
+ __sys_recvmmsg net/socket.c:2784 [inline]
+ __do_sys_recvmmsg net/socket.c:2807 [inline]
+ __se_sys_recvmmsg net/socket.c:2800 [inline]
+ __x64_sys_recvmmsg+0x20b/0x260 net/socket.c:2800
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4468e9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 a1 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fa0f97ef318 EFLAGS: 00000246 ORIG_RAX: 000000000000012b
+RAX: ffffffffffffffda RBX: 00000000004cb4e8 RCX: 00000000004468e9
+RDX: 0000000000000422 RSI: 0000000020000540 RDI: 0000000000000004
+RBP: 00000000004cb4e0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000049b270
+R13: 00007ffd2e475fff R14: 00007fa0f97ef400 R15: 0000000000022000

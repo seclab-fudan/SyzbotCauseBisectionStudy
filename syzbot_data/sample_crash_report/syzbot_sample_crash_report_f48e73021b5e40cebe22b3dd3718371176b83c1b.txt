@@ -1,0 +1,32 @@
+BUG: memory leak
+unreferenced object 0xffff888124fa7080 (size 128):
+  comm "syz-executor163", pid 7170, jiffies 4294954254 (age 12.500s)
+  hex dump (first 32 bytes):
+    d1 16 b6 1f 81 88 ff ff 00 00 00 00 00 00 00 00  ................
+    aa aa aa aa aa 0c 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<000000001bbce457>] kmemleak_alloc_recursive include/linux/kmemleak.h:43 [inline]
+    [<000000001bbce457>] slab_post_alloc_hook mm/slab.h:586 [inline]
+    [<000000001bbce457>] slab_alloc mm/slab.c:3319 [inline]
+    [<000000001bbce457>] kmem_cache_alloc+0x13f/0x2c0 mm/slab.c:3483
+    [<000000005e78ed69>] fdb_create+0x37/0x530 net/bridge/br_fdb.c:498
+    [<000000009cc867aa>] fdb_insert+0xb2/0xf0 net/bridge/br_fdb.c:537
+    [<00000000a443c9ff>] br_fdb_change_mac_address+0x80/0x1f0 net/bridge/br_fdb.c:316
+    [<00000000370e41a8>] br_stp_change_bridge_id+0x4c/0x190 net/bridge/br_stp_if.c:223
+    [<00000000db15c550>] br_set_mac_address+0xa2/0xb0 net/bridge/br_device.c:251
+    [<00000000547a827c>] dev_set_mac_address+0xdd/0x150 net/core/dev.c:8350
+    [<0000000068a207bd>] __bond_release_one.cold+0x319/0x4ac drivers/net/bonding/bond_main.c:2055
+    [<00000000189411c7>] bond_slave_netdev_event drivers/net/bonding/bond_main.c:3169 [inline]
+    [<00000000189411c7>] bond_netdev_event+0x2ac/0x2c0 drivers/net/bonding/bond_main.c:3280
+    [<000000002bd5677b>] notifier_call_chain+0x66/0xb0 kernel/notifier.c:95
+    [<0000000044f0058c>] __raw_notifier_call_chain kernel/notifier.c:396 [inline]
+    [<0000000044f0058c>] raw_notifier_call_chain+0x2e/0x40 kernel/notifier.c:403
+    [<000000009782bbd6>] call_netdevice_notifiers_info net/core/dev.c:1893 [inline]
+    [<000000009782bbd6>] call_netdevice_notifiers_info+0x60/0xb0 net/core/dev.c:1878
+    [<000000005904fef6>] call_netdevice_notifiers_extack net/core/dev.c:1905 [inline]
+    [<000000005904fef6>] call_netdevice_notifiers net/core/dev.c:1919 [inline]
+    [<000000005904fef6>] rollback_registered_many+0x373/0x640 net/core/dev.c:8743
+    [<00000000806944eb>] unregister_netdevice_many.part.0+0x17/0x90 net/core/dev.c:9906
+    [<00000000c0997ee2>] unregister_netdevice_many+0x24/0x30 net/core/dev.c:9905
+    [<0000000042445981>] rtnl_delete_link+0x63/0xa0 net/core/rtnetlink.c:2926
+

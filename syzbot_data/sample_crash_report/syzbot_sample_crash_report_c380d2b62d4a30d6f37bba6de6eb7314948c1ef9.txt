@@ -1,0 +1,54 @@
+==================================================================
+BUG: KASAN: invalid-access in copy_page+0x10/0xd0 arch/arm64/lib/copy_page.S:26
+Read at addr fbff00001e8a9000 by task syz-executor.1/2227
+Pointer tag: [fb], memory tag: [fd]
+
+CPU: 0 PID: 2227 Comm: syz-executor.1 Not tainted 6.0.0-syzkaller-10109-gaa512c115a09 #0
+Hardware name: linux,dummy-virt (DT)
+Call trace:
+ dump_backtrace.part.0+0xe0/0xf0 arch/arm64/kernel/stacktrace.c:156
+ dump_backtrace arch/arm64/kernel/stacktrace.c:162 [inline]
+ show_stack+0x18/0x40 arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x68/0x84 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:317 [inline]
+ print_report+0x104/0x604 mm/kasan/report.c:433
+ kasan_report+0x8c/0xb0 mm/kasan/report.c:495
+ __do_kernel_fault+0x11c/0x1bc arch/arm64/mm/fault.c:319
+ do_bad_area arch/arm64/mm/fault.c:469 [inline]
+ do_tag_check_fault+0x78/0x90 arch/arm64/mm/fault.c:745
+ do_mem_abort+0x44/0x94 arch/arm64/mm/fault.c:821
+ el1_abort+0x40/0x60 arch/arm64/kernel/entry-common.c:366
+ el1h_64_sync_handler+0xd8/0xe4 arch/arm64/kernel/entry-common.c:426
+ el1h_64_sync+0x64/0x68 arch/arm64/kernel/entry.S:576
+ copy_page+0x10/0xd0 arch/arm64/lib/copy_page.S:26
+ copy_user_highpage+0x18/0x40 arch/arm64/mm/copypage.c:34
+ __wp_page_copy_user mm/memory.c:2856 [inline]
+ wp_page_copy+0xa4/0x690 mm/memory.c:3117
+ do_wp_page+0x138/0x620 mm/memory.c:3479
+ handle_pte_fault mm/memory.c:4935 [inline]
+ __handle_mm_fault+0x660/0xe70 mm/memory.c:5059
+ handle_mm_fault+0xec/0x280 mm/memory.c:5157
+ __do_page_fault arch/arm64/mm/fault.c:502 [inline]
+ do_page_fault+0x17c/0x3d0 arch/arm64/mm/fault.c:602
+ do_mem_abort+0x44/0x94 arch/arm64/mm/fault.c:821
+ el0_da+0x30/0xb4 arch/arm64/kernel/entry-common.c:514
+ el0t_64_sync_handler+0x68/0xc0 arch/arm64/kernel/entry-common.c:657
+ el0t_64_sync+0x198/0x19c arch/arm64/kernel/entry.S:581
+
+The buggy address belongs to the physical page:
+page:00000000da91530f refcount:3 mapcount:2 mapping:0000000000000000 index:0xfffffffff pfn:0x5e8a9
+memcg:fdff00001f5bc000
+anon flags: 0x1ffc1000208001c(uptodate|dirty|lru|swapbacked|arch_2|node=0|zone=0|lastcpupid=0x7ff|kasantag=0x4)
+raw: 01ffc1000208001c fffffc00005ac888 faff000009655000 fbff000005930301
+raw: 0000000fffffffff 0000000000000000 0000000300000001 fdff00001f5bc000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff00001e8a8e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff00001e8a8f00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff00001e8a9000: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+                   ^
+ ffff00001e8a9100: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+ ffff00001e8a9200: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+==================================================================

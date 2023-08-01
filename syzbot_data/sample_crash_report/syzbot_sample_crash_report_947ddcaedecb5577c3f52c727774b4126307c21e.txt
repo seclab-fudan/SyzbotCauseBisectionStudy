@@ -1,0 +1,37 @@
+==================================================================
+BUG: KCSAN: data-race in bpf_lru_pop_free / bpf_lru_push_free
+
+write to 0xffff888015c622ca of 1 bytes by task 13647 on cpu 0:
+ __bpf_lru_node_move_in kernel/bpf/bpf_lru_list.c:91 [inline]
+ __local_list_flush kernel/bpf/bpf_lru_list.c:298 [inline]
+ bpf_lru_list_pop_free_to_local kernel/bpf/bpf_lru_list.c:327 [inline]
+ bpf_common_lru_pop_free kernel/bpf/bpf_lru_list.c:447 [inline]
+ bpf_lru_pop_free+0x314/0xed0 kernel/bpf/bpf_lru_list.c:499
+ prealloc_lru_pop kernel/bpf/hashtab.c:264 [inline]
+ htab_lru_map_update_elem+0xaf/0x4a0 kernel/bpf/hashtab.c:1099
+ bpf_map_update_value+0x1b9/0x300 kernel/bpf/syscall.c:201
+ generic_map_update_batch+0x344/0x450 kernel/bpf/syscall.c:1350
+ bpf_map_do_batch+0x286/0x2f0 kernel/bpf/syscall.c:3990
+ __do_sys_bpf+0x87c/0x9950 kernel/bpf/syscall.c:4446
+ __se_sys_bpf kernel/bpf/syscall.c:4340 [inline]
+ __x64_sys_bpf+0x3d/0x50 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x39/0x80 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffff888015c622ca of 1 bytes by task 13644 on cpu 1:
+ bpf_common_lru_push_free kernel/bpf/bpf_lru_list.c:507 [inline]
+ bpf_lru_push_free+0xd7/0x590 kernel/bpf/bpf_lru_list.c:555
+ htab_lru_map_update_elem+0x454/0x4a0 kernel/bpf/hashtab.c:1130
+ bpf_map_update_value+0x1b9/0x300 kernel/bpf/syscall.c:201
+ generic_map_update_batch+0x344/0x450 kernel/bpf/syscall.c:1350
+ bpf_map_do_batch+0x286/0x2f0 kernel/bpf/syscall.c:3990
+ __do_sys_bpf+0x87c/0x9950 kernel/bpf/syscall.c:4446
+ __se_sys_bpf kernel/bpf/syscall.c:4340 [inline]
+ __x64_sys_bpf+0x3d/0x50 kernel/bpf/syscall.c:4340
+ do_syscall_64+0x39/0x80 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 13644 Comm: syz-executor.3 Not tainted 5.11.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

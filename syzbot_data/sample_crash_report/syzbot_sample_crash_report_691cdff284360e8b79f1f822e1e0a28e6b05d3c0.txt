@@ -1,0 +1,118 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000001: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+CPU: 1 PID: 11 Comm: kworker/u4:1 Not tainted 6.0.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Workqueue: events_unbound async_run_entry_fn
+RIP: 0010:__rb_insert lib/rbtree.c:115 [inline]
+RIP: 0010:rb_insert_color+0x6d/0x7a0 lib/rbtree.c:436
+Code: 48 89 d8 48 c1 e8 03 42 80 3c 28 00 0f 85 48 05 00 00 48 8b 2b 40 f6 c5 01 0f 85 81 01 00 00 48 8d 7d 08 48 89 f8 48 c1 e8 03 <42> 80 3c 28 00 0f 85 01 05 00 00 4c 8b 75 08 49 39 de 0f 84 6d 01
+RSP: 0000:ffffc900001e0bf8 EFLAGS: 00010002
+RAX: 0000000000000001 RBX: ffff888020230090 RCX: 0000000000000100
+RDX: 1ffff1100234fb22 RSI: ffff8880b9b3a080 RDI: 0000000000000008
+RBP: 0000000000000000 R08: ffff888011a7d910 R09: ffff8880b9b3a080
+R10: fffffbfff1bbd20a R11: 0000000000000001 R12: ffff888011a7d910
+R13: dffffc0000000000 R14: ffff8880b9b3a040 R15: ffff8880b9b3a050
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000bc8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ rb_insert_color_cached include/linux/rbtree.h:114 [inline]
+ rb_add_cached include/linux/rbtree.h:183 [inline]
+ __enqueue_entity kernel/sched/fair.c:629 [inline]
+ enqueue_entity+0x444/0x1520 kernel/sched/fair.c:4454
+ enqueue_task_fair+0x1ba/0xce0 kernel/sched/fair.c:5757
+ enqueue_task+0xad/0x3a0 kernel/sched/core.c:2066
+ activate_task kernel/sched/core.c:2091 [inline]
+ ttwu_do_activate+0x157/0x330 kernel/sched/core.c:3670
+ ttwu_queue kernel/sched/core.c:3875 [inline]
+ try_to_wake_up+0xcc0/0x1e60 kernel/sched/core.c:4198
+ swake_up_locked kernel/sched/swait.c:29 [inline]
+ swake_up_locked kernel/sched/swait.c:21 [inline]
+ swake_up_one+0x71/0x1b0 kernel/sched/swait.c:52
+ rcu_report_qs_rdp kernel/rcu/tree.c:2047 [inline]
+ rcu_check_quiescent_state kernel/rcu/tree.c:2090 [inline]
+ rcu_core+0x1359/0x1890 kernel/rcu/tree.c:2489
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1106
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x38/0x70 kernel/locking/spinlock.c:194
+Code: 74 24 10 e8 0a 24 dd f7 48 89 ef e8 92 a5 dd f7 81 e3 00 02 00 00 75 25 9c 58 f6 c4 02 75 2d 48 85 db 74 01 fb bf 01 00 00 00 <e8> 93 66 d0 f7 65 8b 05 bc 1f 80 76 85 c0 74 0a 5b 5d c3 e8 90 2e
+RSP: 0000:ffffc90000107538 EFLAGS: 00000206
+RAX: 0000000000000006 RBX: 0000000000000200 RCX: 1ffffffff2120546
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000001
+RBP: ffff8880202b2e98 R08: 0000000000000001 R09: ffffffff908dc9a7
+R10: 0000000000000001 R11: 0000000000000000 R12: 1ffff92000020eac
+R13: ffffc90000107580 R14: 0000000000000000 R15: 0000000000000000
+ spin_unlock_irqrestore include/linux/spinlock.h:404 [inline]
+ xa_destroy+0x221/0x360 lib/xarray.c:2223
+ blk_mq_release+0x2b1/0x3e0 block/blk-mq.c:3889
+ blk_release_queue+0x153/0x270 block/blk-sysfs.c:780
+ kobject_cleanup lib/kobject.c:673 [inline]
+ kobject_release lib/kobject.c:704 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x1be/0x4c0 lib/kobject.c:721
+ scsi_device_dev_release_usercontext+0x60e/0x1180 drivers/scsi/scsi_sysfs.c:476
+ execute_in_process_context+0x37/0x150 kernel/workqueue.c:3359
+ device_release+0x9f/0x240 drivers/base/core.c:2330
+ kobject_cleanup lib/kobject.c:673 [inline]
+ kobject_release lib/kobject.c:704 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x1be/0x4c0 lib/kobject.c:721
+ put_device+0x1b/0x30 drivers/base/core.c:3624
+ __scsi_remove_device+0x1dd/0x330 drivers/scsi/scsi_sysfs.c:1486
+ scsi_probe_and_add_lun+0x21ee/0x3660 drivers/scsi/scsi_scan.c:1290
+ __scsi_scan_target+0x21f/0xdb0 drivers/scsi/scsi_scan.c:1673
+ scsi_scan_channel drivers/scsi/scsi_scan.c:1761 [inline]
+ scsi_scan_channel+0x148/0x1e0 drivers/scsi/scsi_scan.c:1737
+ scsi_scan_host_selected+0x2df/0x3b0 drivers/scsi/scsi_scan.c:1790
+ do_scsi_scan_host+0x1e8/0x260 drivers/scsi/scsi_scan.c:1929
+ do_scan_async+0x3e/0x500 drivers/scsi/scsi_scan.c:1939
+ async_run_entry_fn+0x98/0x530 kernel/async.c:127
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__rb_insert lib/rbtree.c:115 [inline]
+RIP: 0010:rb_insert_color+0x6d/0x7a0 lib/rbtree.c:436
+Code: 48 89 d8 48 c1 e8 03 42 80 3c 28 00 0f 85 48 05 00 00 48 8b 2b 40 f6 c5 01 0f 85 81 01 00 00 48 8d 7d 08 48 89 f8 48 c1 e8 03 <42> 80 3c 28 00 0f 85 01 05 00 00 4c 8b 75 08 49 39 de 0f 84 6d 01
+RSP: 0000:ffffc900001e0bf8 EFLAGS: 00010002
+RAX: 0000000000000001 RBX: ffff888020230090 RCX: 0000000000000100
+RDX: 1ffff1100234fb22 RSI: ffff8880b9b3a080 RDI: 0000000000000008
+RBP: 0000000000000000 R08: ffff888011a7d910 R09: ffff8880b9b3a080
+R10: fffffbfff1bbd20a R11: 0000000000000001 R12: ffff888011a7d910
+R13: dffffc0000000000 R14: ffff8880b9b3a040 R15: ffff8880b9b3a050
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000bc8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	48 89 d8             	mov    %rbx,%rax
+   3:	48 c1 e8 03          	shr    $0x3,%rax
+   7:	42 80 3c 28 00       	cmpb   $0x0,(%rax,%r13,1)
+   c:	0f 85 48 05 00 00    	jne    0x55a
+  12:	48 8b 2b             	mov    (%rbx),%rbp
+  15:	40 f6 c5 01          	test   $0x1,%bpl
+  19:	0f 85 81 01 00 00    	jne    0x1a0
+  1f:	48 8d 7d 08          	lea    0x8(%rbp),%rdi
+  23:	48 89 f8             	mov    %rdi,%rax
+  26:	48 c1 e8 03          	shr    $0x3,%rax
+* 2a:	42 80 3c 28 00       	cmpb   $0x0,(%rax,%r13,1) <-- trapping instruction
+  2f:	0f 85 01 05 00 00    	jne    0x536
+  35:	4c 8b 75 08          	mov    0x8(%rbp),%r14
+  39:	49 39 de             	cmp    %rbx,%r14
+  3c:	0f                   	.byte 0xf
+  3d:	84 6d 01             	test   %ch,0x1(%rbp)

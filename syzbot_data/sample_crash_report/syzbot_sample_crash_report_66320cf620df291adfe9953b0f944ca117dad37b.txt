@@ -1,0 +1,76 @@
+=====================================================
+BUG: KMSAN: uninit-value in __fcheck_files include/linux/fdtable.h:86 [inline]
+BUG: KMSAN: uninit-value in __fget_light+0x5de/0x6d0 fs/file.c:796
+CPU: 1 PID: 8469 Comm: syz-executor080 Not tainted 5.8.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1df/0x240 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:121
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ __fcheck_files include/linux/fdtable.h:86 [inline]
+ __fget_light+0x5de/0x6d0 fs/file.c:796
+ __fdget+0x4e/0x60 fs/file.c:809
+ fdget include/linux/file.h:64 [inline]
+ bpf_map_get+0x47/0x2b0 kernel/bpf/syscall.c:926
+ bpf_sk_storage_diag_alloc+0x49a/0xb50 net/core/bpf_sk_storage.c:1002
+ __inet_diag_dump_start+0x68c/0x11f0 net/ipv4/inet_diag.c:1169
+ inet_diag_dump_start_compat+0x4d/0x60 net/ipv4/inet_diag.c:1188
+ __netlink_dump_start+0x633/0xd00 net/netlink/af_netlink.c:2343
+ netlink_dump_start include/linux/netlink.h:246 [inline]
+ inet_diag_rcv_msg_compat+0x5c1/0x940 net/ipv4/inet_diag.c:1258
+ sock_diag_rcv_msg+0x211/0x610 net/core/sock_diag.c:256
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2469
+ sock_diag_rcv+0x63/0x80 net/core/sock_diag.c:275
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x1370/0x1400 net/socket.c:2352
+ ___sys_sendmsg net/socket.c:2406 [inline]
+ __sys_sendmsg+0x623/0x750 net/socket.c:2439
+ __compat_sys_sendmsg net/compat.c:466 [inline]
+ __do_compat_sys_sendmsg net/compat.c:473 [inline]
+ __se_compat_sys_sendmsg+0xa7/0xc0 net/compat.c:470
+ __ia32_compat_sys_sendmsg+0x4a/0x70 net/compat.c:470
+ do_syscall_32_irqs_on arch/x86/entry/common.c:430 [inline]
+ __do_fast_syscall_32+0x2aa/0x400 arch/x86/entry/common.c:477
+ do_fast_syscall_32+0x6b/0xd0 arch/x86/entry/common.c:505
+ do_SYSENTER_32+0x73/0x90 arch/x86/entry/common.c:554
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+RIP: 0023:0xf7f1e549
+Code: Bad RIP value.
+RSP: 002b:00000000ffb2847c EFLAGS: 00000246 ORIG_RAX: 0000000000000172
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000020000000
+RDX: 0000000000000000 RSI: 00000000080ea078 RDI: 00000000ffb284d0
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_poison_shadow+0x66/0xd0 mm/kmsan/kmsan.c:127
+ kmsan_slab_alloc+0x8a/0xe0 mm/kmsan/kmsan_hooks.c:80
+ slab_alloc_node mm/slub.c:2839 [inline]
+ __kmalloc_node_track_caller+0xb40/0x1200 mm/slub.c:4478
+ __kmalloc_reserve net/core/skbuff.c:142 [inline]
+ __alloc_skb+0x2fd/0xac0 net/core/skbuff.c:210
+ alloc_skb include/linux/skbuff.h:1083 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1175 [inline]
+ netlink_sendmsg+0x7d3/0x14d0 net/netlink/af_netlink.c:1893
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x1370/0x1400 net/socket.c:2352
+ ___sys_sendmsg net/socket.c:2406 [inline]
+ __sys_sendmsg+0x623/0x750 net/socket.c:2439
+ __compat_sys_sendmsg net/compat.c:466 [inline]
+ __do_compat_sys_sendmsg net/compat.c:473 [inline]
+ __se_compat_sys_sendmsg+0xa7/0xc0 net/compat.c:470
+ __ia32_compat_sys_sendmsg+0x4a/0x70 net/compat.c:470
+ do_syscall_32_irqs_on arch/x86/entry/common.c:430 [inline]
+ __do_fast_syscall_32+0x2aa/0x400 arch/x86/entry/common.c:477
+ do_fast_syscall_32+0x6b/0xd0 arch/x86/entry/common.c:505
+ do_SYSENTER_32+0x73/0x90 arch/x86/entry/common.c:554
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+=====================================================

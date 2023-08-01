@@ -1,0 +1,42 @@
+==================================================================
+BUG: KCSAN: data-race in __rcu_read_unlock / sync_rcu_exp_select_cpus
+
+read to 0xffffffff85c7d080 of 8 bytes by task 30033 on cpu 1:
+ rcu_read_unlock_special kernel/rcu/tree_plugin.h:615 [inline]
+ __rcu_read_unlock+0x392/0x3d0 kernel/rcu/tree_plugin.h:383
+ rcu_read_unlock include/linux/rcupdate.h:670 [inline]
+ filemap_map_pages+0x5b3/0x990 mm/filemap.c:2667
+ do_fault_around mm/memory.c:3546 [inline]
+ do_read_fault mm/memory.c:3580 [inline]
+ do_fault mm/memory.c:3714 [inline]
+ handle_pte_fault mm/memory.c:3945 [inline]
+ __handle_mm_fault+0x2a92/0x2e00 mm/memory.c:4075
+ handle_mm_fault+0x21b/0x530 mm/memory.c:4112
+ faultin_page mm/gup.c:640 [inline]
+ __get_user_pages+0x485/0x1130 mm/gup.c:851
+ populate_vma_page_range+0xe6/0x100 mm/gup.c:1235
+ __mm_populate+0x168/0x2a0 mm/gup.c:1283
+ mm_populate include/linux/mm.h:2347 [inline]
+ vm_mmap_pgoff+0x181/0x190 mm/util.c:511
+ ksys_mmap_pgoff+0x99/0x420 mm/mmap.c:1607
+ __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+ __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+ __x64_sys_mmap+0x2e/0x40 arch/x86/kernel/sys_x86_64.c:91
+ do_syscall_64+0xcc/0x3a0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+write to 0xffffffff85c7d080 of 8 bytes by task 8080 on cpu 0:
+ sync_exp_reset_tree kernel/rcu/tree_exp.h:137 [inline]
+ sync_rcu_exp_select_cpus+0xd5/0x590 kernel/rcu/tree_exp.h:427
+ rcu_exp_sel_wait_wake kernel/rcu/tree_exp.h:575 [inline]
+ wait_rcu_exp_gp+0x25/0x40 kernel/rcu/tree_exp.h:589
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2264
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2410
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 8080 Comm: kworker/0:3 Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: rcu_gp wait_rcu_exp_gp
+==================================================================

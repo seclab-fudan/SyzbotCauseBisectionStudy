@@ -1,0 +1,65 @@
+audit: type=1400 audit(1519168770.631:6): avc:  denied  { map } for  pid=4150 comm="bash" path="/bin/bash" dev="sda1" ino=1457 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:file_t:s0 tclass=file permissive=1
+audit: type=1400 audit(1519168776.932:7): avc:  denied  { map } for  pid=4164 comm="syzkaller659137" path="/root/syzkaller659137685" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: stack-out-of-bounds in __read_once_size include/linux/compiler.h:183 [inline]
+BUG: KASAN: stack-out-of-bounds in update_stack_state+0x6ea/0x700 arch/x86/kernel/unwind_frame.c:270
+Read of size 8 at addr ffff8801a9e57198 by task syzkaller659137/4164
+
+CPU: 0 PID: 4164 Comm: syzkaller659137 Not tainted 4.16.0-rc1+ #14
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23b/0x360 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __read_once_size include/linux/compiler.h:183 [inline]
+ update_stack_state+0x6ea/0x700 arch/x86/kernel/unwind_frame.c:270
+ __unwind_start+0xfd/0x330 arch/x86/kernel/unwind_frame.c:404
+ unwind_start arch/x86/include/asm/unwind.h:54 [inline]
+ perf_callchain_kernel+0x2fb/0x610 arch/x86/events/core.c:2350
+ get_perf_callchain+0x48f/0xa50 kernel/events/callchain.c:205
+ perf_callchain kernel/events/core.c:6003 [inline]
+ perf_prepare_sample+0x118b/0x16f0 kernel/events/core.c:6029
+ __perf_event_output kernel/events/core.c:6143 [inline]
+ perf_event_output_forward+0xef/0x260 kernel/events/core.c:6161
+ __perf_event_overflow+0x207/0x490 kernel/events/core.c:7397
+ perf_swevent_overflow+0x20c/0x2c0 kernel/events/core.c:7473
+ perf_swevent_event+0x10e/0x270 kernel/events/core.c:7506
+ do_perf_sw_event kernel/events/core.c:7614 [inline]
+ ___perf_sw_event+0x491/0x6d0 kernel/events/core.c:7645
+ perf_sw_event_sched include/linux/perf_event.h:1044 [inline]
+ perf_event_task_sched_out include/linux/perf_event.h:1082 [inline]
+ prepare_task_switch kernel/sched/core.c:2638 [inline]
+ context_switch kernel/sched/core.c:2815 [inline]
+ __schedule+0xd53/0x2040 kernel/sched/core.c:3435
+ schedule+0xf5/0x430 kernel/sched/core.c:3494
+ exit_to_usermode_loop+0x1d1/0x2f0 arch/x86/entry/common.c:152
+ prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+ do_syscall_64+0x6ed/0x940 arch/x86/entry/common.c:292
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x43fe99
+RSP: 002b:00007ffed9993ee8 EFLAGS: 00000203 ORIG_RAX: 0000000000000001
+RAX: 0000000000000012 RBX: 00000000ffffffff RCX: 000000000043fe99
+RDX: 0000000000000012 RSI: 00000000004a1184 RDI: 0000000000000001
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000203 R12: 00000000004017c0
+R13: 0000000000401850 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0006a795c0 count:0 mapcount:0 mapping:          (null) index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: 0000000000000000 ffffea0006a70101 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801a9e57080: 00 f1 f1 f1 f1 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801a9e57100: f2 f3 f3 f3 f3 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801a9e57180: 00 00 f1 f1 f1 f1 04 f2 f2 f2 f2 f2 f2 f2 f8 f2
+                            ^
+ ffff8801a9e57200: f2 f2 f2 f2 f2 f2 00 00 00 f2 f3 f3 f3 f3 00 00
+ ffff8801a9e57280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1
+==================================================================

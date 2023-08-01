@@ -1,0 +1,50 @@
+hsr0: VLAN not yet supported
+=====================================================
+BUG: KMSAN: uninit-value in hsr_fill_frame_info+0x495/0x770 net/hsr/hsr_forward.c:526
+ hsr_fill_frame_info+0x495/0x770 net/hsr/hsr_forward.c:526
+ fill_frame_info net/hsr/hsr_forward.c:605 [inline]
+ hsr_forward_skb+0x7c4/0x3630 net/hsr/hsr_forward.c:619
+ hsr_dev_xmit+0x23a/0x530 net/hsr/hsr_device.c:222
+ __netdev_start_xmit include/linux/netdevice.h:4778 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4792 [inline]
+ xmit_one+0x2f4/0x840 net/core/dev.c:3532
+ dev_hard_start_xmit+0x186/0x440 net/core/dev.c:3548
+ __dev_queue_xmit+0x22ee/0x3500 net/core/dev.c:4176
+ dev_queue_xmit+0x4b/0x60 net/core/dev.c:4209
+ packet_snd net/packet/af_packet.c:3063 [inline]
+ packet_sendmsg+0x6671/0x7d60 net/packet/af_packet.c:3094
+ sock_sendmsg_nosec net/socket.c:705 [inline]
+ sock_sendmsg net/socket.c:725 [inline]
+ __sys_sendto+0x9ef/0xc70 net/socket.c:2040
+ __do_sys_sendto net/socket.c:2052 [inline]
+ __se_sys_sendto net/socket.c:2048 [inline]
+ __x64_sys_sendto+0x19c/0x210 net/socket.c:2048
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x51/0xa0 arch/x86/entry/common.c:81
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:754 [inline]
+ slab_alloc_node mm/slub.c:3231 [inline]
+ __kmalloc_node_track_caller+0xde3/0x14f0 mm/slub.c:4962
+ kmalloc_reserve net/core/skbuff.c:354 [inline]
+ __alloc_skb+0x545/0xf90 net/core/skbuff.c:426
+ alloc_skb include/linux/skbuff.h:1300 [inline]
+ alloc_skb_with_frags+0x1df/0xd60 net/core/skbuff.c:5995
+ sock_alloc_send_pskb+0xdf4/0xfc0 net/core/sock.c:2600
+ packet_alloc_skb net/packet/af_packet.c:2911 [inline]
+ packet_snd net/packet/af_packet.c:3006 [inline]
+ packet_sendmsg+0x506f/0x7d60 net/packet/af_packet.c:3094
+ sock_sendmsg_nosec net/socket.c:705 [inline]
+ sock_sendmsg net/socket.c:725 [inline]
+ __sys_sendto+0x9ef/0xc70 net/socket.c:2040
+ __do_sys_sendto net/socket.c:2052 [inline]
+ __se_sys_sendto net/socket.c:2048 [inline]
+ __x64_sys_sendto+0x19c/0x210 net/socket.c:2048
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x51/0xa0 arch/x86/entry/common.c:81
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+CPU: 1 PID: 3506 Comm: syz-executor134 Not tainted 5.18.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=====================================================

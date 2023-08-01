@@ -1,0 +1,53 @@
+INFO: task swapper/0:1 blocked for more than 450 seconds.
+      Not tainted 5.19.0-rc1-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:swapper/0       state:D stack:    0 pid:    1 ppid:     0 flags:0x00000000
+Call Trace:
+[<ffffffff83284868>] schedule+0x74/0x120 kernel/sched/core.c:6500
+[<ffffffff83284fda>] schedule_preempt_disabled+0x16/0x28 kernel/sched/core.c:6559
+[<ffffffff83287304>] __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+[<ffffffff83287304>] __mutex_lock+0x520/0xb3c kernel/locking/mutex.c:747
+[<ffffffff83287934>] mutex_lock_nested+0x14/0x1c kernel/locking/mutex.c:799
+[<ffffffff80e4f890>] add_early_randomness+0x2c/0x162 drivers/char/hw_random/core.c:69
+[<ffffffff80e4fea2>] hwrng_register+0x2d0/0x380 drivers/char/hw_random/core.c:599
+[<ffffffff80e5036e>] virtrng_scan+0x2c/0x6c drivers/char/hw_random/virtio-rng.c:205
+[<ffffffff80d84cc2>] virtio_dev_probe+0x48e/0x742 drivers/virtio/virtio.c:313
+[<ffffffff8144a9a8>] call_driver_probe drivers/base/dd.c:555 [inline]
+[<ffffffff8144a9a8>] really_probe+0x194/0x7c0 drivers/base/dd.c:634
+[<ffffffff8144b21e>] __driver_probe_device+0x24a/0x2d4 drivers/base/dd.c:764
+[<ffffffff8144b308>] driver_probe_device+0x60/0x1a4 drivers/base/dd.c:794
+[<ffffffff8144c2f6>] __driver_attach+0x178/0x368 drivers/base/dd.c:1163
+[<ffffffff81445e0e>] bus_for_each_dev+0x122/0x194 drivers/base/bus.c:301
+[<ffffffff81449bfa>] driver_attach+0x32/0x3c drivers/base/dd.c:1180
+[<ffffffff814490c6>] bus_add_driver+0x2cc/0x432 drivers/base/bus.c:618
+[<ffffffff8144d566>] driver_register+0x144/0x28a drivers/base/driver.c:240
+[<ffffffff80d83ff8>] register_virtio_driver+0x5e/0x8c drivers/virtio/virtio.c:356
+[<ffffffff83456128>] virtio_rng_driver_init+0x20/0x28 drivers/char/hw_random/virtio-rng.c:260
+[<ffffffff80003274>] do_one_initcall+0x13c/0x7f0 init/main.c:1295
+[<ffffffff83402062>] do_initcall_level init/main.c:1368 [inline]
+[<ffffffff83402062>] do_initcalls init/main.c:1384 [inline]
+[<ffffffff83402062>] do_basic_setup init/main.c:1403 [inline]
+[<ffffffff83402062>] kernel_init_freeable+0x510/0x5b4 init/main.c:1610
+[<ffffffff8328069e>] kernel_init+0x28/0x21c init/main.c:1499
+[<ffffffff80005c08>] ret_from_exception+0x0/0x10
+
+Showing all locks held in the system:
+2 locks held by swapper/0/1:
+ #0: ff6000000e6c7170 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #0: ff6000000e6c7170 (&dev->mutex){....}-{3:3}, at: __device_driver_lock drivers/base/dd.c:1054 [inline]
+ #0: ff6000000e6c7170 (&dev->mutex){....}-{3:3}, at: __driver_attach+0x170/0x368 drivers/base/dd.c:1162
+ #1: ffffffff85071828 (reading_mutex){+.+.}-{3:3}, at: add_early_randomness+0x2c/0x162 drivers/char/hw_random/core.c:69
+1 lock held by khungtaskd/27:
+ #0: ffffffff84d7a080 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x40/0x1e2 kernel/locking/lockdep.c:6493
+2 locks held by kworker/u4:4/49:
+ #0: ff60000007e29138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:635 [inline]
+ #0: ff60000007e29138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ff60000007e29138 ((wq_completion)events_unbound){+.+.}-{0:0}, at: process_one_work+0x512/0xfc8 kernel/workqueue.c:2260
+ #1: ff20000000577cf0 ((work_completion)(&(&kfence_timer)->work)){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:635 [inline]
+ #1: ff20000000577cf0 ((work_completion)(&(&kfence_timer)->work)){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #1: ff20000000577cf0 ((work_completion)(&(&kfence_timer)->work)){+.+.}-{0:0}, at: process_one_work+0x512/0xfc8 kernel/workqueue.c:2260
+1 lock held by hwrng/670:
+ #0: ffffffff85071828 (reading_mutex){+.+.}-{3:3}, at: hwrng_fillfn+0xda/0x2a2 drivers/char/hw_random/core.c:503
+
+=============================================
+

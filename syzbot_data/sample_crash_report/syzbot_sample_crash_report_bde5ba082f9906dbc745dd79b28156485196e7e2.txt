@@ -1,0 +1,134 @@
+======================================================
+WARNING: possible circular locking dependency detected
+5.5.0-rc3-syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor691/10028 is trying to acquire lock:
+ffff88809643c460 (&pipe->mutex/1){+.+.}, at: pipe_lock_nested fs/pipe.c:65 [inline]
+ffff88809643c460 (&pipe->mutex/1){+.+.}, at: pipe_lock+0x65/0x80 fs/pipe.c:73
+
+but task is already holding lock:
+ffff888099382428 (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2885 [inline]
+ffff888099382428 (sb_writers#4){.+.+}, at: do_splice+0xf48/0x1680 fs/splice.c:1169
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (sb_writers#4){.+.+}:
+       percpu_down_read include/linux/percpu-rwsem.h:40 [inline]
+       __sb_start_write+0x241/0x460 fs/super.c:1674
+       file_start_write include/linux/fs.h:2885 [inline]
+       ovl_write_iter+0x91b/0xc20 fs/overlayfs/file.c:277
+       call_write_iter include/linux/fs.h:1902 [inline]
+       new_sync_write+0x4d3/0x770 fs/read_write.c:483
+       __vfs_write+0xe1/0x110 fs/read_write.c:496
+       __kernel_write+0x11b/0x3b0 fs/read_write.c:515
+       write_pipe_buf+0x15d/0x1f0 fs/splice.c:809
+       splice_from_pipe_feed fs/splice.c:512 [inline]
+       __splice_from_pipe+0x3ee/0x7c0 fs/splice.c:636
+       splice_from_pipe+0x108/0x170 fs/splice.c:671
+       default_file_splice_write+0x3c/0x90 fs/splice.c:821
+       do_splice_from fs/splice.c:863 [inline]
+       do_splice+0xba4/0x1680 fs/splice.c:1170
+       __do_sys_splice fs/splice.c:1447 [inline]
+       __se_sys_splice fs/splice.c:1427 [inline]
+       __x64_sys_splice+0x2c6/0x330 fs/splice.c:1427
+       do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #1 (&ovl_i_mutex_key[depth]){+.+.}:
+       down_write+0x93/0x150 kernel/locking/rwsem.c:1534
+       inode_lock include/linux/fs.h:791 [inline]
+       ovl_write_iter+0x148/0xc20 fs/overlayfs/file.c:265
+       call_write_iter include/linux/fs.h:1902 [inline]
+       new_sync_write+0x4d3/0x770 fs/read_write.c:483
+       __vfs_write+0xe1/0x110 fs/read_write.c:496
+       __kernel_write+0x11b/0x3b0 fs/read_write.c:515
+       write_pipe_buf+0x15d/0x1f0 fs/splice.c:809
+       splice_from_pipe_feed fs/splice.c:512 [inline]
+       __splice_from_pipe+0x3ee/0x7c0 fs/splice.c:636
+       splice_from_pipe+0x108/0x170 fs/splice.c:671
+       default_file_splice_write+0x3c/0x90 fs/splice.c:821
+       do_splice_from fs/splice.c:863 [inline]
+       do_splice+0xba4/0x1680 fs/splice.c:1170
+       __do_sys_splice fs/splice.c:1447 [inline]
+       __se_sys_splice fs/splice.c:1427 [inline]
+       __x64_sys_splice+0x2c6/0x330 fs/splice.c:1427
+       do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&pipe->mutex/1){+.+.}:
+       check_prev_add kernel/locking/lockdep.c:2476 [inline]
+       check_prevs_add kernel/locking/lockdep.c:2581 [inline]
+       validate_chain kernel/locking/lockdep.c:2971 [inline]
+       __lock_acquire+0x2596/0x4a00 kernel/locking/lockdep.c:3955
+       lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4485
+       __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+       __mutex_lock+0x156/0x13c0 kernel/locking/mutex.c:1103
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1118
+       pipe_lock_nested fs/pipe.c:65 [inline]
+       pipe_lock+0x65/0x80 fs/pipe.c:73
+       iter_file_splice_write+0x18b/0xc10 fs/splice.c:709
+       do_splice_from fs/splice.c:863 [inline]
+       do_splice+0xba4/0x1680 fs/splice.c:1170
+       __do_sys_splice fs/splice.c:1447 [inline]
+       __se_sys_splice fs/splice.c:1427 [inline]
+       __x64_sys_splice+0x2c6/0x330 fs/splice.c:1427
+       do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+  &pipe->mutex/1 --> &ovl_i_mutex_key[depth] --> sb_writers#4
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(sb_writers#4);
+                               lock(&ovl_i_mutex_key[depth]);
+                               lock(sb_writers#4);
+  lock(&pipe->mutex/1);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor691/10028:
+ #0: ffff888099382428 (sb_writers#4){.+.+}, at: file_start_write include/linux/fs.h:2885 [inline]
+ #0: ffff888099382428 (sb_writers#4){.+.+}, at: do_splice+0xf48/0x1680 fs/splice.c:1169
+
+stack backtrace:
+CPU: 1 PID: 10028 Comm: syz-executor691 Not tainted 5.5.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_circular_bug.isra.0.cold+0x163/0x172 kernel/locking/lockdep.c:1685
+ check_noncircular+0x32e/0x3e0 kernel/locking/lockdep.c:1809
+ check_prev_add kernel/locking/lockdep.c:2476 [inline]
+ check_prevs_add kernel/locking/lockdep.c:2581 [inline]
+ validate_chain kernel/locking/lockdep.c:2971 [inline]
+ __lock_acquire+0x2596/0x4a00 kernel/locking/lockdep.c:3955
+ lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4485
+ __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+ __mutex_lock+0x156/0x13c0 kernel/locking/mutex.c:1103
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1118
+ pipe_lock_nested fs/pipe.c:65 [inline]
+ pipe_lock+0x65/0x80 fs/pipe.c:73
+ iter_file_splice_write+0x18b/0xc10 fs/splice.c:709
+ do_splice_from fs/splice.c:863 [inline]
+ do_splice+0xba4/0x1680 fs/splice.c:1170
+ __do_sys_splice fs/splice.c:1447 [inline]
+ __se_sys_splice fs/splice.c:1427 [inline]
+ __x64_sys_splice+0x2c6/0x330 fs/splice.c:1427
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x448059
+Code: e8 6c e7 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db 07 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f6e364e9da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000113
+RAX: ffffffffffffffda RBX: 00000000006ddc28 RCX: 0000000000448059
+RDX: 0000000000000004 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 00000000006ddc20 R08: 0000000100000002 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006ddc2c
+R13: 00007ffdf34111cf R14: 00007f6e364ea9c0 R15: 00000000006ddc2c

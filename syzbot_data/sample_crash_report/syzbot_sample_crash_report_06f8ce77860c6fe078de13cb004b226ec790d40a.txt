@@ -1,0 +1,45 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 19874 Comm: syz-executor6 Not tainted 4.15.0-rc3+ #133
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:sctp_stream_free+0xc3/0x1b0 net/sctp/stream.c:209
+RSP: 0018:ffff88019fd7f208 EFLAGS: 00010202
+RAX: 0000000000000000 RBX: ffff8801c45ccb18 RCX: ffffffff84bfbbe8
+RDX: 0000000000000001 RSI: ffffc90002025000 RDI: 0000000000000008
+RBP: ffff88019fd7f248 R08: 1ffff10033fafe10 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: dffffc0000000000 R15: ffffed00388b9963
+FS:  0000000000000000(0000) GS:ffff8801db500000(0063) knlGS:00000000f7755b40
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 00000000206ba000 CR3: 00000001c3d4e004 CR4: 00000000001626e0
+Call Trace:
+ sctp_association_free+0x301/0x930 net/sctp/associola.c:367
+ sctp_sf_do_5_1B_init+0x67e/0xe80 net/sctp/sm_statefuns.c:467
+ sctp_do_sm+0x18a/0x6a20 net/sctp/sm_sideeffect.c:1190
+ sctp_endpoint_bh_rcv+0x379/0x8f0 net/sctp/endpointola.c:456
+ sctp_inq_push+0x23b/0x300 net/sctp/inqueue.c:95
+ sctp_backlog_rcv+0x177/0xaa0 net/sctp/input.c:350
+ sk_backlog_rcv include/net/sock.h:907 [inline]
+ __release_sock+0x124/0x360 net/core/sock.c:2264
+ release_sock+0xa4/0x2a0 net/core/sock.c:2779
+ sctp_connect+0xc3/0xf0 net/sctp/socket.c:4262
+ inet_dgram_connect+0x16b/0x1f0 net/ipv4/af_inet.c:541
+ SYSC_connect+0x204/0x470 net/socket.c:1619
+ SyS_connect+0x24/0x30 net/socket.c:1600
+ do_syscall_32_irqs_on arch/x86/entry/common.c:327 [inline]
+ do_fast_syscall_32+0x3ee/0xf9d arch/x86/entry/common.c:389
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:125
+RIP: 0023:0xf7f59c79
+RSP: 002b:00000000f775508c EFLAGS: 00000296 ORIG_RAX: 000000000000016a
+RAX: ffffffffffffffda RBX: 0000000000000014 RCX: 00000000200ba000
+RDX: 0000000000000010 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Code: 48 c1 e8 03 4c 01 f0 48 89 45 d0 e8 38 1a b0 fc 41 80 3f 00 0f 85 f1 00 00 00 48 8b 03 4c 01 e8 48 8d 78 08 48 89 fa 48 c1 ea 03 <42> 80 3c 32 00 0f 85 c3 00 00 00 48 8b 78 08 41 83 c4 01 e8 65 
+RIP: sctp_stream_free+0xc3/0x1b0 net/sctp/stream.c:209 RSP: ffff88019fd7f208
+---[ end trace beabd93584c440d3 ]---

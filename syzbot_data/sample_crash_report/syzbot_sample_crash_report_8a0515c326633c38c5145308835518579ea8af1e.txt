@@ -1,0 +1,118 @@
+loop0: detected capacity change from 0 to 1024
+==================================================================
+BUG: KASAN: slab-out-of-bounds in hfsplus_uni2asc+0x953/0xa50 fs/hfsplus/unicode.c:179
+Read of size 2 at addr ffff8880182bd40c by task syz-executor232/3629
+
+CPU: 0 PID: 3629 Comm: syz-executor232 Not tainted 6.1.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:284 [inline]
+ print_report+0x15e/0x45d mm/kasan/report.c:395
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:495
+ hfsplus_uni2asc+0x953/0xa50 fs/hfsplus/unicode.c:179
+ hfsplus_readdir+0x70d/0xf30 fs/hfsplus/dir.c:207
+ iterate_dir+0x56e/0x6f0 fs/readdir.c:65
+ __do_sys_getdents64 fs/readdir.c:369 [inline]
+ __se_sys_getdents64 fs/readdir.c:354 [inline]
+ __x64_sys_getdents64+0x13e/0x2c0 fs/readdir.c:354
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fd3fef57869
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 51 14 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe51f345b8 EFLAGS: 00000246 ORIG_RAX: 00000000000000d9
+RAX: ffffffffffffffda RBX: 000000000000003f RCX: 00007fd3fef57869
+RDX: 0000000000000061 RSI: 0000000020000340 RDI: 0000000000000004
+RBP: 00007fd3fef17100 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fd3fef17190
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+Allocated by task 3629:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:371 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:330 [inline]
+ __kasan_kmalloc+0xa5/0xb0 mm/kasan/common.c:380
+ kasan_kmalloc include/linux/kasan.h:211 [inline]
+ __do_kmalloc_node mm/slab_common.c:955 [inline]
+ __kmalloc+0x5a/0xd0 mm/slab_common.c:968
+ kmalloc include/linux/slab.h:558 [inline]
+ hfsplus_find_init+0x95/0x230 fs/hfsplus/bfind.c:21
+ hfsplus_readdir+0x21f/0xf30 fs/hfsplus/dir.c:144
+ iterate_dir+0x56e/0x6f0 fs/readdir.c:65
+ __do_sys_getdents64 fs/readdir.c:369 [inline]
+ __se_sys_getdents64 fs/readdir.c:354 [inline]
+ __x64_sys_getdents64+0x13e/0x2c0 fs/readdir.c:354
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Last potentially related work creation:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xbc/0xd0 mm/kasan/generic.c:481
+ call_rcu+0x9d/0x820 kernel/rcu/tree.c:2798
+ netlink_release+0xf0f/0x1dd0 net/netlink/af_netlink.c:815
+ __sock_release+0xcd/0x280 net/socket.c:650
+ sock_close+0x1c/0x20 net/socket.c:1365
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x23c/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff8880182bd000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 1036 bytes inside of
+ 2048-byte region [ffff8880182bd000, ffff8880182bd800)
+
+The buggy address belongs to the physical page:
+page:ffffea000060ae00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x182b8
+head:ffffea000060ae00 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 dead000000000100 dead000000000122 ffff888012042000
+raw: 0000000000000000 0000000080080008 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 1, tgid 1 (swapper/0), ts 2338714128, free_ts 0
+ prep_new_page mm/page_alloc.c:2539 [inline]
+ get_page_from_freelist+0x10b5/0x2d50 mm/page_alloc.c:4291
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5558
+ alloc_page_interleave+0x1e/0x200 mm/mempolicy.c:2118
+ alloc_pages+0x233/0x270 mm/mempolicy.c:2280
+ alloc_slab_page mm/slub.c:1794 [inline]
+ allocate_slab+0x25f/0x350 mm/slub.c:1939
+ new_slab mm/slub.c:1992 [inline]
+ ___slab_alloc+0xa91/0x1400 mm/slub.c:3180
+ __slab_alloc.constprop.0+0x56/0xa0 mm/slub.c:3279
+ slab_alloc_node mm/slub.c:3364 [inline]
+ __kmem_cache_alloc_node+0x199/0x3e0 mm/slub.c:3437
+ kmalloc_trace+0x26/0x60 mm/slab_common.c:1045
+ kmalloc include/linux/slab.h:553 [inline]
+ kzalloc include/linux/slab.h:689 [inline]
+ pnp_alloc_dev+0x51/0x380 drivers/pnp/core.c:135
+ pnpacpi_add_device drivers/pnp/pnpacpi/core.c:234 [inline]
+ pnpacpi_add_device_handler+0x200/0x779 drivers/pnp/pnpacpi/core.c:295
+ acpi_ns_get_device_callback drivers/acpi/acpica/nsxfeval.c:740 [inline]
+ acpi_ns_get_device_callback+0x3b9/0x415 drivers/acpi/acpica/nsxfeval.c:635
+ acpi_ns_walk_namespace+0x250/0x432 drivers/acpi/acpica/nswalk.c:240
+ acpi_get_devices+0xdb/0x12e drivers/acpi/acpica/nsxfeval.c:805
+ pnpacpi_init+0x99/0xf2 drivers/pnp/pnpacpi/core.c:308
+ do_one_initcall+0x141/0x780 init/main.c:1303
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff8880182bd300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8880182bd380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8880182bd400: 00 04 fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                      ^
+ ffff8880182bd480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8880182bd500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

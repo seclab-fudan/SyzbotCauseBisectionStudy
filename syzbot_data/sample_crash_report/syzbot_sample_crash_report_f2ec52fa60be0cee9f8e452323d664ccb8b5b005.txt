@@ -1,0 +1,47 @@
+IPVS: ftp: loaded support on port[0] = 21
+netlink: 16 bytes leftover after parsing attributes in process `syz-executor107'.
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 1 PID: 6979 at lib/refcount.c:28 refcount_warn_saturate+0x15b/0x1a0 lib/refcount.c:28
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 6979 Comm: syz-executor107 Not tainted 5.6.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1e9/0x30e lib/dump_stack.c:118
+ panic+0x264/0x7a0 kernel/panic.c:221
+ __warn+0x209/0x210 kernel/panic.c:582
+ report_bug+0x1ac/0x2d0 lib/bug.c:195
+ fixup_bug arch/x86/kernel/traps.c:175 [inline]
+ do_error_trap+0xca/0x1c0 arch/x86/kernel/traps.c:267
+ do_invalid_op+0x32/0x40 arch/x86/kernel/traps.c:286
+ invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1027
+RIP: 0010:refcount_warn_saturate+0x15b/0x1a0 lib/refcount.c:28
+Code: c7 6a 77 f2 88 31 c0 e8 f3 b7 ad fd 0f 0b eb 85 e8 2a a4 db fd c6 05 ef 45 cd 05 01 48 c7 c7 96 77 f2 88 31 c0 e8 d5 b7 ad fd <0f> 0b e9 64 ff ff ff e8 09 a4 db fd c6 05 cf 45 cd 05 01 48 c7 c7
+RSP: 0018:ffffc90000f97d98 EFLAGS: 00010246
+RAX: e55b4ee8dc4a2100 RBX: 0000000000000003 RCX: ffff8880a8606540
+RDX: 0000000000000000 RSI: 0000000080000000 RDI: 0000000000000000
+RBP: 0000000000000003 R08: ffffffff815f5a86 R09: ffffed1015d26668
+R10: ffffed1015d26668 R11: 0000000000000000 R12: ffff8880a804a040
+R13: 0000000000000100 R14: ffff8880a9a8cc30 R15: ffff8880a804a044
+ refcount_sub_and_test include/linux/refcount.h:261 [inline]
+ refcount_dec_and_test include/linux/refcount.h:281 [inline]
+ put_net include/net/net_namespace.h:264 [inline]
+ free_nsproxy+0x343/0x3b0 kernel/nsproxy.c:206
+ do_exit+0x5ea/0x1f80 kernel/exit.c:794
+ do_group_exit+0x15e/0x2c0 kernel/exit.c:893
+ __do_sys_exit_group+0x13/0x20 kernel/exit.c:904
+ __se_sys_exit_group+0x10/0x10 kernel/exit.c:902
+ __x64_sys_exit_group+0x37/0x40 kernel/exit.c:902
+ do_syscall_64+0xf3/0x1b0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x43f998
+Code: Bad RIP value.
+RSP: 002b:00007fff7f3413d8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 000000000043f998
+RDX: 0000000000000001 RSI: 000000000000003c RDI: 0000000000000001
+RBP: 00000000004bfa10 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000120080522 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d11c0 R14: 0000000000000000 R15: 0000000000000000
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,107 @@
+urandom_read: 1 callbacks suppressed
+random: sshd: uninitialized urandom read (32 bytes read)
+hrtimer: interrupt took 35369 ns
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/l1tf.html for details.
+==================================================================
+BUG: KASAN: use-after-free in __fire_sched_in_preempt_notifiers kernel/sched/core.c:2481 [inline]
+BUG: KASAN: use-after-free in fire_sched_in_preempt_notifiers kernel/sched/core.c:2487 [inline]
+BUG: KASAN: use-after-free in finish_task_switch+0x544/0x870 kernel/sched/core.c:2679
+Read of size 8 at addr ffff8801c7b20058 by task syz-executor815/4696
+
+CPU: 0 PID: 4696 Comm: syz-executor815 Not tainted 4.19.0-rc2+ #220
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x30d mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __fire_sched_in_preempt_notifiers kernel/sched/core.c:2481 [inline]
+ fire_sched_in_preempt_notifiers kernel/sched/core.c:2487 [inline]
+ finish_task_switch+0x544/0x870 kernel/sched/core.c:2679
+ context_switch kernel/sched/core.c:2828 [inline]
+ __schedule+0x884/0x1df0 kernel/sched/core.c:3473
+ schedule+0xfb/0x450 kernel/sched/core.c:3517
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ futex_wait_queue_me+0x3f9/0x840 kernel/futex.c:2530
+ futex_wait+0x45b/0xa20 kernel/futex.c:2645
+ do_futex+0x336/0x27d0 kernel/futex.c:3528
+ __do_sys_futex kernel/futex.c:3589 [inline]
+ __se_sys_futex kernel/futex.c:3557 [inline]
+ __x64_sys_futex+0x472/0x6a0 kernel/futex.c:3557
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4464d9
+Code: e8 0c e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fd07b576da8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: ffffffffffffffda RBX: 00000000006dbc58 RCX: 00000000004464d9
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 00000000006dbc58
+RBP: 00000000006dbc50 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc5c
+R13: 6d766b2f7665642f R14: 00007fd07b5779c0 R15: 0000000000000003
+
+Allocated by task 4698:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x710 mm/slab.c:3554
+ kmem_cache_zalloc include/linux/slab.h:697 [inline]
+ vmx_create_vcpu+0xcf/0x2830 arch/x86/kvm/vmx.c:10954
+ kvm_arch_vcpu_create+0xe5/0x220 arch/x86/kvm/x86.c:8434
+ kvm_vm_ioctl_create_vcpu arch/x86/kvm/../../../virt/kvm/kvm_main.c:2476 [inline]
+ kvm_vm_ioctl+0x488/0x1d80 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2977
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:501 [inline]
+ do_vfs_ioctl+0x1de/0x1720 fs/ioctl.c:685
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:702
+ __do_sys_ioctl fs/ioctl.c:709 [inline]
+ __se_sys_ioctl fs/ioctl.c:707 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:707
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 4668:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x280 mm/slab.c:3756
+ vmx_free_vcpu+0x26b/0x300 arch/x86/kvm/vmx.c:10948
+ kvm_arch_vcpu_free arch/x86/kvm/x86.c:8420 [inline]
+ kvm_free_vcpus arch/x86/kvm/x86.c:8870 [inline]
+ kvm_arch_destroy_vm+0x365/0x7c0 arch/x86/kvm/x86.c:8967
+ kvm_destroy_vm arch/x86/kvm/../../../virt/kvm/kvm_main.c:752 [inline]
+ kvm_put_kvm+0x73f/0x1060 arch/x86/kvm/../../../virt/kvm/kvm_main.c:773
+ kvm_vcpu_release+0x7b/0xa0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2407
+ __fput+0x38a/0xa40 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:193 [inline]
+ exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801c7b20040
+ which belongs to the cache kvm_vcpu of size 23872
+The buggy address is located 24 bytes inside of
+ 23872-byte region [ffff8801c7b20040, ffff8801c7b25d80)
+The buggy address belongs to the page:
+page:ffffea00071ec800 count:1 mapcount:0 mapping:ffff8801d523fb40 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801d7395148 ffffea00071f7408 ffff8801d523fb40
+raw: 0000000000000000 ffff8801c7b20040 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c7b1ff00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801c7b1ff80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801c7b20000: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff8801c7b20080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c7b20100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

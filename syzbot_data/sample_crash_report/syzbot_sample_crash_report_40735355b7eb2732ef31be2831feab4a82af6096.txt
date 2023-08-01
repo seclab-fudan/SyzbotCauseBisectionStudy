@@ -1,0 +1,57 @@
+==================================================================
+BUG: KCSAN: data-race in snd_seq_check_queue / snd_seq_control_queue
+
+write to 0xffff88810cd47124 of 1 bytes by interrupt on cpu 0:
+ snd_seq_check_queue+0x261/0x2a0 sound/core/seq/seq_queue.c:283
+ snd_seq_timer_interrupt+0x20e/0x220 sound/core/seq/seq_timer.c:158
+ snd_timer_process_callbacks sound/core/timer.c:796 [inline]
+ snd_timer_interrupt+0xa1c/0xae0 sound/core/timer.c:919
+ snd_hrtimer_callback+0x139/0x200 sound/core/hrtimer.c:50
+ __run_hrtimer+0x133/0x420 kernel/time/hrtimer.c:1519
+ __hrtimer_run_queues kernel/time/hrtimer.c:1583 [inline]
+ hrtimer_interrupt+0x36e/0xa10 kernel/time/hrtimer.c:1645
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1080 [inline]
+ __sysvec_apic_timer_interrupt+0x6f/0x200 arch/x86/kernel/apic/apic.c:1097
+ asm_call_irq_on_stack+0xf/0x20
+ __run_sysvec_on_irqstack arch/x86/include/asm/irq_stack.h:37 [inline]
+ run_sysvec_on_irqstack_cond arch/x86/include/asm/irq_stack.h:89 [inline]
+ sysvec_apic_timer_interrupt+0x52/0x90 arch/x86/kernel/apic/apic.c:1091
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:631
+ native_restore_fl arch/x86/include/asm/irqflags.h:41 [inline]
+ arch_local_irq_restore arch/x86/include/asm/irqflags.h:84 [inline]
+ kcsan_setup_watchpoint+0x1ec/0x4d0 kernel/kcsan/core.c:591
+ tomoyo_check_acl+0x9a/0x200 security/tomoyo/domain.c:173
+ tomoyo_path_permission security/tomoyo/file.c:586 [inline]
+ tomoyo_path_perm+0x22f/0x330 security/tomoyo/file.c:838
+ tomoyo_path_unlink+0x43/0x60 security/tomoyo/tomoyo.c:150
+ security_path_unlink+0x82/0xd0 security/security.c:1101
+ do_unlinkat+0x231/0x4d0 fs/namei.c:3894
+ __do_sys_unlink fs/namei.c:3943 [inline]
+ __se_sys_unlink fs/namei.c:3941 [inline]
+ __x64_sys_unlink+0x2c/0x30 fs/namei.c:3941
+ do_syscall_64+0x39/0x80 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffff88810cd47124 of 1 bytes by task 12143 on cpu 1:
+ queue_access_lock sound/core/seq/seq_queue.c:345 [inline]
+ snd_seq_control_queue+0xf4/0x580 sound/core/seq/seq_queue.c:727
+ event_input_timer+0x1e/0x30 sound/core/seq/seq_system.c:103
+ snd_seq_deliver_single_event+0x2f5/0x4b0 sound/core/seq/seq_clientmgr.c:638
+ snd_seq_deliver_event+0x195/0x490 sound/core/seq/seq_clientmgr.c:839
+ snd_seq_dispatch_event+0x12e/0x230 sound/core/seq/seq_clientmgr.c:913
+ snd_seq_check_queue+0x10e/0x2a0 sound/core/seq/seq_queue.c:264
+ snd_seq_enqueue_event+0x24c/0x290 sound/core/seq/seq_queue.c:333
+ snd_seq_client_enqueue_event+0x206/0x2a0 sound/core/seq/seq_clientmgr.c:974
+ snd_seq_write+0x425/0x530 sound/core/seq/seq_clientmgr.c:1093
+ vfs_write+0x21a/0x7c0 fs/read_write.c:603
+ ksys_write+0xce/0x180 fs/read_write.c:658
+ __do_sys_write fs/read_write.c:670 [inline]
+ __se_sys_write fs/read_write.c:667 [inline]
+ __x64_sys_write+0x3e/0x50 fs/read_write.c:667
+ do_syscall_64+0x39/0x80 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 12143 Comm: syz-executor.0 Not tainted 5.10.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

@@ -1,0 +1,85 @@
+==================================================================
+BUG: KASAN: use-after-free in fsnotify+0x17c3/0x1af0 fs/notify/fsnotify.c:330
+Read of size 8 at addr ffff8801d0407278 by task syz-executor4/5986
+
+CPU: 0 PID: 5986 Comm: syz-executor4 Not tainted 4.14.0-rc2-mm1+ #9
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+RDS: rds_bind could not find a transport for 172.20.3.187, load rds_tcp or rds_rdma?
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ fsnotify+0x17c3/0x1af0 fs/notify/fsnotify.c:330
+ fsnotify_close include/linux/fsnotify.h:241 [inline]
+ __fput+0x221/0x7f0 fs/file_table.c:196
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:112
+ exit_task_work include/linux/task_work.h:21 [inline]
+ do_exit+0x9c8/0x1b00 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x73f/0x16d0 kernel/signal.c:2334
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:808
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:266 [inline]
+ do_syscall_64+0x65c/0x8d0 arch/x86/entry/common.c:292
+ entry_SYSCALL64_slow_path+0x25/0x25
+RIP: 0033:0x4520a9
+RSP: 002b:00007f735732bc08 EFLAGS: 00000216 ORIG_RAX: 0000000000000029
+RAX: 0000000000000025 RBX: 0000000000718000 RCX: 00000000004520a9
+RDX: 0000000000000000 RSI: 0000000000000006 RDI: 000000000000000a
+RBP: 0000000000005990 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000216 R12: 00000000004bb7b1
+R13: 00000000ffffffff R14: 000000000000000a R15: 0000000000000006
+
+Allocated by task 2963:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3561
+ fsnotify_attach_connector_to_object fs/notify/mark.c:442 [inline]
+ fsnotify_add_mark_list fs/notify/mark.c:523 [inline]
+ fsnotify_add_mark_locked+0x3b5/0x10b0 fs/notify/mark.c:593
+ inotify_new_watch fs/notify/inotify/inotify_user.c:567 [inline]
+ inotify_update_watch fs/notify/inotify/inotify_user.c:594 [inline]
+ SYSC_inotify_add_watch fs/notify/inotify/inotify_user.c:718 [inline]
+ SyS_inotify_add_watch+0x6cd/0x820 fs/notify/inotify/inotify_user.c:668
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 93:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kmem_cache_free+0x77/0x280 mm/slab.c:3763
+ fsnotify_connector_destroy_workfn+0x82/0xa0 fs/notify/mark.c:170
+ process_one_work+0xbfa/0x1bd0 kernel/workqueue.c:2119
+ worker_thread+0x223/0x1860 kernel/workqueue.c:2253
+ kthread+0x39c/0x470 kernel/kthread.c:231
+ ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
+
+The buggy address belongs to the object at ffff8801d0407258
+ which belongs to the cache fsnotify_mark_connector of size 88
+The buggy address is located 32 bytes inside of
+ 88-byte region [ffff8801d0407258, ffff8801d04072b0)
+The buggy address belongs to the page:
+page:ffffea00074101c0 count:1 mapcount:0 mapping:ffff8801d0407000 index:0xffff8801d0407078
+flags: 0x200000000000100(slab)
+raw: 0200000000000100 ffff8801d0407000 ffff8801d0407078 0000000100000020
+raw: ffff8801d9887c40 ffff8801d9887c40 ffff8801d9884c80 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d0407100: fb fb fb fb fb fb fb fb fb fc fc fc fc fb fb fb
+ ffff8801d0407180: fb fb fb fb fb fb fb fb fc fc fc fc fb fb fb fb
+>ffff8801d0407200: fb fb fb fb fb fb fb fc fc fc fc fb fb fb fb fb
+                                                                ^
+ ffff8801d0407280: fb fb fb fb fb fb fc fc fc fc 00 00 00 00 00 00
+ ffff8801d0407300: 00 00 00 00 00 fc fc fc fc fb fb fb fb fb fb fb
+==================================================================

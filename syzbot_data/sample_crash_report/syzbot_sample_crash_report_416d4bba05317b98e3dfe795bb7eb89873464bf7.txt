@@ -1,0 +1,65 @@
+syz-executor414 uses obsolete (PF_INET,SOCK_PACKET)
+Unable to handle kernel paging request at virtual address 0000000000006020
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000000109d9e000
+[0000000000006020] pgd=080000010bb80003, p4d=080000010bb80003, pud=080000010ba1f003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 3072 Comm: syz-executor414 Not tainted 6.1.0-rc7-syzkaller-33097-ge3cb714fb489 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : can_rcv_filter+0x30/0x30c net/can/af_can.c:584
+lr : can_rcv_filter+0x28/0x30c net/can/af_can.c:578
+sp : ffff80000f77b970
+x29: ffff80000f77b970 x28: ffff0000c9f2cc80 x27: ffff80000f77bcd0
+x26: 0000000000000000 x25: ffff0000c9585300 x24: 0000000000000001
+x23: ffff0000c7be3680 x22: 0000000000000000 x21: 0000000000000000
+x20: ffff0000c9f2c000 x19: ffff0000c9585300 x18: 0000000000000000
+x17: 0000000000000000 x16: ffff80000dbe6158 x15: ffff0000c7c98000
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c7c98000
+x11: ff8080000b96c6ac x10: 0000000000000000 x9 : 0000000000006020
+x8 : ffff0000c7ab2240 x7 : ffff80000b96c9a0 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000000 x3 : 0000000000000002
+x2 : 0000000000000008 x1 : ffff0000c9585300 x0 : 0000000000000000
+Call trace:
+ can_rcv_filter+0x30/0x30c
+ can_receive+0x194/0x26c net/can/af_can.c:664
+ canfd_rcv+0x7c/0xf8 net/can/af_can.c:703
+ __netif_receive_skb_one_core net/core/dev.c:5489 [inline]
+ __netif_receive_skb+0x70/0x14c net/core/dev.c:5603
+ netif_receive_skb_internal+0xb4/0x258 net/core/dev.c:5689
+ netif_receive_skb+0x28/0x44 net/core/dev.c:5748
+ tun_rx_batched+0x1e0/0x220
+ tun_get_user+0xf94/0x1148 drivers/net/tun.c:2004
+ tun_chr_write_iter+0xa4/0x144 drivers/net/tun.c:2034
+ call_write_iter include/linux/fs.h:2199 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x2dc/0x46c fs/read_write.c:584
+ ksys_write+0xb4/0x160 fs/read_write.c:637
+ __do_sys_write fs/read_write.c:649 [inline]
+ __se_sys_write fs/read_write.c:646 [inline]
+ __arm64_sys_write+0x24/0x34 fs/read_write.c:646
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: aa0003f6 9724e4b5 f9406e68 528c0409 (b8696ad4) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	aa0003f6 	mov	x22, x0
+   4:	9724e4b5 	bl	0xfffffffffc9392d8
+   8:	f9406e68 	ldr	x8, [x19, #216]
+   c:	528c0409 	mov	w9, #0x6020                	// #24608
+* 10:	b8696ad4 	ldr	w20, [x22, x9] <-- trapping instruction

@@ -1,0 +1,82 @@
+==================================================================
+BUG: KASAN: use-after-free in bio_poll+0x41/0x290 block/blk-core.c:941
+Read of size 8 at addr ffff88807f015508 by task syz-executor237/3600
+
+CPU: 0 PID: 3600 Comm: syz-executor237 Not tainted 5.18.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ print_address_description+0x65/0x4b0 mm/kasan/report.c:313
+ print_report+0xf4/0x210 mm/kasan/report.c:429
+ kasan_report+0xfb/0x130 mm/kasan/report.c:491
+ bio_poll+0x41/0x290 block/blk-core.c:941
+ __iomap_dio_rw+0x1a95/0x1ea0 fs/iomap/direct-io.c:658
+ iomap_dio_rw+0x38/0x80 fs/iomap/direct-io.c:681
+ ext4_dio_write_iter fs/ext4/file.c:566 [inline]
+ ext4_file_write_iter+0x14fc/0x1960 fs/ext4/file.c:677
+ do_iter_readv_writev+0x499/0x650
+ do_iter_write+0x1f1/0x7a0 fs/read_write.c:852
+ vfs_writev fs/read_write.c:925 [inline]
+ do_pwritev+0x219/0x360 fs/read_write.c:1022
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f2d8b046e69
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 b1 14 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe6399e988 EFLAGS: 00000246 ORIG_RAX: 0000000000000148
+RAX: ffffffffffffffda RBX: 000000000000a252 RCX: 00007f2d8b046e69
+RDX: 0000000000000001 RSI: 0000000020000240 RDI: 0000000000000004
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000003
+R10: 0000000000001400 R11: 0000000000000246 R12: 00007ffe6399e9ac
+R13: 431bde82d7b634db R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+The buggy address belongs to the physical page:
+page:ffffea0001fc0540 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x7f015
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 ffffea0001eccac8 ffff8880b9b40038 0000000000000000
+raw: 0000000000000000 00000000000c0000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as freed
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x92800(GFP_NOWAIT|__GFP_NOWARN|__GFP_NORETRY|__GFP_NOMEMALLOC), pid 2931, tgid 2931 (jbd2/sda1-8), ts 18049756371, free_ts 41846633810
+ prep_new_page mm/page_alloc.c:2441 [inline]
+ get_page_from_freelist+0x72e/0x7a0 mm/page_alloc.c:4182
+ __alloc_pages+0x26c/0x5f0 mm/page_alloc.c:5408
+ alloc_slab_page+0x70/0xf0 mm/slub.c:1799
+ allocate_slab+0x5e/0x560 mm/slub.c:1944
+ new_slab mm/slub.c:2004 [inline]
+ ___slab_alloc+0x41e/0xcd0 mm/slub.c:3005
+ __slab_alloc mm/slub.c:3092 [inline]
+ slab_alloc_node mm/slub.c:3183 [inline]
+ slab_alloc mm/slub.c:3225 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3232 [inline]
+ kmem_cache_alloc+0x246/0x2f0 mm/slub.c:3242
+ mempool_alloc+0x17d/0x5c0 mm/mempool.c:392
+ bio_alloc_bioset+0x144/0xce0 block/bio.c:492
+ bio_alloc include/linux/bio.h:426 [inline]
+ submit_bh_wbc+0x262/0x4e0 fs/buffer.c:3025
+ submit_bh+0x1e/0x30 fs/buffer.c:3051
+ jbd2_journal_commit_transaction+0x297d/0x5a80 fs/jbd2/commit.c:764
+ kjournald2+0x4c4/0x950 fs/jbd2/journal.c:213
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1356 [inline]
+ free_pcp_prepare+0x812/0x900 mm/page_alloc.c:1406
+ free_unref_page_prepare mm/page_alloc.c:3328 [inline]
+ free_unref_page+0x7d/0x390 mm/page_alloc.c:3423
+ rcu_do_batch kernel/rcu/tree.c:2535 [inline]
+ rcu_core+0xa0c/0x16d0 kernel/rcu/tree.c:2786
+ __do_softirq+0x382/0x793 kernel/softirq.c:558
+
+Memory state around the buggy address:
+ ffff88807f015400: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88807f015480: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff88807f015500: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                      ^
+ ffff88807f015580: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88807f015600: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

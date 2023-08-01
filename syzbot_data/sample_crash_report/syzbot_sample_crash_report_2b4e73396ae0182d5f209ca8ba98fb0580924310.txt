@@ -1,0 +1,79 @@
+usbcore: registered new interface driver usbhid
+usbhid: USB HID core driver
+NET: Registered protocol family 40
+ashmem: initialized
+==================================================================
+BUG: KASAN: use-after-free in call_usermodehelper_exec_work+0x2d3/0x310 kernel/umh.c:195
+Write of size 4 at addr ffff8801ce7ea370 by task kworker/u4:2/39
+
+CPU: 1 PID: 39 Comm: kworker/u4:2 Not tainted 4.17.0+ #83
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound call_usermodehelper_exec_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_store4_noabort+0x17/0x20 mm/kasan/report.c:437
+ call_usermodehelper_exec_work+0x2d3/0x310 kernel/umh.c:195
+ process_one_work+0xc64/0x1b70 kernel/workqueue.c:2153
+ worker_thread+0x181/0x13a0 kernel/workqueue.c:2296
+ kthread+0x345/0x410 kernel/kthread.c:240
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Allocated by task 1:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x780 mm/slab.c:3620
+ kmalloc include/linux/slab.h:513 [inline]
+ kzalloc include/linux/slab.h:706 [inline]
+ call_usermodehelper_setup+0xe8/0x400 kernel/umh.c:382
+ kobject_uevent_env+0xb21/0x1110 lib/kobject_uevent.c:608
+ kobject_uevent+0x1f/0x30 lib/kobject_uevent.c:636
+ device_add+0x95d/0x16f0 drivers/base/core.c:1867
+ device_create_groups_vargs+0x1ff/0x270 drivers/base/core.c:2464
+ device_create_with_groups+0xd8/0x100 drivers/base/core.c:2583
+ misc_register+0x475/0x7c0 drivers/char/misc.c:206
+ init_binder_device drivers/android/binder.c:5605 [inline]
+ binder_init+0x412/0x6e5 drivers/android/binder.c:5676
+ do_one_initcall+0x127/0x913 init/main.c:884
+ do_initcall_level init/main.c:952 [inline]
+ do_initcalls init/main.c:960 [inline]
+ do_basic_setup init/main.c:978 [inline]
+ kernel_init_freeable+0x49b/0x58e init/main.c:1135
+ kernel_init+0x11/0x1b3 init/main.c:1061
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Freed by task 2092:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ call_usermodehelper_freeinfo kernel/umh.c:45 [inline]
+ umh_complete+0x7b/0x90 kernel/umh.c:59
+ call_usermodehelper_exec_async+0x6e8/0x9e0 kernel/umh.c:116
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+The buggy address belongs to the object at ffff8801ce7ea300
+ which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 112 bytes inside of
+ 192-byte region [ffff8801ce7ea300, ffff8801ce7ea3c0)
+The buggy address belongs to the page:
+page:ffffea000739fa80 count:1 mapcount:0 mapping:ffff8801ce7ea000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801ce7ea000 0000000000000000 0000000100000010
+raw: ffffea000739f7e0 ffff8801da801148 ffff8801da800040 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ce7ea200: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801ce7ea280: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801ce7ea300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff8801ce7ea380: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801ce7ea400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

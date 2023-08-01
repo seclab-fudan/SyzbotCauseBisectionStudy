@@ -1,0 +1,97 @@
+INFO: rcu_sched self-detected stall on CPU
+	0-...!: (124826 ticks this GP) idle=84e/1/4611686018427387908 softirq=160071/160071 fqs=0 
+	 (t=125000 jiffies g=88194 c=88193 q=696925)
+rcu_sched kthread starved for 125000 jiffies! g88194 c88193 f0x2 RCU_GP_WAIT_FQS(3) ->state=0x0 ->cpu=0
+RCU grace-period kthread stack dump:
+rcu_sched       R  running task    22584     9      2 0x80000000
+Call Trace:
+ context_switch kernel/sched/core.c:2859 [inline]
+ __schedule+0x801/0x1e30 kernel/sched/core.c:3501
+ schedule+0xef/0x430 kernel/sched/core.c:3545
+ schedule_timeout+0x138/0x240 kernel/time/timer.c:1801
+ rcu_gp_kthread+0x6b5/0x1940 kernel/rcu/tree.c:2231
+ kthread+0x345/0x410 kernel/kthread.c:240
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+NMI backtrace for cpu 0
+CPU: 0 PID: 4610 Comm: syz-fuzzer Not tainted 4.17.0-rc6+ #69
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.4+0x19/0xce lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x151/0x192 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:156 [inline]
+ rcu_dump_cpu_stacks+0x175/0x1c2 kernel/rcu/tree.c:1376
+ print_cpu_stall kernel/rcu/tree.c:1525 [inline]
+ check_cpu_stall.isra.61.cold.80+0x36c/0x59a kernel/rcu/tree.c:1593
+ __rcu_pending kernel/rcu/tree.c:3356 [inline]
+ rcu_pending kernel/rcu/tree.c:3401 [inline]
+ rcu_check_callbacks+0x21b/0xad0 kernel/rcu/tree.c:2763
+ update_process_times+0x2d/0x70 kernel/time/timer.c:1636
+ tick_sched_handle+0x9f/0x180 kernel/time/tick-sched.c:164
+ tick_sched_timer+0x45/0x130 kernel/time/tick-sched.c:1274
+ __run_hrtimer kernel/time/hrtimer.c:1398 [inline]
+ __hrtimer_run_queues+0x3e3/0x10a0 kernel/time/hrtimer.c:1460
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x15d/0x710 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:kmem_cache_free+0xb3/0x2d0 mm/slab.c:3757
+RSP: 0000:ffff8801dae054b8 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000007 RBX: ffff88007ed68540 RCX: 1ffff1003b226d78
+RDX: 0000000000000000 RSI: ffff8801d9136c18 RDI: 0000000000000286
+RBP: ffff8801dae054d8 R08: ffff8801d9136b78 R09: 0000000000000002
+R10: ffff8801d9136340 R11: 0000000000000000 R12: ffff8801d9450e40
+R13: 0000000000000286 R14: ffffffff85d9411c R15: 0000000000000000
+ kfree_skbmem+0x13c/0x210 net/core/skbuff.c:582
+ __kfree_skb net/core/skbuff.c:642 [inline]
+ kfree_skb+0x19d/0x560 net/core/skbuff.c:659
+ enqueue_to_backlog+0x2fc/0xc90 net/core/dev.c:4009
+ netif_rx_internal+0x14d/0x9a0 net/core/dev.c:4235
+ netif_rx+0xba/0x400 net/core/dev.c:4260
+ loopback_xmit+0x283/0x741 drivers/net/loopback.c:91
+ __netdev_start_xmit include/linux/netdevice.h:4121 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4130 [inline]
+ xmit_one net/core/dev.c:3052 [inline]
+ dev_hard_start_xmit+0x264/0xc10 net/core/dev.c:3068
+ __dev_queue_xmit+0x29da/0x3900 net/core/dev.c:3587
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3620
+ neigh_hh_output include/net/neighbour.h:473 [inline]
+ neigh_output include/net/neighbour.h:481 [inline]
+ ip6_finish_output2+0x1345/0x2800 net/ipv6/ip6_output.c:120
+ ip6_finish_output+0x5fe/0xbc0 net/ipv6/ip6_output.c:154
+ NF_HOOK_COND include/linux/netfilter.h:276 [inline]
+ ip6_output+0x227/0x9b0 net/ipv6/ip6_output.c:171
+ dst_output include/net/dst.h:444 [inline]
+ NF_HOOK include/linux/netfilter.h:287 [inline]
+ ip6_xmit+0xf51/0x23f0 net/ipv6/ip6_output.c:277
+ sctp_v6_xmit+0x4a5/0x6b0 net/sctp/ipv6.c:225
+ sctp_packet_transmit+0x26f6/0x3ba0 net/sctp/output.c:642
+ sctp_outq_flush_transports net/sctp/outqueue.c:1164 [inline]
+ sctp_outq_flush+0x5f5/0x3430 net/sctp/outqueue.c:1212
+ sctp_outq_uncork+0x6a/0x80 net/sctp/outqueue.c:776
+ sctp_cmd_interpreter net/sctp/sm_sideeffect.c:1820 [inline]
+ sctp_side_effects net/sctp/sm_sideeffect.c:1220 [inline]
+ sctp_do_sm+0x596/0x7160 net/sctp/sm_sideeffect.c:1191
+ sctp_generate_heartbeat_event+0x218/0x450 net/sctp/sm_sideeffect.c:406
+ call_timer_fn+0x230/0x940 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0x79e/0xc50 kernel/time/timer.c:1666
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x2e0/0xaf5 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1d1/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:525 [inline]
+ smp_apic_timer_interrupt+0x17e/0x710 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+RIP: 0033:0x40b55d
+RSP: 002b:000000c42042dca8 EFLAGS: 00000293 ORIG_RAX: ffffffffffffff13
+RAX: 000000c4239af1a8 RBX: 00000000c78f3086 RCX: 0000000000000000
+RDX: 000000c4239af1a8 RSI: 000000000000ffff RDI: 0000000000000000
+RBP: 000000c42042dcc0 R08: 0000000000000000 R09: 0000000000000000
+R10: 000000000094753a R11: 0000000000000004 R12: 0000000000000000
+R13: 0000000000000020 R14: 0000000000000013 R15: 0000000000000016

@@ -1,0 +1,55 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: null-ptr-deref in atomic_inc include/linux/atomic/atomic-instrumented.h:190 [inline]
+BUG: KASAN: null-ptr-deref in io_req_track_inflight fs/io_uring.c:1978 [inline]
+BUG: KASAN: null-ptr-deref in io_file_get_normal+0x351/0x3b0 fs/io_uring.c:8595
+Write of size 4 at addr 0000000000000118 by task iou-wrk-3625/3626
+
+CPU: 1 PID: 3626 Comm: iou-wrk-3625 Not tainted 5.19.0-rc3-syzkaller-00027-g78ca55889a54 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_report mm/kasan/report.c:432 [inline]
+ kasan_report.cold+0x61/0x1c6 mm/kasan/report.c:491
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_inc include/linux/atomic/atomic-instrumented.h:190 [inline]
+ io_req_track_inflight fs/io_uring.c:1978 [inline]
+ io_file_get_normal+0x351/0x3b0 fs/io_uring.c:8595
+ io_tee fs/io_uring.c:5142 [inline]
+ io_issue_sqe+0x1a1a/0x91f0 fs/io_uring.c:8408
+ io_wq_submit_work+0x287/0x740 fs/io_uring.c:8514
+ io_worker_handle_work+0xb1c/0x1ab0 fs/io-wq.c:597
+ io_wqe_worker+0x637/0xdb0 fs/io-wq.c:644
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 3626 Comm: iou-wrk-3625 Not tainted 5.19.0-rc3-syzkaller-00027-g78ca55889a54 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ panic+0x2d7/0x64a kernel/panic.c:274
+ end_report.part.0+0x3f/0x7c mm/kasan/report.c:168
+ end_report include/trace/events/error_report.h:69 [inline]
+ kasan_report.cold+0x93/0x1c6 mm/kasan/report.c:493
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_inc include/linux/atomic/atomic-instrumented.h:190 [inline]
+ io_req_track_inflight fs/io_uring.c:1978 [inline]
+ io_file_get_normal+0x351/0x3b0 fs/io_uring.c:8595
+ io_tee fs/io_uring.c:5142 [inline]
+ io_issue_sqe+0x1a1a/0x91f0 fs/io_uring.c:8408
+ io_wq_submit_work+0x287/0x740 fs/io_uring.c:8514
+ io_worker_handle_work+0xb1c/0x1ab0 fs/io-wq.c:597
+ io_wqe_worker+0x637/0xdb0 fs/io-wq.c:644
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

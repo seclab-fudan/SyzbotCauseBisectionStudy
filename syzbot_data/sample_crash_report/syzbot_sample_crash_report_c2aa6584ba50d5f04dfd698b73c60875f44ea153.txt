@@ -1,0 +1,61 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 1 PID: 21 Comm: ksoftirqd/1 Not tainted 6.2.0-rc1-syzkaller-00084-gc8451c141e07 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:taprio_dequeue+0x1ff/0xa20 net/sched/sch_taprio.c:579
+Code: 24 18 e8 a4 11 82 f9 48 8b 44 24 10 80 38 00 0f 85 7b 07 00 00 48 8b 93 c0 02 00 00 49 63 c5 4c 8d 24 c2 4c 89 e0 48 c1 e8 03 <80> 3c 28 00 0f 85 4f 07 00 00 4d 8b 24 24 4d 85 e4 0f 84 51 03 00
+RSP: 0018:ffffc900001b7ce0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffff88807edb9000 RCX: 0000000000000100
+RDX: 0000000000000000 RSI: ffffffff87ff409c RDI: 0000000000000005
+RBP: dffffc0000000000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000010 R11: 0000000000000001 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff8880200b4400 R15: 0000000000000832
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b32c2a000 CR3: 000000002f29d000 CR4: 00000000003506e0
+Call Trace:
+ <TASK>
+ dequeue_skb net/sched/sch_generic.c:292 [inline]
+ qdisc_restart net/sched/sch_generic.c:397 [inline]
+ __qdisc_run+0x1b2/0x1750 net/sched/sch_generic.c:415
+ qdisc_run include/net/pkt_sched.h:126 [inline]
+ qdisc_run include/net/pkt_sched.h:123 [inline]
+ net_tx_action+0x792/0xe40 net/core/dev.c:5079
+ __do_softirq+0x1fb/0xadc kernel/softirq.c:571
+ run_ksoftirqd kernel/softirq.c:934 [inline]
+ run_ksoftirqd+0x31/0x60 kernel/softirq.c:926
+ smpboot_thread_fn+0x659/0xa20 kernel/smpboot.c:164
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:taprio_dequeue+0x1ff/0xa20 net/sched/sch_taprio.c:579
+Code: 24 18 e8 a4 11 82 f9 48 8b 44 24 10 80 38 00 0f 85 7b 07 00 00 48 8b 93 c0 02 00 00 49 63 c5 4c 8d 24 c2 4c 89 e0 48 c1 e8 03 <80> 3c 28 00 0f 85 4f 07 00 00 4d 8b 24 24 4d 85 e4 0f 84 51 03 00
+RSP: 0018:ffffc900001b7ce0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffff88807edb9000 RCX: 0000000000000100
+RDX: 0000000000000000 RSI: ffffffff87ff409c RDI: 0000000000000005
+RBP: dffffc0000000000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000010 R11: 0000000000000001 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff8880200b4400 R15: 0000000000000832
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b32c2a000 CR3: 000000002f29d000 CR4: 00000000003506e0
+----------------
+Code disassembly (best guess):
+   0:	24 18                	and    $0x18,%al
+   2:	e8 a4 11 82 f9       	callq  0xf98211ab
+   7:	48 8b 44 24 10       	mov    0x10(%rsp),%rax
+   c:	80 38 00             	cmpb   $0x0,(%rax)
+   f:	0f 85 7b 07 00 00    	jne    0x790
+  15:	48 8b 93 c0 02 00 00 	mov    0x2c0(%rbx),%rdx
+  1c:	49 63 c5             	movslq %r13d,%rax
+  1f:	4c 8d 24 c2          	lea    (%rdx,%rax,8),%r12
+  23:	4c 89 e0             	mov    %r12,%rax
+  26:	48 c1 e8 03          	shr    $0x3,%rax
+* 2a:	80 3c 28 00          	cmpb   $0x0,(%rax,%rbp,1) <-- trapping instruction
+  2e:	0f 85 4f 07 00 00    	jne    0x783
+  34:	4d 8b 24 24          	mov    (%r12),%r12
+  38:	4d 85 e4             	test   %r12,%r12
+  3b:	0f                   	.byte 0xf
+  3c:	84 51 03             	test   %dl,0x3(%rcx)

@@ -1,0 +1,56 @@
+------------[ cut here ]------------
+Illegal XDP return value 14950656, expect packet loss!
+WARNING: CPU: 0 PID: 7 at net/core/filter.c:8188 bpf_warn_invalid_xdp_action net/core/filter.c:8188 [inline]
+WARNING: CPU: 0 PID: 7 at net/core/filter.c:8188 bpf_warn_invalid_xdp_action+0x6f/0x80 net/core/filter.c:8184
+Modules linked in:
+CPU: 0 PID: 7 Comm: kworker/0:1 Not tainted 5.16.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: mld mld_dad_work
+RIP: 0010:bpf_warn_invalid_xdp_action net/core/filter.c:8188 [inline]
+RIP: 0010:bpf_warn_invalid_xdp_action+0x6f/0x80 net/core/filter.c:8184
+Code: 80 77 ae 8a 41 83 fc 04 48 c7 c6 c0 77 ae 8a 48 0f 46 ee e8 a3 83 42 fa 44 89 e2 48 c7 c7 00 78 ae 8a 48 89 ee e8 dd 71 cb 01 <0f> 0b 5b 5d 41 5c e9 86 83 42 fa 66 0f 1f 44 00 00 41 57 41 56 49
+RSP: 0018:ffffc900000079b0 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888011943a00 RSI: ffffffff815f0948 RDI: fffff52000000f28
+RBP: ffffffff8aae7780 R08: 0000000000000000 R09: 0000000000000001
+R10: ffffffff815ea6ee R11: 0000000000000000 R12: 0000000000e42100
+R13: ffffc90000007a48 R14: 0000000000e42100 R15: ffffc90001a76000
+FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005555569cf608 CR3: 000000007dc66000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ veth_xdp_rcv_skb+0x68f/0x1b20 drivers/net/veth.c:804
+ veth_xdp_rcv+0x39b/0x9a0 drivers/net/veth.c:881
+ veth_poll+0x134/0x850 drivers/net/veth.c:917
+ __napi_poll+0xaf/0x440 net/core/dev.c:7023
+ napi_poll net/core/dev.c:7090 [inline]
+ net_rx_action+0x801/0xb40 net/core/dev.c:7177
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ do_softirq.part.0+0xde/0x130 kernel/softirq.c:459
+ </IRQ>
+ <TASK>
+ do_softirq kernel/softirq.c:451 [inline]
+ __local_bh_enable_ip+0x102/0x120 kernel/softirq.c:383
+ local_bh_enable include/linux/bottom_half.h:33 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:758 [inline]
+ ip6_finish_output2+0x5bf/0x14e0 net/ipv6/ip6_output.c:127
+ __ip6_finish_output net/ipv6/ip6_output.c:191 [inline]
+ __ip6_finish_output+0x4c1/0x1050 net/ipv6/ip6_output.c:170
+ ip6_finish_output+0x32/0x200 net/ipv6/ip6_output.c:201
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x1e4/0x530 net/ipv6/ip6_output.c:224
+ dst_output include/net/dst.h:450 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ mld_sendpack+0x9a1/0xe40 net/ipv6/mcast.c:1826
+ mld_send_initial_cr.part.0+0x194/0x230 net/ipv6/mcast.c:2245
+ mld_send_initial_cr net/ipv6/mcast.c:1232 [inline]
+ mld_dad_work+0x1d3/0x690 net/ipv6/mcast.c:2268
+ process_one_work+0x9b2/0x1660 kernel/workqueue.c:2298
+ worker_thread+0x65d/0x1130 kernel/workqueue.c:2445
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>

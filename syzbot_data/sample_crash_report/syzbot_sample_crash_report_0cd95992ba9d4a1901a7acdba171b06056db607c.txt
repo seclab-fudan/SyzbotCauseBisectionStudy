@@ -1,0 +1,110 @@
+protocol 88fb is buggy, dev hsr_slave_0
+protocol 88fb is buggy, dev hsr_slave_1
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	0-...!: (1 GPs behind) idle=31a/1/0x4000000000000004 softirq=61634/61635 fqs=7 
+	(t=10500 jiffies g=83273 q=591)
+rcu: rcu_preempt kthread starved for 8835 jiffies! g83273 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x0 ->cpu=1
+rcu: RCU grace-period kthread stack dump:
+rcu_preempt     R  running task    28952    10      2 0x80004000
+Call Trace:
+ context_switch kernel/sched/core.c:3384 [inline]
+ __schedule+0x74b/0xb80 kernel/sched/core.c:4069
+ schedule+0x131/0x1e0 kernel/sched/core.c:4136
+ schedule_timeout+0x14f/0x240 kernel/time/timer.c:1895
+ rcu_gp_fqs_loop kernel/rcu/tree.c:1639 [inline]
+ rcu_gp_kthread+0xed8/0x1770 kernel/rcu/tree.c:1799
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+NMI backtrace for cpu 0
+CPU: 0 PID: 30221 Comm: syz-executor.2 Not tainted 5.4.0-rc1+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d8/0x2f8 lib/dump_stack.c:113
+ nmi_cpu_backtrace+0xaf/0x1a0 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x174/0x290 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x10/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x15a/0x220 kernel/rcu/tree_stall.h:254
+ print_cpu_stall kernel/rcu/tree_stall.h:455 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:529 [inline]
+ rcu_pending kernel/rcu/tree.c:2795 [inline]
+ rcu_sched_clock_irq+0xe22/0x1ae0 kernel/rcu/tree.c:2244
+ update_process_times+0x12d/0x180 kernel/time/timer.c:1726
+ tick_sched_handle kernel/time/tick-sched.c:167 [inline]
+ tick_sched_timer+0x263/0x420 kernel/time/tick-sched.c:1299
+ __run_hrtimer kernel/time/hrtimer.c:1514 [inline]
+ __hrtimer_run_queues+0x403/0x840 kernel/time/hrtimer.c:1576
+ hrtimer_interrupt+0x38c/0xda0 kernel/time/hrtimer.c:1638
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1110 [inline]
+ smp_apic_timer_interrupt+0x109/0x280 arch/x86/kernel/apic/apic.c:1135
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:756 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xad/0xe0 kernel/locking/spinlock.c:191
+Code: b9 00 00 00 00 00 fc ff df 80 3c 08 00 74 0c 48 c7 c7 70 8f 8a 88 e8 b2 e4 3a fa 48 83 3d 1a 16 19 01 00 74 2d 4c 89 f7 57 9d <0f> 1f 44 00 00 bf 01 00 00 00 e8 14 78 de f9 65 8b 05 59 84 90 78
+RSP: 0018:ffff8880aea096b8 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff11151ee RBX: ffffffff89b85978 RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: 0000000000000286
+RBP: ffff8880aea096c8 R08: ffff8880a1a869d8 R09: fffffbfff12bb6b2
+R10: fffffbfff12bb6b2 R11: 0000000000000000 R12: ffff8880aa418600
+R13: 1ffff110154830c0 R14: 0000000000000286 R15: ffff888093fb8d18
+ debug_object_activate+0x118/0x6f0 lib/debugobjects.c:666
+ debug_rcu_head_queue kernel/rcu/rcu.h:176 [inline]
+ __call_rcu+0x3d/0x670 kernel/rcu/tree.c:2564
+ call_rcu+0xb/0x10 kernel/rcu/tree.c:2651
+ dst_release+0x9b/0xf0 net/core/dst.c:179
+ refdst_drop include/net/dst.h:259 [inline]
+ skb_dst_drop include/net/dst.h:271 [inline]
+ __dev_queue_xmit+0x909/0x3010 net/core/dev.c:3833
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3906
+ neigh_resolve_output+0x60c/0x6b0 net/core/neighbour.c:1490
+ neigh_output include/net/neighbour.h:511 [inline]
+ ip6_finish_output2+0x102c/0x13b0 net/ipv6/ip6_output.c:116
+ __ip6_finish_output+0x693/0x8c0 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x52/0x1e0 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0x26f/0x370 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ndisc_send_skb+0xa35/0xe20 net/ipv6/ndisc.c:505
+ ndisc_send_rs+0x4ec/0x680 net/ipv6/ndisc.c:699
+ addrconf_rs_timer+0x22e/0x5f0 net/ipv6/addrconf.c:3879
+ call_timer_fn+0x95/0x170 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers+0x7b6/0x990 kernel/time/timer.c:1773
+ run_timer_softirq+0x4a/0x90 kernel/time/timer.c:1786
+ __do_softirq+0x333/0x7c4 arch/x86/include/asm/paravirt.h:766
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x227/0x230 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x113/0x280 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+ </IRQ>
+RIP: 0010:__up_write kernel/locking/rwsem.c:1453 [inline]
+RIP: 0010:up_write+0x6d/0x450 kernel/locking/rwsem.c:1587
+Code: 00 00 fc ff df 42 8a 04 38 84 c0 0f 85 4b 02 00 00 83 3d 59 ae 66 07 00 75 5a 49 8d 5d 60 49 89 de 49 c1 ee 03 43 80 3c 3e 00 <74> 08 48 89 df e8 f9 a0 54 00 4d 39 6d 60 48 89 5d b8 74 12 80 3d
+RSP: 0018:ffff88804fcf7d80 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff117cd00 RBX: ffff8880a65ddc18 RCX: ffffffff81588687
+RDX: dffffc0000000000 RSI: ffff8880a1a86a38 RDI: 0000000000000286
+RBP: ffff88804fcf7de8 R08: dffffc0000000000 R09: fffffbfff117c735
+R10: fffffbfff117c735 R11: 0000000000000000 R12: ffff888095838cc0
+R13: ffff8880a65ddbb8 R14: 1ffff11014cbbb83 R15: dffffc0000000000
+ inode_unlock include/linux/fs.h:796 [inline]
+ perf_fasync+0x92/0xb0 kernel/events/core.c:5891
+ setfl fs/fcntl.c:73 [inline]
+ do_fcntl+0xd2d/0x1180 fs/fcntl.c:347
+ __do_sys_fcntl fs/fcntl.c:463 [inline]
+ __se_sys_fcntl+0xde/0x1b0 fs/fcntl.c:448
+ __x64_sys_fcntl+0x7b/0x90 fs/fcntl.c:448
+ do_syscall_64+0xf7/0x1c0 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x459a29
+Code: fd b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f1e0d6fdc78 EFLAGS: 00000246 ORIG_RAX: 0000000000000048
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000459a29
+RDX: 0000000000042000 RSI: 0000000000000004 RDI: 0000000000000003
+RBP: 000000000075bf20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f1e0d6fe6d4
+R13: 00000000004c02c3 R14: 00000000004d27e8 R15: 00000000ffffffff

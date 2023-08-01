@@ -1,0 +1,35 @@
+netdevsim netdevsim4 netdevsim2 (unregistering): unset [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim4 netdevsim1 (unregistering): unset [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim4 netdevsim0 (unregistering): unset [1, 0] type 2 family 0 port 6081 - 0
+------------[ cut here ]------------
+refcount_t: decrement hit 0; leaking memory.
+WARNING: CPU: 1 PID: 8817 at lib/refcount.c:31 refcount_warn_saturate+0xbf/0x1e0 lib/refcount.c:31
+Modules linked in:
+CPU: 1 PID: 8817 Comm: kworker/u4:6 Not tainted 5.16.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+RIP: 0010:refcount_warn_saturate+0xbf/0x1e0 lib/refcount.c:31
+Code: 1d 3a fb a1 09 31 ff 89 de e8 bd f6 9c fd 84 db 75 e0 e8 d4 f2 9c fd 48 c7 c7 a0 d2 04 8a c6 05 1a fb a1 09 01 e8 7b fb 32 05 <0f> 0b eb c4 e8 b8 f2 9c fd 0f b6 1d 09 fb a1 09 31 ff 89 de e8 88
+RSP: 0018:ffffc90001f9fa50 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888018760000 RSI: ffffffff815f5aa8 RDI: fffff520003f3f3c
+RBP: 0000000000000004 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff815ef87e R11: 0000000000000000 R12: 0000000000000001
+R13: ffffc90001f9fbb8 R14: ffff8880788fe5b0 R15: ffff88807b1545a0
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000056292c8385f8 CR3: 0000000018657000 CR4: 0000000000350ee0
+Call Trace:
+ <TASK>
+ __refcount_dec include/linux/refcount.h:344 [inline]
+ refcount_dec include/linux/refcount.h:359 [inline]
+ dev_put include/linux/netdevice.h:4166 [inline]
+ unregister_netdevice_many+0x12c9/0x1790 net/core/dev.c:11114
+ ip6gre_exit_batch_net+0x4a7/0x760 net/ipv6/ip6_gre.c:1629
+ ops_exit_list+0x10d/0x160 net/core/net_namespace.c:171
+ cleanup_net+0x4ea/0xb00 net/core/net_namespace.c:593
+ process_one_work+0x9b2/0x1690 kernel/workqueue.c:2298
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2445
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>

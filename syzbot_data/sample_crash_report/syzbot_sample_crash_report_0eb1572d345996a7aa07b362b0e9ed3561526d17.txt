@@ -1,0 +1,53 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc7-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8303 Illegal context switch in RCU-sched read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+1 lock held by syz-executor.2/8476:
+ #0: 
+ffffffff8c7376d8
+ (
+tomoyo_ss
+){....}-{0:0}
+, at: tomoyo_path_perm+0x1c1/0x400 security/tomoyo/file.c:847
+
+stack backtrace:
+CPU: 1 PID: 8476 Comm: syz-executor.2 Not tainted 5.13.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x266/0x2c0 kernel/sched/core.c:8303
+ __mutex_lock_common kernel/locking/mutex.c:938 [inline]
+ __mutex_lock+0xa9/0x10c0 kernel/locking/mutex.c:1104
+ tomoyo_update_domain+0x117/0x850 security/tomoyo/domain.c:121
+ tomoyo_update_path_acl security/tomoyo/file.c:398 [inline]
+ tomoyo_write_file+0x4f6/0x7f0 security/tomoyo/file.c:1022
+ tomoyo_write_domain2+0x116/0x1d0 security/tomoyo/common.c:1152
+ tomoyo_add_entry security/tomoyo/common.c:2042 [inline]
+ tomoyo_supervisor+0xbc9/0xf00 security/tomoyo/common.c:2103
+ tomoyo_audit_path_log security/tomoyo/file.c:168 [inline]
+ tomoyo_path_permission security/tomoyo/file.c:587 [inline]
+ tomoyo_path_permission+0x270/0x3a0 security/tomoyo/file.c:573
+ tomoyo_path_perm+0x2f0/0x400 security/tomoyo/file.c:838
+ security_inode_getattr+0xcf/0x140 security/security.c:1332
+ vfs_getattr fs/stat.c:139 [inline]
+ vfs_statx+0x164/0x390 fs/stat.c:207
+ vfs_fstatat fs/stat.c:225 [inline]
+ vfs_lstat include/linux/fs.h:3384 [inline]
+ __do_sys_newlstat+0x91/0x110 fs/stat.c:380
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x465676
+Code: ff ff ff 64 c7 00 16 00 00 00 b8 ff ff ff ff c3 0f 1f 40 00 41 89 f8 48 89 f7 48 89 d6 41 83 f8 01 77 29 b8 06 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 02 c3 90 48 c7 c2 bc ff ff ff f7 d8 64 89 02
+RSP: 002b:00007fff2bd54028 EFLAGS: 00000246 ORIG_RAX: 0000000000000006
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000465676
+RDX: 00007fff2bd54060 RSI: 00007fff2bd54060 RDI: 00007fff2bd540f0
+RBP: 00007fff2bd540f0 R08: 0000000000000001 R09: 00007fff2bd53ec0
+R10: 00000000020fa88b R11: 0000000000000246 R12: 00000000004bee70
+R13: 00007fff2bd551c0 R14: 00000000020fa810 R15: 00007fff2bd55200

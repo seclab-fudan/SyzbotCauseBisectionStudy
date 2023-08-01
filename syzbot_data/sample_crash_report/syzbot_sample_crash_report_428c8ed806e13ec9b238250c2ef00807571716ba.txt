@@ -1,0 +1,52 @@
+audit: type=1400 audit(1513738381.857:7): avc:  denied  { map } for  pid=3130 comm="syzkaller232984" path="/root/syzkaller232984343" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000020
+IP: __read_once_size include/linux/compiler.h:183 [inline]
+IP: compound_head include/linux/page-flags.h:147 [inline]
+IP: page_mapping+0x13/0x130 mm/util.c:475
+PGD 213665067 P4D 213665067 PUD 20be08067 PMD 0 
+Oops: 0000 [#1] SMP
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 3130 Comm: syzkaller232984 Not tainted 4.15.0-rc3-next-20171214+ #67
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__read_once_size include/linux/compiler.h:183 [inline]
+RIP: 0010:compound_head include/linux/page-flags.h:147 [inline]
+RIP: 0010:page_mapping+0x13/0x130 mm/util.c:475
+RSP: 0018:ffffc90001883b98 EFLAGS: 00010293
+RAX: ffff88021362a5c0 RBX: 0000000000000000 RCX: ffffffff81378423
+RDX: 0000000000000000 RSI: ffff880214d67800 RDI: 0000000000000000
+RBP: ffffc90001883bb8 R08: 0000000000000000 R09: ffff880214d67a30
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff880214d67980
+R13: ffff880214d67800 R14: ffff88020bda4c40 R15: ffff88021410ac30
+FS:  0000000001b9c880(0000) GS:ffff88021fd00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000020 CR3: 00000002137be002 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ set_page_dirty+0x1b/0x150 mm/page-writeback.c:2544
+ rds_atomic_free_op+0x25/0x80 net/rds/rdma.c:481
+ rds_message_purge net/rds/message.c:79 [inline]
+ rds_message_put+0x174/0x1b0 net/rds/message.c:91
+ rds_sendmsg+0x7ac/0xcb0 net/rds/send.c:1204
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0x51/0x70 net/socket.c:646
+ ___sys_sendmsg+0x35e/0x3b0 net/socket.c:2026
+ __sys_sendmsg+0x50/0x90 net/socket.c:2060
+ SYSC_sendmsg net/socket.c:2071 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2067
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x43fea9
+RSP: 002b:00007ffc39499388 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fea9
+RDX: 0000000000000000 RSI: 0000000020002000 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000401810
+R13: 00000000004018a0 R14: 0000000000000000 R15: 0000000000000000
+Code: 44 1f f4 ff 48 c7 c7 c8 58 a4 82 e8 b6 20 24 01 0f 1f 84 00 00 00 00 00 55 48 89 e5 41 56 41 55 41 54 53 48 89 fb e8 1d 1f f4 ff <4c> 8b 63 20 41 f6 c4 01 0f 85 c8 00 00 00 e8 0a 1f f4 ff 4c 8b 
+RIP: __read_once_size include/linux/compiler.h:183 [inline] RSP: ffffc90001883b98
+RIP: compound_head include/linux/page-flags.h:147 [inline] RSP: ffffc90001883b98
+RIP: page_mapping+0x13/0x130 mm/util.c:475 RSP: ffffc90001883b98
+CR2: 0000000000000020
+---[ end trace c882cb8995009466 ]---

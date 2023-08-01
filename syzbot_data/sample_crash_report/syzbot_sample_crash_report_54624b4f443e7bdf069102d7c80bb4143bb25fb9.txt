@@ -1,0 +1,151 @@
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 0 PID: 3078 at lib/refcount.c:28 refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+Modules linked in:
+CPU: 0 PID: 3078 Comm: syz-executor896 Not tainted 6.1.0-rc2-syzkaller-154433-g247f34f7b803 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+lr : refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+sp : ffff80000ff2bc10
+x29: ffff80000ff2bc10 x28: ffff0000c626b480 x27: 0000000000000000
+x26: 0000000000000000 x25: 0000000000000000 x24: ffff0000cb86ec8c
+x23: ffff0000c690a040 x22: ffff0000ccd88c00 x21: 00000000ffffffff
+x20: 0000000000000003 x19: ffff80000d95f000 x18: 000000000000005a
+x17: ffff80000c0cd83c x16: 0000000000000001 x15: 0000000000000000
+x14: 0000000000000000 x13: 205d383730335420 x12: 5b5d373634343736
+x11: ff808000081c650c x10: 0000000000000000 x9 : e7557c2201ef4a00
+x8 : e7557c2201ef4a00 x7 : 205b5d3736343437 x6 : ffff80000c0903b4
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0001fefbecc8 x1 : 0000000100000000 x0 : 0000000000000026
+Call trace:
+ refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+ __refcount_sub_and_test include/linux/refcount.h:283 [inline]
+ __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ p9_fid_put include/net/9p/client.h:275 [inline]
+ v9fs_vfs_lookup+0x2e8/0x37c fs/9p/vfs_inode.c:778
+ __lookup_hash+0xa0/0x164 fs/namei.c:1601
+ filename_create+0x108/0x218 fs/namei.c:3807
+ do_mknodat+0x120/0x3e8 fs/namei.c:3951
+ __do_sys_mknodat fs/namei.c:3992 [inline]
+ __se_sys_mknodat fs/namei.c:3989 [inline]
+ __arm64_sys_mknodat+0x4c/0x64 fs/namei.c:3989
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:636
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+irq event stamp: 0
+hardirqs last  enabled at (0): [<0000000000000000>] 0x0
+hardirqs last disabled at (0): [<ffff8000080f30f0>] copy_process+0x928/0x16ec kernel/fork.c:2197
+softirqs last  enabled at (0): [<ffff8000080f3100>] copy_process+0x938/0x16ec kernel/fork.c:2198
+softirqs last disabled at (0): [<0000000000000000>] 0x0
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+refcount_t: saturated; leaking memory.
+WARNING: CPU: 0 PID: 3078 at lib/refcount.c:22 refcount_warn_saturate+0x160/0x1c8 lib/refcount.c:22
+Modules linked in:
+CPU: 0 PID: 3078 Comm: syz-executor896 Tainted: G        W          6.1.0-rc2-syzkaller-154433-g247f34f7b803 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : refcount_warn_saturate+0x160/0x1c8 lib/refcount.c:22
+lr : refcount_warn_saturate+0x160/0x1c8 lib/refcount.c:22
+sp : ffff80000ff2bb60
+x29: ffff80000ff2bb60 x28: ffff0000ccd88c00 x27: ffff0000c68ffe58
+x26: 00000000c0000001 x25: ffff0000cb86ec8c x24: 0000000000000000
+x23: 0000000000000000 x22: ffff0000cb86ec80 x21: 0000000000000000
+x20: 0000000000000001 x19: ffff80000d95f000 x18: 000000000000005a
+x17: ffff80000c0cd83c x16: 0000000000000002 x15: 0000000000000000
+x14: 0000000000000000 x13: 205d383730335420 x12: 5b5d383739373337
+x11: ff808000081c650c x10: 0000000000000000 x9 : e7557c2201ef4a00
+x8 : e7557c2201ef4a00 x7 : 205b5d3837393733 x6 : ffff80000c0903b4
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000001 x0 : 0000000000000026
+Call trace:
+ refcount_warn_saturate+0x160/0x1c8 lib/refcount.c:22
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ p9_fid_get include/net/9p/client.h:262 [inline]
+ v9fs_fid_find fs/9p/fid.c:115 [inline]
+ v9fs_fid_lookup_with_uid+0x8a0/0xa80 fs/9p/fid.c:167
+ v9fs_fid_lookup+0xc8/0xdc fs/9p/fid.c:300
+ v9fs_parent_fid fs/9p/fid.h:14 [inline]
+ v9fs_vfs_mknod_dotl+0x64/0x414 fs/9p/vfs_inode_dotl.c:847
+ v9fs_vfs_create_dotl+0x40/0x54 fs/9p/vfs_inode_dotl.c:226
+ vfs_create+0x1c8/0x270 fs/namei.c:3115
+ do_mknodat+0x274/0x3e8 fs/namei.c:3964
+ __do_sys_mknodat fs/namei.c:3992 [inline]
+ __se_sys_mknodat fs/namei.c:3989 [inline]
+ __arm64_sys_mknodat+0x4c/0x64 fs/namei.c:3989
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:636
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+irq event stamp: 0
+hardirqs last  enabled at (0): [<0000000000000000>] 0x0
+hardirqs last disabled at (0): [<ffff8000080f30f0>] copy_process+0x928/0x16ec kernel/fork.c:2197
+softirqs last  enabled at (0): [<ffff8000080f3100>] copy_process+0x938/0x16ec kernel/fork.c:2198
+softirqs last disabled at (0): [<0000000000000000>] 0x0
+---[ end trace 0000000000000000 ]---
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000048
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010743b000
+[0000000000000048] pgd=080000010b9e9003, p4d=080000010b9e9003, pud=080000010b856003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 3078 Comm: syz-executor896 Tainted: G        W          6.1.0-rc2-syzkaller-154433-g247f34f7b803 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : p9_client_rpc+0x4c/0x548 net/9p/client.c:675
+lr : p9_client_rpc+0x4c/0x548 net/9p/client.c:662
+sp : ffff80000ff2bb00
+x29: ffff80000ff2bb80 x28: 0000000000000000 x27: ffff0000c68ffea0
+x26: ffff0000c626b480 x25: ffff0000cb86ec80 x24: ffff0000c68fff10
+x23: 0000000000008000 x22: 0000000000000000 x21: ffff80000cf52863
+x20: 0000000000000012 x19: 0000000000000000 x18: 000000000000005a
+x17: ffff80000c0cd83c x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000008000 x12: ffff80000d4f0680
+x11: ff8080000be7a890 x10: 0000000000000000 x9 : ffff80000be7a890
+x8 : ffff0000c626b480 x7 : 0000000000000000 x6 : 0000000000000000
+x5 : 0000000000008000 x4 : ffff0000c68fff10 x3 : 0000000000000000
+x2 : ffff80000cf52863 x1 : 0000000000000012 x0 : 0000000000000000
+Call trace:
+ p9_client_rpc+0x4c/0x548 net/9p/client.c:662
+ p9_client_mknod_dotl+0x70/0x100 net/9p/client.c:2115
+ v9fs_vfs_mknod_dotl+0x1b0/0x414 fs/9p/vfs_inode_dotl.c:865
+ v9fs_vfs_create_dotl+0x40/0x54 fs/9p/vfs_inode_dotl.c:226
+ vfs_create+0x1c8/0x270 fs/namei.c:3115
+ do_mknodat+0x274/0x3e8 fs/namei.c:3964
+ __do_sys_mknodat fs/namei.c:3992 [inline]
+ __se_sys_mknodat fs/namei.c:3989 [inline]
+ __arm64_sys_mknodat+0x4c/0x64 fs/namei.c:3989
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:636
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+Code: a9019be5 f90017e7 f81f83a8 9710b221 (f9402668) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	a9019be5 	stp	x5, x6, [sp, #24]
+   4:	f90017e7 	str	x7, [sp, #40]
+   8:	f81f83a8 	stur	x8, [x29, #-8]
+   c:	9710b221 	bl	0xfffffffffc42c890
+* 10:	f9402668 	ldr	x8, [x19, #72] <-- trapping instruction

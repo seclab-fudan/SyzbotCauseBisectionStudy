@@ -1,0 +1,63 @@
+============================================
+WARNING: possible recursive locking detected
+5.10.0-rc6-syzkaller #0 Not tainted
+--------------------------------------------
+syz-executor036/9857 is trying to acquire lock:
+ffff888011675698 (&hugetlbfs_i_mmap_rwsem_key){++++}-{3:3}, at: i_mmap_lock_write include/linux/fs.h:493 [inline]
+ffff888011675698 (&hugetlbfs_i_mmap_rwsem_key){++++}-{3:3}, at: unmap_ref_private mm/hugetlb.c:4019 [inline]
+ffff888011675698 (&hugetlbfs_i_mmap_rwsem_key){++++}-{3:3}, at: hugetlb_cow+0xedf/0x15f0 mm/hugetlb.c:4110
+
+but task is already holding lock:
+ffff888011675698 (&hugetlbfs_i_mmap_rwsem_key){++++}-{3:3}, at: i_mmap_lock_read include/linux/fs.h:508 [inline]
+ffff888011675698 (&hugetlbfs_i_mmap_rwsem_key){++++}-{3:3}, at: hugetlb_fault+0x26c/0x2330 mm/hugetlb.c:4485
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&hugetlbfs_i_mmap_rwsem_key);
+  lock(&hugetlbfs_i_mmap_rwsem_key);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+3 locks held by syz-executor036/9857:
+ #0: ffff88801aed8128 (&mm->mmap_lock#2){++++}-{3:3}, at: mmap_read_trylock include/linux/mmap_lock.h:56 [inline]
+ #0: ffff88801aed8128 (&mm->mmap_lock#2){++++}-{3:3}, at: do_user_addr_fault+0x25c/0xb40 arch/x86/mm/fault.c:1313
+ #1: ffff888011675698 (&hugetlbfs_i_mmap_rwsem_key){++++}-{3:3}
+, at: i_mmap_lock_read include/linux/fs.h:508 [inline]
+, at: hugetlb_fault+0x26c/0x2330 mm/hugetlb.c:4485
+ #2: ffff8880147fe2a8 (&hugetlb_fault_mutex_table[i]){+.+.}-{3:3}, at: hugetlb_fault+0x368/0x2330 mm/hugetlb.c:4499
+
+stack backtrace:
+CPU: 0 PID: 9857 Comm: syz-executor036 Not tainted 5.10.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:118
+ print_deadlock_bug kernel/locking/lockdep.c:2761 [inline]
+ check_deadlock kernel/locking/lockdep.c:2804 [inline]
+ validate_chain kernel/locking/lockdep.c:3595 [inline]
+ __lock_acquire.cold+0x15e/0x3b0 kernel/locking/lockdep.c:4832
+ lock_acquire kernel/locking/lockdep.c:5437 [inline]
+ lock_acquire+0x29d/0x740 kernel/locking/lockdep.c:5402
+ down_write+0x8d/0x150 kernel/locking/rwsem.c:1531
+ i_mmap_lock_write include/linux/fs.h:493 [inline]
+ unmap_ref_private mm/hugetlb.c:4019 [inline]
+ hugetlb_cow+0xedf/0x15f0 mm/hugetlb.c:4110
+ hugetlb_fault+0x155c/0x2330 mm/hugetlb.c:4562
+ handle_mm_fault+0x11c3/0x55d0 mm/memory.c:4605
+ do_user_addr_fault+0x55b/0xb40 arch/x86/mm/fault.c:1372
+ handle_page_fault arch/x86/mm/fault.c:1429 [inline]
+ exc_page_fault+0x9e/0x180 arch/x86/mm/fault.c:1485
+ asm_exc_page_fault+0x1e/0x30 arch/x86/include/asm/idtentry.h:583
+RIP: 0033:0x401d0f
+Code: 00 00 31 c0 e8 52 a8 04 00 f0 83 2d 0a e3 2f 00 01 4c 89 e7 e8 42 ff ff ff eb b1 85 c0 75 ea b9 6e 00 00 00 4c 89 ef 4c 89 f6 <f3> 48 a5 ba 04 00 00 00 0f b7 06 be 00 0f 00 20 66 89 07 31 c0 bf
+RSP: 002b:00007fc848488db0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000700028 RCX: 000000000000006e
+RDX: 00000000000f4240 RSI: 00000000004b4a00 RDI: 0000000020000f00
+RBP: 0000000000700020 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000070002c
+R13: 0000000020000f00 R14: 00000000004b4a00 R15: 20c49ba5e353f7cf

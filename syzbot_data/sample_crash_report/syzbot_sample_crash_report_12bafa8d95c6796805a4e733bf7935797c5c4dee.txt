@@ -1,0 +1,96 @@
+=====================================================
+BUG: KMSAN: uninit-value in skbprio_enqueue+0xb8f/0x18f0 net/sched/sch_skbprio.c:82
+CPU: 1 PID: 3548 Comm: kworker/1:2 Not tainted 5.6.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: ipv6_addrconf addrconf_dad_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ skbprio_enqueue+0xb8f/0x18f0 net/sched/sch_skbprio.c:82
+ __dev_xmit_skb net/core/dev.c:3710 [inline]
+ __dev_queue_xmit+0x1c00/0x3b20 net/core/dev.c:4021
+ dev_queue_xmit+0x4b/0x60 net/core/dev.c:4085
+ neigh_hh_output include/net/neighbour.h:499 [inline]
+ neigh_output include/net/neighbour.h:508 [inline]
+ ip_finish_output2+0x20fd/0x2610 net/ipv4/ip_output.c:228
+ __ip_finish_output+0xaa7/0xd80 net/ipv4/ip_output.c:306
+ ip_finish_output+0x166/0x410 net/ipv4/ip_output.c:316
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip_output+0x593/0x680 net/ipv4/ip_output.c:430
+ dst_output include/net/dst.h:436 [inline]
+ ip_local_out+0x164/0x1d0 net/ipv4/ip_output.c:125
+ iptunnel_xmit+0x899/0xe00 net/ipv4/ip_tunnel_core.c:81
+ udp_tunnel_xmit_skb+0x52a/0x650 net/ipv4/udp_tunnel.c:192
+ geneve_xmit_skb drivers/net/geneve.c:929 [inline]
+ geneve_xmit+0x28ed/0x2c20 drivers/net/geneve.c:1004
+ __netdev_start_xmit include/linux/netdevice.h:4523 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4537 [inline]
+ xmit_one net/core/dev.c:3477 [inline]
+ dev_hard_start_xmit+0x531/0xab0 net/core/dev.c:3493
+ __dev_queue_xmit+0x2f8d/0x3b20 net/core/dev.c:4052
+ dev_queue_xmit+0x4b/0x60 net/core/dev.c:4085
+ neigh_resolve_output+0xab0/0xb40 net/core/neighbour.c:1487
+ neigh_output include/net/neighbour.h:510 [inline]
+ ip6_finish_output2+0x20fd/0x2640 net/ipv6/ip6_output.c:116
+ __ip6_finish_output+0x824/0x8e0 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x166/0x410 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x60a/0x770 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ndisc_send_skb+0x1047/0x15a0 net/ipv6/ndisc.c:505
+ ndisc_send_ns+0xe38/0xe80 net/ipv6/ndisc.c:647
+ addrconf_dad_work+0xc0b/0x2aa0 net/ipv6/addrconf.c:4126
+ process_one_work+0x1555/0x1f40 kernel/workqueue.c:2266
+ worker_thread+0xef6/0x2450 kernel/workqueue.c:2412
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:353
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:310
+ __msan_chain_origin+0x50/0x90 mm/kmsan/kmsan_instr.c:165
+ skbprio_change+0xba/0xc0 net/sched/sch_skbprio.c:172
+ qdisc_change net/sched/sch_api.c:1321 [inline]
+ tc_modify_qdisc+0x2b80/0x31c0 net/sched/sch_api.c:1623
+ rtnetlink_rcv_msg+0x1153/0x1570 net/core/rtnetlink.c:5436
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2478
+ rtnetlink_rcv+0x50/0x60 net/core/rtnetlink.c:5454
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2345
+ ___sys_sendmsg net/socket.c:2399 [inline]
+ __sys_sendmsg+0x451/0x5f0 net/socket.c:2432
+ __do_sys_sendmsg net/socket.c:2441 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2439
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2439
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_poison_shadow+0x66/0xd0 mm/kmsan/kmsan.c:127
+ kmsan_slab_alloc+0x8a/0xe0 mm/kmsan/kmsan_hooks.c:80
+ slab_alloc_node mm/slub.c:2801 [inline]
+ __kmalloc_node_track_caller+0xb40/0x1200 mm/slub.c:4420
+ __kmalloc_reserve net/core/skbuff.c:142 [inline]
+ __alloc_skb+0x2fd/0xac0 net/core/skbuff.c:210
+ alloc_skb include/linux/skbuff.h:1081 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1175 [inline]
+ netlink_sendmsg+0x7d3/0x14d0 net/netlink/af_netlink.c:1893
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x12b6/0x1350 net/socket.c:2345
+ ___sys_sendmsg net/socket.c:2399 [inline]
+ __sys_sendmsg+0x451/0x5f0 net/socket.c:2432
+ __do_sys_sendmsg net/socket.c:2441 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2439
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2439
+ do_syscall_64+0xb8/0x160 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+=====================================================

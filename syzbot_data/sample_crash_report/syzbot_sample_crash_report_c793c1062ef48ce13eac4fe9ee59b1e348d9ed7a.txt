@@ -1,0 +1,46 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc7-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8303 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+1 lock held by syz-executor.1/8478:
+ #0: 
+ffff8881478c0308
+ (
+&xt[i].mutex
+){+.+.}-{3:3}
+, at: xt_find_table_lock+0x18d/0xae0 net/netfilter/x_tables.c:1226
+
+stack backtrace:
+CPU: 0 PID: 8478 Comm: syz-executor.1 Not tainted 5.13.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8303
+ get_counters+0x32c/0x5c0 net/ipv4/netfilter/ip_tables.c:765
+ do_ipt_get_ctl+0x634/0x9d0 net/ipv4/netfilter/ip_tables.c:805
+ nf_getsockopt+0x72/0xd0 net/netfilter/nf_sockopt.c:116
+ ip_getsockopt net/ipv4/ip_sockglue.c:1777 [inline]
+ ip_getsockopt+0x164/0x1c0 net/ipv4/ip_sockglue.c:1756
+ tcp_getsockopt+0x86/0xd0 net/ipv4/tcp.c:4252
+ __sys_getsockopt+0x21f/0x5f0 net/socket.c:2148
+ __do_sys_getsockopt net/socket.c:2163 [inline]
+ __se_sys_getsockopt net/socket.c:2160 [inline]
+ __x64_sys_getsockopt+0xba/0x150 net/socket.c:2160
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x467bea
+Code: 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 49 89 ca b8 37 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:0000000000a9f678 EFLAGS: 00000202
+ ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000467bea
+RDX: 0000000000000041 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 0000000000a9f6a0 R08: 0000000000a9f69c R09: 0000000000a9f730
+R10: 0000000000a9f700 R11: 0000000000000202 R12: 0000000000a9f700
+R13: 0000000000000003 R14: 0000000000a9f69c R15: 00000000005453c0

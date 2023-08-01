@@ -1,0 +1,132 @@
+==================================================================
+BUG: KASAN: use-after-free in gsm_cleanup_mux+0x78d/0x810 drivers/tty/n_gsm.c:2833
+Read of size 4 at addr ffff888017ce000c by task syz-executor245/5069
+
+CPU: 1 PID: 5069 Comm: syz-executor245 Not tainted 6.2.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x15e/0x45d mm/kasan/report.c:417
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:517
+ gsm_cleanup_mux+0x78d/0x810 drivers/tty/n_gsm.c:2833
+ gsm_config drivers/tty/n_gsm.c:3104 [inline]
+ gsmld_ioctl+0x55a/0x11c0 drivers/tty/n_gsm.c:3471
+ tty_ioctl+0x808/0x1670 drivers/tty/tty_io.c:2784
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0x197/0x210 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f8619c4ec79
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 11 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f8619bdf318 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007f8619cd64d8 RCX: 00007f8619c4ec79
+RDX: 0000000020000040 RSI: 00000000404c4701 RDI: 0000000000000005
+RBP: 00007f8619cd64d0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f8619ca407c
+R13: 00007ffd9aa5100f R14: 00007f8619bdf400 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 5064:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:371 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:330 [inline]
+ __kasan_kmalloc+0xa5/0xb0 mm/kasan/common.c:380
+ kmalloc include/linux/slab.h:580 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ gsm_dlci_alloc+0x46/0x7d0 drivers/tty/n_gsm.c:2399
+ gsm_activate_mux drivers/tty/n_gsm.c:2880 [inline]
+ gsm_config drivers/tty/n_gsm.c:3132 [inline]
+ gsmld_ioctl+0x8e4/0x11c0 drivers/tty/n_gsm.c:3471
+ tty_ioctl+0x808/0x1670 drivers/tty/tty_io.c:2784
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0x197/0x210 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 5064:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2e/0x40 mm/kasan/generic.c:518
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x160/0x1c0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ slab_free_hook mm/slub.c:1781 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1807
+ slab_free mm/slub.c:3787 [inline]
+ __kmem_cache_free+0xaf/0x3b0 mm/slub.c:3800
+ tty_port_destructor drivers/tty/tty_port.c:296 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ tty_port_put+0x15c/0x1c0 drivers/tty/tty_port.c:311
+ dlci_put drivers/tty/n_gsm.c:2462 [inline]
+ gsm_dlci_release drivers/tty/n_gsm.c:2495 [inline]
+ gsm_cleanup_mux+0x2fe/0x810 drivers/tty/n_gsm.c:2854
+ gsm_config drivers/tty/n_gsm.c:3104 [inline]
+ gsmld_ioctl+0x55a/0x11c0 drivers/tty/n_gsm.c:3471
+ tty_ioctl+0x808/0x1670 drivers/tty/tty_io.c:2784
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0x197/0x210 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff888017ce0000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 12 bytes inside of
+ 2048-byte region [ffff888017ce0000, ffff888017ce0800)
+
+The buggy address belongs to the physical page:
+page:ffffea00005f3800 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff888017ce7000 pfn:0x17ce0
+head:ffffea00005f3800 order:3 compound_mapcount:0 subpages_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffff888012442000 ffff888012440948 ffffea00005f5e10
+raw: ffff888017ce7000 0000000000080005 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 1, tgid 1 (swapper/0), ts 1558246129, free_ts 0
+ prep_new_page mm/page_alloc.c:2531 [inline]
+ get_page_from_freelist+0x119c/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5549
+ alloc_page_interleave+0x1e/0x200 mm/mempolicy.c:2119
+ alloc_pages+0x233/0x270 mm/mempolicy.c:2281
+ alloc_slab_page mm/slub.c:1851 [inline]
+ allocate_slab+0x25f/0x350 mm/slub.c:1998
+ new_slab mm/slub.c:2051 [inline]
+ ___slab_alloc+0xa91/0x1400 mm/slub.c:3193
+ __slab_alloc.constprop.0+0x56/0xa0 mm/slub.c:3292
+ __slab_alloc_node mm/slub.c:3345 [inline]
+ slab_alloc_node mm/slub.c:3442 [inline]
+ __kmem_cache_alloc_node+0x1a4/0x430 mm/slub.c:3491
+ kmalloc_trace+0x26/0x60 mm/slab_common.c:1062
+ kmalloc include/linux/slab.h:580 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ acpi_os_allocate_zeroed include/acpi/platform/aclinuxex.h:57 [inline]
+ acpi_ds_create_walk_state+0x8c/0x203 drivers/acpi/acpica/dswstate.c:518
+ acpi_ds_auto_serialize_method+0xf2/0x200 drivers/acpi/acpica/dsmethod.c:81
+ acpi_ds_init_one_object drivers/acpi/acpica/dsinit.c:110 [inline]
+ acpi_ds_init_one_object+0x2a5/0x3c7 drivers/acpi/acpica/dsinit.c:46
+ acpi_ns_walk_namespace+0x250/0x432 drivers/acpi/acpica/nswalk.c:240
+ acpi_ds_initialize_objects+0xe0/0x174 drivers/acpi/acpica/dsinit.c:189
+ acpi_ns_load_table+0x95/0x11a drivers/acpi/acpica/nsload.c:106
+ acpi_tb_load_namespace+0x2ea/0x5bf drivers/acpi/acpica/tbxfload.c:158
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff888017cdff00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888017cdff80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888017ce0000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff888017ce0080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888017ce0100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

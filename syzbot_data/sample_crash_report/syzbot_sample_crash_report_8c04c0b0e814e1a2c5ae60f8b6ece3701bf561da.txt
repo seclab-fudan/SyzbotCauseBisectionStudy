@@ -1,0 +1,144 @@
+audit: type=1400 audit(1544516891.178:42): avc:  denied  { read } for  pid=6541 comm="syz-executor0" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+INFO: task syz-executor0:6586 blocked for more than 140 seconds.
+      Not tainted 4.20.0-rc6+ #151
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor0   D23328  6586   6281 0x00000004
+Call Trace:
+ context_switch kernel/sched/core.c:2831 [inline]
+ __schedule+0x8cf/0x21d0 kernel/sched/core.c:3472
+ schedule+0xfe/0x460 kernel/sched/core.c:3516
+ schedule_preempt_disabled+0x13/0x20 kernel/sched/core.c:3574
+ __mutex_lock_common kernel/locking/mutex.c:1002 [inline]
+ __mutex_lock+0xaff/0x16f0 kernel/locking/mutex.c:1072
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+ genl_lock net/netlink/genetlink.c:33 [inline]
+ ctrl_getfamily+0x313/0x420 net/netlink/genetlink.c:873
+ genl_family_rcv_msg+0x8a7/0x11a0 net/netlink/genetlink.c:601
+ genl_rcv_msg+0xc6/0x168 net/netlink/genetlink.c:626
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2477
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:637
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x411231
+Code: 01 4c 89 54 24 28 e9 6f fa ff ff 49 8b 7c 24 70 8b 35 43 c4 24 00 ff 15 ed 83 24 00 85 c0 0f 85 b3 fe ff ff 49 8b 7c 24 70 be <20> 13 41 00 ff 15 dd 83 24 00 85 c0 0f 85 9b fe ff ff 49 8b 7c 24
+RSP: 002b:00007fedfae5a9c0 EFLAGS: 00000293 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 0000000000411231
+RDX: 0000000000000000 RSI: 00007fedfae5aa00 RDI: 0000000000000008
+RBP: 0000000000000008 R08: 00007fedfae5a9d0 R09: 000000000072bfa0
+R10: 0000000000000000 R11: 0000000000000293 R12: 00007fedfae5aa40
+R13: 00000000004cc498 R14: 00000000004d9968 R15: 00000000ffffffff
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1019:
+ #0: 0000000037177328 (rcu_read_lock){....}, at: debug_show_all_locks+0xd0/0x424 kernel/locking/lockdep.c:4379
+1 lock held by rsyslogd/6114:
+ #0: 00000000c7cdec10 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0x1bb/0x200 fs/file.c:766
+2 locks held by getty/6236:
+ #0: 00000000ee8013ef (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 0000000035b00336 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/6237:
+ #0: 00000000b8177c84 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 000000003a3d1b2b (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/6238:
+ #0: 000000000c22e0c1 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 00000000ab4fd834 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/6239:
+ #0: 000000008e0adb33 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 00000000a9397083 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/6240:
+ #0: 00000000df8ef64e (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 00000000e6608498 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/6241:
+ #0: 000000003c07cf12 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 0000000063f4d993 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by getty/6242:
+ #0: 00000000260a9821 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x32/0x40 drivers/tty/tty_ldsem.c:353
+ #1: 000000004fece6cf (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1e80 drivers/tty/n_tty.c:2154
+2 locks held by syz-executor0/6584:
+2 locks held by syz-executor0/6586:
+ #0: 000000008f85a4a3 (cb_lock){++++}, at: ctrl_getfamily+0x305/0x420 net/netlink/genetlink.c:872
+ #1: 0000000091d95376 (genl_mutex){+.+.}, at: genl_lock net/netlink/genetlink.c:33 [inline]
+ #1: 0000000091d95376 (genl_mutex){+.+.}, at: ctrl_getfamily+0x313/0x420 net/netlink/genetlink.c:873
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1019 Comm: khungtaskd Not tainted 4.20.0-rc6+ #151
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.2+0x5c/0xa1 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x1e8/0x22a lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:205 [inline]
+ watchdog+0xb51/0x1060 kernel/hung_task.c:289
+ kthread+0x35a/0x440 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 6584 Comm: syz-executor0 Not tainted 4.20.0-rc6+ #151
+INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 1.202 msecs
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__lock_acquire+0x9fc/0x4c20 kernel/locking/lockdep.c:3218
+Code: 48 33 0c 25 28 00 00 00 0f 85 3e 2b 00 00 48 8d 65 d8 5b 41 5c 41 5d 41 5e 41 5f 5d c3 48 b8 00 00 00 00 00 fc ff df 4c 89 ea <48> c1 ea 03 80 3c 02 00 0f 85 aa 2c 00 00 49 81 7d 00 a0 52 54 8a
+RSP: 0018:ffff8881bc7c6400 EFLAGS: 00000002
+RAX: dffffc0000000000 RBX: 0000000000000001 RCX: 0000000000000002
+RDX: ffffffff8959bf40 RSI: 0000000000000000 RDI: ffffffff8959bf40
+RBP: ffff8881bc7c6790 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000001 R11: ffff8881bc4be640 R12: ffff8881bc4be640
+R13: ffffffff8959bf40 R14: 0000000000000000 R15: 0000000000000000
+FS:  00007fedfae7c700(0000) GS:ffff8881daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffff600400 CR3: 00000001bff64000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+ rcu_lock_acquire include/linux/rcupdate.h:223 [inline]
+ rcu_read_lock include/linux/rcupdate.h:607 [inline]
+ rhashtable_lookup_fast include/linux/rhashtable.h:541 [inline]
+ tipc_sk_lookup+0x33a/0xff0 net/tipc/socket.c:2746
+ tipc_nl_publ_dump+0x22d/0xf93 net/tipc/socket.c:3550
+ __tipc_nl_compat_dumpit.isra.11+0x25d/0xb60 net/tipc/netlink_compat.c:196
+ tipc_nl_compat_publ_dump net/tipc/netlink_compat.c:925 [inline]
+ tipc_nl_compat_sk_dump+0x88e/0xc50 net/tipc/netlink_compat.c:973
+ __tipc_nl_compat_dumpit.isra.11+0x389/0xb60 net/tipc/netlink_compat.c:205
+ tipc_nl_compat_dumpit+0x1f4/0x440 net/tipc/netlink_compat.c:270
+ tipc_nl_compat_handle net/tipc/netlink_compat.c:1147 [inline]
+ tipc_nl_compat_recv+0x12b3/0x19a0 net/tipc/netlink_compat.c:1210
+ genl_family_rcv_msg+0x8a7/0x11a0 net/netlink/genetlink.c:601
+ genl_rcv_msg+0xc6/0x168 net/netlink/genetlink.c:626
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2477
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:637
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457659
+Code: fd b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fedfae7bc78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457659
+RDX: 0000000000000000 RSI: 0000000020000180 RDI: 0000000000000005
+RBP: 000000000072bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fedfae7c6d4
+R13: 00000000004c4171 R14: 00000000004d7058 R15: 00000000ffffffff

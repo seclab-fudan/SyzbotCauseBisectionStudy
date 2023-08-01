@@ -1,0 +1,83 @@
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_write include/linux/instrumented.h:71 [inline]
+BUG: KASAN: use-after-free in atomic_set include/asm-generic/atomic-instrumented.h:45 [inline]
+BUG: KASAN: use-after-free in refcount_set include/linux/refcount.h:136 [inline]
+BUG: KASAN: use-after-free in refcount_warn_saturate+0x19/0x1e0 lib/refcount.c:15
+Write of size 4 at addr ffff88809bf70018 by task kworker/1:1/23
+
+CPU: 1 PID: 23 Comm: kworker/1:1 Not tainted 5.8.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events do_enable_set
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xae/0x436 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ check_memory_region_inline mm/kasan/generic.c:186 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:192
+ instrument_atomic_write include/linux/instrumented.h:71 [inline]
+ atomic_set include/asm-generic/atomic-instrumented.h:45 [inline]
+ refcount_set include/linux/refcount.h:136 [inline]
+ refcount_warn_saturate+0x19/0x1e0 lib/refcount.c:15
+ refcount_sub_and_test include/linux/refcount.h:274 [inline]
+ refcount_dec_and_test include/linux/refcount.h:294 [inline]
+ kref_put include/linux/kref.h:64 [inline]
+ l2cap_chan_put+0x1d3/0x230 net/bluetooth/l2cap_core.c:502
+ do_enable_set+0x4f9/0x980 net/bluetooth/6lowpan.c:1083
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+Allocated by task 23:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc.constprop.0+0xc2/0xd0 mm/kasan/common.c:494
+ kmem_cache_alloc_trace+0x14f/0x2d0 mm/slab.c:3551
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ l2cap_chan_create+0x40/0x3a0 net/bluetooth/l2cap_core.c:450
+ chan_create net/bluetooth/6lowpan.c:648 [inline]
+ bt_6lowpan_listen net/bluetooth/6lowpan.c:967 [inline]
+ do_enable_set+0x52f/0x980 net/bluetooth/6lowpan.c:1086
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+Freed by task 2529:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ kasan_set_free_info mm/kasan/common.c:316 [inline]
+ __kasan_slab_free+0xf5/0x140 mm/kasan/common.c:455
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x103/0x2c0 mm/slab.c:3757
+ l2cap_chan_destroy net/bluetooth/l2cap_core.c:488 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ l2cap_chan_put+0x1b2/0x230 net/bluetooth/l2cap_core.c:502
+ do_enable_set+0x4f9/0x980 net/bluetooth/6lowpan.c:1083
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+The buggy address belongs to the object at ffff88809bf70000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 24 bytes inside of
+ 2048-byte region [ffff88809bf70000, ffff88809bf70800)
+The buggy address belongs to the page:
+page:ffffea00026fdc00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea00028f9148 ffffea0002440388 ffff8880aa000e00
+raw: 0000000000000000 ffff88809bf70000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809bf6ff00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88809bf6ff80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88809bf70000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff88809bf70080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88809bf70100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,53 @@
+==================================================================
+BUG: KCSAN: data-race in snd_seq_check_queue / snd_seq_control_queue
+
+write to 0xffff8880a32a0964 of 1 bytes by task 2299 on cpu 0:
+ queue_access_unlock sound/core/seq/seq_queue.c:367 [inline]
+ snd_seq_control_queue+0x15a/0x320 sound/core/seq/seq_queue.c:726
+ event_input_timer+0x29/0x40 sound/core/seq/seq_system.c:103
+ snd_seq_deliver_single_event.constprop.0+0x403/0x500 sound/core/seq/seq_clientmgr.c:638
+ snd_seq_deliver_event+0x2eb/0x4b0 sound/core/seq/seq_clientmgr.c:839
+ snd_seq_dispatch_event+0x9d/0x300 sound/core/seq/seq_clientmgr.c:913
+ snd_seq_check_queue+0xf3/0x210 sound/core/seq/seq_queue.c:262
+ snd_seq_enqueue_event+0x15a/0x2a0 sound/core/seq/seq_queue.c:330
+ snd_seq_client_enqueue_event.constprop.0+0x187/0x2a0 sound/core/seq/seq_clientmgr.c:974
+ snd_seq_write+0x227/0x4e0 sound/core/seq/seq_clientmgr.c:1093
+ __vfs_write+0x58/0xb0 fs/read_write.c:494
+ vfs_write fs/read_write.c:558 [inline]
+ vfs_write+0x189/0x380 fs/read_write.c:542
+ ksys_write+0x16a/0x1a0 fs/read_write.c:611
+ __do_sys_write fs/read_write.c:623 [inline]
+ __se_sys_write fs/read_write.c:620 [inline]
+ __x64_sys_write+0x49/0x60 fs/read_write.c:620
+ do_syscall_64+0xc7/0x390 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffff8880a32a0964 of 1 bytes by interrupt on cpu 1:
+ snd_seq_check_queue+0x59/0x210 sound/core/seq/seq_queue.c:247
+ snd_seq_timer_interrupt+0x222/0x260 sound/core/seq/seq_timer.c:158
+ snd_timer_process_callbacks+0x1eb/0x230 sound/core/timer.c:796
+ snd_timer_interrupt sound/core/timer.c:919 [inline]
+ snd_timer_interrupt+0x488/0x950 sound/core/timer.c:840
+ snd_hrtimer_callback+0x188/0x250 sound/core/hrtimer.c:50
+ __run_hrtimer kernel/time/hrtimer.c:1517 [inline]
+ __hrtimer_run_queues+0x271/0x600 kernel/time/hrtimer.c:1579
+ hrtimer_interrupt+0x226/0x490 kernel/time/hrtimer.c:1641
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1119 [inline]
+ smp_apic_timer_interrupt+0xd8/0x270 arch/x86/kernel/apic/apic.c:1144
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ inet_csk_find_open_port net/ipv4/inet_connection_sock.c:220 [inline]
+ inet_csk_get_port+0x745/0x12d0 net/ipv4/inet_connection_sock.c:300
+ __inet_bind+0x372/0x680 net/ipv4/af_inet.c:524
+ inet_bind+0xc0/0x100 net/ipv4/af_inet.c:453
+ rds_tcp_conn_path_connect+0x21a/0x5d0 net/rds/tcp_connect.c:144
+ rds_connect_worker+0x10b/0x1a0 net/rds/threads.c:176
+ process_one_work+0x424/0x930 kernel/workqueue.c:2264
+ worker_thread+0x9a/0x7e0 kernel/workqueue.c:2410
+ kthread+0x1cb/0x1f0 kernel/kthread.c:255
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 8616 Comm: kworker/u4:6 Not tainted 5.6.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: krdsd rds_connect_worker
+==================================================================

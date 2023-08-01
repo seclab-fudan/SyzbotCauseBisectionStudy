@@ -1,0 +1,31 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc1-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+1 lock held by kswapd1/2180:
+ #0: ffffffff8c0944a0 (fs_reclaim){+.+.}-{0:0}, at: __fs_reclaim_acquire+0x0/0x30 mm/page_alloc.c:5396
+
+stack backtrace:
+CPU: 1 PID: 2180 Comm: kswapd1 Not tainted 5.13.0-rc1-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ shrink_page_list+0x171/0x6060 mm/vmscan.c:1288
+ shrink_inactive_list+0x347/0xca0 mm/vmscan.c:2145
+ shrink_list mm/vmscan.c:2367 [inline]
+ shrink_lruvec+0x7f9/0x14f0 mm/vmscan.c:2662
+ shrink_node_memcgs mm/vmscan.c:2850 [inline]
+ shrink_node+0x868/0x1de0 mm/vmscan.c:2967
+ kswapd_shrink_node mm/vmscan.c:3710 [inline]
+ balance_pgdat+0x745/0x1270 mm/vmscan.c:3868
+ kswapd+0x5b6/0xdb0 mm/vmscan.c:4125
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294

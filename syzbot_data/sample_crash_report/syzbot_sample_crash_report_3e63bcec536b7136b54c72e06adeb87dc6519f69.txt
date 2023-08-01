@@ -1,0 +1,53 @@
+netlink: 12 bytes leftover after parsing attributes in process `syz-executor391'.
+=====================================================
+BUG: KMSAN: uninit-value in strlen lib/string.c:418 [inline]
+BUG: KMSAN: uninit-value in strstr+0xb4/0x2e0 lib/string.c:758
+ strlen lib/string.c:418 [inline]
+ strstr+0xb4/0x2e0 lib/string.c:758
+ tipc_nl_node_reset_link_stats+0x41e/0xba0 net/tipc/node.c:2595
+ genl_family_rcv_msg_doit net/netlink/genetlink.c:968 [inline]
+ genl_family_rcv_msg net/netlink/genetlink.c:1048 [inline]
+ genl_rcv_msg+0x1447/0x14e0 net/netlink/genetlink.c:1065
+ netlink_rcv_skb+0x3f1/0x750 net/netlink/af_netlink.c:2564
+ genl_rcv+0x3c/0x50 net/netlink/genetlink.c:1076
+ netlink_unicast_kernel net/netlink/af_netlink.c:1330 [inline]
+ netlink_unicast+0xf3b/0x1270 net/netlink/af_netlink.c:1356
+ netlink_sendmsg+0x127d/0x1430 net/netlink/af_netlink.c:1932
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0xa8e/0xe70 net/socket.c:2476
+ ___sys_sendmsg+0x2a1/0x3f0 net/socket.c:2530
+ __sys_sendmsg net/socket.c:2559 [inline]
+ __do_sys_sendmsg net/socket.c:2568 [inline]
+ __se_sys_sendmsg net/socket.c:2566 [inline]
+ __x64_sys_sendmsg+0x367/0x540 net/socket.c:2566
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:766 [inline]
+ slab_alloc_node mm/slub.c:3452 [inline]
+ __kmem_cache_alloc_node+0x71f/0xce0 mm/slub.c:3491
+ __do_kmalloc_node mm/slab_common.c:967 [inline]
+ __kmalloc_node_track_caller+0x114/0x3b0 mm/slab_common.c:988
+ kmalloc_reserve net/core/skbuff.c:492 [inline]
+ __alloc_skb+0x3af/0x8f0 net/core/skbuff.c:565
+ alloc_skb include/linux/skbuff.h:1270 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1202 [inline]
+ netlink_sendmsg+0xb66/0x1430 net/netlink/af_netlink.c:1907
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0xa8e/0xe70 net/socket.c:2476
+ ___sys_sendmsg+0x2a1/0x3f0 net/socket.c:2530
+ __sys_sendmsg net/socket.c:2559 [inline]
+ __do_sys_sendmsg net/socket.c:2568 [inline]
+ __se_sys_sendmsg net/socket.c:2566 [inline]
+ __x64_sys_sendmsg+0x367/0x540 net/socket.c:2566
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+CPU: 0 PID: 5025 Comm: syz-executor391 Not tainted 6.2.0-rc5-syzkaller-80200-g41c66f470616 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+=====================================================

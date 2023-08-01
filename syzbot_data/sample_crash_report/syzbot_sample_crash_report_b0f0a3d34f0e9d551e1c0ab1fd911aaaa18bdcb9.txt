@@ -1,0 +1,98 @@
+RDX: 00000000202e4000 RSI: 0000000000000000 RDI: 0000000020496fc8
+RBP: 0000000000000002 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+==================================================================
+BUG: KASAN: use-after-free in mpi_free+0x117/0x150 lib/mpi/mpiutil.c:114
+Read of size 4 at addr ffff8801cfc07bd0 by task syzkaller079790/3035
+
+CPU: 1 PID: 3035 Comm: syzkaller079790 Not tainted 4.14.0-rc8+ #79
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ mpi_free+0x117/0x150 lib/mpi/mpiutil.c:114
+ dh_clear_params crypto/dh.c:26 [inline]
+ dh_free_ctx crypto/dh.c:34 [inline]
+ dh_exit_tfm+0x3d/0x140 crypto/dh.c:161
+ crypto_kpp_exit_tfm+0x52/0x70 crypto/kpp.c:63
+ crypto_exit_ops crypto/api.c:314 [inline]
+ crypto_destroy_tfm+0xb9/0x2e0 crypto/api.c:578
+ crypto_free_kpp include/crypto/kpp.h:165 [inline]
+ __keyctl_dh_compute+0xffa/0x1970 security/keys/dh.c:412
+ compat_keyctl_dh_compute+0x2bb/0x3e0 security/keys/compat_dh.c:39
+ C_SYSC_keyctl security/keys/compat.c:136 [inline]
+ compat_SyS_keyctl+0x72/0x2c0 security/keys/compat.c:59
+ do_syscall_32_irqs_on arch/x86/entry/common.c:329 [inline]
+ do_fast_syscall_32+0x3f2/0xf05 arch/x86/entry/common.c:391
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:125
+RIP: 0023:0xf7f2dc79
+RSP: 002b:00000000ff975d5c EFLAGS: 00000292 ORIG_RAX: 0000000000000120
+RAX: ffffffffffffffda RBX: 0000000000000017 RCX: 000000002046cff4
+RDX: 00000000202e4000 RSI: 0000000000000000 RDI: 0000000020496fc8
+RBP: 0000000000000002 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3035:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3628
+ kmalloc include/linux/slab.h:494 [inline]
+ mpi_alloc+0x4b/0x230 lib/mpi/mpiutil.c:34
+ mpi_read_raw_data+0x1e5/0x440 lib/mpi/mpicoder.c:57
+ dh_set_params crypto/dh.c:69 [inline]
+ dh_set_secret+0x257/0x600 crypto/dh.c:94
+ crypto_kpp_set_secret include/crypto/kpp.h:291 [inline]
+ __keyctl_dh_compute+0x99b/0x1970 security/keys/dh.c:333
+ compat_keyctl_dh_compute+0x2bb/0x3e0 security/keys/compat_dh.c:39
+ C_SYSC_keyctl security/keys/compat.c:136 [inline]
+ compat_SyS_keyctl+0x72/0x2c0 security/keys/compat.c:59
+ do_syscall_32_irqs_on arch/x86/entry/common.c:329 [inline]
+ do_fast_syscall_32+0x3f2/0xf05 arch/x86/entry/common.c:391
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:125
+
+Freed by task 3035:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3504 [inline]
+ kfree+0xca/0x250 mm/slab.c:3821
+ mpi_free+0xcb/0x150 lib/mpi/mpiutil.c:121
+ dh_set_params crypto/dh.c:75 [inline]
+ dh_set_secret+0x3e5/0x600 crypto/dh.c:94
+ crypto_kpp_set_secret include/crypto/kpp.h:291 [inline]
+ __keyctl_dh_compute+0x99b/0x1970 security/keys/dh.c:333
+ compat_keyctl_dh_compute+0x2bb/0x3e0 security/keys/compat_dh.c:39
+ C_SYSC_keyctl security/keys/compat.c:136 [inline]
+ compat_SyS_keyctl+0x72/0x2c0 security/keys/compat.c:59
+ do_syscall_32_irqs_on arch/x86/entry/common.c:329 [inline]
+ do_fast_syscall_32+0x3f2/0xf05 arch/x86/entry/common.c:391
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:125
+
+The buggy address belongs to the object at ffff8801cfc07bc0
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 16 bytes inside of
+ 32-byte region [ffff8801cfc07bc0, ffff8801cfc07be0)
+The buggy address belongs to the page:
+page:ffffea00073f01c0 count:1 mapcount:0 mapping:ffff8801cfc07000 index:0xffff8801cfc07fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801cfc07000 ffff8801cfc07fc1 000000010000003f
+raw: ffffea00073fbc60 ffffea00074549e0 ffff8801dac001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cfc07a80: 00 00 00 fc fc fc fc fc 05 fc fc fc fc fc fc fc
+ ffff8801cfc07b00: 04 fc fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801cfc07b80: 04 fc fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+                                                 ^
+ ffff8801cfc07c00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801cfc07c80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

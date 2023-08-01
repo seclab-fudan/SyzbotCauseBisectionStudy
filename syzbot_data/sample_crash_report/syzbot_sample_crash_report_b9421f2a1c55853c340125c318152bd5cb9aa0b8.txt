@@ -1,0 +1,59 @@
+R13: 0000000000000004 R14: 0000000000000000 R15: 0000000000000000
+kasan: CONFIG_KASAN_INLINE enabled
+Bluetooth: Invalid header checksum
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+Bluetooth: Can't allocate HCI device
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.0.0-rc8 #87
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events hci_uart_write_work
+RIP: 0010:hci_uart_write_work+0x1b6/0x710 drivers/bluetooth/hci_ldisc.c:180
+Code: 0f 85 6a 04 00 00 49 8b b4 24 c8 00 00 00 4c 89 ef e8 de 57 53 02 89 c6 48 8b 45 d0 48 8d b8 5c 10 00 00 48 89 f8 48 c1 e8 03 <0f> b6 14 18 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 1d
+RSP: 0018:ffff8880aa287cb0 EFLAGS: 00010203
+RAX: 000000000000020b RBX: dffffc0000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: 000000000000105c
+RBP: ffff8880aa287d30 R08: ffff8880aa272300 R09: ffff8880aa272bc8
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8880948e0000
+R13: ffff88808f889480 R14: ffff88808f12d068 R15: ffff8880948e0070
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000004a2368 CR3: 000000008d627000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ process_one_work+0x98e/0x1790 kernel/workqueue.c:2173
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2319
+ kthread+0x357/0x430 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Modules linked in:
+---[ end trace adfcc63cbdcbd549 ]---
+RIP: 0010:hci_uart_write_work+0x1b6/0x710 drivers/bluetooth/hci_ldisc.c:180
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+Code: 0f 85 6a 04 00 00 49 8b b4 24 c8 00 00 00 4c 89 ef e8 de 57 53 02 89 c6 48 8b 45 d0 48 8d b8 5c 10 00 00 48 89 f8 48 c1 e8 03 <0f> b6 14 18 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 1d
+RSP: 0018:ffff8880aa287cb0 EFLAGS: 00010203
+RAX: 000000000000020b RBX: dffffc0000000000 RCX: 0000000000000000
+CPU: 1 PID: 7598 Comm: syz-executor881 Tainted: G      D           5.0.0-rc8 #87
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: 000000000000105c
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RBP: ffff8880aa287d30 R08: ffff8880aa272300 R09: ffff8880aa272bc8
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail.cold+0xa/0x1b lib/fault-inject.c:149
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8880948e0000
+R13: ffff88808f889480 R14: ffff88808f12d068 R15: ffff8880948e0070
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+ __should_failslab+0x121/0x190 mm/failslab.c:32
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ should_failslab+0x9/0x14 mm/slab_common.c:1604
+CR2: 00000000004a2368 CR3: 0000000008871000 CR4: 00000000001406f0
+ slab_pre_alloc_hook mm/slab.h:423 [inline]
+ slab_alloc mm/slab.c:3374 [inline]
+ kmem_cache_alloc_trace+0x2d1/0x760 mm/slab.c:3613
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+ kmalloc include/linux/slab.h:545 [inline]
+ kzalloc include/linux/slab.h:740 [inline]
+ hci_alloc_dev+0x43/0x1d00 net/bluetooth/hci_core.c:3116

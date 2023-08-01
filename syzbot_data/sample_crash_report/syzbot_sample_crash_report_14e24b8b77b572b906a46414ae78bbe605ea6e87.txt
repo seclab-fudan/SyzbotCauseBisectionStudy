@@ -1,0 +1,76 @@
+=====================================================
+BUG: KMSAN: uninit-value in __nlmsg_parse include/net/netlink.h:713 [inline]
+BUG: KMSAN: uninit-value in nlmsg_parse_deprecated include/net/netlink.h:758 [inline]
+BUG: KMSAN: uninit-value in __tipc_nl_compat_dumpit+0x583/0x1290 net/tipc/netlink_compat.c:215
+CPU: 0 PID: 8470 Comm: syz-executor805 Not tainted 5.8.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1df/0x240 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:121
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ __nlmsg_parse include/net/netlink.h:713 [inline]
+ nlmsg_parse_deprecated include/net/netlink.h:758 [inline]
+ __tipc_nl_compat_dumpit+0x583/0x1290 net/tipc/netlink_compat.c:215
+ tipc_nl_compat_dumpit+0x761/0x910 net/tipc/netlink_compat.c:308
+ tipc_nl_compat_handle net/tipc/netlink_compat.c:1272 [inline]
+ tipc_nl_compat_recv+0x1382/0x2940 net/tipc/netlink_compat.c:1311
+ genl_family_rcv_msg_doit net/netlink/genetlink.c:669 [inline]
+ genl_family_rcv_msg net/netlink/genetlink.c:714 [inline]
+ genl_rcv_msg+0x1592/0x1740 net/netlink/genetlink.c:731
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2469
+ genl_rcv+0x63/0x80 net/netlink/genetlink.c:742
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x1370/0x1400 net/socket.c:2352
+ ___sys_sendmsg net/socket.c:2406 [inline]
+ __sys_sendmsg+0x623/0x750 net/socket.c:2439
+ __do_sys_sendmsg net/socket.c:2448 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2446
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2446
+ do_syscall_64+0xb0/0x150 arch/x86/entry/common.c:386
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x444249
+Code: Bad RIP value.
+RSP: 002b:00007ffdbf8a0e08 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000444249
+RDX: 0000000000000804 RSI: 00000000200000c0 RDI: 0000000000000003
+RBP: 00000000006ce018 R08: 0000000000000000 R09: 00000000004002e0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401e70
+R13: 0000000000401f00 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:144 [inline]
+ kmsan_internal_poison_shadow+0x66/0xd0 mm/kmsan/kmsan.c:127
+ kmsan_slab_alloc+0x8a/0xe0 mm/kmsan/kmsan_hooks.c:80
+ slab_alloc_node mm/slub.c:2839 [inline]
+ __kmalloc_node_track_caller+0xb40/0x1200 mm/slub.c:4478
+ __kmalloc_reserve net/core/skbuff.c:142 [inline]
+ __alloc_skb+0x2fd/0xac0 net/core/skbuff.c:210
+ alloc_skb include/linux/skbuff.h:1083 [inline]
+ nlmsg_new include/net/netlink.h:940 [inline]
+ tipc_nl_compat_dumpit+0x6e4/0x910 net/tipc/netlink_compat.c:301
+ tipc_nl_compat_handle net/tipc/netlink_compat.c:1272 [inline]
+ tipc_nl_compat_recv+0x1382/0x2940 net/tipc/netlink_compat.c:1311
+ genl_family_rcv_msg_doit net/netlink/genetlink.c:669 [inline]
+ genl_family_rcv_msg net/netlink/genetlink.c:714 [inline]
+ genl_rcv_msg+0x1592/0x1740 net/netlink/genetlink.c:731
+ netlink_rcv_skb+0x451/0x650 net/netlink/af_netlink.c:2469
+ genl_rcv+0x63/0x80 net/netlink/genetlink.c:742
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0xf9e/0x1100 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x1246/0x14d0 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x1370/0x1400 net/socket.c:2352
+ ___sys_sendmsg net/socket.c:2406 [inline]
+ __sys_sendmsg+0x623/0x750 net/socket.c:2439
+ __do_sys_sendmsg net/socket.c:2448 [inline]
+ __se_sys_sendmsg+0x97/0xb0 net/socket.c:2446
+ __x64_sys_sendmsg+0x4a/0x70 net/socket.c:2446
+ do_syscall_64+0xb0/0x150 arch/x86/entry/common.c:386
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+=====================================================

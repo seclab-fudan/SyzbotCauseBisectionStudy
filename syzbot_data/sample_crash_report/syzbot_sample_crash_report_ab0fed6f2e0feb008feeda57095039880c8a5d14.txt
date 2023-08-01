@@ -1,0 +1,59 @@
+can: request_module (can-proto-0) failed.
+can: request_module (can-proto-0) failed.
+can: request_module (can-proto-0) failed.
+------------[ cut here ]------------
+refcount_t: decrement hit 0; leaking memory.
+WARNING: CPU: 0 PID: 3610 at lib/refcount.c:31 refcount_warn_saturate+0xbf/0x1e0 lib/refcount.c:31
+Modules linked in:
+CPU: 0 PID: 3610 Comm: syz-fuzzer Not tainted 5.16.0-rc5-next-20211214-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:refcount_warn_saturate+0xbf/0x1e0 lib/refcount.c:31
+Code: 1d 06 e6 95 09 31 ff 89 de e8 4d f8 8f fd 84 db 75 e0 e8 64 f4 8f fd 48 c7 c7 a0 4d 05 8a c6 05 e6 e5 95 09 01 e8 26 ac 28 05 <0f> 0b eb c4 e8 48 f4 8f fd 0f b6 1d d5 e5 95 09 31 ff 89 de e8 18
+RSP: 0018:ffffc900020afab8 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff88807568ba80 RSI: ffffffff815f4648 RDI: fffff52000415f49
+RBP: 0000000000000004 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff815ee3ae R11: 0000000000000000 R12: 1ffff92000415f5c
+R13: 00000000ffffffef R14: ffffffff8d309554 R15: ffffc900020afd10
+FS:  000000c0001d7890(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f04b4072300 CR3: 00000000220c3000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __refcount_dec include/linux/refcount.h:344 [inline]
+ refcount_dec include/linux/refcount.h:359 [inline]
+ ref_tracker_free+0x4fe/0x610 lib/ref_tracker.c:101
+ netns_tracker_free include/net/net_namespace.h:327 [inline]
+ put_net_track include/net/net_namespace.h:341 [inline]
+ __sk_destruct+0x3cd/0x710 net/core/sock.c:2042
+ sk_destruct+0xbd/0xe0 net/core/sock.c:2058
+ __sk_free+0xef/0x3d0 net/core/sock.c:2069
+ sk_free+0x78/0xa0 net/core/sock.c:2080
+ sock_put include/net/sock.h:1911 [inline]
+ __mptcp_close_ssk+0x435/0x590 net/mptcp/protocol.c:2276
+ __mptcp_destroy_sock+0x35f/0x830 net/mptcp/protocol.c:2702
+ mptcp_close+0x5f8/0x7f0 net/mptcp/protocol.c:2750
+ inet_release+0x12e/0x280 net/ipv4/af_inet.c:428
+ inet6_release+0x4c/0x70 net/ipv6/af_inet6.c:476
+ __sock_release+0xcd/0x280 net/socket.c:649
+ sock_close+0x18/0x20 net/socket.c:1314
+ __fput+0x286/0x9f0 fs/file_table.c:311
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:175 [inline]
+ exit_to_user_mode_prepare+0x27e/0x290 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:300
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4b12db
+Code: fb ff eb bd e8 46 96 fb ff e9 61 ff ff ff cc e8 fb 61 fb ff 48 8b 7c 24 10 48 8b 74 24 18 48 8b 54 24 20 48 8b 44 24 08 0f 05 <48> 3d 01 f0 ff ff 76 20 48 c7 44 24 28 ff ff ff ff 48 c7 44 24 30
+RSP: 002b:000000c0002c14f0 EFLAGS: 00000206 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 000000c000020800 RCX: 00000000004b12db
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000006
+RBP: 000000c0002c1530 R08: 0000000000f0ae01 R09: 00007ffcb73eb080
+R10: 00007ffcb73eb090 R11: 0000000000000206 R12: 0000000000000080
+R13: 0000000000000000 R14: ffffffffffffffff R15: 000000c00030c000
+ </TASK>

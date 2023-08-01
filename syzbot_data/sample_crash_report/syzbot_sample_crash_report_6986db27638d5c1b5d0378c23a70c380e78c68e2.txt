@@ -1,0 +1,38 @@
+Bluetooth: hci4: sending frame failed (-49)
+=====================================================
+BUG: KMSAN: use-after-free in __skb_unlink include/linux/skbuff.h:2010 [inline]
+BUG: KMSAN: use-after-free in __skb_dequeue include/linux/skbuff.h:2025 [inline]
+BUG: KMSAN: use-after-free in skb_dequeue+0x301/0x330 net/core/skbuff.c:3040
+CPU: 0 PID: 12460 Comm: kworker/u5:7 Not tainted 5.4.0-rc2+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: hci5 hci_cmd_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x191/0x1f0 lib/dump_stack.c:113
+ kmsan_report+0x14e/0x2c0 mm/kmsan/kmsan_report.c:110
+ __msan_warning+0x73/0xe0 mm/kmsan/kmsan_instr.c:245
+ __skb_unlink include/linux/skbuff.h:2010 [inline]
+ __skb_dequeue include/linux/skbuff.h:2025 [inline]
+ skb_dequeue+0x301/0x330 net/core/skbuff.c:3040
+ hci_cmd_work+0x8a/0x4f0 net/bluetooth/hci_core.c:4492
+ process_one_work+0x1572/0x1ef0 kernel/workqueue.c:2269
+ worker_thread+0x111b/0x2460 kernel/workqueue.c:2415
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:355
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:154 [inline]
+ kmsan_internal_poison_shadow+0x60/0x120 mm/kmsan/kmsan.c:137
+ kmsan_slab_free+0x8d/0x100 mm/kmsan/kmsan_hooks.c:123
+ slab_free_freelist_hook mm/slub.c:1473 [inline]
+ slab_free mm/slub.c:3040 [inline]
+ kmem_cache_free+0x2d1/0x2b70 mm/slub.c:3056
+ kfree_skbmem net/core/skbuff.c:644 [inline]
+ __kfree_skb net/core/skbuff.c:680 [inline]
+ kfree_skb+0x473/0x4c0 net/core/skbuff.c:697
+ hci_cmd_work+0xfd/0x4f0 net/bluetooth/hci_core.c:4496
+ process_one_work+0x1572/0x1ef0 kernel/workqueue.c:2269
+ worker_thread+0x111b/0x2460 kernel/workqueue.c:2415
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:355
+=====================================================

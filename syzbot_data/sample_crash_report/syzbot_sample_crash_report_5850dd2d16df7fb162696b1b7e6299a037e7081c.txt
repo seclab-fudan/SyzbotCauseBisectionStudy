@@ -1,0 +1,42 @@
+=============================
+WARNING: suspicious RCU usage
+5.14.0-rc1-syzkaller #0 Not tainted
+-----------------------------
+include/linux/cgroup.h:481 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+no locks held by syz-executor046/8490.
+
+stack backtrace:
+CPU: 1 PID: 8490 Comm: syz-executor046 Not tainted 5.14.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ task_css_set include/linux/cgroup.h:481 [inline]
+ task_dfl_cgroup include/linux/cgroup.h:550 [inline]
+ ____bpf_get_current_cgroup_id kernel/bpf/helpers.c:356 [inline]
+ bpf_get_current_cgroup_id+0x1ce/0x210 kernel/bpf/helpers.c:354
+ bpf_prog_08c4887f705f20b8+0x10/0xee4
+ bpf_dispatcher_nop_func include/linux/bpf.h:687 [inline]
+ bpf_prog_run_pin_on_cpu include/linux/filter.h:624 [inline]
+ bpf_prog_test_run_syscall+0x2cf/0x5f0 net/bpf/test_run.c:954
+ bpf_prog_test_run kernel/bpf/syscall.c:3207 [inline]
+ __sys_bpf+0x1993/0x53b0 kernel/bpf/syscall.c:4487
+ __do_sys_bpf kernel/bpf/syscall.c:4573 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:4571 [inline]
+ __x64_sys_bpf+0x75/0xb0 kernel/bpf/syscall.c:4571
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x441c39
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 a1 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe8a7f5878 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000441c39
+RDX: 0000000000000048 RSI: 0000000020000500 RDI: 000000000000000a
+RBP: 0000000000000000 R08: 00007ffe8a7f58a7 R09: 00007ffe8a7f58a7
+R10: 00007ffe8a7f52f0 R11: 0000000000000246 R12: 00007ffe8a7f58ac
+R13: 00007ffe8a7f58a8 R14: 00007ffe8a7f58f0 R15: 00007ffe8a7f58e0

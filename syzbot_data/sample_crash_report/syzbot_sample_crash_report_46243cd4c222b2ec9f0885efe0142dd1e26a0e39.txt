@@ -1,0 +1,73 @@
+============================================
+WARNING: possible recursive locking detected
+5.17.0-rc2-syzkaller-00039-g9f7fb8de5d9b #0 Not tainted
+--------------------------------------------
+kworker/0:1/7 is trying to acquire lock:
+ffffffff8d4dd130 (&tbl->lock){+.-.}-{2:2}, at: ___neigh_create+0x9e1/0x2990 net/core/neighbour.c:652
+
+but task is already holding lock:
+ffffffff8d4dd130 (&tbl->lock){+.-.}-{2:2}, at: neigh_managed_work+0x35/0x250 net/core/neighbour.c:1572
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&tbl->lock);
+  lock(&tbl->lock);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+5 locks held by kworker/0:1/7:
+ #0: ffff888010c65d38 ((wq_completion)events_power_efficient){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888010c65d38 ((wq_completion)events_power_efficient){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888010c65d38 ((wq_completion)events_power_efficient){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888010c65d38 ((wq_completion)events_power_efficient){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:631 [inline]
+ #0: ffff888010c65d38 ((wq_completion)events_power_efficient){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:658 [inline]
+ #0: ffff888010c65d38 ((wq_completion)events_power_efficient){+.+.}-{0:0}, at: process_one_work+0x890/0x1650 kernel/workqueue.c:2278
+ #1: ffffc90000cc7db8 ((work_completion)(&(&tbl->managed_work)->work)){+.+.}-{0:0}, at: process_one_work+0x8c4/0x1650 kernel/workqueue.c:2282
+ #2: ffffffff8d4dd130 (&tbl->lock){+.-.}-{2:2}, at: neigh_managed_work+0x35/0x250 net/core/neighbour.c:1572
+ #3: ffffffff8bb83c20 (rcu_read_lock){....}-{1:2}, at: ip6_nd_hdr net/ipv6/ndisc.c:466 [inline]
+ #3: ffffffff8bb83c20 (rcu_read_lock){....}-{1:2}, at: ndisc_send_skb+0x84b/0x17f0 net/ipv6/ndisc.c:502
+ #4: ffffffff8bb83bc0 (rcu_read_lock_bh){....}-{1:2}, at: lwtunnel_xmit_redirect include/net/lwtunnel.h:95 [inline]
+ #4: ffffffff8bb83bc0 (rcu_read_lock_bh){....}-{1:2}, at: ip6_finish_output2+0x2ad/0x14f0 net/ipv6/ip6_output.c:112
+
+stack backtrace:
+CPU: 0 PID: 7 Comm: kworker/0:1 Not tainted 5.17.0-rc2-syzkaller-00039-g9f7fb8de5d9b #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_power_efficient neigh_managed_work
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_deadlock_bug kernel/locking/lockdep.c:2956 [inline]
+ check_deadlock kernel/locking/lockdep.c:2999 [inline]
+ validate_chain kernel/locking/lockdep.c:3788 [inline]
+ __lock_acquire.cold+0x149/0x3ab kernel/locking/lockdep.c:5027
+ lock_acquire kernel/locking/lockdep.c:5639 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5604
+ __raw_write_lock_bh include/linux/rwlock_api_smp.h:202 [inline]
+ _raw_write_lock_bh+0x2f/0x40 kernel/locking/spinlock.c:334
+ ___neigh_create+0x9e1/0x2990 net/core/neighbour.c:652
+ ip6_finish_output2+0x1070/0x14f0 net/ipv6/ip6_output.c:123
+ __ip6_finish_output net/ipv6/ip6_output.c:191 [inline]
+ __ip6_finish_output+0x61e/0xe90 net/ipv6/ip6_output.c:170
+ ip6_finish_output+0x32/0x200 net/ipv6/ip6_output.c:201
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x1e4/0x530 net/ipv6/ip6_output.c:224
+ dst_output include/net/dst.h:451 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ndisc_send_skb+0xa99/0x17f0 net/ipv6/ndisc.c:508
+ ndisc_send_ns+0x3a9/0x840 net/ipv6/ndisc.c:650
+ ndisc_solicit+0x2cd/0x4f0 net/ipv6/ndisc.c:742
+ neigh_probe+0xc2/0x110 net/core/neighbour.c:1040
+ __neigh_event_send+0x37d/0x1570 net/core/neighbour.c:1201
+ neigh_event_send include/net/neighbour.h:470 [inline]
+ neigh_managed_work+0x162/0x250 net/core/neighbour.c:1574
+ process_one_work+0x9ac/0x1650 kernel/workqueue.c:2307
+ worker_thread+0x657/0x1110 kernel/workqueue.c:2454
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>

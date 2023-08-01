@@ -1,0 +1,727 @@
+netlink: 11 bytes leftover after parsing attributes in process `syz-executor0'.
+BUG: sleeping function called from invalid context at ./include/linux/percpu-rwsem.h:34
+in_atomic(): 1, irqs_disabled(): 0, pid: 9715, name: syz-executor1
+2 locks held by syz-executor1/9715:
+ #0:  (&net->xfrm.xfrm_cfg_mutex){+.+.}, at: [<00000000e62af69d>] xfrm_netlink_rcv+0x60/0x90 net/xfrm/xfrm_user.c:2598
+ #1:  (&(&net->xfrm.xfrm_policy_lock)->rlock){+...}, at: [<000000002aa32ab1>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #1:  (&(&net->xfrm.xfrm_policy_lock)->rlock){+...}, at: [<000000002aa32ab1>] xfrm_policy_flush+0x424/0x770 net/xfrm/xfrm_policy.c:951
+CPU: 0 PID: 9715 Comm: syz-executor1 Not tainted 4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ ___might_sleep+0x2b2/0x470 kernel/sched/core.c:6060
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6013
+ percpu_down_read_preempt_disable include/linux/percpu-rwsem.h:34 [inline]
+ percpu_down_read include/linux/percpu-rwsem.h:59 [inline]
+ cpus_read_lock+0x1c/0x90 kernel/cpu.c:293
+ get_online_cpus include/linux/cpu.h:117 [inline]
+ xfrm_policy_cache_flush+0x1d0/0x710 net/xfrm/xfrm_policy.c:1767
+ xfrm_policy_flush+0x650/0x770 net/xfrm/xfrm_policy.c:978
+ xfrm_flush_policy+0x153/0x440 net/xfrm/xfrm_user.c:2061
+netlink: 11 bytes leftover after parsing attributes in process `syz-executor0'.
+ xfrm_user_rcv_msg+0x422/0x860 net/xfrm/xfrm_user.c:2591
+ netlink_rcv_skb+0x224/0x470 net/netlink/af_netlink.c:2441
+ xfrm_netlink_rcv+0x6f/0x90 net/xfrm/xfrm_user.c:2599
+ netlink_unicast_kernel net/netlink/af_netlink.c:1308 [inline]
+ netlink_unicast+0x4c4/0x6b0 net/netlink/af_netlink.c:1334
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1897
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2020
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2054
+ SYSC_sendmsg net/socket.c:2065 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2061
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007fc0d6575c58 EFLAGS: 00000212 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000452cf9
+RDX: 0000000000000000 RSI: 0000000020030fc8 RDI: 0000000000000015
+RBP: 000000000000059f R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f6788
+R13: 00000000ffffffff R14: 00007fc0d65766d4 R15: 0000000000000000
+
+=====================================================
+WARNING: SOFTIRQ-safe -> SOFTIRQ-unsafe lock order detected
+4.15.0-rc7+ #187 Tainted: G        W       
+-----------------------------------------------------
+syz-executor1/9715 [HC0[0]:SC0[2]:HE1:SE0] is trying to acquire:
+ (cpu_hotplug_lock.rw_sem){++++}, at: [<00000000e3eef2d0>] get_online_cpus include/linux/cpu.h:117 [inline]
+ (cpu_hotplug_lock.rw_sem){++++}, at: [<00000000e3eef2d0>] xfrm_policy_cache_flush+0x1d0/0x710 net/xfrm/xfrm_policy.c:1767
+
+and this task is already holding:
+ (&(&net->xfrm.xfrm_policy_lock)->rlock){+...}, at: [<000000002aa32ab1>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ (&(&net->xfrm.xfrm_policy_lock)->rlock){+...}, at: [<000000002aa32ab1>] xfrm_policy_flush+0x424/0x770 net/xfrm/xfrm_policy.c:951
+which would create a new lock dependency:
+ (&(&net->xfrm.xfrm_policy_lock)->rlock){+...} -> (cpu_hotplug_lock.rw_sem){++++}
+
+but this new dependency connects a SOFTIRQ-irq-safe lock:
+ (slock-AF_INET6/1){+.-.}
+
+... which became SOFTIRQ-irq-safe at:
+  lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+  _raw_spin_lock_nested+0x28/0x40 kernel/locking/spinlock.c:354
+  __sk_receive_skb+0x3b6/0xc10 net/core/sock.c:504
+  dccp_v4_rcv+0xf5f/0x1c80 net/dccp/ipv4.c:874
+  ip_local_deliver_finish+0x2f1/0xc50 net/ipv4/ip_input.c:216
+  NF_HOOK include/linux/netfilter.h:288 [inline]
+  ip_local_deliver+0x1ce/0x6e0 net/ipv4/ip_input.c:257
+  dst_input include/net/dst.h:449 [inline]
+  ip_rcv_finish+0x953/0x1e30 net/ipv4/ip_input.c:397
+  NF_HOOK include/linux/netfilter.h:288 [inline]
+  ip_rcv+0xc5a/0x1840 net/ipv4/ip_input.c:493
+  __netif_receive_skb_core+0x1a41/0x3460 net/core/dev.c:4538
+  __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4603
+  process_backlog+0x203/0x740 net/core/dev.c:5283
+  napi_poll net/core/dev.c:5681 [inline]
+  net_rx_action+0x792/0x1910 net/core/dev.c:5747
+  __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+  do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1133
+  do_softirq.part.21+0x14d/0x190 kernel/softirq.c:329
+  do_softirq kernel/softirq.c:177 [inline]
+  __local_bh_enable_ip+0x1ee/0x230 kernel/softirq.c:182
+  local_bh_enable include/linux/bottom_half.h:32 [inline]
+  rcu_read_unlock_bh include/linux/rcupdate.h:727 [inline]
+  ip_finish_output2+0x90e/0x14f0 net/ipv4/ip_output.c:231
+  ip_finish_output+0x864/0xd10 net/ipv4/ip_output.c:317
+  NF_HOOK_COND include/linux/netfilter.h:277 [inline]
+  ip_output+0x1d2/0x860 net/ipv4/ip_output.c:405
+  dst_output include/net/dst.h:443 [inline]
+  ip_local_out+0x95/0x160 net/ipv4/ip_output.c:124
+  ip_queue_xmit+0x8c0/0x18e0 net/ipv4/ip_output.c:504
+  dccp_transmit_skb+0x9ac/0x10f0 net/dccp/output.c:142
+  dccp_connect+0x369/0x670 net/dccp/output.c:564
+  dccp_v4_connect+0xc8f/0x1750 net/dccp/ipv4.c:126
+  __inet_stream_connect+0x2d4/0xf00 net/ipv4/af_inet.c:620
+  inet_stream_connect+0x58/0xa0 net/ipv4/af_inet.c:684
+  SYSC_connect+0x213/0x4a0 net/socket.c:1613
+  SyS_connect+0x24/0x30 net/socket.c:1594
+  entry_SYSCALL_64_fastpath+0x23/0x9a
+
+to a SOFTIRQ-irq-unsafe lock:
+ (cpu_hotplug_lock.rw_sem){++++}
+
+... which became SOFTIRQ-irq-unsafe at:
+...
+  lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+  down_write+0x87/0x120 kernel/locking/rwsem.c:70
+  percpu_down_write+0xa3/0x500 kernel/locking/percpu-rwsem.c:145
+  cpus_write_lock kernel/cpu.c:305 [inline]
+  _cpu_up+0x60/0x510 kernel/cpu.c:990
+  do_cpu_up+0x73/0xa0 kernel/cpu.c:1066
+  cpu_up+0x18/0x20 kernel/cpu.c:1074
+  smp_init+0x13a/0x152 kernel/smp.c:578
+  kernel_init_freeable+0x2fe/0x521 init/main.c:1067
+  kernel_init+0x13/0x172 init/main.c:999
+  ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:524
+
+other info that might help us debug this:
+
+Chain exists of:
+  slock-AF_INET6/1 --> &(&net->xfrm.xfrm_policy_lock)->rlock --> cpu_hotplug_lock.rw_sem
+
+ Possible interrupt unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(cpu_hotplug_lock.rw_sem);
+                               local_irq_disable();
+                               lock(slock-AF_INET6/1);
+                               lock(&(&net->xfrm.xfrm_policy_lock)->rlock);
+  <Interrupt>
+    lock(slock-AF_INET6/1);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor1/9715:
+ #0:  (&net->xfrm.xfrm_cfg_mutex){+.+.}, at: [<00000000e62af69d>] xfrm_netlink_rcv+0x60/0x90 net/xfrm/xfrm_user.c:2598
+ #1:  (&(&net->xfrm.xfrm_policy_lock)->rlock){+...}, at: [<000000002aa32ab1>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #1:  (&(&net->xfrm.xfrm_policy_lock)->rlock){+...}, at: [<000000002aa32ab1>] xfrm_policy_flush+0x424/0x770 net/xfrm/xfrm_policy.c:951
+
+the dependencies between SOFTIRQ-irq-safe lock and the holding lock:
+ -> (slock-AF_INET6/1){+.-.} ops: 2406 {
+    HARDIRQ-ON-W at:
+                      lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                      _raw_spin_lock_nested+0x28/0x40 kernel/locking/spinlock.c:354
+                      sctp_close+0x454/0x9a0 net/sctp/socket.c:1596
+                      inet_release+0xed/0x1c0 net/ipv4/af_inet.c:427
+                      inet6_release+0x50/0x70 net/ipv6/af_inet6.c:432
+                      sock_release+0x8d/0x1e0 net/socket.c:595
+                      sock_close+0x16/0x20 net/socket.c:1123
+                      __fput+0x327/0x7e0 fs/file_table.c:210
+                      ____fput+0x15/0x20 fs/file_table.c:244
+                      task_work_run+0x199/0x270 kernel/task_work.c:113
+                      exit_task_work include/linux/task_work.h:22 [inline]
+                      do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+                      do_group_exit+0x149/0x400 kernel/exit.c:968
+                      SYSC_exit_group kernel/exit.c:979 [inline]
+                      SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+                      entry_SYSCALL_64_fastpath+0x23/0x9a
+    IN-SOFTIRQ-W at:
+                      lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                      _raw_spin_lock_nested+0x28/0x40 kernel/locking/spinlock.c:354
+                      __sk_receive_skb+0x3b6/0xc10 net/core/sock.c:504
+                      dccp_v4_rcv+0xf5f/0x1c80 net/dccp/ipv4.c:874
+                      ip_local_deliver_finish+0x2f1/0xc50 net/ipv4/ip_input.c:216
+                      NF_HOOK include/linux/netfilter.h:288 [inline]
+                      ip_local_deliver+0x1ce/0x6e0 net/ipv4/ip_input.c:257
+                      dst_input include/net/dst.h:449 [inline]
+                      ip_rcv_finish+0x953/0x1e30 net/ipv4/ip_input.c:397
+                      NF_HOOK include/linux/netfilter.h:288 [inline]
+                      ip_rcv+0xc5a/0x1840 net/ipv4/ip_input.c:493
+                      __netif_receive_skb_core+0x1a41/0x3460 net/core/dev.c:4538
+                      __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4603
+                      process_backlog+0x203/0x740 net/core/dev.c:5283
+                      napi_poll net/core/dev.c:5681 [inline]
+                      net_rx_action+0x792/0x1910 net/core/dev.c:5747
+                      __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+                      do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1133
+                      do_softirq.part.21+0x14d/0x190 kernel/softirq.c:329
+                      do_softirq kernel/softirq.c:177 [inline]
+                      __local_bh_enable_ip+0x1ee/0x230 kernel/softirq.c:182
+                      local_bh_enable include/linux/bottom_half.h:32 [inline]
+                      rcu_read_unlock_bh include/linux/rcupdate.h:727 [inline]
+                      ip_finish_output2+0x90e/0x14f0 net/ipv4/ip_output.c:231
+                      ip_finish_output+0x864/0xd10 net/ipv4/ip_output.c:317
+                      NF_HOOK_COND include/linux/netfilter.h:277 [inline]
+                      ip_output+0x1d2/0x860 net/ipv4/ip_output.c:405
+                      dst_output include/net/dst.h:443 [inline]
+                      ip_local_out+0x95/0x160 net/ipv4/ip_output.c:124
+                      ip_queue_xmit+0x8c0/0x18e0 net/ipv4/ip_output.c:504
+                      dccp_transmit_skb+0x9ac/0x10f0 net/dccp/output.c:142
+                      dccp_connect+0x369/0x670 net/dccp/output.c:564
+                      dccp_v4_connect+0xc8f/0x1750 net/dccp/ipv4.c:126
+                      __inet_stream_connect+0x2d4/0xf00 net/ipv4/af_inet.c:620
+                      inet_stream_connect+0x58/0xa0 net/ipv4/af_inet.c:684
+                      SYSC_connect+0x213/0x4a0 net/socket.c:1613
+                      SyS_connect+0x24/0x30 net/socket.c:1594
+                      entry_SYSCALL_64_fastpath+0x23/0x9a
+    INITIAL USE at:
+                     lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                     _raw_spin_lock_nested+0x28/0x40 kernel/locking/spinlock.c:354
+                     sctp_close+0x454/0x9a0 net/sctp/socket.c:1596
+                     inet_release+0xed/0x1c0 net/ipv4/af_inet.c:427
+                     inet6_release+0x50/0x70 net/ipv6/af_inet6.c:432
+                     sock_release+0x8d/0x1e0 net/socket.c:595
+                     sock_close+0x16/0x20 net/socket.c:1123
+                     __fput+0x327/0x7e0 fs/file_table.c:210
+                     ____fput+0x15/0x20 fs/file_table.c:244
+                     task_work_run+0x199/0x270 kernel/task_work.c:113
+                     exit_task_work include/linux/task_work.h:22 [inline]
+                     do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+                     do_group_exit+0x149/0x400 kernel/exit.c:968
+                     SYSC_exit_group kernel/exit.c:979 [inline]
+                     SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+                     entry_SYSCALL_64_fastpath+0x23/0x9a
+  }
+  ... key      at: [<00000000cb6f99e1>] af_family_slock_keys+0x51/0x180
+  ... acquired at:
+   __raw_spin_lock_bh include/linux/spinlock_api_smp.h:135 [inline]
+   _raw_spin_lock_bh+0x31/0x40 kernel/locking/spinlock.c:168
+   spin_lock_bh include/linux/spinlock.h:315 [inline]
+   xfrm_policy_delete+0x3e/0x90 net/xfrm/xfrm_policy.c:1247
+   xfrm_sk_free_policy include/net/xfrm.h:1261 [inline]
+   sk_common_release+0x210/0x2f0 net/core/sock.c:3025
+   sctp_close+0x464/0x9a0 net/sctp/socket.c:1602
+   inet_release+0xed/0x1c0 net/ipv4/af_inet.c:427
+   inet6_release+0x50/0x70 net/ipv6/af_inet6.c:432
+   sock_release+0x8d/0x1e0 net/socket.c:595
+   sock_close+0x16/0x20 net/socket.c:1123
+   __fput+0x327/0x7e0 fs/file_table.c:210
+   ____fput+0x15/0x20 fs/file_table.c:244
+   task_work_run+0x199/0x270 kernel/task_work.c:113
+   exit_task_work include/linux/task_work.h:22 [inline]
+   do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+   do_group_exit+0x149/0x400 kernel/exit.c:968
+   get_signal+0x73f/0x16c0 kernel/signal.c:2335
+   do_signal+0x90/0x1eb0 arch/x86/kernel/signal.c:809
+   exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+   prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+   syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+   entry_SYSCALL_64_fastpath+0x98/0x9a
+
+-> (&(&net->xfrm.xfrm_policy_lock)->rlock){+...} ops: 320 {
+   HARDIRQ-ON-W at:
+                    lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                    __raw_spin_lock_bh include/linux/spinlock_api_smp.h:135 [inline]
+                    _raw_spin_lock_bh+0x31/0x40 kernel/locking/spinlock.c:168
+                    spin_lock_bh include/linux/spinlock.h:315 [inline]
+                    xfrm_sk_policy_insert+0xef/0x580 net/xfrm/xfrm_policy.c:1268
+                    xfrm_user_policy+0x525/0x8c0 net/xfrm/xfrm_state.c:2077
+                    do_ipv6_setsockopt.isra.9+0x2298/0x39a0 net/ipv6/ipv6_sockglue.c:810
+                    ipv6_setsockopt+0xd7/0x150 net/ipv6/ipv6_sockglue.c:922
+                    sctp_setsockopt+0x2b6/0x61d0 net/sctp/socket.c:4137
+                    sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2978
+                    SYSC_setsockopt net/socket.c:1823 [inline]
+                    SyS_setsockopt+0x189/0x360 net/socket.c:1802
+                    entry_SYSCALL_64_fastpath+0x23/0x9a
+   INITIAL USE at:
+                   lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                   __raw_spin_lock_bh include/linux/spinlock_api_smp.h:135 [inline]
+                   _raw_spin_lock_bh+0x31/0x40 kernel/locking/spinlock.c:168
+                   spin_lock_bh include/linux/spinlock.h:315 [inline]
+                   xfrm_sk_policy_insert+0xef/0x580 net/xfrm/xfrm_policy.c:1268
+                   xfrm_user_policy+0x525/0x8c0 net/xfrm/xfrm_state.c:2077
+                   do_ipv6_setsockopt.isra.9+0x2298/0x39a0 net/ipv6/ipv6_sockglue.c:810
+                   ipv6_setsockopt+0xd7/0x150 net/ipv6/ipv6_sockglue.c:922
+                   sctp_setsockopt+0x2b6/0x61d0 net/sctp/socket.c:4137
+                   sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2978
+                   SYSC_setsockopt net/socket.c:1823 [inline]
+                   SyS_setsockopt+0x189/0x360 net/socket.c:1802
+                   entry_SYSCALL_64_fastpath+0x23/0x9a
+ }
+ ... key      at: [<0000000055b8e628>] __key.66994+0x0/0x40
+ ... acquired at:
+   lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+   percpu_down_read_preempt_disable include/linux/percpu-rwsem.h:36 [inline]
+   percpu_down_read include/linux/percpu-rwsem.h:59 [inline]
+   cpus_read_lock+0x42/0x90 kernel/cpu.c:293
+   get_online_cpus include/linux/cpu.h:117 [inline]
+   xfrm_policy_cache_flush+0x1d0/0x710 net/xfrm/xfrm_policy.c:1767
+   xfrm_policy_flush+0x650/0x770 net/xfrm/xfrm_policy.c:978
+   xfrm_flush_policy+0x153/0x440 net/xfrm/xfrm_user.c:2061
+   xfrm_user_rcv_msg+0x422/0x860 net/xfrm/xfrm_user.c:2591
+   netlink_rcv_skb+0x224/0x470 net/netlink/af_netlink.c:2441
+   xfrm_netlink_rcv+0x6f/0x90 net/xfrm/xfrm_user.c:2599
+   netlink_unicast_kernel net/netlink/af_netlink.c:1308 [inline]
+   netlink_unicast+0x4c4/0x6b0 net/netlink/af_netlink.c:1334
+   netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1897
+   sock_sendmsg_nosec net/socket.c:630 [inline]
+   sock_sendmsg+0xca/0x110 net/socket.c:640
+   ___sys_sendmsg+0x767/0x8b0 net/socket.c:2020
+   __sys_sendmsg+0xe5/0x210 net/socket.c:2054
+   SYSC_sendmsg net/socket.c:2065 [inline]
+   SyS_sendmsg+0x2d/0x50 net/socket.c:2061
+   entry_SYSCALL_64_fastpath+0x23/0x9a
+
+
+the dependencies between the lock to be acquired
+ and SOFTIRQ-irq-unsafe lock:
+-> (cpu_hotplug_lock.rw_sem){++++} ops: 1142 {
+   HARDIRQ-ON-W at:
+                    lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                    down_write+0x87/0x120 kernel/locking/rwsem.c:70
+                    percpu_down_write+0xa3/0x500 kernel/locking/percpu-rwsem.c:145
+                    cpus_write_lock kernel/cpu.c:305 [inline]
+                    _cpu_up+0x60/0x510 kernel/cpu.c:990
+                    do_cpu_up+0x73/0xa0 kernel/cpu.c:1066
+                    cpu_up+0x18/0x20 kernel/cpu.c:1074
+                    smp_init+0x13a/0x152 kernel/smp.c:578
+                    kernel_init_freeable+0x2fe/0x521 init/main.c:1067
+                    kernel_init+0x13/0x172 init/main.c:999
+                    ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:524
+   HARDIRQ-ON-R at:
+                    lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                    percpu_down_read_preempt_disable include/linux/percpu-rwsem.h:36 [inline]
+                    percpu_down_read include/linux/percpu-rwsem.h:59 [inline]
+                    cpus_read_lock+0x42/0x90 kernel/cpu.c:293
+                    get_online_cpus include/linux/cpu.h:117 [inline]
+                    kmem_cache_create+0x26/0x2a0 mm/slab_common.c:440
+                    debug_objects_mem_init+0xda/0x910 lib/debugobjects.c:1139
+                    start_kernel+0x6dd/0x819 init/main.c:674
+                    x86_64_start_reservations+0x2a/0x2c arch/x86/kernel/head64.c:378
+                    x86_64_start_kernel+0x77/0x7a arch/x86/kernel/head64.c:359
+                    secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:237
+   SOFTIRQ-ON-W at:
+                    lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                    down_write+0x87/0x120 kernel/locking/rwsem.c:70
+                    percpu_down_write+0xa3/0x500 kernel/locking/percpu-rwsem.c:145
+                    cpus_write_lock kernel/cpu.c:305 [inline]
+                    _cpu_up+0x60/0x510 kernel/cpu.c:990
+                    do_cpu_up+0x73/0xa0 kernel/cpu.c:1066
+                    cpu_up+0x18/0x20 kernel/cpu.c:1074
+                    smp_init+0x13a/0x152 kernel/smp.c:578
+                    kernel_init_freeable+0x2fe/0x521 init/main.c:1067
+                    kernel_init+0x13/0x172 init/main.c:999
+                    ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:524
+   SOFTIRQ-ON-R at:
+                    lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                    percpu_down_read_preempt_disable include/linux/percpu-rwsem.h:36 [inline]
+                    percpu_down_read include/linux/percpu-rwsem.h:59 [inline]
+                    cpus_read_lock+0x42/0x90 kernel/cpu.c:293
+                    get_online_cpus include/linux/cpu.h:117 [inline]
+                    kmem_cache_create+0x26/0x2a0 mm/slab_common.c:440
+                    debug_objects_mem_init+0xda/0x910 lib/debugobjects.c:1139
+                    start_kernel+0x6dd/0x819 init/main.c:674
+                    x86_64_start_reservations+0x2a/0x2c arch/x86/kernel/head64.c:378
+                    x86_64_start_kernel+0x77/0x7a arch/x86/kernel/head64.c:359
+                    secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:237
+   INITIAL USE at:
+                   lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+                   percpu_down_read_preempt_disable include/linux/percpu-rwsem.h:36 [inline]
+                   percpu_down_read include/linux/percpu-rwsem.h:59 [inline]
+                   cpus_read_lock kernel/cpu.c:293 [inline]
+                   __cpuhp_setup_state+0x60/0x140 kernel/cpu.c:1670
+                   cpuhp_setup_state_nocalls include/linux/cpuhotplug.h:229 [inline]
+                   kvm_guest_init+0x1f3/0x20f arch/x86/kernel/kvm.c:528
+                   setup_arch+0x1801/0x1a13 arch/x86/kernel/setup.c:1265
+                   start_kernel+0xcd/0x819 init/main.c:535
+                   x86_64_start_reservations+0x2a/0x2c arch/x86/kernel/head64.c:378
+                   x86_64_start_kernel+0x77/0x7a arch/x86/kernel/head64.c:359
+                   secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:237
+ }
+ ... key      at: [<000000006f8d7b0a>] cpu_hotplug_lock+0xd8/0x140
+ ... acquired at:
+   lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+   percpu_down_read_preempt_disable include/linux/percpu-rwsem.h:36 [inline]
+   percpu_down_read include/linux/percpu-rwsem.h:59 [inline]
+   cpus_read_lock+0x42/0x90 kernel/cpu.c:293
+   get_online_cpus include/linux/cpu.h:117 [inline]
+   xfrm_policy_cache_flush+0x1d0/0x710 net/xfrm/xfrm_policy.c:1767
+   xfrm_policy_flush+0x650/0x770 net/xfrm/xfrm_policy.c:978
+   xfrm_flush_policy+0x153/0x440 net/xfrm/xfrm_user.c:2061
+   xfrm_user_rcv_msg+0x422/0x860 net/xfrm/xfrm_user.c:2591
+   netlink_rcv_skb+0x224/0x470 net/netlink/af_netlink.c:2441
+   xfrm_netlink_rcv+0x6f/0x90 net/xfrm/xfrm_user.c:2599
+   netlink_unicast_kernel net/netlink/af_netlink.c:1308 [inline]
+   netlink_unicast+0x4c4/0x6b0 net/netlink/af_netlink.c:1334
+   netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1897
+   sock_sendmsg_nosec net/socket.c:630 [inline]
+   sock_sendmsg+0xca/0x110 net/socket.c:640
+   ___sys_sendmsg+0x767/0x8b0 net/socket.c:2020
+   __sys_sendmsg+0xe5/0x210 net/socket.c:2054
+   SYSC_sendmsg net/socket.c:2065 [inline]
+   SyS_sendmsg+0x2d/0x50 net/socket.c:2061
+   entry_SYSCALL_64_fastpath+0x23/0x9a
+
+
+stack backtrace:
+CPU: 0 PID: 9715 Comm: syz-executor1 Tainted: G        W        4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_bad_irq_dependency kernel/locking/lockdep.c:1565 [inline]
+ check_usage+0xad0/0xb60 kernel/locking/lockdep.c:1597
+ check_irq_usage kernel/locking/lockdep.c:1653 [inline]
+ check_prev_add_irq kernel/locking/lockdep_states.h:8 [inline]
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1971 [inline]
+ validate_chain kernel/locking/lockdep.c:2412 [inline]
+ __lock_acquire+0x2bd1/0x3e00 kernel/locking/lockdep.c:3426
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+ percpu_down_read_preempt_disable include/linux/percpu-rwsem.h:36 [inline]
+ percpu_down_read include/linux/percpu-rwsem.h:59 [inline]
+ cpus_read_lock+0x42/0x90 kernel/cpu.c:293
+ get_online_cpus include/linux/cpu.h:117 [inline]
+ xfrm_policy_cache_flush+0x1d0/0x710 net/xfrm/xfrm_policy.c:1767
+ xfrm_policy_flush+0x650/0x770 net/xfrm/xfrm_policy.c:978
+ xfrm_flush_policy+0x153/0x440 net/xfrm/xfrm_user.c:2061
+ xfrm_user_rcv_msg+0x422/0x860 net/xfrm/xfrm_user.c:2591
+ netlink_rcv_skb+0x224/0x470 net/netlink/af_netlink.c:2441
+ xfrm_netlink_rcv+0x6f/0x90 net/xfrm/xfrm_user.c:2599
+ netlink_unicast_kernel net/netlink/af_netlink.c:1308 [inline]
+ netlink_unicast+0x4c4/0x6b0 net/netlink/af_netlink.c:1334
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1897
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2020
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2054
+ SYSC_sendmsg net/socket.c:2065 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2061
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007fc0d6575c58 EFLAGS: 00000212 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000452cf9
+RDX: 0000000000000000 RSI: 0000000020030fc8 RDI: 0000000000000015
+RBP: 000000000000059f R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f6788
+R13: 00000000ffffffff R14: 00007fc0d65766d4 R15: 0000000000000000
+netlink: 40 bytes leftover after parsing attributes in process `syz-executor1'.
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=1025 sclass=netlink_route_socket pig=10229 comm=syz-executor7
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=1025 sclass=netlink_route_socket pig=10257 comm=syz-executor7
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=1025 sclass=netlink_route_socket pig=10271 comm=syz-executor7
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 0 PID: 10582 Comm: syz-executor1 Tainted: G        W        4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc_node mm/slab.c:3289 [inline]
+ kmem_cache_alloc_node+0x56/0x760 mm/slab.c:3632
+ __alloc_skb+0xf1/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1180 [inline]
+ netlink_sendmsg+0xa86/0xe60 net/netlink/af_netlink.c:1872
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ sock_write_iter+0x31a/0x5d0 net/socket.c:909
+ call_write_iter include/linux/fs.h:1772 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007fc0d6575c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007fc0d6575aa0 RCX: 0000000000452cf9
+RDX: 000000000000001f RSI: 0000000020b84fb9 RDI: 0000000000000013
+RBP: 00007fc0d6575a90 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000004b798c
+R13: 00007fc0d6575bc8 R14: 00000000004b798c R15: 0000000000000000
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 0 PID: 10602 Comm: syz-executor1 Tainted: G        W        4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc_node mm/slab.c:3289 [inline]
+ kmem_cache_alloc_node_trace+0x5a/0x750 mm/slab.c:3651
+ __do_kmalloc_node mm/slab.c:3671 [inline]
+ __kmalloc_node_track_caller+0x33/0x70 mm/slab.c:3686
+ __kmalloc_reserve.isra.39+0x41/0xd0 net/core/skbuff.c:137
+ __alloc_skb+0x13b/0x780 net/core/skbuff.c:205
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1180 [inline]
+ netlink_sendmsg+0xa86/0xe60 net/netlink/af_netlink.c:1872
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ sock_write_iter+0x31a/0x5d0 net/socket.c:909
+ call_write_iter include/linux/fs.h:1772 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007fc0d6575c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007fc0d6575aa0 RCX: 0000000000452cf9
+RDX: 000000000000001f RSI: 0000000020b84fb9 RDI: 0000000000000013
+RBP: 00007fc0d6575a90 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000004b798c
+R13: 00007fc0d6575bc8 R14: 00000000004b798c R15: 0000000000000000
+nla_parse: 12 callbacks suppressed
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 1 PID: 10650 Comm: syz-executor1 Tainted: G        W        4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc_node mm/slab.c:3289 [inline]
+ kmem_cache_alloc_node+0x56/0x760 mm/slab.c:3632
+ __alloc_skb+0xf1/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ nlmsg_new include/net/netlink.h:511 [inline]
+ netlink_ack+0x283/0xa10 net/netlink/af_netlink.c:2376
+ netlink_rcv_skb+0x375/0x470 net/netlink/af_netlink.c:2447
+ nfnetlink_rcv+0x200/0x1920 net/netfilter/nfnetlink.c:515
+ netlink_unicast_kernel net/netlink/af_netlink.c:1308 [inline]
+ netlink_unicast+0x4c4/0x6b0 net/netlink/af_netlink.c:1334
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1897
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ sock_write_iter+0x31a/0x5d0 net/socket.c:909
+ call_write_iter include/linux/fs.h:1772 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007fc0d6575c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007fc0d6575aa0 RCX: 0000000000452cf9
+RDX: 000000000000001f RSI: 0000000020b84fb9 RDI: 0000000000000013
+RBP: 00007fc0d6575a90 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000004b798c
+R13: 00007fc0d6575bc8 R14: 00000000004b798c R15: 0000000000000000
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 1 PID: 10723 Comm: syz-executor0 Tainted: G        W        4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ kmem_cache_alloc+0x47/0x760 mm/slab.c:3542
+ inet_bind_bucket_create+0x7a/0x350 net/ipv4/inet_hashtables.c:70
+ __inet_hash_connect+0x670/0xed0 net/ipv4/inet_hashtables.c:731
+ inet_hash_connect+0x6a/0x140 net/ipv4/inet_hashtables.c:779
+ dccp_v4_connect+0xabf/0x1750 net/dccp/ipv4.c:106
+ __inet_stream_connect+0x2d4/0xf00 net/ipv4/af_inet.c:620
+ inet_stream_connect+0x58/0xa0 net/ipv4/af_inet.c:684
+ SYSC_connect+0x213/0x4a0 net/socket.c:1613
+ SyS_connect+0x24/0x30 net/socket.c:1594
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007f11a02b9c58 EFLAGS: 00000212 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00007f11a02b9aa0 RCX: 0000000000452cf9
+RDX: 0000000000000010 RSI: 00000000202f7ff0 RDI: 0000000000000013
+RBP: 00007f11a02b9a90 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000004b798c
+R13: 00007f11a02b9bc8 R14: 00000000004b798c R15: 0000000000000000
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 1 PID: 10725 Comm: syz-executor0 Tainted: G        W        4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc_node mm/slab.c:3289 [inline]
+ kmem_cache_alloc_node+0x56/0x760 mm/slab.c:3632
+ __alloc_skb+0xf1/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ dccp_connect+0x260/0x670 net/dccp/output.c:555
+ dccp_v4_connect+0xc8f/0x1750 net/dccp/ipv4.c:126
+ __inet_stream_connect+0x2d4/0xf00 net/ipv4/af_inet.c:620
+ inet_stream_connect+0x58/0xa0 net/ipv4/af_inet.c:684
+ SYSC_connect+0x213/0x4a0 net/socket.c:1613
+ SyS_connect+0x24/0x30 net/socket.c:1594
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007f11a02b9c58 EFLAGS: 00000212 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00007f11a02b9aa0 RCX: 0000000000452cf9
+RDX: 0000000000000010 RSI: 00000000202f7ff0 RDI: 0000000000000013
+RBP: 00007f11a02b9a90 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000004b798c
+R13: 00007f11a02b9bc8 R14: 00000000004b798c R15: 0000000000000000
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 1 PID: 10730 Comm: syz-executor0 Tainted: G        W        4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc_node mm/slab.c:3289 [inline]
+ kmem_cache_alloc_node_trace+0x5a/0x750 mm/slab.c:3651
+ __do_kmalloc_node mm/slab.c:3671 [inline]
+ __kmalloc_node_track_caller+0x33/0x70 mm/slab.c:3686
+ __kmalloc_reserve.isra.39+0x41/0xd0 net/core/skbuff.c:137
+ __alloc_skb+0x13b/0x780 net/core/skbuff.c:205
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ dccp_connect+0x260/0x670 net/dccp/output.c:555
+ dccp_v4_connect+0xc8f/0x1750 net/dccp/ipv4.c:126
+ __inet_stream_connect+0x2d4/0xf00 net/ipv4/af_inet.c:620
+ inet_stream_connect+0x58/0xa0 net/ipv4/af_inet.c:684
+ SYSC_connect+0x213/0x4a0 net/socket.c:1613
+ SyS_connect+0x24/0x30 net/socket.c:1594
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007f11a02b9c58 EFLAGS: 00000212 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00007f11a02b9aa0 RCX: 0000000000452cf9
+RDX: 0000000000000010 RSI: 00000000202f7ff0 RDI: 0000000000000013
+RBP: 00007f11a02b9a90 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000004b798c
+R13: 00007f11a02b9bc8 R14: 00000000004b798c R15: 0000000000000000
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 1 PID: 10739 Comm: syz-executor0 Tainted: G        W        4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ kmem_cache_alloc+0x47/0x760 mm/slab.c:3542
+ skb_clone+0x1ae/0x480 net/core/skbuff.c:1279
+ dccp_skb_entail+0x96/0xc0 net/dccp/output.c:37
+ dccp_connect+0x35e/0x670 net/dccp/output.c:564
+ dccp_v4_connect+0xc8f/0x1750 net/dccp/ipv4.c:126
+ __inet_stream_connect+0x2d4/0xf00 net/ipv4/af_inet.c:620
+ inet_stream_connect+0x58/0xa0 net/ipv4/af_inet.c:684
+ SYSC_connect+0x213/0x4a0 net/socket.c:1613
+ SyS_connect+0x24/0x30 net/socket.c:1594
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007f11a02b9c58 EFLAGS: 00000212 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00007f11a02b9aa0 RCX: 0000000000452cf9
+RDX: 0000000000000010 RSI: 00000000202f7ff0 RDI: 0000000000000013
+RBP: 00007f11a02b9a90 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000004b798c
+R13: 00007f11a02b9bc8 R14: 00000000004b798c R15: 0000000000000000
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 1 PID: 10768 Comm: syz-executor5 Tainted: G        W        4.15.0-rc7+ #187
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ kmem_cache_alloc+0x47/0x760 mm/slab.c:3542
+ ptlock_alloc+0x24/0x70 mm/memory.c:4686
+ ptlock_init include/linux/mm.h:1790 [inline]
+ pgtable_page_ctor include/linux/mm.h:1824 [inline]
+ pte_alloc_one+0x59/0x100 arch/x86/mm/pgtable.c:32
+ __pte_alloc+0x2a/0x310 mm/memory.c:648
+ do_anonymous_page mm/memory.c:3099 [inline]
+ handle_pte_fault mm/memory.c:3935 [inline]
+ __handle_mm_fault+0x2d06/0x3ce0 mm/memory.c:4061
+ handle_mm_fault+0x334/0x8d0 mm/memory.c:4098
+ __do_page_fault+0x5c9/0xc90 arch/x86/mm/fault.c:1429
+ do_page_fault+0xee/0x720 arch/x86/mm/fault.c:1504
+ page_fault+0x2c/0x60 arch/x86/entry/entry_64.S:1243
+RIP: 0010:copy_user_generic_unrolled+0xa0/0xc0 arch/x86/lib/copy_user_64.S:75
+RSP: 0018:ffff8801d37d7a98 EFLAGS: 00010202
+RAX: ffffed003403ac3b RBX: 0000000000000001 RCX: 0000000000000001
+RDX: 0000000000000001 RSI: ffff8801a01d5fff RDI: 0000000020ebcf48
+RBP: ffff8801d37d7ac8 R08: ffffed003403ac00 R09: ffffed003403ac00
+R10: 0000000000000001 R11: ffffed003403abff R12: 0000000020ebcf48
+R13: ffff8801a01d5fff R14: 00007ffffffff000 R15: 0000000020ebcf49
+ copy_page_to_iter_iovec lib/iov_iter.c:206 [inline]
+ copy_page_to_iter+0x377/0xe10 lib/iov_iter.c:710
+ pipe_read+0x255/0x7f0 fs/pipe.c:285
+ call_read_iter include/linux/fs.h:1766 [inline]
+ new_sync_read fs/read_write.c:401 [inline]
+ __vfs_read+0x6a7/0xa00 fs/read_write.c:413
+ vfs_read+0x11e/0x350 fs/read_write.c:447
+ SYSC_read fs/read_write.c:573 [inline]
+ SyS_read+0xef/0x220 fs/read_write.c:566
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007f0b2f668c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 00007f0b2f668aa0 RCX: 0000000000452cf9
+RDX: 00000000fffffda6 RSI: 0000000020ebcf48 RDI: 0000000000000013
+RBP: 00007f0b2f668a90 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000004b798c
+R13: 00007f0b2f668bc8 R14: 00000000004b798c R15: 0000000000000000
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+audit: type=1400 audit(1515912959.680:89): avc:  denied  { shutdown } for  pid=11457 comm="syz-executor1" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_netfilter_socket permissive=1
+nla_parse: 55 callbacks suppressed
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.
+netlink: 3 bytes leftover after parsing attributes in process `syz-executor1'.

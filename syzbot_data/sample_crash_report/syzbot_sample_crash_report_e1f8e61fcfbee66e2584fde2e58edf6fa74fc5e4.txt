@@ -1,0 +1,217 @@
+ccid3_first_li: No RTT estimate available, using fallback RTT
+ccid3_first_li: X_recv==0
+BUG: stored value of X_recv is zero at net/dccp/ccids/ccid3.c:691/ccid3_first_li()
+CPU: 1 PID: 3658 Comm: syz-executor118 Not tainted 6.1.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ ccid3_first_li+0x33b/0x400 net/dccp/ccids/ccid3.c:691
+ tfrc_lh_interval_add+0x587/0x7b0 net/dccp/ccids/lib/loss_interval.c:157
+ tfrc_rx_handle_loss+0x73b/0x1a30 net/dccp/ccids/lib/packet_history.c:328
+ ccid3_hc_rx_packet_recv+0x33d/0xf70 net/dccp/ccids/ccid3.c:744
+ ccid_hc_rx_packet_recv net/dccp/ccid.h:182 [inline]
+ dccp_deliver_input_to_ccids net/dccp/input.c:176 [inline]
+ dccp_rcv_established+0x1b2/0x310 net/dccp/input.c:374
+ dccp_v4_do_rcv+0xfc/0x1f0 net/dccp/ipv4.c:687
+ sk_backlog_rcv include/net/sock.h:1109 [inline]
+ __sk_receive_skb+0x43f/0x9e0 net/core/sock.c:565
+ ip_protocol_deliver_rcu+0x38d/0x750 net/ipv4/ip_input.c:205
+ ip_local_deliver_finish+0x269/0x480 net/ipv4/ip_input.c:233
+ __netif_receive_skb_one_core net/core/dev.c:5489 [inline]
+ __netif_receive_skb+0x1c5/0x500 net/core/dev.c:5603
+ process_backlog+0x568/0x920 net/core/dev.c:5931
+ __napi_poll+0xbe/0x4b0 net/core/dev.c:6498
+ napi_poll net/core/dev.c:6565 [inline]
+ net_rx_action+0x76c/0x1100 net/core/dev.c:6676
+ __do_softirq+0x277/0x75b kernel/softirq.c:571
+ __irq_exit_rcu+0xec/0x170 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x91/0xb0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:lock_acquire+0x21e/0x400 kernel/locking/lockdep.c:5672
+Code: 23 00 74 08 4c 89 f7 e8 80 a6 75 00 f6 44 24 61 02 0f 85 76 01 00 00 41 f7 c7 00 02 00 00 74 01 fb 48 c7 44 24 40 0e 36 e0 45 <4b> c7 04 2c 00 00 00 00 43 c7 44 2c 09 00 00 00 00 43 c7 44 2c 11
+RSP: 0018:ffffc90003eaf320 EFLAGS: 00000206
+RAX: 0000000000000001 RBX: 1ffff920007d5e70 RCX: ffff888076e92788
+RDX: dffffc0000000000 RSI: ffffffff8b0da300 RDI: ffffffff8b6b0ec0
+RBP: ffffc90003eaf470 R08: dffffc0000000000 R09: fffffbfff20e862b
+R10: fffffbfff20e862b R11: 1ffffffff20e862a R12: dffffc0000000000
+R13: 1ffff920007d5e6c R14: ffffc90003eaf380 R15: 0000000000000246
+ __fs_reclaim_acquire mm/page_alloc.c:4679 [inline]
+ fs_reclaim_acquire+0x82/0x120 mm/page_alloc.c:4693
+ might_alloc include/linux/sched/mm.h:271 [inline]
+ slab_pre_alloc_hook mm/slab.h:710 [inline]
+ slab_alloc_node mm/slub.c:3318 [inline]
+ __kmem_cache_alloc_node+0x3a/0x310 mm/slub.c:3437
+ __do_kmalloc_node mm/slab_common.c:954 [inline]
+ __kmalloc_node_track_caller+0x9c/0x190 mm/slab_common.c:975
+ kmalloc_reserve net/core/skbuff.c:437 [inline]
+ __alloc_skb+0x11d/0x620 net/core/skbuff.c:509
+ alloc_skb include/linux/skbuff.h:1267 [inline]
+ alloc_skb_with_frags+0xb4/0x780 net/core/skbuff.c:6126
+ sock_alloc_send_pskb+0x930/0xa70 net/core/sock.c:2719
+ sock_alloc_send_skb include/net/sock.h:1884 [inline]
+ dccp_sendmsg+0x2b7/0x820 net/dccp/proto.c:752
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0x597/0x8e0 net/socket.c:2482
+ ___sys_sendmsg net/socket.c:2536 [inline]
+ __sys_sendmmsg+0x3d7/0x770 net/socket.c:2622
+ __do_sys_sendmmsg net/socket.c:2651 [inline]
+ __se_sys_sendmmsg net/socket.c:2648 [inline]
+ __x64_sys_sendmmsg+0x9c/0xb0 net/socket.c:2648
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f6cd2019db9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 41 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd7adb2bd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f6cd2019db9
+RDX: 000000000000ffc3 RSI: 0000000020001e80 RDI: 0000000000000006
+RBP: 0000000000000000 R08: 000000000000000d R09: 000000000000000d
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffd7adb2bf0
+R13: 00000000000f4240 R14: 000000000000d9ba R15: 00007ffd7adb2be4
+ </TASK>
+BUG: please report to dccp@vger.kernel.org => prev = 0, last = 0 at net/dccp/ccids/lib/packet_history.c:417/tfrc_rx_hist_sample_rtt()
+CPU: 1 PID: 3724 Comm: syz-executor118 Not tainted 6.1.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ tfrc_rx_hist_sample_rtt+0x389/0x4a0 net/dccp/ccids/lib/packet_history.c:414
+ ccid3_hc_rx_packet_recv+0x6c3/0xf70 net/dccp/ccids/ccid3.c:760
+ ccid_hc_rx_packet_recv net/dccp/ccid.h:182 [inline]
+ dccp_deliver_input_to_ccids net/dccp/input.c:176 [inline]
+ dccp_rcv_established+0x1b2/0x310 net/dccp/input.c:374
+ dccp_v4_do_rcv+0xfc/0x1f0 net/dccp/ipv4.c:687
+ sk_backlog_rcv include/net/sock.h:1109 [inline]
+ __sk_receive_skb+0x43f/0x9e0 net/core/sock.c:565
+ ip_protocol_deliver_rcu+0x38d/0x750 net/ipv4/ip_input.c:205
+ ip_local_deliver_finish+0x269/0x480 net/ipv4/ip_input.c:233
+ __netif_receive_skb_one_core net/core/dev.c:5489 [inline]
+ __netif_receive_skb+0x1c5/0x500 net/core/dev.c:5603
+ process_backlog+0x568/0x920 net/core/dev.c:5931
+ __napi_poll+0xbe/0x4b0 net/core/dev.c:6498
+ napi_poll net/core/dev.c:6565 [inline]
+ net_rx_action+0x76c/0x1100 net/core/dev.c:6676
+ __do_softirq+0x277/0x75b kernel/softirq.c:571
+ __irq_exit_rcu+0xec/0x170 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x91/0xb0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:lock_acquire+0x21e/0x400 kernel/locking/lockdep.c:5672
+Code: 23 00 74 08 4c 89 f7 e8 80 a6 75 00 f6 44 24 61 02 0f 85 76 01 00 00 41 f7 c7 00 02 00 00 74 01 fb 48 c7 44 24 40 0e 36 e0 45 <4b> c7 04 2c 00 00 00 00 43 c7 44 2c 09 00 00 00 00 43 c7 44 2c 11
+RSP: 0018:ffffc9000406f760 EFLAGS: 00000206
+RAX: 0000000000000001 RBX: 1ffff9200080def8 RCX: ffff88807886e208
+RDX: dffffc0000000000 RSI: ffffffff8b0da300 RDI: ffffffff8b6b0ec0
+RBP: ffffc9000406f8b0 R08: dffffc0000000000 R09: fffffbfff20e862f
+R10: fffffbfff20e862f R11: 1ffffffff20e862e R12: dffffc0000000000
+R13: 1ffff9200080def4 R14: ffffc9000406f7c0 R15: 0000000000000246
+ __might_fault+0xb2/0x110 mm/memory.c:5646
+ _copy_from_user+0x26/0x160 lib/usercopy.c:13
+ copy_from_user include/linux/uaccess.h:161 [inline]
+ copy_msghdr_from_user net/socket.c:2413 [inline]
+ sendmsg_copy_msghdr+0xb7/0x650 net/socket.c:2513
+ ___sys_sendmsg net/socket.c:2532 [inline]
+ __sys_sendmmsg+0x3a1/0x770 net/socket.c:2622
+ __do_sys_sendmmsg net/socket.c:2651 [inline]
+ __se_sys_sendmmsg net/socket.c:2648 [inline]
+ __x64_sys_sendmmsg+0x9c/0xb0 net/socket.c:2648
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f6cd2019db9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 41 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd7adb2bd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f6cd2019db9
+RDX: 000000000000ffc3 RSI: 0000000020001e80 RDI: 0000000000000006
+RBP: 0000000000000000 R08: 000000000000000d R09: 000000000000000d
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffd7adb2bf0
+R13: 00000000000f4240 R14: 000000000000e904 R15: 00007ffd7adb2be4
+ </TASK>
+BUG: please report to dccp@vger.kernel.org => prev = 0, last = 0 at net/dccp/ccids/lib/packet_history.c:417/tfrc_rx_hist_sample_rtt()
+CPU: 1 PID: 3825 Comm: syz-executor118 Not tainted 6.1.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e3/0x2cb lib/dump_stack.c:106
+ tfrc_rx_hist_sample_rtt+0x389/0x4a0 net/dccp/ccids/lib/packet_history.c:414
+ ccid3_hc_rx_packet_recv+0x6c3/0xf70 net/dccp/ccids/ccid3.c:760
+ ccid_hc_rx_packet_recv net/dccp/ccid.h:182 [inline]
+ dccp_deliver_input_to_ccids net/dccp/input.c:176 [inline]
+ dccp_rcv_established+0x1b2/0x310 net/dccp/input.c:374
+ dccp_v4_do_rcv+0xfc/0x1f0 net/dccp/ipv4.c:687
+ sk_backlog_rcv include/net/sock.h:1109 [inline]
+ __sk_receive_skb+0x43f/0x9e0 net/core/sock.c:565
+ ip_protocol_deliver_rcu+0x38d/0x750 net/ipv4/ip_input.c:205
+ ip_local_deliver_finish+0x269/0x480 net/ipv4/ip_input.c:233
+ __netif_receive_skb_one_core net/core/dev.c:5489 [inline]
+ __netif_receive_skb+0x1c5/0x500 net/core/dev.c:5603
+ process_backlog+0x568/0x920 net/core/dev.c:5931
+ __napi_poll+0xbe/0x4b0 net/core/dev.c:6498
+ napi_poll net/core/dev.c:6565 [inline]
+ net_rx_action+0x76c/0x1100 net/core/dev.c:6676
+ __do_softirq+0x277/0x75b kernel/softirq.c:571
+ __irq_exit_rcu+0xec/0x170 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x91/0xb0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:lock_acquire+0x21e/0x400 kernel/locking/lockdep.c:5672
+Code: 23 00 74 08 4c 89 f7 e8 80 a6 75 00 f6 44 24 61 02 0f 85 76 01 00 00 41 f7 c7 00 02 00 00 74 01 fb 48 c7 44 24 40 0e 36 e0 45 <4b> c7 04 2c 00 00 00 00 43 c7 44 2c 09 00 00 00 00 43 c7 44 2c 11
+RSP: 0018:ffffc9000460f760 EFLAGS: 00000206
+RAX: 0000000000000001 RBX: 1ffff920008c1ef8 RCX: ffff88802893a788
+RDX: dffffc0000000000 RSI: ffffffff8b0da300 RDI: ffffffff8b6b0ec0
+RBP: ffffc9000460f8b0 R08: dffffc0000000000 R09: fffffbfff20e862f
+R10: fffffbfff20e862f R11: 1ffffffff20e862e R12: dffffc0000000000
+R13: 1ffff920008c1ef4 R14: ffffc9000460f7c0 R15: 0000000000000246
+ __might_fault+0xb2/0x110 mm/memory.c:5646
+ _copy_from_user+0x26/0x160 lib/usercopy.c:13
+ copy_from_user include/linux/uaccess.h:161 [inline]
+ copy_msghdr_from_user net/socket.c:2413 [inline]
+ sendmsg_copy_msghdr+0xb7/0x650 net/socket.c:2513
+ ___sys_sendmsg net/socket.c:2532 [inline]
+ __sys_sendmmsg+0x3a1/0x770 net/socket.c:2622
+ __do_sys_sendmmsg net/socket.c:2651 [inline]
+ __se_sys_sendmmsg net/socket.c:2648 [inline]
+ __x64_sys_sendmmsg+0x9c/0xb0 net/socket.c:2648
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f6cd2019db9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 41 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd7adb2bd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f6cd2019db9
+RDX: 000000000000ffc3 RSI: 0000000020001e80 RDI: 0000000000000006
+RBP: 0000000000000000 R08: 000000000000000d R09: 000000000000000d
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffd7adb2bf0
+R13: 00000000000f4240 R14: 000000000000fe42 R15: 00007ffd7adb2be4
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	23 00                	and    (%rax),%eax
+   2:	74 08                	je     0xc
+   4:	4c 89 f7             	mov    %r14,%rdi
+   7:	e8 80 a6 75 00       	callq  0x75a68c
+   c:	f6 44 24 61 02       	testb  $0x2,0x61(%rsp)
+  11:	0f 85 76 01 00 00    	jne    0x18d
+  17:	41 f7 c7 00 02 00 00 	test   $0x200,%r15d
+  1e:	74 01                	je     0x21
+  20:	fb                   	sti
+  21:	48 c7 44 24 40 0e 36 	movq   $0x45e0360e,0x40(%rsp)
+  28:	e0 45
+* 2a:	4b c7 04 2c 00 00 00 	movq   $0x0,(%r12,%r13,1) <-- trapping instruction
+  31:	00
+  32:	43 c7 44 2c 09 00 00 	movl   $0x0,0x9(%r12,%r13,1)
+  39:	00 00
+  3b:	43                   	rex.XB
+  3c:	c7                   	.byte 0xc7
+  3d:	44 2c 11             	rex.R sub $0x11,%al

@@ -1,0 +1,155 @@
+==================================================================
+BUG: KASAN: use-after-free in drm_getunique+0x206/0x230 drivers/gpu/drm/drm_ioctl.c:124
+Read of size 4 at addr ffff88801750c818 by task syz-executor.0/8725
+
+CPU: 0 PID: 8725 Comm: syz-executor.0 Not tainted 5.13.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x202/0x31e lib/dump_stack.c:120
+ print_address_description+0x5f/0x3b0 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report+0x15c/0x200 mm/kasan/report.c:436
+ drm_getunique+0x206/0x230 drivers/gpu/drm/drm_ioctl.c:124
+ drm_ioctl_kernel+0x33f/0x4a0 drivers/gpu/drm/drm_ioctl.c:787
+ drm_ioctl+0x5b4/0x970 drivers/gpu/drm/drm_ioctl.c:887
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:1069 [inline]
+ __se_sys_ioctl+0xfb/0x170 fs/ioctl.c:1055
+ do_syscall_64+0x3f/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4665d9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f3009401188 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 000000000056c038 RCX: 00000000004665d9
+RDX: 0000000020000180 RSI: 00000000c0145401 RDI: 0000000000000003
+RBP: 00000000004bfcb9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056c038
+R13: 00007ffc8fe83e7f R14: 00007f3009401300 R15: 0000000000022000
+
+Allocated by task 8724:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:428 [inline]
+ ____kasan_kmalloc+0xc4/0xf0 mm/kasan/common.c:507
+ kasan_kmalloc include/linux/kasan.h:246 [inline]
+ kmem_cache_alloc_trace+0x96/0x340 mm/slub.c:2940
+ kmalloc include/linux/slab.h:556 [inline]
+ kzalloc include/linux/slab.h:686 [inline]
+ drm_master_create+0x4b/0x2a0 drivers/gpu/drm/drm_auth.c:107
+ drm_new_set_master+0x169/0x440 drivers/gpu/drm/drm_auth.c:143
+ drm_master_open+0xfe/0x140 drivers/gpu/drm/drm_auth.c:306
+ drm_open_helper drivers/gpu/drm/drm_file.c:355 [inline]
+ drm_open+0x716/0x9a0 drivers/gpu/drm/drm_file.c:430
+ drm_stub_open+0x32f/0x390 drivers/gpu/drm/drm_drv.c:1015
+ chrdev_open+0x53b/0x5f0 fs/char_dev.c:414
+ do_dentry_open+0x7cb/0x1010 fs/open.c:826
+ do_open fs/namei.c:3361 [inline]
+ path_openat+0x28e6/0x39b0 fs/namei.c:3494
+ do_filp_open+0x221/0x460 fs/namei.c:3521
+ do_sys_openat2+0x124/0x460 fs/open.c:1187
+ do_sys_open fs/open.c:1203 [inline]
+ __do_sys_openat fs/open.c:1219 [inline]
+ __se_sys_openat fs/open.c:1214 [inline]
+ __x64_sys_openat+0x243/0x290 fs/open.c:1214
+ do_syscall_64+0x3f/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 8724:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track+0x3d/0x70 mm/kasan/common.c:46
+ kasan_set_free_info+0x1f/0x40 mm/kasan/generic.c:357
+ ____kasan_slab_free+0x109/0x150 mm/kasan/common.c:360
+ kasan_slab_free include/linux/kasan.h:212 [inline]
+ slab_free_hook mm/slub.c:1582 [inline]
+ slab_free_freelist_hook+0x1d8/0x290 mm/slub.c:1607
+ slab_free mm/slub.c:3167 [inline]
+ kfree+0xcf/0x2d0 mm/slub.c:4217
+ drm_master_destroy drivers/gpu/drm/drm_auth.c:388 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ drm_master_put+0x178/0x200 drivers/gpu/drm/drm_auth.c:399
+ drm_new_set_master+0x31c/0x440 drivers/gpu/drm/drm_auth.c:155
+ drm_setmaster_ioctl+0x339/0x520 drivers/gpu/drm/drm_auth.c:240
+ drm_ioctl_kernel+0x33f/0x4a0 drivers/gpu/drm/drm_ioctl.c:787
+ drm_ioctl+0x5b4/0x970 drivers/gpu/drm/drm_ioctl.c:887
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:1069 [inline]
+ __se_sys_ioctl+0xfb/0x170 fs/ioctl.c:1055
+ do_syscall_64+0x3f/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff88801750c800
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 24 bytes inside of
+ 512-byte region [ffff88801750c800, ffff88801750ca00)
+The buggy address belongs to the page:
+page:ffffea00005d4300 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1750c
+head:ffffea00005d4300 order:2 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 dead000000000100 dead000000000122 ffff888011841c80
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 2, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 4949, ts 25187895264, free_ts 17399823045
+ prep_new_page mm/page_alloc.c:2358 [inline]
+ get_page_from_freelist+0x779/0xa20 mm/page_alloc.c:3994
+ __alloc_pages+0x26c/0x5f0 mm/page_alloc.c:5200
+ alloc_slab_page mm/slub.c:1645 [inline]
+ allocate_slab+0xf1/0x5b0 mm/slub.c:1785
+ new_slab mm/slub.c:1848 [inline]
+ new_slab_objects mm/slub.c:2594 [inline]
+ ___slab_alloc+0x1cf/0x350 mm/slub.c:2757
+ __slab_alloc mm/slub.c:2797 [inline]
+ slab_alloc_node mm/slub.c:2879 [inline]
+ __kmalloc_node_track_caller+0x2fa/0x420 mm/slub.c:4596
+ kmalloc_reserve net/core/skbuff.c:354 [inline]
+ __alloc_skb+0x127/0x580 net/core/skbuff.c:425
+ alloc_skb include/linux/skbuff.h:1107 [inline]
+ alloc_skb_with_frags+0xab/0x680 net/core/skbuff.c:5990
+ sock_alloc_send_pskb+0x930/0xa70 net/core/sock.c:2356
+ unix_dgram_sendmsg+0x71e/0x2aa0 net/unix/af_unix.c:1671
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg net/socket.c:674 [inline]
+ sock_write_iter+0x398/0x520 net/socket.c:1001
+ call_write_iter include/linux/fs.h:2114 [inline]
+ new_sync_write fs/read_write.c:518 [inline]
+ vfs_write+0xa39/0xc90 fs/read_write.c:605
+ ksys_write+0x171/0x2a0 fs/read_write.c:658
+ do_syscall_64+0x3f/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1298 [inline]
+ __free_pages_ok+0x10a5/0x1180 mm/page_alloc.c:1572
+ free_slab mm/slub.c:1888 [inline]
+ discard_slab mm/slub.c:1894 [inline]
+ unfreeze_partials+0x18c/0x1e0 mm/slub.c:2375
+ put_cpu_partial+0xd2/0x210 mm/slub.c:2411
+ __slab_free+0x3a8/0x6b0 mm/slub.c:3061
+ do_slab_free mm/slub.c:3155 [inline]
+ ___cache_free+0xfc/0x120 mm/slub.c:3174
+ qlist_free_all mm/kasan/quarantine.c:165 [inline]
+ kasan_quarantine_reduce+0x151/0x1c0 mm/kasan/quarantine.c:272
+ __kasan_slab_alloc+0x2f/0xd0 mm/kasan/common.c:438
+ kasan_slab_alloc include/linux/kasan.h:236 [inline]
+ slab_post_alloc_hook mm/slab.h:524 [inline]
+ slab_alloc_node mm/slub.c:2913 [inline]
+ slab_alloc mm/slub.c:2921 [inline]
+ kmem_cache_alloc+0x1d7/0x340 mm/slub.c:2926
+ getname_flags+0xba/0x640 fs/namei.c:138
+ do_sys_openat2+0xba/0x460 fs/open.c:1181
+ do_sys_open fs/open.c:1203 [inline]
+ __do_sys_open fs/open.c:1211 [inline]
+ __se_sys_open fs/open.c:1207 [inline]
+ __x64_sys_open+0x221/0x270 fs/open.c:1207
+ do_syscall_64+0x3f/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Memory state around the buggy address:
+ ffff88801750c700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88801750c780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88801750c800: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff88801750c880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88801750c900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

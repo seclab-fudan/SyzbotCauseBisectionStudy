@@ -1,0 +1,57 @@
+loop0: detected capacity change from 0 to 2048
+UDF-fs: INFO Mounting volume 'LinuxUDF', timestamp 2022/11/22 14:59 (1000)
+==================================================================
+BUG: KASAN: use-after-free in udf_close_lvid+0x6a8/0x9a0 fs/udf/super.c:2072
+Write of size 1 at addr ffff888097234790 by task syz-executor187/5063
+
+CPU: 0 PID: 5063 Comm: syz-executor187 Not tainted 6.2.0-rc7-syzkaller-00018-g0983f6bf2bfc #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x163/0x4f0 mm/kasan/report.c:417
+ kasan_report+0x13a/0x170 mm/kasan/report.c:517
+ udf_close_lvid+0x6a8/0x9a0 fs/udf/super.c:2072
+ udf_put_super+0xcd/0x160 fs/udf/super.c:2359
+ generic_shutdown_super+0x134/0x310 fs/super.c:492
+ kill_block_super+0x7e/0xe0 fs/super.c:1386
+ deactivate_locked_super+0xa4/0x110 fs/super.c:332
+ cleanup_mnt+0x490/0x520 fs/namespace.c:1291
+ task_work_run+0x24a/0x300 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x605/0x2210 kernel/exit.c:867
+ do_group_exit+0x206/0x2c0 kernel/exit.c:1012
+ __do_sys_exit_group kernel/exit.c:1023 [inline]
+ __se_sys_exit_group kernel/exit.c:1021 [inline]
+ __x64_sys_exit_group+0x3f/0x40 kernel/exit.c:1021
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fae4bde8ea9
+Code: Unable to access opcode bytes at 0x7fae4bde8e7f.
+RSP: 002b:00007ffd7b6b5ea8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007fae4be5e3f0 RCX: 00007fae4bde8ea9
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000001
+RBP: 0000000000000001 R08: ffffffffffffffc0 R09: 00007fae4be58e40
+R10: 0000000000010001 R11: 0000000000000246 R12: 00007fae4be5e3f0
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+
+The buggy address belongs to the physical page:
+page:ffffea00025c8d00 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x97234
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 ffffea00025c8d08 ffffea00025c8d08 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner info is not present (never set?)
+
+Memory state around the buggy address:
+ ffff888097234680: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888097234700: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff888097234780: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                         ^
+ ffff888097234800: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888097234880: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

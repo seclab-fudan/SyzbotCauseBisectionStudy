@@ -1,0 +1,62 @@
+=============================
+WARNING: suspicious RCU usage
+5.1.0-rc4+ #165 Not tainted
+-----------------------------
+include/linux/inetdevice.h:220 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by swapper/0/0:
+ #0: 0000000051b67925 ((&n->timer)){+.-.}, at: lockdep_copy_map include/linux/lockdep.h:170 [inline]
+ #0: 0000000051b67925 ((&n->timer)){+.-.}, at: call_timer_fn+0xda/0x720 kernel/time/timer.c:1315
+
+stack backtrace:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.1.0-rc4+ #165
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ lockdep_rcu_suspicious+0x153/0x15d kernel/locking/lockdep.c:5162
+ __in_dev_get_rcu include/linux/inetdevice.h:220 [inline]
+ fib_compute_spec_dst+0xbbd/0x1030 net/ipv4/fib_frontend.c:294
+ spec_dst_fill net/ipv4/ip_options.c:245 [inline]
+ __ip_options_compile+0x15a7/0x1a10 net/ipv4/ip_options.c:343
+ ipv4_link_failure+0x172/0x400 net/ipv4/route.c:1195
+ dst_link_failure include/net/dst.h:427 [inline]
+ arp_error_report+0xd1/0x1c0 net/ipv4/arp.c:297
+ neigh_invalidate+0x24b/0x570 net/core/neighbour.c:995
+ neigh_timer_handler+0xc35/0xf30 net/core/neighbour.c:1081
+ call_timer_fn+0x190/0x720 kernel/time/timer.c:1325
+ expire_timers kernel/time/timer.c:1362 [inline]
+ __run_timers kernel/time/timer.c:1681 [inline]
+ __run_timers kernel/time/timer.c:1649 [inline]
+ run_timer_softirq+0x652/0x1700 kernel/time/timer.c:1694
+ __do_softirq+0x266/0x95a kernel/softirq.c:293
+ invoke_softirq kernel/softirq.c:374 [inline]
+ irq_exit+0x180/0x1d0 kernel/softirq.c:414
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x14a/0x570 arch/x86/kernel/apic/apic.c:1062
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+RIP: 0010:native_safe_halt+0x2/0x10 arch/x86/include/asm/irqflags.h:58
+Code: ff ff ff 48 89 c7 48 89 45 d8 e8 b9 c4 97 fa 48 8b 45 d8 e9 ce fe ff ff 48 89 df e8 a8 c4 97 fa eb 82 90 90 90 90 90 90 fb f4 <c3> 0f 1f 00 66 2e 0f 1f 84 00 00 00 00 00 f4 c3 90 90 90 90 90 90
+RSP: 0018:ffffffff88807d08 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff11252d1 RBX: ffffffff8887e080 RCX: 0000000000000000
+RDX: dffffc0000000000 RSI: 0000000000000006 RDI: ffffffff8887e8fc
+RBP: ffffffff88807d38 R08: ffffffff8887e080 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: ffffffff88929678 R14: 0000000000000000 R15: 0000000000000000
+ arch_cpu_idle+0x10/0x20 arch/x86/kernel/process.c:567
+ default_idle_call+0x36/0x90 kernel/sched/idle.c:93
+ cpuidle_idle_call kernel/sched/idle.c:153 [inline]
+ do_idle+0x386/0x570 kernel/sched/idle.c:262
+ cpu_startup_entry+0x1b/0x20 kernel/sched/idle.c:353
+ rest_init+0x245/0x37b init/main.c:450
+ arch_call_rest_init+0xe/0x1b
+ start_kernel+0x816/0x84f init/main.c:747
+ x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:470
+ x86_64_start_kernel+0x77/0x7b arch/x86/kernel/head64.c:451
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243

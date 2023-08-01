@@ -1,0 +1,61 @@
+usb 1-1: string descriptor 0 read error: -22
+usb 1-1: New USB device found, idVendor=07b0, idProduct=0007, bcdDevice= 2.aa
+usb 1-1: New USB device strings: Mfr=115, Product=64, SerialNumber=5
+usb 1-1: config 0 descriptor??
+==================================================================
+BUG: KASAN: stack-out-of-bounds in hfcsusb_probe.cold+0x1a46/0x2682 drivers/isdn/hardware/mISDN/hfcsusb.c:1962
+Read of size 4 at addr ffff8881d9e0f250 by task kworker/0:1/12
+
+CPU: 0 PID: 12 Comm: kworker/0:1 Not tainted 5.2.0-rc6+ #14
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description+0x67/0x231 mm/kasan/report.c:188
+ __kasan_report.cold+0x1a/0x32 mm/kasan/report.c:317
+ kasan_report+0xe/0x20 mm/kasan/common.c:614
+ hfcsusb_probe.cold+0x1a46/0x2682 drivers/isdn/hardware/mISDN/hfcsusb.c:1962
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x660 drivers/base/dd.c:509
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:670
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:777
+ bus_for_each_drv+0x15c/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:843
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2111
+ usb_set_configuration+0xdf6/0x1670 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x660 drivers/base/dd.c:509
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:670
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:777
+ bus_for_each_drv+0x15c/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:843
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2111
+ usb_new_device.cold+0x8c1/0x1016 drivers/usb/core/hub.c:2536
+ hub_port_connect drivers/usb/core/hub.c:5098 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x1b3d/0x35f0 drivers/usb/core/hub.c:5441
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x30b/0x410 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the page:
+page:ffffea00076783c0 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x200000000000000()
+raw: 0200000000000000 ffffea00076783c8 ffffea00076783c8 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881d9e0f100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8881d9e0f180: 00 00 00 00 00 00 00 00 f1 f1 f1 f1 f1 f1 01 f2
+>ffff8881d9e0f200: 00 00 00 00 00 00 00 00 f3 f3 f3 f3 00 00 00 00
+                                                 ^
+ ffff8881d9e0f280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8881d9e0f300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

@@ -1,0 +1,159 @@
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: use-after-free in atomic_fetch_add_relaxed include/asm-generic/atomic-instrumented.h:111 [inline]
+BUG: KASAN: use-after-free in __refcount_add include/linux/refcount.h:193 [inline]
+BUG: KASAN: use-after-free in __refcount_inc include/linux/refcount.h:250 [inline]
+BUG: KASAN: use-after-free in refcount_inc include/linux/refcount.h:267 [inline]
+BUG: KASAN: use-after-free in sctp_auth_shkey_hold+0x22/0xa0 net/sctp/auth.c:112
+Write of size 4 at addr ffff88802117d258 by task syz-executor205/8436
+
+CPU: 1 PID: 8436 Comm: syz-executor205 Tainted: G        W         5.14.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ print_address_description.constprop.0.cold+0x6c/0x309 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:436
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_fetch_add_relaxed include/asm-generic/atomic-instrumented.h:111 [inline]
+ __refcount_add include/linux/refcount.h:193 [inline]
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ sctp_auth_shkey_hold+0x22/0xa0 net/sctp/auth.c:112
+ sctp_set_owner_w net/sctp/socket.c:131 [inline]
+ sctp_sendmsg_to_asoc+0x152e/0x2180 net/sctp/socket.c:1865
+ sctp_sendmsg+0x103b/0x1d30 net/sctp/socket.c:2027
+ inet_sendmsg+0x99/0xe0 net/ipv4/af_inet.c:821
+ sock_sendmsg_nosec net/socket.c:703 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:723
+ __sys_sendto+0x21c/0x320 net/socket.c:2019
+ __do_sys_sendto net/socket.c:2031 [inline]
+ __se_sys_sendto net/socket.c:2027 [inline]
+ __x64_sys_sendto+0xdd/0x1b0 net/socket.c:2027
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x43efe9
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffdbdc702a8 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0100000000000000 RCX: 000000000043efe9
+RDX: 000000000000ffa0 RSI: 0000000020000140 RDI: 0000000000000003
+RBP: 0000000000402fd0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000403060
+R13: 0000000000000000 R14: 00000000004ac018 R15: 0000000000400488
+
+Allocated by task 8436:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:513 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:472 [inline]
+ __kasan_kmalloc+0x9b/0xd0 mm/kasan/common.c:522
+ kmalloc include/linux/slab.h:591 [inline]
+ kzalloc include/linux/slab.h:721 [inline]
+ sctp_auth_shkey_create+0x85/0x1f0 net/sctp/auth.c:84
+ sctp_auth_asoc_copy_shkeys+0x1e8/0x350 net/sctp/auth.c:363
+ sctp_association_init net/sctp/associola.c:257 [inline]
+ sctp_association_new+0x1829/0x2250 net/sctp/associola.c:298
+ sctp_connect_new_asoc+0x1ac/0x770 net/sctp/socket.c:1088
+ __sctp_connect+0x3d0/0xc30 net/sctp/socket.c:1194
+ sctp_connect net/sctp/socket.c:4808 [inline]
+ sctp_inet_connect+0x15e/0x200 net/sctp/socket.c:4823
+ __sys_connect_file+0x155/0x1a0 net/socket.c:1879
+ __sys_connect+0x161/0x190 net/socket.c:1896
+ __do_sys_connect net/socket.c:1906 [inline]
+ __se_sys_connect net/socket.c:1903 [inline]
+ __x64_sys_connect+0x6f/0xb0 net/socket.c:1903
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 8436:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:360
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free mm/kasan/common.c:328 [inline]
+ __kasan_slab_free+0xfb/0x130 mm/kasan/common.c:374
+ kasan_slab_free include/linux/kasan.h:229 [inline]
+ slab_free_hook mm/slub.c:1650 [inline]
+ slab_free_freelist_hook+0xdf/0x240 mm/slub.c:1675
+ slab_free mm/slub.c:3235 [inline]
+ kfree+0xeb/0x650 mm/slub.c:4295
+ sctp_auth_shkey_destroy net/sctp/auth.c:101 [inline]
+ sctp_auth_shkey_release+0x100/0x160 net/sctp/auth.c:107
+ sctp_auth_set_key+0x508/0x6d0 net/sctp/auth.c:862
+ sctp_setsockopt_auth_key net/sctp/socket.c:3643 [inline]
+ sctp_setsockopt+0x4bbc/0xa880 net/sctp/socket.c:4686
+ __sys_setsockopt+0x2db/0x610 net/socket.c:2159
+ __do_sys_setsockopt net/socket.c:2170 [inline]
+ __se_sys_setsockopt net/socket.c:2167 [inline]
+ __x64_sys_setsockopt+0xba/0x150 net/socket.c:2167
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff88802117d240
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 24 bytes inside of
+ 32-byte region [ffff88802117d240, ffff88802117d260)
+The buggy address belongs to the page:
+page:ffffea0000845f40 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff88802117d980 pfn:0x2117d
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea00051e2800 0000000500000005 ffff888010841500
+raw: ffff88802117d980 0000000080400034 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 1, ts 9952055174, free_ts 9918160267
+ prep_new_page mm/page_alloc.c:2433 [inline]
+ get_page_from_freelist+0xa72/0x2f80 mm/page_alloc.c:4166
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5374
+ alloc_page_interleave+0x1e/0x200 mm/mempolicy.c:2119
+ alloc_pages+0x238/0x2a0 mm/mempolicy.c:2242
+ alloc_slab_page mm/slub.c:1713 [inline]
+ allocate_slab+0x32b/0x4c0 mm/slub.c:1853
+ new_slab mm/slub.c:1916 [inline]
+ new_slab_objects mm/slub.c:2662 [inline]
+ ___slab_alloc+0x4ba/0x820 mm/slub.c:2825
+ __slab_alloc.constprop.0+0xa7/0xf0 mm/slub.c:2865
+ slab_alloc_node mm/slub.c:2947 [inline]
+ slab_alloc mm/slub.c:2989 [inline]
+ __kmalloc+0x312/0x330 mm/slub.c:4133
+ kmalloc include/linux/slab.h:596 [inline]
+ kzalloc include/linux/slab.h:721 [inline]
+ kobject_get_path+0xbe/0x230 lib/kobject.c:179
+ kobject_uevent_env+0x265/0x1650 lib/kobject_uevent.c:529
+ driver_register+0x2db/0x3a0 drivers/base/driver.c:179
+ usb_serial_register drivers/usb/serial/usb-serial.c:1439 [inline]
+ usb_serial_register_drivers+0x5b9/0xc10 drivers/usb/serial/usb-serial.c:1517
+ do_one_initcall+0x103/0x650 init/main.c:1282
+ do_initcall_level init/main.c:1355 [inline]
+ do_initcalls init/main.c:1371 [inline]
+ do_basic_setup init/main.c:1391 [inline]
+ kernel_init_freeable+0x6b8/0x741 init/main.c:1593
+ kernel_init+0x1a/0x1d0 init/main.c:1485
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1343 [inline]
+ free_pcp_prepare+0x2c5/0x780 mm/page_alloc.c:1394
+ free_unref_page_prepare mm/page_alloc.c:3329 [inline]
+ free_unref_page+0x19/0x690 mm/page_alloc.c:3408
+ __vunmap+0x783/0xb70 mm/vmalloc.c:2587
+ free_work+0x58/0x70 mm/vmalloc.c:82
+ process_one_work+0x98d/0x1630 kernel/workqueue.c:2276
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2422
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Memory state around the buggy address:
+ ffff88802117d100: fa fb fb fb fc fc fc fc 00 00 00 00 fc fc fc fc
+ ffff88802117d180: fa fb fb fb fc fc fc fc fa fb fb fb fc fc fc fc
+>ffff88802117d200: fa fb fb fb fc fc fc fc fa fb fb fb fc fc fc fc
+                                                    ^
+ ffff88802117d280: fa fb fb fb fc fc fc fc fa fb fb fb fc fc fc fc
+ ffff88802117d300: fa fb fb fb fc fc fc fc fa fb fb fb fc fc fc fc
+==================================================================

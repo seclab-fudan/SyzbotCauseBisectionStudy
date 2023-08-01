@@ -1,0 +1,159 @@
+==================================================================
+BUG: KASAN: use-after-free in __vma_adjust+0x18ee/0x1900 mm/mmap.c:763
+Read of size 8 at addr ffff88801fefe208 by task syz-executor408/3621
+
+CPU: 0 PID: 3621 Comm: syz-executor408 Not tainted 5.19.0-rc1-next-20220610-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0xeb/0x495 mm/kasan/report.c:313
+ print_report mm/kasan/report.c:429 [inline]
+ kasan_report.cold+0xf4/0x1c6 mm/kasan/report.c:491
+ __vma_adjust+0x18ee/0x1900 mm/mmap.c:763
+ vma_merge+0x590/0x870 mm/mmap.c:1119
+ userfaultfd_release+0x4c5/0x670 fs/userfaultfd.c:888
+ __fput+0x277/0x9d0 fs/file_table.c:317
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:177
+ ptrace_notify+0x114/0x140 kernel/signal.c:2353
+ ptrace_report_syscall include/linux/ptrace.h:420 [inline]
+ ptrace_report_syscall_exit include/linux/ptrace.h:482 [inline]
+ syscall_exit_work kernel/entry/common.c:249 [inline]
+ syscall_exit_to_user_mode_prepare+0xdb/0x230 kernel/entry/common.c:276
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:281 [inline]
+ syscall_exit_to_user_mode+0x9/0x50 kernel/entry/common.c:294
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+RIP: 0033:0x7f2d02e9ef59
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 71 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f2d02e502f8 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: fffffffffffffe00 RBX: 00007f2d02f284a8 RCX: 00007f2d02e9ef59
+RDX: 000000000000003c RSI: 0000000020000180 RDI: 0000000000000003
+RBP: 00007f2d02f284a0 R08: 0000000000000001 R09: 0000000000000034
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f2d02e50300
+R13: 0000000000000001 R14: 00007f2d02e50400 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 3619:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:436 [inline]
+ __kasan_slab_alloc+0x90/0xc0 mm/kasan/common.c:469
+ kasan_slab_alloc include/linux/kasan.h:224 [inline]
+ slab_post_alloc_hook mm/slab.h:750 [inline]
+ slab_alloc_node mm/slub.c:3214 [inline]
+ slab_alloc mm/slub.c:3222 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3229 [inline]
+ kmem_cache_alloc+0x204/0x3b0 mm/slub.c:3239
+ vm_area_dup+0x81/0x380 kernel/fork.c:466
+ dup_mmap+0x656/0x1090 kernel/fork.c:640
+ dup_mm+0x91/0x370 kernel/fork.c:1520
+ copy_mm kernel/fork.c:1569 [inline]
+ copy_process+0x3c95/0x7080 kernel/fork.c:2234
+ kernel_clone+0xe7/0xab0 kernel/fork.c:2649
+ __do_sys_clone+0xba/0x100 kernel/fork.c:2783
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+
+Freed by task 3621:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free+0x166/0x1a0 mm/kasan/common.c:328
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ slab_free_hook mm/slub.c:1727 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1753
+ slab_free mm/slub.c:3507 [inline]
+ kmem_cache_free+0xdd/0x5a0 mm/slub.c:3524
+ __vma_adjust+0x9ab/0x1900 mm/mmap.c:886
+ vma_merge+0x590/0x870 mm/mmap.c:1119
+ userfaultfd_release+0x4c5/0x670 fs/userfaultfd.c:888
+ __fput+0x277/0x9d0 fs/file_table.c:317
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:177
+ ptrace_notify+0x114/0x140 kernel/signal.c:2353
+ ptrace_report_syscall include/linux/ptrace.h:420 [inline]
+ ptrace_report_syscall_exit include/linux/ptrace.h:482 [inline]
+ syscall_exit_work kernel/entry/common.c:249 [inline]
+ syscall_exit_to_user_mode_prepare+0xdb/0x230 kernel/entry/common.c:276
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:281 [inline]
+ syscall_exit_to_user_mode+0x9/0x50 kernel/entry/common.c:294
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+
+The buggy address belongs to the object at ffff88801fefe1b0
+ which belongs to the cache vm_area_struct of size 152
+The buggy address is located 88 bytes inside of
+ 152-byte region [ffff88801fefe1b0, ffff88801fefe248)
+
+The buggy address belongs to the physical page:
+page:ffffea00007fbf80 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1fefe
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea00009ed380 dead000000000003 ffff888140006b40
+raw: 0000000000000000 0000000000120012 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 3327, tgid 3327 (rm), ts 28524505479, free_ts 28520297867
+ prep_new_page mm/page_alloc.c:2460 [inline]
+ get_page_from_freelist+0xa64/0x3d10 mm/page_alloc.c:4279
+ __alloc_pages+0x1c7/0x510 mm/page_alloc.c:5500
+ alloc_pages+0x1aa/0x310 mm/mempolicy.c:2279
+ alloc_slab_page mm/slub.c:1797 [inline]
+ allocate_slab+0x26c/0x3c0 mm/slub.c:1942
+ new_slab mm/slub.c:2002 [inline]
+ ___slab_alloc+0x985/0xd90 mm/slub.c:3002
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3089
+ slab_alloc_node mm/slub.c:3180 [inline]
+ slab_alloc mm/slub.c:3222 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3229 [inline]
+ kmem_cache_alloc+0x360/0x3b0 mm/slub.c:3239
+ vm_area_dup+0x81/0x380 kernel/fork.c:466
+ __split_vma+0x9f/0x530 mm/mmap.c:2273
+ do_mas_align_munmap+0x2c0/0xf00 mm/mmap.c:2399
+ do_mas_munmap+0x202/0x2c0 mm/mmap.c:2556
+ mmap_region+0x219/0x1bf0 mm/mmap.c:2604
+ do_mmap+0x825/0xf60 mm/mmap.c:1480
+ vm_mmap_pgoff+0x1b7/0x290 mm/util.c:520
+ ksys_mmap_pgoff+0x40d/0x5a0 mm/mmap.c:1526
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1375 [inline]
+ free_pcp_prepare+0x549/0xd20 mm/page_alloc.c:1425
+ free_unref_page_prepare mm/page_alloc.c:3311 [inline]
+ free_unref_page_list+0x184/0x1530 mm/page_alloc.c:3475
+ release_pages+0xff1/0x2290 mm/swap.c:980
+ tlb_batch_pages_flush+0xa8/0x1a0 mm/mmu_gather.c:58
+ tlb_flush_mmu_free mm/mmu_gather.c:255 [inline]
+ tlb_flush_mmu mm/mmu_gather.c:262 [inline]
+ tlb_finish_mmu+0x147/0x7e0 mm/mmu_gather.c:353
+ exit_mmap+0x217/0x750 mm/mmap.c:3205
+ __mmput+0x128/0x4c0 kernel/fork.c:1180
+ mmput+0x5c/0x70 kernel/fork.c:1201
+ exec_mmap fs/exec.c:1038 [inline]
+ begin_new_exec+0xfbd/0x2e50 fs/exec.c:1297
+ load_elf_binary+0x15a3/0x4ec0 fs/binfmt_elf.c:1002
+ search_binary_handler fs/exec.c:1728 [inline]
+ exec_binprm fs/exec.c:1769 [inline]
+ bprm_execve fs/exec.c:1838 [inline]
+ bprm_execve+0x7ef/0x1970 fs/exec.c:1800
+ do_execveat_common+0x724/0x890 fs/exec.c:1943
+ do_execve fs/exec.c:2017 [inline]
+ __do_sys_execve fs/exec.c:2093 [inline]
+ __se_sys_execve fs/exec.c:2088 [inline]
+ __x64_sys_execve+0x8f/0xc0 fs/exec.c:2088
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+
+Memory state around the buggy address:
+ ffff88801fefe100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fc fc
+ ffff88801fefe180: fc fc fc fc fc fc fa fb fb fb fb fb fb fb fb fb
+>ffff88801fefe200: fb fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc
+                      ^
+ ffff88801fefe280: fc 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88801fefe300: 00 00 00 00 fc fc fc fc fc fc fc fc 00 00 00 00
+==================================================================

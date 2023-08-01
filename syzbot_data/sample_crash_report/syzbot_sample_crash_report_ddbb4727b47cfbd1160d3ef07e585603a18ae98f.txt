@@ -1,0 +1,57 @@
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 2 PID: 3217 Comm: syz-executor0 Not tainted 4.13.0-rc5-next-20170816+ #4
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+task: ffff88003b90c580 task.stack: ffff88003be78000
+RIP: 0010:__read_once_size include/linux/compiler.h:276 [inline]
+RIP: 0010:compound_head include/linux/page-flags.h:146 [inline]
+RIP: 0010:put_page include/linux/mm.h:811 [inline]
+RIP: 0010:__skb_frag_unref include/linux/skbuff.h:2743 [inline]
+RIP: 0010:skb_release_data+0x26c/0x790 net/core/skbuff.c:568
+RSP: 0018:ffff88003be7eda8 EFLAGS: 00010206
+RAX: 01d22b4e8de7cac9 RBX: dffffc0000000000 RCX: 1ffff100077cfde4
+RDX: 0000000000000000 RSI: ffff88006aaec87c RDI: 0e915a746f3e564b
+RBP: ffff88003be7eec8 R08: 0000000000000001 R09: 000060ff91e0d670
+R10: ffff88003be7f6b0 R11: ffffffff85b34c40 R12: ffff88003c1701b0
+R13: ffffed00077cfdcc R14: 1ffff100077cfdc4 R15: 0e915a746f3e562b
+FS:  00007f6d8fbba700(0000) GS:ffff88006de00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020013000 CR3: 000000006a050000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ skb_release_all+0x4a/0x60 net/core/skbuff.c:631
+ __kfree_skb net/core/skbuff.c:645 [inline]
+ kfree_skb+0x15d/0x4c0 net/core/skbuff.c:663
+ ip_rcv+0x40a/0x17d0 net/ipv4/ip_input.c:497
+ __netif_receive_skb_core+0x19af/0x33d0 net/core/dev.c:4418
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4456
+ netif_receive_skb_internal+0x10b/0x5e0 net/core/dev.c:4527
+ netif_receive_skb+0xae/0x390 net/core/dev.c:4551
+ tun_rx_batched.isra.43+0x5e7/0x860 drivers/net/tun.c:1221
+ tun_get_user+0x11dd/0x2150 drivers/net/tun.c:1542
+ tun_chr_write_iter+0xd8/0x190 drivers/net/tun.c:1568
+ call_write_iter include/linux/fs.h:1742 [inline]
+ new_sync_write fs/read_write.c:457 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:470
+ vfs_write+0x189/0x510 fs/read_write.c:518
+ SYSC_write fs/read_write.c:565 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:557
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x40bab1
+RSP: 002b:00007f6d8fbb9c00 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000011 RCX: 000000000040bab1
+RDX: 0000000000000011 RSI: 000000002001df3f RDI: 0000000000000003
+RBP: 000000000000003a R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000293 R12: 00000000ffffffff
+R13: 0000000000005590 R14: 00000000006e7650 R15: 0000000000000002
+Code: c6 e8 c9 68 8d fd 4c 89 e0 48 c1 e8 03 80 3c 18 00 0f 85 93 04 00 00 4d 8b 3c 24 41 c6 45 00 00 49 8d 7f 20 48 89 f8 48 c1 e8 03 <80> 3c 18 00 0f 85 6b 04 00 00 41 80 7d 00 00 49 8b 47 20 0f 85 
+RIP: __read_once_size include/linux/compiler.h:276 [inline] RSP: ffff88003be7eda8
+RIP: compound_head include/linux/page-flags.h:146 [inline] RSP: ffff88003be7eda8
+RIP: put_page include/linux/mm.h:811 [inline] RSP: ffff88003be7eda8
+RIP: __skb_frag_unref include/linux/skbuff.h:2743 [inline] RSP: ffff88003be7eda8
+RIP: skb_release_data+0x26c/0x790 net/core/skbuff.c:568 RSP: ffff88003be7eda8
+---[ end trace 6ed34ccdad0c850e ]---

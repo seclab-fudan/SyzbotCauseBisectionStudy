@@ -1,0 +1,271 @@
+INFO: task kworker/u5:7:3641 blocked for more than 143 seconds.
+      Not tainted 5.19.0-rc3-syzkaller-00271-g6a0a17e6c6d1 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:kworker/u5:7    state:D stack:28344 pid: 3641 ppid:     2 flags:0x00004000
+Workqueue: hci1 hci_power_on
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5146 [inline]
+ __schedule+0xa00/0x4b50 kernel/sched/core.c:6458
+ schedule+0xd2/0x1f0 kernel/sched/core.c:6530
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6589
+ __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+ __mutex_lock+0xa70/0x1350 kernel/locking/mutex.c:747
+ hci_dev_do_open+0x2a/0x70 net/bluetooth/hci_core.c:480
+ hci_power_on+0x133/0x630 net/bluetooth/hci_core.c:963
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+INFO: task syz-executor342:3680 blocked for more than 143 seconds.
+      Not tainted 5.19.0-rc3-syzkaller-00271-g6a0a17e6c6d1 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor342 state:D stack:27848 pid: 3680 ppid:  3606 flags:0x00004002
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5146 [inline]
+ __schedule+0xa00/0x4b50 kernel/sched/core.c:6458
+ schedule+0xd2/0x1f0 kernel/sched/core.c:6530
+ schedule_timeout+0x1db/0x2a0 kernel/time/timer.c:1911
+ do_wait_for_common kernel/sched/completion.c:85 [inline]
+ __wait_for_common+0x378/0x530 kernel/sched/completion.c:106
+ __flush_work+0x56c/0xb10 kernel/workqueue.c:3075
+ __cancel_work_timer+0x3f9/0x570 kernel/workqueue.c:3162
+ hci_dev_close_sync+0x8d/0x1150 net/bluetooth/hci_sync.c:4091
+ hci_dev_do_close+0x32/0x70 net/bluetooth/hci_core.c:553
+ hci_unregister_dev+0x1c4/0x550 net/bluetooth/hci_core.c:2685
+ hci_uart_tty_close+0x241/0x2a0 drivers/bluetooth/hci_ldisc.c:548
+ tty_ldisc_close+0x110/0x190 drivers/tty/tty_ldisc.c:456
+ tty_ldisc_kill+0x94/0x150 drivers/tty/tty_ldisc.c:608
+ tty_ldisc_release+0xe1/0x2a0 drivers/tty/tty_ldisc.c:776
+ tty_release_struct+0x20/0xe0 drivers/tty/tty_io.c:1694
+ tty_release+0xc70/0x1200 drivers/tty/tty_io.c:1865
+ __fput+0x277/0x9d0 fs/file_table.c:317
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:177
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0xaff/0x2a00 kernel/exit.c:795
+ do_group_exit+0xd2/0x2f0 kernel/exit.c:925
+ __do_sys_exit_group kernel/exit.c:936 [inline]
+ __se_sys_exit_group kernel/exit.c:934 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:934
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+RIP: 0033:0x7fc4d74cdab9
+RSP: 002b:00007ffc8bfc7ef8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007fc4d7541330 RCX: 00007fc4d74cdab9
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffffffffffc0 R09: 0000000000000001
+R10: 0000000000000001 R11: 0000000000000246 R12: 00007fc4d7541330
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/28:
+ #0: ffffffff8bd83b60 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6491
+3 locks held by kworker/u5:0/48:
+ #0: ffff88801d743138 ((wq_completion)hci5){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff88801d743138 ((wq_completion)hci5){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff88801d743138 ((wq_completion)hci5){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff88801d743138 ((wq_completion)hci5){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff88801d743138 ((wq_completion)hci5){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff88801d743138 ((wq_completion)hci5){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc90000d9fda8 ((work_completion)(&hdev->power_on)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffff888078c79048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_open+0x2a/0x70 net/bluetooth/hci_core.c:480
+2 locks held by getty/3287:
+ #0: ffff88814ad49098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc90001c282e8 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xe50/0x13c0 drivers/tty/n_tty.c:2124
+3 locks held by kworker/u5:1/3619:
+ #0: ffff888079eaa938 ((wq_completion)hci2){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888079eaa938 ((wq_completion)hci2){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888079eaa938 ((wq_completion)hci2){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888079eaa938 ((wq_completion)hci2){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff888079eaa938 ((wq_completion)hci2){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff888079eaa938 ((wq_completion)hci2){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc900030c7da8 ((work_completion)(&hdev->power_on)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffff888021991048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_open+0x2a/0x70 net/bluetooth/hci_core.c:480
+3 locks held by kworker/u5:5/3631:
+ #0: ffff888022dd7138 ((wq_completion)hci4){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888022dd7138 ((wq_completion)hci4){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888022dd7138 ((wq_completion)hci4){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888022dd7138 ((wq_completion)hci4){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff888022dd7138 ((wq_completion)hci4){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff888022dd7138 ((wq_completion)hci4){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc90003037da8 ((work_completion)(&hdev->power_on)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffff88806e2b1048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_open+0x2a/0x70 net/bluetooth/hci_core.c:480
+3 locks held by kworker/u5:6/3634:
+ #0: ffff8880202a0938 ((wq_completion)hci0){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8880202a0938 ((wq_completion)hci0){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff8880202a0938 ((wq_completion)hci0){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff8880202a0938 ((wq_completion)hci0){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff8880202a0938 ((wq_completion)hci0){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff8880202a0938 ((wq_completion)hci0){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc90003187da8 ((work_completion)(&hdev->power_on)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffff8880224d5048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_open+0x2a/0x70 net/bluetooth/hci_core.c:480
+3 locks held by kworker/u5:7/3641:
+ #0: ffff88801dd35938 ((wq_completion)hci1){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff88801dd35938 ((wq_completion)hci1){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff88801dd35938 ((wq_completion)hci1){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff88801dd35938 ((wq_completion)hci1){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff88801dd35938 ((wq_completion)hci1){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff88801dd35938 ((wq_completion)hci1){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc90002ff7da8 ((work_completion)(&hdev->power_on)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffff888021c75048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_open+0x2a/0x70 net/bluetooth/hci_core.c:480
+3 locks held by kworker/u5:8/3651:
+ #0: ffff8880790d2938 ((wq_completion)hci3){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8880790d2938 ((wq_completion)hci3){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff8880790d2938 ((wq_completion)hci3){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff8880790d2938 ((wq_completion)hci3){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff8880790d2938 ((wq_completion)hci3){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff8880790d2938 ((wq_completion)hci3){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc900031f7da8 ((work_completion)(&hdev->power_on)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffff88806e305048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_open+0x2a/0x70 net/bluetooth/hci_core.c:480
+2 locks held by kworker/0:7/3654:
+ #0: ffff888011876538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888011876538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888011876538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888011876538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff888011876538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff888011876538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc90003217da8 ((work_completion)(&rew->rew_work)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+3 locks held by syz-executor342/3680:
+ #0: ffff88801db6d098 (&tty->ldisc_sem){++++}-{0:0}, at: __tty_ldisc_lock drivers/tty/tty_ldisc.c:290 [inline]
+ #0: ffff88801db6d098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:336 [inline]
+ #0: ffff88801db6d098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #0: ffff88801db6d098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_release+0x15c/0x2a0 drivers/tty/tty_ldisc.c:775
+ #1: ffff88801dcb5098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: __tty_ldisc_lock_nested drivers/tty/tty_ldisc.c:296 [inline]
+ #1: ffff88801dcb5098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:338 [inline]
+ #1: ffff88801dcb5098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #1: ffff88801dcb5098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_release+0x20f/0x2a0 drivers/tty/tty_ldisc.c:775
+ #2: ffff888021c75048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_close+0x2a/0x70 net/bluetooth/hci_core.c:551
+3 locks held by syz-executor342/4367:
+ #0: ffff88801729e098 (&tty->ldisc_sem){++++}-{0:0}, at: __tty_ldisc_lock drivers/tty/tty_ldisc.c:290 [inline]
+ #0: ffff88801729e098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:336 [inline]
+ #0: ffff88801729e098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #0: ffff88801729e098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_release+0x15c/0x2a0 drivers/tty/tty_ldisc.c:775
+ #1: ffff888073449098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: __tty_ldisc_lock_nested drivers/tty/tty_ldisc.c:296 [inline]
+ #1: ffff888073449098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:338 [inline]
+ #1: ffff888073449098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #1: ffff888073449098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_release+0x20f/0x2a0 drivers/tty/tty_ldisc.c:775
+ #2: ffff888021991048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_close+0x2a/0x70 net/bluetooth/hci_core.c:551
+3 locks held by syz-executor342/4521:
+ #0: ffff888023622098 (&tty->ldisc_sem){++++}-{0:0}, at: __tty_ldisc_lock drivers/tty/tty_ldisc.c:290 [inline]
+ #0: ffff888023622098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:336 [inline]
+ #0: ffff888023622098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #0: ffff888023622098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_release+0x15c/0x2a0 drivers/tty/tty_ldisc.c:775
+ #1: ffff888071535098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: __tty_ldisc_lock_nested drivers/tty/tty_ldisc.c:296 [inline]
+ #1: ffff888071535098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:338 [inline]
+ #1: ffff888071535098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #1: ffff888071535098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_release+0x20f/0x2a0 drivers/tty/tty_ldisc.c:775
+ #2: ffff888078c79048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_close+0x2a/0x70 net/bluetooth/hci_core.c:551
+3 locks held by syz-executor342/4522:
+ #0: ffff888073163098 (&tty->ldisc_sem){++++}-{0:0}, at: __tty_ldisc_lock drivers/tty/tty_ldisc.c:290 [inline]
+ #0: ffff888073163098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:336 [inline]
+ #0: ffff888073163098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #0: ffff888073163098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_release+0x15c/0x2a0 drivers/tty/tty_ldisc.c:775
+ #1: ffff88807b024098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: __tty_ldisc_lock_nested drivers/tty/tty_ldisc.c:296 [inline]
+ #1: ffff88807b024098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:338 [inline]
+ #1: ffff88807b024098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #1: ffff88807b024098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_release+0x20f/0x2a0 drivers/tty/tty_ldisc.c:775
+ #2: ffff8880224d5048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_close+0x2a/0x70 net/bluetooth/hci_core.c:551
+3 locks held by syz-executor342/4524:
+ #0: ffff888025407098 (&tty->ldisc_sem){++++}-{0:0}, at: __tty_ldisc_lock drivers/tty/tty_ldisc.c:290 [inline]
+ #0: ffff888025407098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:346 [inline]
+ #0: ffff888025407098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #0: ffff888025407098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_release+0x127/0x2a0 drivers/tty/tty_ldisc.c:775
+ #1: ffff88807bdf6098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: __tty_ldisc_lock_nested drivers/tty/tty_ldisc.c:296 [inline]
+ #1: ffff88807bdf6098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:348 [inline]
+ #1: ffff88807bdf6098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #1: ffff88807bdf6098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_release+0x1bd/0x2a0 drivers/tty/tty_ldisc.c:775
+ #2: ffff88806e305048 (&hdev->req_lock){+.+.}-{3:3}, at: hci_dev_do_close+0x2a/0x70 net/bluetooth/hci_core.c:551
+4 locks held by syz-executor342/4525:
+ #0: ffff88807c596098 (&tty->ldisc_sem){++++}-{0:0}, at: __tty_ldisc_lock drivers/tty/tty_ldisc.c:290 [inline]
+ #0: ffff88807c596098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:336 [inline]
+ #0: ffff88807c596098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #0: ffff88807c596098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_release+0x15c/0x2a0 drivers/tty/tty_ldisc.c:775
+ #1: ffff88807c597098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: __tty_ldisc_lock_nested drivers/tty/tty_ldisc.c:296 [inline]
+ #1: ffff88807c597098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair_timeout drivers/tty/tty_ldisc.c:338 [inline]
+ #1: ffff88807c597098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_lock_pair drivers/tty/tty_ldisc.c:367 [inline]
+ #1: ffff88807c597098 (&tty->ldisc_sem/1){+.+.}-{0:0}, at: tty_ldisc_release+0x20f/0x2a0 drivers/tty/tty_ldisc.c:775
+ #2: ffff888022eda990 (&hu->proto_lock){++++}-{0:0}, at: hci_uart_tty_close+0x162/0x2a0 drivers/bluetooth/hci_ldisc.c:539
+ #3: ffffffff8bd8de60 (rcu_state.exp_mutex){+.+.}-{3:3}, at: exp_funnel_lock kernel/rcu/tree_exp.h:290 [inline]
+ #3: ffffffff8bd8de60 (rcu_state.exp_mutex){+.+.}-{3:3}, at: synchronize_rcu_expedited+0x4f8/0x610 kernel/rcu/tree_exp.h:927
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 28 Comm: khungtaskd Not tainted 5.19.0-rc3-syzkaller-00271-g6a0a17e6c6d1 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x47/0x144 lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x1e6/0x230 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:212 [inline]
+ watchdog+0xc1d/0xf50 kernel/hung_task.c:369
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 3602 Comm: strace-static-x Not tainted 5.19.0-rc3-syzkaller-00271-g6a0a17e6c6d1 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:check_preemption_disabled+0xe/0x170 lib/smp_processor_id.c:14
+Code: 3c 25 80 6f 02 00 e8 11 d4 e2 f7 eb 99 0f 1f 44 00 00 0f 0b e9 23 ff ff ff cc cc cc 41 56 41 55 49 89 f5 41 54 55 48 89 fd 53 <0f> 1f 44 00 00 65 44 8b 25 c5 69 8b 76 65 8b 1d 2e bf 8b 76 81 e3
+RSP: 0018:ffffc90003097ec8 EFLAGS: 00000046
+RAX: 0000000000000001 RBX: 0000000000000000 RCX: 0000000000000001
+RDX: 0000000000000000 RSI: ffffffff89d62960 RDI: ffffffff8a283040
+RBP: ffffffff8a283040 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000001
+R13: ffffffff89d62960 R14: 0000000000000000 R15: 0000000000000000
+FS:  00000000010c0340(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fc4d75421d0 CR3: 0000000021b75000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ context_tracking_recursion_enter+0x1a/0xb0 kernel/context_tracking.c:38
+ __context_tracking_exit+0xe/0xe0 kernel/context_tracking.c:148
+ user_exit_irqoff include/linux/context_tracking.h:47 [inline]
+ __enter_from_user_mode kernel/entry/common.c:24 [inline]
+ syscall_enter_from_user_mode+0x4c/0x70 kernel/entry/common.c:106
+ do_syscall_64+0x16/0xb0 arch/x86/entry/common.c:76
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+RIP: 0033:0x4e6c1a
+Code: 70 41 83 f8 03 c7 44 24 10 08 00 00 00 48 89 44 24 18 48 8d 44 24 30 8b 70 08 4c 0f 43 d1 48 89 44 24 20 b8 65 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 3e 48 85 c0 78 06 41 83 f8 02 76 1b 48 8b 4c
+RSP: 002b:00007ffd5a40f860 EFLAGS: 00000206 ORIG_RAX: 0000000000000065
+RAX: ffffffffffffffda RBX: 00000000010c02f8 RCX: 00000000004e6c1a
+RDX: 0000000000000000 RSI: 0000000000000e17 RDI: 0000000000000018
+RBP: 0000000000000018 R08: 0000000000000017 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000206 R12: 00000000010c1f90
+R13: 0000000000000000 R14: 000000000000857f R15: 0000000000617180
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	3c 25                	cmp    $0x25,%al
+   2:	80 6f 02 00          	subb   $0x0,0x2(%rdi)
+   6:	e8 11 d4 e2 f7       	callq  0xf7e2d41c
+   b:	eb 99                	jmp    0xffffffa6
+   d:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  12:	0f 0b                	ud2
+  14:	e9 23 ff ff ff       	jmpq   0xffffff3c
+  19:	cc                   	int3
+  1a:	cc                   	int3
+  1b:	cc                   	int3
+  1c:	41 56                	push   %r14
+  1e:	41 55                	push   %r13
+  20:	49 89 f5             	mov    %rsi,%r13
+  23:	41 54                	push   %r12
+  25:	55                   	push   %rbp
+  26:	48 89 fd             	mov    %rdi,%rbp
+  29:	53                   	push   %rbx
+* 2a:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1) <-- trapping instruction
+  2f:	65 44 8b 25 c5 69 8b 	mov    %gs:0x768b69c5(%rip),%r12d        # 0x768b69fc
+  36:	76
+  37:	65 8b 1d 2e bf 8b 76 	mov    %gs:0x768bbf2e(%rip),%ebx        # 0x768bbf6c
+  3e:	81                   	.byte 0x81
+  3f:	e3                   	.byte 0xe3

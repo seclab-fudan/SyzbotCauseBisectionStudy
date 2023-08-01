@@ -1,0 +1,118 @@
+INFO: trying to register non-static key.
+The code is fine but needs lockdep annotation, or maybe
+you didn't initialize this object before use?
+turning off the locking correctness validator.
+CPU: 1 PID: 14797 Comm: syz-executor.5 Not tainted 6.2.0-rc7-syzkaller-17907-g2d3827b3f393 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call trace:
+ dump_backtrace+0x1c8/0x1f4 arch/arm64/kernel/stacktrace.c:158
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:165
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd0/0x124 lib/dump_stack.c:106
+ dump_stack+0x1c/0x28 lib/dump_stack.c:113
+ assign_lock_key+0x134/0x140 kernel/locking/lockdep.c:981
+ register_lock_class+0xc0/0x2f4 kernel/locking/lockdep.c:1294
+ __lock_acquire+0xa8/0x2f48 kernel/locking/lockdep.c:4934
+ lock_acquire+0x164/0x334 kernel/locking/lockdep.c:5668
+ down_write+0x5c/0x88 kernel/locking/rwsem.c:1562
+ ext4_write_lock_xattr fs/ext4/xattr.h:155 [inline]
+ ext4_xattr_set_handle+0xcc/0x9bc fs/ext4/xattr.c:2321
+ ext4_xattr_set+0x104/0x1d4 fs/ext4/xattr.c:2508
+ ext4_xattr_trusted_set+0x4c/0x64 fs/ext4/xattr_trusted.c:38
+ __vfs_setxattr+0x28c/0x298 fs/xattr.c:202
+ __vfs_setxattr_noperm+0xcc/0x320 fs/xattr.c:236
+ __vfs_setxattr_locked+0x168/0x190 fs/xattr.c:297
+ vfs_setxattr+0xf4/0x1f4 fs/xattr.c:323
+ do_setxattr fs/xattr.c:608 [inline]
+ setxattr+0x24c/0x2cc fs/xattr.c:631
+ path_setxattr+0xd0/0x17c fs/xattr.c:650
+ __do_sys_setxattr fs/xattr.c:666 [inline]
+ __se_sys_setxattr fs/xattr.c:662 [inline]
+ __arm64_sys_setxattr+0x2c/0x40 fs/xattr.c:662
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x64/0x178 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0xbc/0x180 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x110 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x14c arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+------------[ cut here ]------------
+DEBUG_RWSEMS_WARN_ON(sem->magic != sem): count = 0x1, magic = 0x0, owner = 0xffff0000e231b400, curr 0xffff0000e231b400, list not empty
+WARNING: CPU: 0 PID: 14797 at kernel/locking/rwsem.c:1355 __up_write kernel/locking/rwsem.c:1355 [inline]
+WARNING: CPU: 0 PID: 14797 at kernel/locking/rwsem.c:1355 up_write+0x248/0x2dc kernel/locking/rwsem.c:1615
+Modules linked in:
+CPU: 0 PID: 14797 Comm: syz-executor.5 Not tainted 6.2.0-rc7-syzkaller-17907-g2d3827b3f393 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __up_write kernel/locking/rwsem.c:1355 [inline]
+pc : up_write+0x248/0x2dc kernel/locking/rwsem.c:1615
+lr : __up_write kernel/locking/rwsem.c:1355 [inline]
+lr : up_write+0x248/0x2dc kernel/locking/rwsem.c:1615
+sp : ffff8000140fb7f0
+x29: ffff8000140fb810
+ x28: ffff0000c0587f38
+ x27: 0000000000000000
+
+x26: ffff80000ce696ef
+ x25: 00000000fffffff4
+ x24: ffff8000140fb8a8
+x23: 0000000000000000 x22: ffff0000c0588190 x21: ffff80000d36c000
+x20: 0000000000000000 x19: ffff0000c0587f38
+ x18: 0000000000000000
+
+x17: 6e69676e45206574
+ x16: 0000000000000001
+ x15: 0000000000000000
+
+x14: 0000000000000005
+ x13: 205d373937343154
+ x12: 0000000000040000
+
+x11: 000000000003ffff
+ x10: ffff8000197b0000
+ x9 : aa0e92b68f82f700
+
+x8 : aa0e92b68f82f700
+ x7 : 545b5d3832343934
+ x6 : ffff8000081bda54
+
+x5 : 0000000000000000
+ x4 : 0000000000000001
+ x3 : 0000000000000000
+
+x2 : ffff8000140fb378
+ x1 : 0000000100000000
+ x0 : 0000000000000086
+
+Call trace:
+ __up_write kernel/locking/rwsem.c:1355 [inline]
+ up_write+0x248/0x2dc kernel/locking/rwsem.c:1615
+ ext4_write_unlock_xattr fs/ext4/xattr.h:173 [inline]
+ ext4_xattr_set_handle+0x3e4/0x9bc fs/ext4/xattr.c:2444
+ ext4_xattr_set+0x104/0x1d4 fs/ext4/xattr.c:2508
+ ext4_xattr_trusted_set+0x4c/0x64 fs/ext4/xattr_trusted.c:38
+ __vfs_setxattr+0x28c/0x298 fs/xattr.c:202
+ __vfs_setxattr_noperm+0xcc/0x320 fs/xattr.c:236
+ __vfs_setxattr_locked+0x168/0x190 fs/xattr.c:297
+ vfs_setxattr+0xf4/0x1f4 fs/xattr.c:323
+ do_setxattr fs/xattr.c:608 [inline]
+ setxattr+0x24c/0x2cc fs/xattr.c:631
+ path_setxattr+0xd0/0x17c fs/xattr.c:650
+ __do_sys_setxattr fs/xattr.c:666 [inline]
+ __se_sys_setxattr fs/xattr.c:662 [inline]
+ __arm64_sys_setxattr+0x2c/0x40 fs/xattr.c:662
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x64/0x178 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0xbc/0x180 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x110 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x14c arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+irq event stamp: 2861
+hardirqs last  enabled at (2861): [<ffff80000bf6aafc>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+hardirqs last  enabled at (2861): [<ffff80000bf6aafc>] _raw_spin_unlock_irqrestore+0x44/0x84 kernel/locking/spinlock.c:194
+hardirqs last disabled at (2860): [<ffff80000bf6a910>] __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:108 [inline]
+hardirqs last disabled at (2860): [<ffff80000bf6a910>] _raw_spin_lock_irqsave+0x2c/0x88 kernel/locking/spinlock.c:162
+softirqs last  enabled at (2850): [<ffff80000801c878>] local_bh_enable+0x10/0x34 include/linux/bottom_half.h:32
+softirqs last disabled at (2848): [<ffff80000801c844>] local_bh_disable+0x10/0x34 include/linux/bottom_half.h:19
+---[ end trace 0000000000000000 ]---

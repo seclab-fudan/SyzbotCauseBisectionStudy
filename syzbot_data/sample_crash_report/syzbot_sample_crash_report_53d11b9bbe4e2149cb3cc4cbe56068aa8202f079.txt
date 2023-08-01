@@ -1,0 +1,54 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in usage_accumulate+0x9e/0xb0 kernel/locking/lockdep.c:1676
+Read of size 8 at addr ffff88809baf8a40 by task syz-executor.5/9787
+
+CPU: 0 PID: 9787 Comm: syz-executor.5 Not tainted 5.2.0-rc6 #40
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+
+Allocated by task 19:
+ save_stack+0x23/0x90 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_kmalloc mm/kasan/common.c:489 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:462
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:497
+ slab_post_alloc_hook mm/slab.h:437 [inline]
+ slab_alloc mm/slab.c:3326 [inline]
+ kmem_cache_alloc+0x11a/0x6f0 mm/slab.c:3488
+ shmem_alloc_inode+0x1c/0x50 mm/shmem.c:3628
+ alloc_inode+0x68/0x1e0 fs/inode.c:227
+ new_inode_pseudo+0x19/0xf0 fs/inode.c:916
+ new_inode+0x1f/0x40 fs/inode.c:945
+ shmem_get_inode+0x84/0x7e0 mm/shmem.c:2226
+ shmem_mknod+0x5a/0x1f0 mm/shmem.c:2862
+ vfs_mknod fs/namei.c:3717 [inline]
+ vfs_mknod+0x442/0x760 fs/namei.c:3696
+ handle_create+0x178/0x590 drivers/base/devtmpfs.c:212
+ handle drivers/base/devtmpfs.c:375 [inline]
+ devtmpfsd drivers/base/devtmpfs.c:401 [inline]
+ devtmpfsd+0x266/0x4c0 drivers/base/devtmpfs.c:380
+ kthread+0x354/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff88809baf8528
+ which belongs to the cache shmem_inode_cache of size 1192
+The buggy address is located 112 bytes to the right of
+ 1192-byte region [ffff88809baf8528, ffff88809baf89d0)
+The buggy address belongs to the page:
+page:ffffea00026ebe00 refcount:1 mapcount:0 mapping:ffff88821bc48e00 index:0xffff88809baf8ffd
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea00026ebd48 ffffea00026ebec8 ffff88821bc48e00
+raw: ffff88809baf8ffd ffff88809baf8000 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809baf8900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88809baf8980: 00 00 f1 f1 f1 f1 00 f2 f2 f2 00 f2 f2 f2 00 f2
+>ffff88809baf8a00: f2 f2 00 f2 f2 f2 fc fc fc fc 00 00 00 f2 f2 f2
+                                           ^
+ ffff88809baf8a80: f2 f2 00 00 00 00 00 00 00 f3 f3 f3 f3 f3 00 00
+ ffff88809baf8b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

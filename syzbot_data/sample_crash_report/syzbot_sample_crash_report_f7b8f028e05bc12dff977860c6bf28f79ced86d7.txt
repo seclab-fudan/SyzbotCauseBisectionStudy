@@ -1,0 +1,111 @@
+
+================================
+WARNING: inconsistent lock state
+4.15.0+ #286 Not tainted
+--------------------------------
+inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
+syzkaller251750/4166 [HC0[0]:SC1[1]:HE1:SE0] takes:
+ (&(&est->lock)->rlock){+.?.}, at: [<000000005b75c54a>] spin_lock include/linux/spinlock.h:310 [inline]
+ (&(&est->lock)->rlock){+.?.}, at: [<000000005b75c54a>] est_fetch_counters+0x4f/0x150 net/core/gen_estimator.c:70
+{SOFTIRQ-ON-W} state was registered at:
+  lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3915
+  __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+  _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:144
+  spin_lock include/linux/spinlock.h:310 [inline]
+  est_fetch_counters+0x4f/0x150 net/core/gen_estimator.c:70
+  gen_new_estimator+0x317/0x770 net/core/gen_estimator.c:162
+  xt_rateest_tg_checkentry+0x487/0xaa0 net/netfilter/xt_RATEEST.c:135
+  xt_check_target+0x22c/0x7d0 net/netfilter/x_tables.c:845
+  check_target net/ipv6/netfilter/ip6_tables.c:538 [inline]
+  find_check_entry.isra.7+0x935/0xcf0 net/ipv6/netfilter/ip6_tables.c:580
+  translate_table+0xf52/0x1690 net/ipv6/netfilter/ip6_tables.c:749
+  do_replace net/ipv6/netfilter/ip6_tables.c:1167 [inline]
+  do_ip6t_set_ctl+0x370/0x5f0 net/ipv6/netfilter/ip6_tables.c:1693
+  nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+  nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+  ipv6_setsockopt+0x115/0x150 net/ipv6/ipv6_sockglue.c:928
+  udpv6_setsockopt+0x45/0x80 net/ipv6/udp.c:1452
+  sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+  SYSC_setsockopt net/socket.c:1831 [inline]
+  SyS_setsockopt+0x189/0x360 net/socket.c:1810
+  entry_SYSCALL_64_fastpath+0x29/0xa0
+irq event stamp: 962320
+hardirqs last  enabled at (962320): [<000000003e09f3d7>] restore_regs_and_return_to_kernel+0x0/0x21
+hardirqs last disabled at (962319): [<0000000044413704>] common_interrupt+0xa4/0xa9 arch/x86/entry/entry_64.S:713
+softirqs last  enabled at (962180): [<00000000570e89a0>] __do_softirq+0x7a0/0xb85 kernel/softirq.c:311
+softirqs last disabled at (962315): [<000000002873810e>] invoke_softirq kernel/softirq.c:365 [inline]
+softirqs last disabled at (962315): [<000000002873810e>] irq_exit+0x1cc/0x200 kernel/softirq.c:405
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&(&est->lock)->rlock);
+  <Interrupt>
+    lock(&(&est->lock)->rlock);
+
+ *** DEADLOCK ***
+
+1 lock held by syzkaller251750/4166:
+ #0:  ((&est->timer)){+.-.}, at: [<00000000187a55db>] lockdep_copy_map include/linux/lockdep.h:178 [inline]
+ #0:  ((&est->timer)){+.-.}, at: [<00000000187a55db>] call_timer_fn+0x1c6/0x820 kernel/time/timer.c:1316
+
+stack backtrace:
+CPU: 0 PID: 4166 Comm: syzkaller251750 Not tainted 4.15.0+ #286
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_usage_bug+0x377/0x38c kernel/locking/lockdep.c:2538
+ valid_state kernel/locking/lockdep.c:2551 [inline]
+ mark_lock_irq kernel/locking/lockdep.c:2745 [inline]
+ mark_lock+0xf61/0x1430 kernel/locking/lockdep.c:3143
+ mark_irqflags kernel/locking/lockdep.c:3021 [inline]
+ __lock_acquire+0x173a/0x3e00 kernel/locking/lockdep.c:3384
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3915
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:144
+ spin_lock include/linux/spinlock.h:310 [inline]
+ est_fetch_counters+0x4f/0x150 net/core/gen_estimator.c:70
+ est_timer+0x97/0x7c0 net/core/gen_estimator.c:85
+ call_timer_fn+0x228/0x820 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0x7ee/0xb70 kernel/time/timer.c:1666
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:541 [inline]
+ smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xa9/0xb0 arch/x86/entry/entry_64.S:938
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:777 [inline]
+RIP: 0010:kmem_cache_free+0x17c/0x2a0 mm/slab.c:3747
+RSP: 0018:ffff8801b60afa48 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff11
+RAX: 0000000000000007 RBX: ffff8801b2954b40 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000282
+RBP: ffff8801b60afa68 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801d1f0d900
+R13: 0000000000000282 R14: ffffffff82223349 R15: ffff8801b60afc18
+ ebitmap_destroy+0x79/0xe0 security/selinux/ss/ebitmap.c:338
+ mls_context_destroy security/selinux/ss/context.h:109 [inline]
+ context_destroy security/selinux/ss/context.h:148 [inline]
+ security_compute_sid+0xa46/0x18f0 security/selinux/ss/services.c:1742
+ security_transition_sid+0x75/0x90 security/selinux/ss/services.c:1763
+ socket_sockcreate_sid security/selinux/hooks.c:4335 [inline]
+ selinux_socket_post_create+0x586/0x970 security/selinux/hooks.c:4386
+ security_socket_post_create+0x8b/0xc0 security/security.c:1344
+ __sock_create+0x6a4/0x850 net/socket.c:1283
+ sock_create net/socket.c:1307 [inline]
+ SYSC_socket net/socket.c:1337 [inline]
+ SyS_socket+0xeb/0x1d0 net/socket.c:1317
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x441049
+RSP: 002b:00007ffe2d63b418 EFLAGS: 00000217 ORIG_RAX: 0000000000000029
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000441049
+RDX: 0000000000000000 RSI: 0000000000000002 RDI: 000000000000000a
+RBP: 31affa775212f497 R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000ffffffff R11: 0000000000000217 R12: f3023f5f5df3bc21
+R13: f6fcce9cd855ec40 R14: fbfe5b6031634428 R15: 0000000000000000

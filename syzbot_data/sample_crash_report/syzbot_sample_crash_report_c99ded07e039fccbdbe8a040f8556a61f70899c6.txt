@@ -1,0 +1,545 @@
+syz-executor.1 invoked oom-killer: gfp_mask=0x7080c0(GFP_KERNEL_ACCOUNT|__GFP_ZERO), order=0, oom_score_adj=0
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 1 PID: 7446 Comm: syz-executor.1 Not tainted 5.0.0-rc7+ #85
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ dump_header+0x10f/0xb6c mm/oom_kill.c:451
+ oom_kill_process.cold+0x10/0x6f5 mm/oom_kill.c:966
+ out_of_memory mm/oom_kill.c:1141 [inline]
+ out_of_memory+0x79a/0x1280 mm/oom_kill.c:1074
+ mem_cgroup_out_of_memory+0x99/0xe0 mm/memcontrol.c:1393
+ mem_cgroup_oom mm/memcontrol.c:1721 [inline]
+ try_charge+0xfec/0x1570 mm/memcontrol.c:2283
+ memcg_kmem_charge_memcg+0x7c/0x130 mm/memcontrol.c:2591
+ memcg_kmem_charge+0x13b/0x340 mm/memcontrol.c:2624
+ __alloc_pages_nodemask+0x437/0x710 mm/page_alloc.c:4571
+ alloc_pages_current+0x107/0x210 mm/mempolicy.c:2106
+ alloc_pages include/linux/gfp.h:509 [inline]
+ pte_alloc_one+0x1b/0x1a0 arch/x86/mm/pgtable.c:35
+ __pte_alloc+0x20/0x310 mm/memory.c:406
+ copy_pte_range mm/memory.c:830 [inline]
+ copy_pmd_range mm/memory.c:906 [inline]
+ copy_pud_range mm/memory.c:940 [inline]
+ copy_p4d_range mm/memory.c:962 [inline]
+ copy_page_range+0x1529/0x1f90 mm/memory.c:1023
+ dup_mmap kernel/fork.c:586 [inline]
+ dup_mm kernel/fork.c:1320 [inline]
+ copy_mm kernel/fork.c:1375 [inline]
+ copy_process.part.0+0x56aa/0x79a0 kernel/fork.c:1917
+ copy_process kernel/fork.c:1710 [inline]
+ _do_fork+0x257/0xfe0 kernel/fork.c:2227
+ __do_sys_clone kernel/fork.c:2334 [inline]
+ __se_sys_clone kernel/fork.c:2328 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2328
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4563fa
+Code: f7 d8 64 89 04 25 d4 02 00 00 64 4c 8b 0c 25 10 00 00 00 31 d2 4d 8d 91 d0 02 00 00 31 f6 bf 11 00 20 01 b8 38 00 00 00 0f 05 <48> 3d 00 f0 ff ff 0f 87 f5 00 00 00 85 c0 41 89 c5 0f 85 fc 00 00
+RSP: 002b:00007ffd987a0210 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 00007ffd987a0210 RCX: 00000000004563fa
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000001200011
+RBP: 00007ffd987a0250 R08: 0000000000000001 R09: 00000000019aa940
+R10: 00000000019aac10 R11: 0000000000000246 R12: 0000000000000001
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000001
+CPU: 0 PID: 17478 Comm: syz-executor.5 Not tainted 5.0.0-rc7+ #85
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ assign_lock_key kernel/locking/lockdep.c:731 [inline]
+ register_lock_class+0x1bdc/0x1bf0 kernel/locking/lockdep.c:757
+ __lock_acquire+0x11f/0x4700 kernel/locking/lockdep.c:3224
+ lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:3841
+ __flush_work+0x640/0x840 kernel/workqueue.c:2935
+ flush_work+0x18/0x20 kernel/workqueue.c:2961
+ vkms_atomic_crtc_destroy_state drivers/gpu/drm/vkms/vkms_crtc.c:133 [inline]
+ vkms_atomic_crtc_destroy_state+0x2d/0x40 drivers/gpu/drm/vkms/vkms_crtc.c:125
+ drm_atomic_state_default_clear+0x37c/0xd60 drivers/gpu/drm/drm_atomic.c:171
+ drm_atomic_state_clear+0x9d/0xc0 drivers/gpu/drm/drm_atomic.c:240
+ __drm_atomic_state_free+0x3c/0xf0 drivers/gpu/drm/drm_atomic.c:256
+ kref_put include/linux/kref.h:67 [inline]
+ drm_atomic_state_put include/drm/drm_atomic.h:385 [inline]
+ drm_atomic_helper_set_config+0xe5/0x160 drivers/gpu/drm/drm_atomic_helper.c:2947
+ drm_mode_setcrtc+0x613/0x1490 drivers/gpu/drm/drm_crtc.c:748
+ drm_ioctl_kernel+0x23b/0x2e0 drivers/gpu/drm/drm_ioctl.c:758
+ drm_ioctl+0x545/0xa50 drivers/gpu/drm/drm_ioctl.c:858
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd6e/0x1390 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457e29
+Code: ad b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f9e164cbc78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457e29
+RDX: 0000000020000180 RSI: 00000000c06864a2 RDI: 0000000000000004
+RBP: 000000000073bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f9e164cc6d4
+R13: 00000000004bfb39 R14: 00000000004d15f8 R15: 00000000ffffffff
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+memory: usage 307200kB, limit 307200kB, failcnt 3942
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+memory+swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kmem: usage 0kB, limit 9007199254740988kB, failcnt 0
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+Memory cgroup stats for /syz1: cache:0KB rss:209452KB rss_huge:157696KB shmem:0KB mapped_file:132KB dirty:0KB writeback:0KB swap:0KB inactive_anon:0KB active_anon:209500KB inactive_file:0KB active_file:0KB unevictable:0KB
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=syz1,mems_allowed=0-1,oom_memcg=/syz1,task_memcg=/syz1,task=syz-executor.1,pid=31985,uid=0
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+Memory cgroup out of memory: Kill process 31985 (syz-executor.1) score 1113 or sacrifice child
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+Killed process 31985 (syz-executor.1) total-vm:72576kB, anon-rss:2216kB, file-rss:35784kB, shmem-rss:0kB
+atomic_op 000000000c6d9c05 conn xmit_atomic           (null)
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+rds_sendmsg: 11 callbacks suppressed
+atomic_op 00000000a5b3a23b conn xmit_atomic           (null)
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+atomic_op 00000000d4a4d534 conn xmit_atomic           (null)
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+syz-executor.1 invoked oom-killer: gfp_mask=0x6000c0(GFP_KERNEL), order=0, oom_score_adj=1000
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+CPU: 1 PID: 17702 Comm: syz-executor.1 Not tainted 5.0.0-rc7+ #85
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ dump_header+0x10f/0xb6c mm/oom_kill.c:451
+ oom_kill_process.cold+0x10/0x6f5 mm/oom_kill.c:966
+ out_of_memory mm/oom_kill.c:1141 [inline]
+ out_of_memory+0x79a/0x1280 mm/oom_kill.c:1074
+ mem_cgroup_out_of_memory+0x99/0xe0 mm/memcontrol.c:1393
+ mem_cgroup_oom mm/memcontrol.c:1721 [inline]
+ try_charge+0xfec/0x1570 mm/memcontrol.c:2283
+ mem_cgroup_try_charge+0x24d/0x5e0 mm/memcontrol.c:5913
+ mem_cgroup_try_charge_delay+0x1f/0xa0 mm/memcontrol.c:5928
+ wp_page_copy+0x408/0x1740 mm/memory.c:2269
+ do_wp_page+0x2ed/0x1520 mm/memory.c:2550
+ handle_pte_fault mm/memory.c:3803 [inline]
+ __handle_mm_fault+0x22db/0x3f20 mm/memory.c:3911
+ handle_mm_fault+0x43f/0xb30 mm/memory.c:3948
+ do_user_addr_fault arch/x86/mm/fault.c:1475 [inline]
+ __do_page_fault+0x5da/0xd60 arch/x86/mm/fault.c:1541
+ do_page_fault+0x71/0x581 arch/x86/mm/fault.c:1572
+ page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1143
+RIP: 0033:0x40d1e8
+Code: 8b 34 c6 4a 8d 04 2e 48 3d ff ff ff 7e 0f 86 77 ff ff ff bf bf d4 4b 00 31 c0 e8 43 47 ff ff 31 ff e8 8c 43 ff ff 0f 1f 40 00 <89> 3c b5 00 00 73 00 eb b6 31 ed 0f 1f 44 00 00 80 3d 7e 32 64 00
+RSP: 002b:00007ffd9879fff0 EFLAGS: 00010246
+RAX: 0000000081754839 RBX: 0000000061b3e198 RCX: 0000001b2e120000
+RDX: 0000000000000000 RSI: 0000000000000839 RDI: ffffffff81754839
+RBP: 0000000000000000 R08: 0000000081754839 R09: 000000008175483d
+R10: 00007ffd987a0180 R11: 0000000000000246 R12: 000000000073bf88
+R13: 0000000080000000 R14: 00007fc4a9459008 R15: 0000000000000000
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+memory: usage 307192kB, limit 307200kB, failcnt 3961
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+memory+swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kmem: usage 0kB, limit 9007199254740988kB, failcnt 0
+Memory cgroup stats for /syz1: cache:0KB rss:207704KB rss_huge:155648KB shmem:0KB mapped_file:132KB dirty:0KB writeback:0KB swap:0KB inactive_anon:0KB active_anon:207860KB inactive_file:4KB active_file:0KB unevictable:0KB
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=syz1,mems_allowed=0-1,oom_memcg=/syz1,task_memcg=/syz1,task=syz-executor.1,pid=32113,uid=0
+Memory cgroup out of memory: Kill process 32113 (syz-executor.1) score 1113 or sacrifice child
+Killed process 32113 (syz-executor.1) total-vm:72576kB, anon-rss:2216kB, file-rss:35784kB, shmem-rss:0kB
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+atomic_op 00000000f5999303 conn xmit_atomic           (null)
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+syz-executor.1 invoked oom-killer: gfp_mask=0x7080c0(GFP_KERNEL_ACCOUNT|__GFP_ZERO), order=3, oom_score_adj=1000
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+CPU: 0 PID: 17744 Comm: syz-executor.1 Not tainted 5.0.0-rc7+ #85
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ dump_header+0x10f/0xb6c mm/oom_kill.c:451
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+ oom_kill_process.cold+0x10/0x6f5 mm/oom_kill.c:966
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+ out_of_memory mm/oom_kill.c:1141 [inline]
+ out_of_memory+0x79a/0x1280 mm/oom_kill.c:1074
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+ mem_cgroup_out_of_memory+0x99/0xe0 mm/memcontrol.c:1393
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+ mem_cgroup_oom mm/memcontrol.c:1721 [inline]
+ try_charge+0xfec/0x1570 mm/memcontrol.c:2283
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+ memcg_kmem_charge_memcg+0x7c/0x130 mm/memcontrol.c:2591
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+ memcg_kmem_charge+0x13b/0x340 mm/memcontrol.c:2624
+ __alloc_pages_nodemask+0x437/0x710 mm/page_alloc.c:4571
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+ __alloc_pages include/linux/gfp.h:473 [inline]
+ __alloc_pages_node include/linux/gfp.h:486 [inline]
+ alloc_pages_node include/linux/gfp.h:500 [inline]
+ alloc_thread_stack_node kernel/fork.c:246 [inline]
+ dup_task_struct kernel/fork.c:849 [inline]
+ copy_process.part.0+0x3e0/0x79a0 kernel/fork.c:1753
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+ copy_process kernel/fork.c:1710 [inline]
+ _do_fork+0x257/0xfe0 kernel/fork.c:2227
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+ __do_sys_clone kernel/fork.c:2334 [inline]
+ __se_sys_clone kernel/fork.c:2328 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2328
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+RIP: 0033:0x45a7f9
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+Code: ff 48 85 f6 0f 84 d7 8e fb ff 48 83 ee 10 48 89 4e 08 48 89 3e 48 89 d7 4c 89 c2 4d 89 c8 4c 8b 54 24 08 b8 38 00 00 00 0f 05 <48> 85 c0 0f 8c ae 8e fb ff 74 01 c3 31 ed 48 f7 c7 00 00 01 00 75
+RSP: 002b:00007ffd9879ff88 EFLAGS: 00000202 ORIG_RAX: 0000000000000038
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+RAX: ffffffffffffffda RBX: 00007fc4a7458700 RCX: 000000000045a7f9
+RDX: 00007fc4a74589d0 RSI: 00007fc4a7457db0 RDI: 00000000003d0f00
+RBP: 00007ffd987a0190 R08: 00007fc4a7458700 R09: 00007fc4a7458700
+R10: 00007fc4a74589d0 R11: 0000000000000202 R12: 0000000000000000
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+R13: 00007ffd987a003f R14: 00007fc4a74589c0 R15: 000000000073bf0c
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+memory: usage 307200kB, limit 307200kB, failcnt 3999
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+memory+swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kmem: usage 0kB, limit 9007199254740988kB, failcnt 0
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+Memory cgroup stats for /syz1: cache:0KB rss:207800KB rss_huge:155648KB shmem:0KB mapped_file:132KB dirty:0KB writeback:0KB swap:0KB inactive_anon:0KB active_anon:207840KB inactive_file:0KB active_file:0KB unevictable:0KB
+oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=syz1,mems_allowed=0-1,oom_memcg=/syz1,task_memcg=/syz1,task=syz-executor.1,pid=32274,uid=0
+Memory cgroup out of memory: Kill process 32274 (syz-executor.1) score 1113 or sacrifice child
+Killed process 32274 (syz-executor.1) total-vm:72576kB, anon-rss:2216kB, file-rss:35784kB, shmem-rss:0kB
+atomic_op 0000000029658af0 conn xmit_atomic           (null)
+atomic_op 00000000930fc272 conn xmit_atomic           (null)
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+atomic_op 00000000dcd1948d conn xmit_atomic           (null)
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+net_ratelimit: 23 callbacks suppressed
+protocol 88fb is buggy, dev hsr_slave_0
+protocol 88fb is buggy, dev hsr_slave_1
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+atomic_op 00000000977bf404 conn xmit_atomic           (null)
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+atomic_op 00000000002bb09f conn xmit_atomic           (null)
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+protocol 88fb is buggy, dev hsr_slave_0
+protocol 88fb is buggy, dev hsr_slave_1
+protocol 88fb is buggy, dev hsr_slave_0
+protocol 88fb is buggy, dev hsr_slave_1
+protocol 88fb is buggy, dev hsr_slave_0
+protocol 88fb is buggy, dev hsr_slave_1
+protocol 88fb is buggy, dev hsr_slave_1
+protocol 88fb is buggy, dev hsr_slave_0
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+atomic_op 000000009db2ec85 conn xmit_atomic           (null)
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+atomic_op 00000000654f3b8c conn xmit_atomic           (null)
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+syz-executor.1 invoked oom-killer: gfp_mask=0x6000c0(GFP_KERNEL), order=0, oom_score_adj=0
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+CPU: 1 PID: 7446 Comm: syz-executor.1 Not tainted 5.0.0-rc7+ #85
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ dump_header+0x10f/0xb6c mm/oom_kill.c:451
+ oom_kill_process.cold+0x10/0x6f5 mm/oom_kill.c:966
+ out_of_memory mm/oom_kill.c:1141 [inline]
+ out_of_memory+0x79a/0x1280 mm/oom_kill.c:1074
+ mem_cgroup_out_of_memory+0x99/0xe0 mm/memcontrol.c:1393
+ mem_cgroup_oom mm/memcontrol.c:1721 [inline]
+ try_charge+0xfec/0x1570 mm/memcontrol.c:2283
+ mem_cgroup_try_charge+0x24d/0x5e0 mm/memcontrol.c:5913
+ mem_cgroup_try_charge_delay+0x1f/0xa0 mm/memcontrol.c:5928
+ wp_page_copy+0x408/0x1740 mm/memory.c:2269
+ do_wp_page+0x2ed/0x1520 mm/memory.c:2550
+ handle_pte_fault mm/memory.c:3803 [inline]
+ __handle_mm_fault+0x22db/0x3f20 mm/memory.c:3911
+ handle_mm_fault+0x43f/0xb30 mm/memory.c:3948
+ do_user_addr_fault arch/x86/mm/fault.c:1475 [inline]
+ __do_page_fault+0x5da/0xd60 arch/x86/mm/fault.c:1541
+ do_page_fault+0x71/0x581 arch/x86/mm/fault.c:1572
+ page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1143
+RIP: 0033:0x45651e
+Code: 5c 41 5d 41 5e 5d c3 48 c7 c2 d4 ff ff ff f7 d8 41 bd ff ff ff ff 64 89 02 64 8b 04 25 d0 02 00 00 41 39 c4 0f 85 2f 01 00 00 <64> 44 89 04 25 d4 02 00 00 45 85 f6 0f 85 7f 00 00 00 48 85 db 74
+RSP: 002b:00007ffd987a0210 EFLAGS: 00010246
+RAX: 0000000000000001 RBX: 00007ffd987a0210 RCX: 00000000004563fa
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000001200011
+RBP: 00007ffd987a0250 R08: 0000000000000001 R09: 00000000019aa940
+R10: 00000000019aac10 R11: 0000000000000246 R12: 0000000000000001
+R13: 0000000000001687 R14: 0000000000000000 R15: 0000000000000001
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+rds_sendmsg: 4 callbacks suppressed
+atomic_op 0000000061104656 conn xmit_atomic           (null)
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+memory: usage 307008kB, limit 307200kB, failcnt 4072
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+memory+swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kmem: usage 0kB, limit 9007199254740988kB, failcnt 0
+Memory cgroup stats for /syz1: cache:0KB rss:206388KB rss_huge:153600KB shmem:0KB mapped_file:132KB dirty:0KB writeback:0KB swap:0KB inactive_anon:0KB active_anon:206328KB inactive_file:0KB active_file:0KB unevictable:0KB
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=syz1,mems_allowed=0-1,oom_memcg=/syz1,task_memcg=/syz1,task=syz-executor.1,pid=32300,uid=0
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+Memory cgroup out of memory: Kill process 32300 (syz-executor.1) score 1113 or sacrifice child
+Killed process 32300 (syz-executor.1) total-vm:72576kB, anon-rss:2216kB, file-rss:35784kB, shmem-rss:0kB
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+syz-executor.1 invoked oom-killer: gfp_mask=0x6000c0(GFP_KERNEL), order=0, oom_score_adj=0
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+CPU: 0 PID: 18032 Comm: syz-executor.1 Not tainted 5.0.0-rc7+ #85
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+ dump_header+0x10f/0xb6c mm/oom_kill.c:451
+ oom_kill_process.cold+0x10/0x6f5 mm/oom_kill.c:966
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+ out_of_memory mm/oom_kill.c:1141 [inline]
+ out_of_memory+0x79a/0x1280 mm/oom_kill.c:1074
+ mem_cgroup_out_of_memory+0x99/0xe0 mm/memcontrol.c:1393
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+ mem_cgroup_oom mm/memcontrol.c:1721 [inline]
+ try_charge+0xb4a/0x1570 mm/memcontrol.c:2283
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+ mem_cgroup_try_charge+0x24d/0x5e0 mm/memcontrol.c:5913
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+ mem_cgroup_try_charge_delay+0x1f/0xa0 mm/memcontrol.c:5928
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+ wp_page_copy+0x408/0x1740 mm/memory.c:2269
+ do_wp_page+0x2ed/0x1520 mm/memory.c:2550
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+ handle_pte_fault mm/memory.c:3803 [inline]
+ __handle_mm_fault+0x22db/0x3f20 mm/memory.c:3911
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+ handle_mm_fault+0x43f/0xb30 mm/memory.c:3948
+ do_user_addr_fault arch/x86/mm/fault.c:1475 [inline]
+ __do_page_fault+0x5da/0xd60 arch/x86/mm/fault.c:1541
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+ do_page_fault+0x71/0x581 arch/x86/mm/fault.c:1572
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+ page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1143
+RIP: 0010:__put_user_4+0x1c/0x30 arch/x86/lib/putuser.S:70
+Code: 1f 00 c3 90 66 2e 0f 1f 84 00 00 00 00 00 65 48 8b 1c 25 40 ee 01 00 48 8b 9b 18 14 00 00 48 83 eb 03 48 39 d9 73 3c 0f 1f 00 <89> 01 31 c0 0f 1f 00 c3 66 90 66 2e 0f 1f 84 00 00 00 00 00 65 48
+RSP: 0018:ffff8881ffb87f30 EFLAGS: 00010293
+RAX: 0000000000001687 RBX: 00007fffffffeffd RCX: 00000000019aac10
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+RDX: dffffc0000000000 RSI: 1ffffffff10dcc0d RDI: ffff888031c6aba8
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+RBP: ffff8881ffb87f48 R08: ffff888031c6a600 R09: 0000000000000000
+R10: ffffed1015d25a00 R11: 0000000000000000 R12: 0000000000000000
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ ret_from_fork+0x8/0x50 arch/x86/entry/entry_64.S:336
+RIP: 0033:0x4563fa
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+Code: Bad RIP value.
+RSP: 002b:00007ffd987a0210 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+RAX: 0000000000000000 RBX: 00007ffd987a0210 RCX: 00000000004563fa
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000001200011
+RBP: 00007ffd987a0250 R08: 0000000000000001 R09: 00000000019aa940
+R10: 00000000019aac10 R11: 0000000000000246 R12: 0000000000000001
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000001
+memory: usage 304820kB, limit 307200kB, failcnt 4072
+kobject: 'loop5' (00000000a4721fcc): kobject_uevent_env
+memory+swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+kobject: 'loop5' (00000000a4721fcc): fill_kobj_path: path = '/devices/virtual/block/loop5'
+kmem: usage 0kB, limit 9007199254740988kB, failcnt 0
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+Memory cgroup stats for /syz1: cache:0KB rss:204156KB rss_huge:151552KB shmem:0KB mapped_file:132KB dirty:0KB writeback:0KB swap:0KB inactive_anon:0KB active_anon:204168KB inactive_file:0KB active_file:0KB unevictable:0KB
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=syz1,mems_allowed=0-1,oom_memcg=/syz1,task_memcg=/syz1,task=syz-executor.1,pid=32350,uid=0
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+Memory cgroup out of memory: Kill process 32350 (syz-executor.1) score 1113 or sacrifice child
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+Killed process 32350 (syz-executor.1) total-vm:72576kB, anon-rss:2216kB, file-rss:35784kB, shmem-rss:0kB
+kobject: 'loop2' (0000000096c0af78): kobject_uevent_env
+kobject: 'loop2' (0000000096c0af78): fill_kobj_path: path = '/devices/virtual/block/loop2'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+atomic_op 00000000955095fe conn xmit_atomic           (null)
+atomic_op 000000007b052ad6 conn xmit_atomic           (null)
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+atomic_op 00000000c19f6af5 conn xmit_atomic           (null)
+kobject: 'loop4' (000000002da29c43): kobject_uevent_env
+kobject: 'loop4' (000000002da29c43): fill_kobj_path: path = '/devices/virtual/block/loop4'
+atomic_op 0000000008175c01 conn xmit_atomic           (null)
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+atomic_op 00000000836698dd conn xmit_atomic           (null)
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop1' (000000001811d57e): kobject_uevent_env
+kobject: 'loop1' (000000001811d57e): fill_kobj_path: path = '/devices/virtual/block/loop1'
+atomic_op 00000000ff6d8ac3 conn xmit_atomic           (null)
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'
+kobject: 'loop0' (00000000b05de5cd): kobject_uevent_env
+atomic_op 00000000217e4c0f conn xmit_atomic           (null)
+kobject: 'loop0' (00000000b05de5cd): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop3' (00000000e2b9d4c0): kobject_uevent_env
+kobject: 'loop3' (00000000e2b9d4c0): fill_kobj_path: path = '/devices/virtual/block/loop3'

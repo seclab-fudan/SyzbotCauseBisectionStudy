@@ -1,0 +1,32 @@
+BUG: memory leak
+unreferenced object 0xffff88810658dc00 (size 1024):
+  comm "syz-executor463", pid 5080, jiffies 4294961132 (age 13.510s)
+  hex dump (first 32 bytes):
+    00 fb 8e 00 00 cf e8 9e ac aa 80 5a e1 26 a9 9c  ...........Z.&..
+    71 e3 ea 67 33 7f 9a ef ca d1 17 51 5c 7f 0e 4b  q..g3......Q\..K
+  backtrace:
+    [<ffffffff8153410d>] __do_kmalloc_node mm/slab_common.c:966 [inline]
+    [<ffffffff8153410d>] __kmalloc_node+0x4d/0x120 mm/slab_common.c:974
+    [<ffffffff81523dd2>] kmalloc_node include/linux/slab.h:610 [inline]
+    [<ffffffff81523dd2>] kvmalloc_node+0xa2/0x180 mm/util.c:603
+    [<ffffffff8188b446>] kvmalloc include/linux/slab.h:737 [inline]
+    [<ffffffff8188b446>] ext4_xattr_move_to_block fs/ext4/xattr.c:2635 [inline]
+    [<ffffffff8188b446>] ext4_xattr_make_inode_space fs/ext4/xattr.c:2743 [inline]
+    [<ffffffff8188b446>] ext4_expand_extra_isize_ea+0x786/0xb80 fs/ext4/xattr.c:2835
+    [<ffffffff8181539b>] __ext4_expand_extra_isize+0x18b/0x200 fs/ext4/inode.c:5955
+    [<ffffffff8181fa55>] ext4_try_to_expand_extra_isize fs/ext4/inode.c:5998 [inline]
+    [<ffffffff8181fa55>] __ext4_mark_inode_dirty+0x245/0x370 fs/ext4/inode.c:6076
+    [<ffffffff818942fe>] ext4_set_acl+0x21e/0x340 fs/ext4/acl.c:263
+    [<ffffffff8170e672>] set_posix_acl+0x112/0x150 fs/posix_acl.c:956
+    [<ffffffff8170eb72>] vfs_set_acl+0x2b2/0x4a0 fs/posix_acl.c:1098
+    [<ffffffff81710ea0>] do_set_acl+0x90/0x140 fs/posix_acl.c:1247
+    [<ffffffff81690a63>] do_setxattr+0x73/0xf0 fs/xattr.c:606
+    [<ffffffff81690b9d>] setxattr+0xbd/0xe0 fs/xattr.c:632
+    [<ffffffff81690cd8>] path_setxattr+0x118/0x130 fs/xattr.c:651
+    [<ffffffff81690d79>] __do_sys_lsetxattr fs/xattr.c:674 [inline]
+    [<ffffffff81690d79>] __se_sys_lsetxattr fs/xattr.c:670 [inline]
+    [<ffffffff81690d79>] __x64_sys_lsetxattr+0x29/0x30 fs/xattr.c:670
+    [<ffffffff849ad699>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff849ad699>] do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84a0008b>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+

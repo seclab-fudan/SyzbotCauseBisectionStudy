@@ -1,0 +1,96 @@
+general protection fault, probably for non-canonical address 0xffff000000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: maybe wild-memory-access in range [0xfff8200000000000-0xfff8200000000007]
+CPU: 1 PID: 1 Comm: swapper/0 Not tainted 6.0.0-rc1-syzkaller-00028-g4dce3b375179 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+RIP: 0010:__handle_irq_event_percpu+0x225/0x870 kernel/irq/handle.c:158
+Code: 80 3c 20 00 0f 85 b5 05 00 00 48 8d 7b 08 48 8b 2b 48 89 f8 48 c1 e8 03 42 80 3c 20 00 0f 85 92 05 00 00 48 8b 73 08 44 89 ff <ff> d5 89 c5 0f 1f 44 00 00 e8 fd f7 18 00 65 44 8b 2d dd 08 d5 7e
+RSP: 0000:ffffc90000178ed0 EFLAGS: 00010046
+
+RAX: 1ffff11021ce1b01 RBX: ffff88810e70d800 RCX: 0000000000000000
+RDX: ffff8881002a8000 RSI: ffff000000000000 RDI: 0000000000000022
+RBP: ffff000000000000 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: dffffc0000000000
+R13: ffff88810e6d9038 R14: ffff88810e6d9000 R15: 0000000000000022
+FS:  0000000000000000(0000) GS:ffff8881f6900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000007825000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ handle_irq_event_percpu kernel/irq/handle.c:193 [inline]
+ handle_irq_event+0xa7/0x1e0 kernel/irq/handle.c:210
+ handle_edge_irq+0x25f/0xd00 kernel/irq/chip.c:819
+ generic_handle_irq_desc include/linux/irqdesc.h:158 [inline]
+ handle_irq arch/x86/kernel/irq.c:231 [inline]
+ __common_interrupt+0x9d/0x210 arch/x86/kernel/irq.c:250
+ common_interrupt+0x9f/0xc0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x22/0x40 arch/x86/include/asm/idtentry.h:640
+RIP: 0010:lockdep_init_map_type+0x5f/0x7f0 kernel/locking/lockdep.c:4817
+Code: 06 00 00 48 8d 7d 10 48 c7 45 08 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 a9 06 00 00 <49> c7 c6 40 66 94 8b 48 c7 45 10 00 00 00 00 48 b8 00 00 00 00 00
+RSP: 0000:ffffc9000001f9a0 EFLAGS: 00000246
+
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 1ffff92000003f52 RSI: ffffffff864777c0 RDI: ffffc9000001fa90
+RBP: ffffc9000001fa80 R08: 0000000000000002 R09: 0000000000000000
+R10: fffffbfff173546d R11: 0000000000000000 R12: ffffffff89cad160
+R13: 0000000000000000 R14: ffff88810e725350 R15: 0000000000000000
+ lockdep_init_map_waits include/linux/lockdep.h:191 [inline]
+ lockdep_init_map_wait include/linux/lockdep.h:198 [inline]
+ __raw_spin_lock_init+0x36/0x110 kernel/locking/spinlock_debug.c:24
+ __init_swait_queue_head+0x2b/0x150 kernel/sched/swait.c:9
+ init_completion include/linux/completion.h:87 [inline]
+ call_usermodehelper_exec+0x95/0x490 kernel/umh.c:406
+ kobject_uevent_env+0xf05/0x1640 lib/kobject_uevent.c:618
+ driver_bound+0x1a3/0x2f0 drivers/base/dd.c:390
+ really_probe+0x3d9/0xb90 drivers/base/dd.c:657
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:748
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:778
+ __driver_attach+0x223/0x550 drivers/base/dd.c:1150
+ bus_for_each_dev+0x147/0x1d0 drivers/base/bus.c:301
+ bus_add_driver+0x4c9/0x640 drivers/base/bus.c:618
+ driver_register+0x220/0x3a0 drivers/base/driver.c:240
+ virtio_net_driver_init+0x93/0xd2 drivers/net/virtio_net.c:4108
+ do_one_initcall+0xfe/0x650 init/main.c:1296
+ do_initcall_level init/main.c:1369 [inline]
+ do_initcalls init/main.c:1385 [inline]
+ do_basic_setup init/main.c:1404 [inline]
+ kernel_init_freeable+0x6ac/0x735 init/main.c:1611
+ kernel_init+0x1a/0x1d0 init/main.c:1500
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__handle_irq_event_percpu+0x225/0x870 kernel/irq/handle.c:158
+Code: 80 3c 20 00 0f 85 b5 05 00 00 48 8d 7b 08 48 8b 2b 48 89 f8 48 c1 e8 03 42 80 3c 20 00 0f 85 92 05 00 00 48 8b 73 08 44 89 ff <ff> d5 89 c5 0f 1f 44 00 00 e8 fd f7 18 00 65 44 8b 2d dd 08 d5 7e
+RSP: 0000:ffffc90000178ed0 EFLAGS: 00010046
+RAX: 1ffff11021ce1b01 RBX: ffff88810e70d800 RCX: 0000000000000000
+RDX: ffff8881002a8000 RSI: ffff000000000000 RDI: 0000000000000022
+RBP: ffff000000000000 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: dffffc0000000000
+R13: ffff88810e6d9038 R14: ffff88810e6d9000 R15: 0000000000000022
+FS:  0000000000000000(0000) GS:ffff8881f6900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000007825000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	80 3c 20 00          	cmpb   $0x0,(%rax,%riz,1)
+   4:	0f 85 b5 05 00 00    	jne    0x5bf
+   a:	48 8d 7b 08          	lea    0x8(%rbx),%rdi
+   e:	48 8b 2b             	mov    (%rbx),%rbp
+  11:	48 89 f8             	mov    %rdi,%rax
+  14:	48 c1 e8 03          	shr    $0x3,%rax
+  18:	42 80 3c 20 00       	cmpb   $0x0,(%rax,%r12,1)
+  1d:	0f 85 92 05 00 00    	jne    0x5b5
+  23:	48 8b 73 08          	mov    0x8(%rbx),%rsi
+  27:	44 89 ff             	mov    %r15d,%edi
+* 2a:	ff d5                	callq  *%rbp <-- trapping instruction
+  2c:	89 c5                	mov    %eax,%ebp
+  2e:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  33:	e8 fd f7 18 00       	callq  0x18f835
+  38:	65 44 8b 2d dd 08 d5 	mov    %gs:0x7ed508dd(%rip),%r13d        # 0x7ed5091d
+  3f:	7e

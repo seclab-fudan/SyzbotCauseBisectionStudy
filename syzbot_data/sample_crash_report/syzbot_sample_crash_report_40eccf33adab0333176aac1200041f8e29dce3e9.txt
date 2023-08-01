@@ -1,0 +1,98 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ipv6_addr_equal include/net/ipv6.h:507 [inline]
+BUG: KASAN: slab-out-of-bounds in __sctp_v6_cmp_addr+0x4c7/0x530 net/sctp/ipv6.c:580
+Read of size 8 at addr ffff8801b4bb98e0 by task syz-executor112/4517
+
+CPU: 1 PID: 4517 Comm: syz-executor112 Not tainted 4.17.0-rc2+ #19
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ ipv6_addr_equal include/net/ipv6.h:507 [inline]
+ __sctp_v6_cmp_addr+0x4c7/0x530 net/sctp/ipv6.c:580
+ sctp_inet6_cmp_addr+0x169/0x1a0 net/sctp/ipv6.c:898
+ sctp_bind_addr_match+0x20b/0x400 net/sctp/bind_addr.c:330
+ sctp_do_bind+0x1c0/0x5f0 net/sctp/socket.c:427
+ sctp_bindx_add+0x90/0x1a0 net/sctp/socket.c:529
+ sctp_setsockopt_bindx+0x2ad/0x320 net/sctp/socket.c:1058
+ sctp_setsockopt+0x12c4/0x7000 net/sctp/socket.c:4227
+ sock_common_setsockopt+0x9a/0xe0 net/core/sock.c:3039
+ __sys_setsockopt+0x1bd/0x390 net/socket.c:1903
+ __do_sys_setsockopt net/socket.c:1914 [inline]
+ __se_sys_setsockopt net/socket.c:1911 [inline]
+ __x64_sys_setsockopt+0xbe/0x150 net/socket.c:1911
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43fda9
+RSP: 002b:00007fff11cbd088 EFLAGS: 00000217 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fda9
+RDX: 0000000000000064 RSI: 0000000000000084 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000020 R09: 00000000004002c8
+R10: 0000000020d24000 R11: 0000000000000217 R12: 00000000004016d0
+R13: 0000000000401760 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4517:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc_node mm/slab.c:3682 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3689
+ kmalloc_node include/linux/slab.h:554 [inline]
+ kvmalloc_node+0x6b/0x100 mm/util.c:421
+ kvmalloc include/linux/mm.h:550 [inline]
+ vmemdup_user+0x2d/0xa0 mm/util.c:186
+ sctp_setsockopt_bindx+0x5d/0x320 net/sctp/socket.c:1022
+ sctp_setsockopt+0x12c4/0x7000 net/sctp/socket.c:4227
+ sock_common_setsockopt+0x9a/0xe0 net/core/sock.c:3039
+ __sys_setsockopt+0x1bd/0x390 net/socket.c:1903
+ __do_sys_setsockopt net/socket.c:1914 [inline]
+ __se_sys_setsockopt net/socket.c:1911 [inline]
+ __x64_sys_setsockopt+0xbe/0x150 net/socket.c:1911
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 2811:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ single_release+0x8f/0xb0 fs/seq_file.c:609
+ __fput+0x34d/0x890 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x1e4/0x290 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x2bd/0x310 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+ do_syscall_64+0x6ac/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801b4bb98c0
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes to the right of
+ 32-byte region [ffff8801b4bb98c0, ffff8801b4bb98e0)
+The buggy address belongs to the page:
+page:ffffea0006d2ee40 count:1 mapcount:0 mapping:ffff8801b4bb9000 index:0xffff8801b4bb9fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801b4bb9000 ffff8801b4bb9fc1 000000010000003a
+raw: ffffea00075c26e0 ffffea000766f460 ffff8801da8001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b4bb9780: fb fb fb fb fc fc fc fc 00 fc fc fc fc fc fc fc
+ ffff8801b4bb9800: 00 03 fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801b4bb9880: fb fb fb fb fc fc fc fc 00 00 00 00 fc fc fc fc
+                                                       ^
+ ffff8801b4bb9900: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801b4bb9980: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

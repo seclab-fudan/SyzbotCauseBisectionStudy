@@ -1,0 +1,67 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/l1tf.html for details.
+BUG: unable to handle page fault for address: ffffed12fa126e1f
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 21fff0067 P4D 21fff0067 PUD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 8068 Comm: syz-executor158 Not tainted 5.2.0-rc5+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:coalesced_mmio_write+0x23e/0x440 arch/x86/kvm/../../../virt/kvm/coalesced_mmio.c:83
+Code: fc ff df 48 89 45 a8 8a 04 18 84 c0 0f 85 82 01 00 00 4c 89 7d a0 41 8b 46 04 4c 8d 24 40 4f 8d 74 e6 08 4c 89 f0 48 c1 e8 03 <80> 3c 18 00 74 08 4c 89 f7 e8 74 f7 a6 00 4c 8b 7d c8 49 83 c7 f0
+RSP: 0018:ffff88809426ed00 EFLAGS: 00010a02
+RAX: 1ffff112fa126e1f RBX: dffffc0000000000 RCX: ffff88809564c100
+RDX: 0000000000000000 RSI: 000000000000000d RDI: 0000000000000000
+RBP: ffff88809426ed70 R08: ffffffff8107e400 R09: ffffed101284dd8d
+R10: ffffed101284dd8c R11: 1ffff1101284dd8c R12: 00000002e780621e
+R13: 0000000000000000 R14: ffff8897d09370f8 R15: ffff888094906004
+FS:  0000555556380940(0000) GS:ffff8880aea00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffed12fa126e1f CR3: 000000008f478000 CR4: 00000000001426f0
+Call Trace:
+ kvm_iodevice_write include/kvm/iodev.h:54 [inline]
+ __kvm_io_bus_write arch/x86/kvm/../../../virt/kvm/kvm_main.c:3701 [inline]
+ kvm_io_bus_write+0x56a/0x6f0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3726
+ vcpu_mmio_write arch/x86/kvm/x86.c:5029 [inline]
+ write_mmio+0x19f/0x1f0 arch/x86/kvm/x86.c:5391
+ emulator_read_write_onepage+0x68a/0x980 arch/x86/kvm/x86.c:5460
+ emulator_read_write+0x1d4/0x550 arch/x86/kvm/x86.c:5509
+ emulator_write_emulated+0x3c/0x50 arch/x86/kvm/x86.c:5546
+ writeback+0x607/0x900 arch/x86/kvm/emulate.c:1446
+ x86_emulate_insn+0x3046/0x6fe0 arch/x86/kvm/emulate.c:5695
+ x86_emulate_instruction+0x8a8/0x4cc0 arch/x86/kvm/x86.c:6509
+ kvm_mmu_page_fault+0x3be/0xf70 arch/x86/kvm/mmu.c:5430
+ handle_ept_violation+0x1a1/0x1f0 arch/x86/kvm/vmx/vmx.c:5099
+ vmx_handle_exit+0x3ba/0xd00 arch/x86/kvm/vmx/vmx.c:5861
+ vcpu_enter_guest+0x3e5e/0x5380 arch/x86/kvm/x86.c:8035
+ vcpu_run+0x393/0xcf0 arch/x86/kvm/x86.c:8099
+ kvm_arch_vcpu_ioctl_run+0xcf2/0xff0 arch/x86/kvm/x86.c:8307
+ kvm_vcpu_ioctl+0x792/0xba0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2755
+ do_vfs_ioctl+0x7d4/0x1890 fs/ioctl.c:46
+ ksys_ioctl fs/ioctl.c:713 [inline]
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0xe3/0x120 fs/ioctl.c:718
+ do_syscall_64+0xfe/0x140 arch/x86/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4444e9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b 0c fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffe506f0058 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007ffe506f0060 RCX: 00000000004444e9
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000005
+RBP: 0000000000000000 R08: 0000000000402240 R09: 0000000000402240
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000405590
+R13: 0000000000405620 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+CR2: ffffed12fa126e1f
+---[ end trace d717c5726d3eaff3 ]---
+RIP: 0010:coalesced_mmio_write+0x23e/0x440 arch/x86/kvm/../../../virt/kvm/coalesced_mmio.c:83
+Code: fc ff df 48 89 45 a8 8a 04 18 84 c0 0f 85 82 01 00 00 4c 89 7d a0 41 8b 46 04 4c 8d 24 40 4f 8d 74 e6 08 4c 89 f0 48 c1 e8 03 <80> 3c 18 00 74 08 4c 89 f7 e8 74 f7 a6 00 4c 8b 7d c8 49 83 c7 f0
+RSP: 0018:ffff88809426ed00 EFLAGS: 00010a02
+RAX: 1ffff112fa126e1f RBX: dffffc0000000000 RCX: ffff88809564c100
+RDX: 0000000000000000 RSI: 000000000000000d RDI: 0000000000000000
+RBP: ffff88809426ed70 R08: ffffffff8107e400 R09: ffffed101284dd8d
+R10: ffffed101284dd8c R11: 1ffff1101284dd8c R12: 00000002e780621e
+R13: 0000000000000000 R14: ffff8897d09370f8 R15: ffff888094906004
+FS:  0000555556380940(0000) GS:ffff8880aea00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffed12fa126e1f CR3: 000000008f478000 CR4: 00000000001426f0

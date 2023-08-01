@@ -1,0 +1,50 @@
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 1 PID: 3448 at lib/refcount.c:28 refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+Modules linked in:
+CPU: 1 PID: 3448 Comm: syz-executor242 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+lr : refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+sp : ffff800012ed3c60
+x29: ffff800012ed3c60 x28: ffff80000c40fe48 x27: 0000000000000006
+x26: ffff0000c70d6508 x25: 0000000000000000 x24: ffff0000c70d6400
+x23: 0000000000000000 x22: ffff80000f183000 x21: 0000000000000000
+x20: 0000000000000003 x19: ffff80000d95e000 x18: 000000000000030d
+x17: ffff80000c0cd83c x16: ffff80000dbe6158 x15: ffff0000cdd34ec0
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000cdd34ec0
+x11: ff808000081c4d64 x10: 0000000000000000 x9 : 6a9cd14bd183ed00
+x8 : 6a9cd14bd183ed00 x7 : ffff80000816678c x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000006 x1 : 0000000100000000 x0 : 0000000000000026
+Call trace:
+ refcount_warn_saturate+0x1a0/0x1c8 lib/refcount.c:28
+ __refcount_sub_and_test include/linux/refcount.h:283 [inline]
+ __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ put_dev drivers/usb/gadget/legacy/inode.c:159 [inline]
+ gadgetfs_kill_sb+0xd4/0x104 drivers/usb/gadget/legacy/inode.c:2086
+ deactivate_locked_super+0x70/0xe8 fs/super.c:332
+ vfs_get_super fs/super.c:1190 [inline]
+ get_tree_single+0x98/0xe8 fs/super.c:1207
+ gadgetfs_get_tree+0x28/0x38 drivers/usb/gadget/legacy/inode.c:2068
+ vfs_get_tree+0x40/0x140 fs/super.c:1531
+ vfs_fsconfig_locked fs/fsopen.c:232 [inline]
+ __do_sys_fsconfig fs/fsopen.c:439 [inline]
+ __se_sys_fsconfig fs/fsopen.c:314 [inline]
+ __arm64_sys_fsconfig+0x758/0x818 fs/fsopen.c:314
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+irq event stamp: 442
+hardirqs last  enabled at (441): [<ffff80000816681c>] raw_spin_rq_unlock_irq kernel/sched/sched.h:1366 [inline]
+hardirqs last  enabled at (441): [<ffff80000816681c>] finish_lock_switch+0x94/0xe8 kernel/sched/core.c:4968
+hardirqs last disabled at (442): [<ffff80000c084084>] el1_dbg+0x24/0x80 arch/arm64/kernel/entry-common.c:405
+softirqs last  enabled at (360): [<ffff80000801c82c>] local_bh_enable+0x10/0x34 include/linux/bottom_half.h:32
+softirqs last disabled at (358): [<ffff80000801c7f8>] local_bh_disable+0x10/0x34 include/linux/bottom_half.h:19
+---[ end trace 0000000000000000 ]---

@@ -1,0 +1,169 @@
+==================================================================
+BUG: KASAN: use-after-free in v4l2_fh_init+0x279/0x2c0 drivers/media/v4l2-core/v4l2-fh.c:25
+Read of size 8 at addr ffff8880283d0838 by task v4l_id/3714
+
+CPU: 1 PID: 3714 Comm: v4l_id Not tainted 5.19.0-rc6-syzkaller-00115-g4a57a8400075 #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0xeb/0x467 mm/kasan/report.c:313
+ print_report mm/kasan/report.c:429 [inline]
+ kasan_report.cold+0xf4/0x1c6 mm/kasan/report.c:491
+ v4l2_fh_init+0x279/0x2c0 drivers/media/v4l2-core/v4l2-fh.c:25
+ v4l2_fh_open+0x88/0xc0 drivers/media/v4l2-core/v4l2-fh.c:63
+ em28xx_v4l2_open+0x11c/0x570 drivers/media/usb/em28xx/em28xx-video.c:2163
+ v4l2_open+0x21c/0x3f0 drivers/media/v4l2-core/v4l2-dev.c:427
+ chrdev_open+0x266/0x770 fs/char_dev.c:414
+ do_dentry_open+0x4a1/0x11f0 fs/open.c:848
+ do_open fs/namei.c:3520 [inline]
+ path_openat+0x1c71/0x2910 fs/namei.c:3653
+ do_filp_open+0x1aa/0x400 fs/namei.c:3680
+ do_sys_openat2+0x16d/0x4c0 fs/open.c:1278
+ do_sys_open fs/open.c:1294 [inline]
+ __do_sys_openat fs/open.c:1310 [inline]
+ __se_sys_openat fs/open.c:1305 [inline]
+ __x64_sys_openat+0x13f/0x1f0 fs/open.c:1305
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f51b0125697
+Code: 25 00 00 41 00 3d 00 00 41 00 74 37 64 8b 04 25 18 00 00 00 85 c0 75 5b 44 89 e2 48 89 ee bf 9c ff ff ff b8 01 01 00 00 0f 05 <48> 3d 00 f0 ff ff 0f 87 85 00 00 00 48 83 c4 68 5d 41 5c c3 0f 1f
+RSP: 002b:00007ffc0bf58de0 EFLAGS: 00000246 ORIG_RAX: 0000000000000101
+RAX: ffffffffffffffda RBX: 00005583be9ebc40 RCX: 00007f51b0125697
+RDX: 0000000000000000 RSI: 00007ffc0bf5af21 RDI: 00000000ffffff9c
+RBP: 00007ffc0bf5af21 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+Allocated by task 3678:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:436 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:515 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:474 [inline]
+ __kasan_kmalloc+0xa6/0xd0 mm/kasan/common.c:524
+ kasan_kmalloc include/linux/kasan.h:234 [inline]
+ kmem_cache_alloc_trace+0x1ea/0x4a0 mm/slab.c:3569
+ kmalloc include/linux/slab.h:600 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ em28xx_v4l2_init drivers/media/usb/em28xx/em28xx-video.c:2542 [inline]
+ em28xx_v4l2_init.cold+0x93/0x329c drivers/media/usb/em28xx/em28xx-video.c:2520
+ em28xx_init_extension+0x12f/0x1f0 drivers/media/usb/em28xx/em28xx-core.c:1126
+ request_module_async+0x5d/0x70 drivers/media/usb/em28xx/em28xx-cards.c:3415
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Freed by task 3678:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free+0x13d/0x180 mm/kasan/common.c:328
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ __cache_free mm/slab.c:3425 [inline]
+ kfree+0x113/0x310 mm/slab.c:3796
+ kref_put.isra.0+0x6f/0xa0 include/linux/kref.h:65
+ em28xx_v4l2_init drivers/media/usb/em28xx/em28xx-video.c:2911 [inline]
+ em28xx_v4l2_init.cold+0x263/0x329c drivers/media/usb/em28xx/em28xx-video.c:2520
+ em28xx_init_extension+0x12f/0x1f0 drivers/media/usb/em28xx/em28xx-core.c:1126
+ request_module_async+0x5d/0x70 drivers/media/usb/em28xx/em28xx-cards.c:3415
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+The buggy address belongs to the object at ffff8880283d0000
+ which belongs to the cache kmalloc-8k of size 8192
+The buggy address is located 2104 bytes inside of
+ 8192-byte region [ffff8880283d0000, ffff8880283d2000)
+
+The buggy address belongs to the physical page:
+page:ffffea0000a0f400 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x283d0
+head:ffffea0000a0f400 order:2 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffffea000052c508 ffffea0000956008 ffff888011840a00
+raw: 0000000000000000 ffff8880283d0000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 2, migratetype Unmovable, gfp_mask 0x242040(__GFP_IO|__GFP_NOWARN|__GFP_COMP|__GFP_THISNODE), pid 3667, tgid 3667 (sh), ts 56421802016, free_ts 56421325577
+ prep_new_page mm/page_alloc.c:2456 [inline]
+ get_page_from_freelist+0x1290/0x3b70 mm/page_alloc.c:4198
+ __alloc_pages+0x1c7/0x510 mm/page_alloc.c:5426
+ __alloc_pages_node include/linux/gfp.h:587 [inline]
+ kmem_getpages mm/slab.c:1363 [inline]
+ cache_grow_begin+0x75/0x350 mm/slab.c:2569
+ cache_alloc_refill+0x27f/0x380 mm/slab.c:2942
+ ____cache_alloc mm/slab.c:3024 [inline]
+ ____cache_alloc mm/slab.c:3007 [inline]
+ __do_cache_alloc mm/slab.c:3253 [inline]
+ slab_alloc mm/slab.c:3295 [inline]
+ kmem_cache_alloc_trace+0x380/0x4a0 mm/slab.c:3567
+ kmalloc include/linux/slab.h:600 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ tomoyo_print_bprm security/tomoyo/audit.c:26 [inline]
+ tomoyo_init_log+0xc86/0x1ed0 security/tomoyo/audit.c:264
+ tomoyo_supervisor+0x34d/0xf00 security/tomoyo/common.c:2088
+ tomoyo_audit_path_log security/tomoyo/file.c:168 [inline]
+ tomoyo_execute_permission+0x37f/0x4a0 security/tomoyo/file.c:619
+ tomoyo_find_next_domain+0x348/0x1f80 security/tomoyo/domain.c:752
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:101 [inline]
+ tomoyo_bprm_check_security+0x121/0x1a0 security/tomoyo/tomoyo.c:91
+ security_bprm_check+0x45/0xa0 security/security.c:867
+ search_binary_handler fs/exec.c:1716 [inline]
+ exec_binprm fs/exec.c:1769 [inline]
+ bprm_execve fs/exec.c:1838 [inline]
+ bprm_execve+0x732/0x1970 fs/exec.c:1800
+ do_execveat_common+0x727/0x890 fs/exec.c:1943
+ do_execve fs/exec.c:2017 [inline]
+ __do_sys_execve fs/exec.c:2093 [inline]
+ __se_sys_execve fs/exec.c:2088 [inline]
+ __x64_sys_execve+0x8f/0xc0 fs/exec.c:2088
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1371 [inline]
+ free_pcp_prepare+0x549/0xd20 mm/page_alloc.c:1421
+ free_unref_page_prepare mm/page_alloc.c:3343 [inline]
+ free_unref_page+0x19/0x6a0 mm/page_alloc.c:3438
+ __stack_depot_save+0x168/0x500 lib/stackdepot.c:450
+ kasan_save_stack+0x2e/0x40 mm/kasan/common.c:39
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:436 [inline]
+ __kasan_slab_alloc+0x85/0xb0 mm/kasan/common.c:469
+ kasan_slab_alloc include/linux/kasan.h:224 [inline]
+ slab_post_alloc_hook mm/slab.h:750 [inline]
+ slab_alloc mm/slab.c:3302 [inline]
+ __kmem_cache_alloc_lru mm/slab.c:3479 [inline]
+ kmem_cache_alloc+0x265/0x560 mm/slab.c:3499
+ audit_buffer_alloc kernel/audit.c:1778 [inline]
+ audit_log_start.part.0+0x25a/0x740 kernel/audit.c:1900
+ audit_log_start+0x5f/0x90 kernel/audit.c:1856
+ common_lsm_audit+0xcc/0x1e00 security/lsm_audit.c:460
+ slow_avc_audit+0x16b/0x1f0 security/selinux/avc.c:796
+ avc_audit security/selinux/include/avc.h:136 [inline]
+ avc_has_perm+0x179/0x1b0 security/selinux/avc.c:1193
+ selinux_bprm_creds_for_exec+0x84d/0xb40 security/selinux/hooks.c:2336
+ security_bprm_creds_for_exec+0x40/0x90 security/security.c:855
+ bprm_execve fs/exec.c:1834 [inline]
+ bprm_execve+0x55c/0x1970 fs/exec.c:1800
+ do_execveat_common+0x727/0x890 fs/exec.c:1943
+ do_execve fs/exec.c:2017 [inline]
+ __do_sys_execve fs/exec.c:2093 [inline]
+ __se_sys_execve fs/exec.c:2088 [inline]
+ __x64_sys_execve+0x8f/0xc0 fs/exec.c:2088
+
+Memory state around the buggy address:
+ ffff8880283d0700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880283d0780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8880283d0800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                        ^
+ ffff8880283d0880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880283d0900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

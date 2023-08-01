@@ -1,0 +1,60 @@
+general protection fault, probably for non-canonical address 0xdffffc000000005a: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x00000000000002d0-0x00000000000002d7]
+CPU: 1 PID: 5789 Comm: kworker/1:2 Not tainted 5.17.0-rc3-syzkaller-00043-gf4bc5bbb5fef #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events l2cap_chan_timeout
+RIP: 0010:__mutex_lock_common+0x110/0x2490 kernel/locking/mutex.c:579
+Code: 38 84 c0 0f 85 26 1c 00 00 83 3d 3a c6 aa 06 00 48 8b 5c 24 08 4c 8d ac 24 c0 00 00 00 75 21 48 8d 7b 60 48 89 f8 48 c1 e8 03 <42> 80 3c 38 00 74 05 e8 34 7e bc f7 48 39 5b 60 0f 85 b1 17 00 00
+RSP: 0018:ffffc9000a4efaa0 EFLAGS: 00010206
+RAX: 000000000000005a RBX: 0000000000000270 RCX: ffffffff90bf9803
+RDX: dffffc0000000000 RSI: ffff888077be5700 RDI: 00000000000002d0
+RBP: ffffc9000a4efc08 R08: dffffc0000000000 R09: ffffc9000a4efb60
+R10: fffff5200149df71 R11: 0000000000000000 R12: 0000000000000000
+R13: ffffc9000a4efb60 R14: 0000000000000000 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000140 CR3: 0000000018ada000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __mutex_lock kernel/locking/mutex.c:733 [inline]
+ mutex_lock_nested+0x1a/0x20 kernel/locking/mutex.c:785
+ l2cap_chan_timeout+0x53/0x280 net/bluetooth/l2cap_core.c:422
+ process_one_work+0x850/0x1130 kernel/workqueue.c:2307
+ worker_thread+0xab1/0x1300 kernel/workqueue.c:2454
+ kthread+0x2a3/0x2d0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__mutex_lock_common+0x110/0x2490 kernel/locking/mutex.c:579
+Code: 38 84 c0 0f 85 26 1c 00 00 83 3d 3a c6 aa 06 00 48 8b 5c 24 08 4c 8d ac 24 c0 00 00 00 75 21 48 8d 7b 60 48 89 f8 48 c1 e8 03 <42> 80 3c 38 00 74 05 e8 34 7e bc f7 48 39 5b 60 0f 85 b1 17 00 00
+RSP: 0018:ffffc9000a4efaa0 EFLAGS: 00010206
+RAX: 000000000000005a RBX: 0000000000000270 RCX: ffffffff90bf9803
+RDX: dffffc0000000000 RSI: ffff888077be5700 RDI: 00000000000002d0
+RBP: ffffc9000a4efc08 R08: dffffc0000000000 R09: ffffc9000a4efb60
+R10: fffff5200149df71 R11: 0000000000000000 R12: 0000000000000000
+R13: ffffc9000a4efb60 R14: 0000000000000000 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fcd341ae06d CR3: 0000000018ada000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	38 84 c0 0f 85 26 1c 	cmp    %al,0x1c26850f(%rax,%rax,8)
+   7:	00 00                	add    %al,(%rax)
+   9:	83 3d 3a c6 aa 06 00 	cmpl   $0x0,0x6aac63a(%rip)        # 0x6aac64a
+  10:	48 8b 5c 24 08       	mov    0x8(%rsp),%rbx
+  15:	4c 8d ac 24 c0 00 00 	lea    0xc0(%rsp),%r13
+  1c:	00
+  1d:	75 21                	jne    0x40
+  1f:	48 8d 7b 60          	lea    0x60(%rbx),%rdi
+  23:	48 89 f8             	mov    %rdi,%rax
+  26:	48 c1 e8 03          	shr    $0x3,%rax
+* 2a:	42 80 3c 38 00       	cmpb   $0x0,(%rax,%r15,1) <-- trapping instruction
+  2f:	74 05                	je     0x36
+  31:	e8 34 7e bc f7       	callq  0xf7bc7e6a
+  36:	48 39 5b 60          	cmp    %rbx,0x60(%rbx)
+  3a:	0f 85 b1 17 00 00    	jne    0x17f1

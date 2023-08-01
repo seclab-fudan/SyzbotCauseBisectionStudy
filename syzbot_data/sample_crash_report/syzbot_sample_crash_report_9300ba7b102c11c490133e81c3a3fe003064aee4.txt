@@ -1,0 +1,188 @@
+timer_function=ffffffff847cda60 expires=271
+cont=ffffffff8a1f6400
+current_req=0000000000000000
+command_status=-1
+==================================================================
+BUG: KASAN: use-after-free in setup_rw_floppy+0x84a/0x9e0 drivers/block/floppy.c:1518
+Read of size 1 at addr ffff888019187c35 by task kworker/u16:2/8029
+
+CPU: 1 PID: 8029 Comm: kworker/u16:2 Not tainted 5.17.0-rc4-syzkaller-00217-g7993e65fdd0f #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Workqueue: floppy fd_timer_workfn
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0x8d/0x303 mm/kasan/report.c:255
+ __kasan_report mm/kasan/report.c:442 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:459
+ setup_rw_floppy+0x84a/0x9e0 drivers/block/floppy.c:1518
+ seek_floppy drivers/block/floppy.c:1639 [inline]
+ floppy_ready drivers/block/floppy.c:1956 [inline]
+ floppy_ready+0x345/0x1850 drivers/block/floppy.c:1927
+ process_one_work+0x9ac/0x1650 kernel/workqueue.c:2307
+ worker_thread+0x657/0x1110 kernel/workqueue.c:2454
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+
+Allocated by task 10166:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:436 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:515 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:474 [inline]
+ __kasan_kmalloc+0xa6/0xd0 mm/kasan/common.c:524
+ kasan_kmalloc include/linux/kasan.h:270 [inline]
+ kmem_cache_alloc_trace+0x1ea/0x4a0 mm/slab.c:3567
+ kmalloc include/linux/slab.h:581 [inline]
+ raw_cmd_copyin drivers/block/floppy.c:3095 [inline]
+ raw_cmd_ioctl drivers/block/floppy.c:3162 [inline]
+ fd_locked_ioctl+0x123b/0x2940 drivers/block/floppy.c:3530
+ fd_ioctl+0x35/0x50 drivers/block/floppy.c:3557
+ blkdev_ioctl+0x37a/0x800 block/ioctl.c:588
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:874 [inline]
+ __se_sys_ioctl fs/ioctl.c:860 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:860
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 10166:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free+0xff/0x140 mm/kasan/common.c:328
+ kasan_slab_free include/linux/kasan.h:236 [inline]
+ __cache_free mm/slab.c:3437 [inline]
+ kfree+0xf8/0x2b0 mm/slab.c:3794
+ raw_cmd_free+0x8a/0x1c0 drivers/block/floppy.c:3079
+ raw_cmd_ioctl drivers/block/floppy.c:3182 [inline]
+ fd_locked_ioctl+0x20d0/0x2940 drivers/block/floppy.c:3530
+ fd_ioctl+0x35/0x50 drivers/block/floppy.c:3557
+ blkdev_ioctl+0x37a/0x800 block/ioctl.c:588
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:874 [inline]
+ __se_sys_ioctl fs/ioctl.c:860 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:860
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Last potentially related work creation:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ __kasan_record_aux_stack+0x7e/0x90 mm/kasan/generic.c:348
+ kvfree_call_rcu+0x74/0x990 kernel/rcu/tree.c:3591
+ __hw_addr_flush+0x152/0x240 net/core/dev_addr_lists.c:488
+ dev_addr_flush+0x1d/0x50 net/core/dev_addr_lists.c:533
+ free_netdev+0x1f5/0x5b0 net/core/dev.c:10283
+ netdev_run_todo+0x8a0/0xaa0 net/core/dev.c:9964
+ ip_tunnel_delete_nets+0x3a4/0x5b0 net/ipv4/ip_tunnel.c:1124
+ ops_exit_list+0x125/0x170 net/core/net_namespace.c:173
+ cleanup_net+0x4ea/0xb00 net/core/net_namespace.c:597
+ process_one_work+0x9ac/0x1650 kernel/workqueue.c:2307
+ worker_thread+0x657/0x1110 kernel/workqueue.c:2454
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ __kasan_record_aux_stack+0x7e/0x90 mm/kasan/generic.c:348
+ kvfree_call_rcu+0x74/0x990 kernel/rcu/tree.c:3591
+ drop_sysctl_table+0x3c0/0x4e0 fs/proc/proc_sysctl.c:1705
+ unregister_sysctl_table fs/proc/proc_sysctl.c:1743 [inline]
+ unregister_sysctl_table+0xc0/0x190 fs/proc/proc_sysctl.c:1718
+ mpls_dev_sysctl_unregister net/mpls/af_mpls.c:1441 [inline]
+ mpls_dev_notify+0x4fb/0x8a0 net/mpls/af_mpls.c:1654
+ notifier_call_chain+0xb5/0x200 kernel/notifier.c:84
+ call_netdevice_notifiers_info+0xb5/0x130 net/core/dev.c:1919
+ call_netdevice_notifiers_extack net/core/dev.c:1931 [inline]
+ call_netdevice_notifiers net/core/dev.c:1945 [inline]
+ unregister_netdevice_many+0x964/0x18d0 net/core/dev.c:10415
+ ip_tunnel_delete_nets+0x39f/0x5b0 net/ipv4/ip_tunnel.c:1123
+ ops_exit_list+0x125/0x170 net/core/net_namespace.c:173
+ cleanup_net+0x4ea/0xb00 net/core/net_namespace.c:597
+ process_one_work+0x9ac/0x1650 kernel/workqueue.c:2307
+ worker_thread+0x657/0x1110 kernel/workqueue.c:2454
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+The buggy address belongs to the object at ffff888019187c00
+ which belongs to the cache kmalloc-128 of size 128
+The buggy address is located 53 bytes inside of
+ 128-byte region [ffff888019187c00, ffff888019187c80)
+The buggy address belongs to the page:
+page:ffffea00006461c0 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff888019187b00 pfn:0x19187
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffff888010c41540 ffffea000086e9c8 ffff888010c40400
+raw: ffff888019187b00 ffff888019187000 0000000100000006 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x242220(__GFP_HIGH|__GFP_ATOMIC|__GFP_NOWARN|__GFP_COMP|__GFP_THISNODE), pid 5111, ts 161707272292, free_ts 137168268771
+ prep_new_page mm/page_alloc.c:2434 [inline]
+ get_page_from_freelist+0xa72/0x2f50 mm/page_alloc.c:4165
+ __alloc_pages_slowpath.constprop.0+0x2eb/0x20d0 mm/page_alloc.c:4934
+ __alloc_pages+0x412/0x500 mm/page_alloc.c:5402
+ __alloc_pages_node include/linux/gfp.h:572 [inline]
+ kmem_getpages mm/slab.c:1378 [inline]
+ cache_grow_begin+0x75/0x390 mm/slab.c:2584
+ cache_alloc_refill+0x27f/0x380 mm/slab.c:2957
+ ____cache_alloc mm/slab.c:3040 [inline]
+ ____cache_alloc mm/slab.c:3023 [inline]
+ __do_cache_alloc mm/slab.c:3267 [inline]
+ slab_alloc mm/slab.c:3308 [inline]
+ kmem_cache_alloc_trace+0x380/0x4a0 mm/slab.c:3565
+ kmalloc include/linux/slab.h:581 [inline]
+ __hw_addr_create net/core/dev_addr_lists.c:58 [inline]
+ __hw_addr_add_ex+0x22d/0x7e0 net/core/dev_addr_lists.c:116
+ __hw_addr_add net/core/dev_addr_lists.c:133 [inline]
+ dev_addr_init+0x13a/0x220 net/core/dev_addr_lists.c:556
+ alloc_netdev_mqs+0x280/0x1070 net/core/dev.c:10180
+ __ip_tunnel_create+0x201/0x5c0 net/ipv4/ip_tunnel.c:254
+ ip_tunnel_init_net+0x2e4/0x9d0 net/ipv4/ip_tunnel.c:1070
+ ops_init+0xaf/0x470 net/core/net_namespace.c:140
+ setup_net+0x554/0xbb0 net/core/net_namespace.c:330
+ copy_net_ns+0x318/0x760 net/core/net_namespace.c:474
+ create_new_namespaces+0x3f6/0xb20 kernel/nsproxy.c:110
+ copy_namespaces+0x391/0x450 kernel/nsproxy.c:178
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1352 [inline]
+ free_pcp_prepare+0x374/0x870 mm/page_alloc.c:1404
+ free_unref_page_prepare mm/page_alloc.c:3325 [inline]
+ free_unref_page+0x19/0x690 mm/page_alloc.c:3404
+ slab_destroy mm/slab.c:1630 [inline]
+ slabs_destroy+0x89/0xc0 mm/slab.c:1650
+ cache_flusharray mm/slab.c:3410 [inline]
+ ___cache_free+0x303/0x600 mm/slab.c:3472
+ qlink_free mm/kasan/quarantine.c:157 [inline]
+ qlist_free_all+0x50/0x1a0 mm/kasan/quarantine.c:176
+ kasan_quarantine_reduce+0x180/0x200 mm/kasan/quarantine.c:283
+ __kasan_slab_alloc+0x97/0xb0 mm/kasan/common.c:446
+ kasan_slab_alloc include/linux/kasan.h:260 [inline]
+ slab_post_alloc_hook mm/slab.h:732 [inline]
+ slab_alloc mm/slab.c:3315 [inline]
+ kmem_cache_alloc_trace+0x258/0x4a0 mm/slab.c:3565
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ nsim_fib6_rt_create drivers/net/netdevsim/fib.c:544 [inline]
+ nsim_fib6_rt_insert drivers/net/netdevsim/fib.c:749 [inline]
+ nsim_fib6_event drivers/net/netdevsim/fib.c:853 [inline]
+ nsim_fib_event drivers/net/netdevsim/fib.c:886 [inline]
+ nsim_fib_event_work+0x1200/0x2490 drivers/net/netdevsim/fib.c:1477
+ process_one_work+0x9ac/0x1650 kernel/workqueue.c:2307
+ process_scheduled_works kernel/workqueue.c:2370 [inline]
+ worker_thread+0x833/0x1110 kernel/workqueue.c:2456
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Memory state around the buggy address:
+ ffff888019187b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888019187b80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888019187c00: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff888019187c80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888019187d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

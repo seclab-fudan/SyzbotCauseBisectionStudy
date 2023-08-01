@@ -1,0 +1,91 @@
+IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): bond0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ipv6_gso_pull_exthdrs+0x53e/0x5d0 net/ipv6/ip6_offload.c:45
+Read of size 1 at addr ffff8801d20c84c1 by task syz-executor587/4527
+
+CPU: 0 PID: 4527 Comm: syz-executor587 Not tainted 4.17.0+ #84
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+ ipv6_gso_pull_exthdrs+0x53e/0x5d0 net/ipv6/ip6_offload.c:45
+ ipv6_gso_segment+0x372/0x11c0 net/ipv6/ip6_offload.c:87
+ skb_mac_gso_segment+0x3ad/0x720 net/core/dev.c:2792
+ nsh_gso_segment+0x470/0xb40 net/nsh/nsh.c:111
+ skb_mac_gso_segment+0x3ad/0x720 net/core/dev.c:2792
+ __skb_gso_segment+0x3bb/0x870 net/core/dev.c:2865
+ skb_gso_segment include/linux/netdevice.h:4079 [inline]
+ validate_xmit_skb+0x638/0xf20 net/core/dev.c:3104
+ __dev_queue_xmit+0xc0c/0x3900 net/core/dev.c:3561
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3602
+ packet_snd net/packet/af_packet.c:2921 [inline]
+ packet_sendmsg+0x4275/0x6100 net/packet/af_packet.c:2946
+ sock_sendmsg_nosec net/socket.c:645 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:655
+ __sys_sendto+0x3d7/0x670 net/socket.c:1833
+ __do_sys_sendto net/socket.c:1845 [inline]
+ __se_sys_sendto net/socket.c:1841 [inline]
+ __x64_sys_sendto+0xe1/0x1a0 net/socket.c:1841
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441639
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007ffe5743de08 EFLAGS: 00000216 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000441639
+RDX: 0000000000000013 RSI: 00000000200016c0 RDI: 0000000000000003
+RBP: 00000000006cd018 R08: 00000000200000c0 R09: 000000000000001c
+R10: 0000000000000000 R11: 0000000000000216 R12: 0000000000402390
+R13: 0000000000402420 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 1:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x780 mm/slab.c:3620
+ kmalloc include/linux/slab.h:513 [inline]
+ kzalloc include/linux/slab.h:706 [inline]
+ wbt_init+0x95/0x690 block/blk-wbt.c:749
+ wbt_enable_default+0xba/0xe0 block/blk-wbt.c:715
+ blk_register_queue+0x2d2/0x8c0 block/blk-sysfs.c:906
+ __device_add_disk+0xe3b/0x1340 block/genhd.c:703
+ device_add_disk+0x22/0x30 block/genhd.c:717
+ add_disk include/linux/genhd.h:399 [inline]
+ nbd_dev_add+0x7c4/0xa40 drivers/block/nbd.c:1537
+ nbd_init+0x20e/0x22f drivers/block/nbd.c:2144
+ do_one_initcall+0x127/0x913 init/main.c:884
+ do_initcall_level init/main.c:952 [inline]
+ do_initcalls init/main.c:960 [inline]
+ do_basic_setup init/main.c:978 [inline]
+ kernel_init_freeable+0x49b/0x58e init/main.c:1135
+ kernel_init+0x11/0x1b3 init/main.c:1061
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801d20c8280
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 65 bytes to the right of
+ 512-byte region [ffff8801d20c8280, ffff8801d20c8480)
+The buggy address belongs to the page:
+page:ffffea0007483200 count:1 mapcount:0 mapping:ffff8801da800940 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea000749ea48 ffffea0007483648 ffff8801da800940
+raw: 0000000000000000 ffff8801d20c8000 0000000100000006 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d20c8380: 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc
+ ffff8801d20c8400: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801d20c8480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                           ^
+ ffff8801d20c8500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801d20c8580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

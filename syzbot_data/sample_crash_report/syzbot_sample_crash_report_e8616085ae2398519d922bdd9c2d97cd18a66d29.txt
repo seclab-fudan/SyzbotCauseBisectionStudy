@@ -1,0 +1,68 @@
+skbuff: skb_under_panic: text:ffffffff88e7dca6 len:23 put:19 head:ffff88807993d800 data:ffff88807993d7ff tail:0x16 end:0xc0 dev:bond1
+------------[ cut here ]------------
+kernel BUG at net/core/skbuff.c:120!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 3185 Comm: dhcpcd Not tainted 6.0.0-syzkaller-09589-g55be6084c8e0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+RIP: 0010:skb_panic+0x14a/0x150 net/core/skbuff.c:120
+Code: 51 b9 8b 48 8b 74 24 08 48 8b 54 24 10 8b 0c 24 44 8b 44 24 04 49 89 e9 31 c0 53 41 55 41 54 41 57 e8 dc 01 04 02 48 83 c4 20 <0f> 0b 0f 1f 40 00 55 41 57 41 56 41 55 41 54 53 48 83 ec 40 4d 89
+RSP: 0018:ffffc900034ef6c0 EFLAGS: 00010286
+RAX: 0000000000000085 RBX: ffff88802888c000 RCX: 8968f61da6150400
+RDX: 0000000000000000 RSI: 0000000000000201 RDI: 0000000000000000
+RBP: ffff88807993d800 R08: ffffffff816c0f4d R09: ffffed10173667f1
+R10: ffffed10173667f1 R11: 1ffff110173667f0 R12: 0000000000000016
+R13: 00000000000000c0 R14: dffffc0000000000 R15: ffff88807993d7ff
+FS:  00007f018b529740(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f6c555e2a70 CR3: 000000002709a000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ skb_under_panic net/core/skbuff.c:130 [inline]
+ skb_push+0xb9/0xd0 net/core/skbuff.c:2171
+ ipgre_header+0x66/0x470 net/ipv4/ip_gre.c:852
+ dev_hard_header include/linux/netdevice.h:3060 [inline]
+ lapbeth_data_transmit+0x1ec/0x2a0 drivers/net/wan/lapbether.c:257
+ lapb_data_transmit+0x85/0xa0 net/lapb/lapb_iface.c:447
+ lapb_transmit_buffer+0x162/0x1e0 net/lapb/lapb_out.c:149
+ lapb_establish_data_link+0x7d/0xd0
+ lapb_device_event+0x4aa/0x640
+ notifier_call_chain kernel/notifier.c:87 [inline]
+ raw_notifier_call_chain+0xe7/0x170 kernel/notifier.c:455
+ __dev_notify_flags+0x2ef/0x5f0
+ dev_change_flags+0xe3/0x190 net/core/dev.c:8615
+ devinet_ioctl+0x933/0x1ab0 net/ipv4/devinet.c:1146
+ inet_ioctl+0x32d/0x400 net/ipv4/af_inet.c:968
+ sock_do_ioctl+0x151/0x450 net/socket.c:1169
+ sock_ioctl+0x481/0x770 net/socket.c:1286
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl+0xfb/0x170 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f018b6170e7
+Code: 3c 1c e8 1c ff ff ff 85 c0 79 87 49 c7 c4 ff ff ff ff 5b 5d 4c 89 e0 41 5c c3 66 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 61 9d 0c 00 f7 d8 64 89 01 48
+RSP: 002b:00007ffd101ff1b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007f018b5296c8 RCX: 00007f018b6170e7
+RDX: 00007ffd1020f3a8 RSI: 0000000000008914 RDI: 0000000000000018
+RBP: 00007ffd1021f558 R08: 00007ffd1020f368 R09: 00007ffd1020f318
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffd1020f3a8 R14: 0000000000000028 R15: 0000000000008914
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:skb_panic+0x14a/0x150 net/core/skbuff.c:120
+Code: 51 b9 8b 48 8b 74 24 08 48 8b 54 24 10 8b 0c 24 44 8b 44 24 04 49 89 e9 31 c0 53 41 55 41 54 41 57 e8 dc 01 04 02 48 83 c4 20 <0f> 0b 0f 1f 40 00 55 41 57 41 56 41 55 41 54 53 48 83 ec 40 4d 89
+RSP: 0018:ffffc900034ef6c0 EFLAGS: 00010286
+RAX: 0000000000000085 RBX: ffff88802888c000 RCX: 8968f61da6150400
+RDX: 0000000000000000 RSI: 0000000000000201 RDI: 0000000000000000
+RBP: ffff88807993d800 R08: ffffffff816c0f4d R09: ffffed10173667f1
+R10: ffffed10173667f1 R11: 1ffff110173667f0 R12: 0000000000000016
+R13: 00000000000000c0 R14: dffffc0000000000 R15: ffff88807993d7ff
+FS:  00007f018b529740(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f6c555e2a70 CR3: 000000002709a000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

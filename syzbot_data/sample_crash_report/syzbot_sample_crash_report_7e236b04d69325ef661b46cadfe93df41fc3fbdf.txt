@@ -1,0 +1,86 @@
+==================================================================
+BUG: KASAN: use-after-free in rpc_net_ns+0x222/0x230 net/sunrpc/clnt.c:1506
+Read of size 8 at addr ffff8880a79fa8d8 by task kworker/1:3/2771
+
+CPU: 1 PID: 2771 Comm: kworker/1:3 Not tainted 5.7.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events rpc_free_client_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x188/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd3/0x315 mm/kasan/report.c:382
+ __kasan_report.cold+0x35/0x4d mm/kasan/report.c:511
+ kasan_report+0x33/0x50 mm/kasan/common.c:625
+ rpc_net_ns+0x222/0x230 net/sunrpc/clnt.c:1506
+ rpc_clnt_remove_pipedir net/sunrpc/clnt.c:111 [inline]
+ rpc_free_client_work+0x1a/0x60 net/sunrpc/clnt.c:892
+ process_one_work+0x965/0x16a0 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x388/0x470 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 8489:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ __kasan_kmalloc mm/kasan/common.c:495 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:468
+ __do_kmalloc mm/slab.c:3656 [inline]
+ __kmalloc+0x161/0x7a0 mm/slab.c:3665
+ kmalloc include/linux/slab.h:560 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ xprt_alloc+0x2d/0x800 net/sunrpc/xprt.c:1658
+ xs_setup_xprt.part.0+0x56/0x2e0 net/sunrpc/xprtsock.c:2735
+ xs_setup_xprt net/sunrpc/xprtsock.c:2988 [inline]
+ xs_setup_tcp+0xed/0x960 net/sunrpc/xprtsock.c:2930
+ xprt_create_transport+0xf9/0x480 net/sunrpc/xprt.c:1905
+ rpc_create+0x282/0x680 net/sunrpc/clnt.c:581
+ nfs_create_rpc_client+0x4eb/0x680 fs/nfs/client.c:535
+ nfs_init_client fs/nfs/client.c:652 [inline]
+ nfs_init_client+0x6d/0xf0 fs/nfs/client.c:639
+ nfs_get_client+0x1098/0x1430 fs/nfs/client.c:429
+ nfs_init_server+0x305/0xf00 fs/nfs/client.c:691
+ nfs_create_server+0x15c/0x700 fs/nfs/client.c:978
+ nfs_try_get_tree+0x166/0x8d0 fs/nfs/super.c:922
+ nfs_get_tree+0x95a/0x13a0 fs/nfs/fs_context.c:1291
+ vfs_get_tree+0x89/0x2f0 fs/super.c:1547
+ do_new_mount fs/namespace.c:2816 [inline]
+ do_mount+0x1306/0x1b30 fs/namespace.c:3141
+ __do_sys_mount fs/namespace.c:3350 [inline]
+ __se_sys_mount fs/namespace.c:3327 [inline]
+ __x64_sys_mount+0x18f/0x230 fs/namespace.c:3327
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+
+Freed by task 2728:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ kasan_set_free_info mm/kasan/common.c:317 [inline]
+ __kasan_slab_free+0xf7/0x140 mm/kasan/common.c:456
+ __cache_free mm/slab.c:3426 [inline]
+ kmem_cache_free_bulk+0x7d/0x280 mm/slab.c:3721
+ kfree_bulk include/linux/slab.h:412 [inline]
+ kfree_rcu_work+0x1a1/0x480 kernel/rcu/tree.c:2859
+ process_one_work+0x965/0x16a0 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x388/0x470 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8880a79fa000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 2264 bytes inside of
+ 4096-byte region [ffff8880a79fa000, ffff8880a79fb000)
+The buggy address belongs to the page:
+page:ffffea00029e7e80 refcount:1 mapcount:0 mapping:000000002cd4c33c index:0x0 head:ffffea00029e7e80 order:1 compound_mapcount:0
+flags: 0xfffe0000010200(slab|head)
+raw: 00fffe0000010200 ffffea0001e73588 ffffea00022f2108 ffff8880aa002000
+raw: 0000000000000000 ffff8880a79fa000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a79fa780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880a79fa800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8880a79fa880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff8880a79fa900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880a79fa980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

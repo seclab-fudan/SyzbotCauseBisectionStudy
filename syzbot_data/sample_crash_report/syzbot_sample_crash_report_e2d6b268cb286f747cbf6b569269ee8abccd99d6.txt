@@ -1,0 +1,307 @@
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.16.0-rc2+ #326 Not tainted
+------------------------------------------------------
+syz-executor0/6424 is trying to acquire lock:
+ (sk_lock-AF_INET){+.+.}, at: [<00000000aefce05d>] lock_sock include/net/sock.h:1463 [inline]
+ (sk_lock-AF_INET){+.+.}, at: [<00000000aefce05d>] do_ip_getsockopt+0x1b3/0x2170 net/ipv4/ip_sockglue.c:1329
+
+but task is already holding lock:
+ (rtnl_mutex){+.+.}, at: [<00000000c9b7f4f7>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (rtnl_mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+       unregister_netdevice_notifier+0x91/0x4e0 net/core/dev.c:1673
+       tee_tg_destroy+0x61/0xc0 net/netfilter/xt_TEE.c:123
+       cleanup_entry+0x242/0x380 net/ipv6/netfilter/ip6_tables.c:673
+       __do_replace+0x7ac/0xa70 net/ipv6/netfilter/ip6_tables.c:1108
+       do_replace net/ipv6/netfilter/ip6_tables.c:1164 [inline]
+       do_ip6t_set_ctl+0x40f/0x5f0 net/ipv6/netfilter/ip6_tables.c:1686
+       nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+       nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+       ipv6_setsockopt+0x10b/0x130 net/ipv6/ipv6_sockglue.c:927
+       rawv6_setsockopt+0x4a/0xf0 net/ipv6/raw.c:1060
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+       SYSC_setsockopt net/socket.c:1849 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1828
+       do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+-> #1 (&xt[i].mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1046
+       xt_request_find_table_lock+0x28/0xc0 net/netfilter/x_tables.c:1093
+       get_info+0x154/0x690 net/ipv6/netfilter/ip6_tables.c:989
+       do_arpt_get_ctl+0x2a9/0xa00 net/ipv4/netfilter/arp_tables.c:1481
+       nf_sockopt net/netfilter/nf_sockopt.c:104 [inline]
+       nf_getsockopt+0x6a/0xc0 net/netfilter/nf_sockopt.c:122
+       ip_getsockopt+0x15c/0x220 net/ipv4/ip_sockglue.c:1571
+       tcp_getsockopt+0x82/0xd0 net/ipv4/tcp.c:3359
+       sock_common_getsockopt+0x95/0xd0 net/core/sock.c:2934
+       SYSC_getsockopt net/socket.c:1880 [inline]
+       SyS_getsockopt+0x178/0x340 net/socket.c:1862
+       do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+-> #0 (sk_lock-AF_INET){+.+.}:
+       lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+       lock_sock_nested+0xc2/0x110 net/core/sock.c:2777
+       lock_sock include/net/sock.h:1463 [inline]
+       do_ip_getsockopt+0x1b3/0x2170 net/ipv4/ip_sockglue.c:1329
+       ip_getsockopt+0x90/0x220 net/ipv4/ip_sockglue.c:1560
+       udp_getsockopt+0x45/0x80 net/ipv4/udp.c:2478
+       sock_common_getsockopt+0x95/0xd0 net/core/sock.c:2934
+       SYSC_getsockopt net/socket.c:1880 [inline]
+       SyS_getsockopt+0x178/0x340 net/socket.c:1862
+       do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+other info that might help us debug this:
+
+Chain exists of:
+  sk_lock-AF_INET --> &xt[i].mutex --> rtnl_mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(rtnl_mutex);
+                               lock(&xt[i].mutex);
+                               lock(rtnl_mutex);
+  lock(sk_lock-AF_INET);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor0/6424:
+ #0:  (rtnl_mutex){+.+.}, at: [<00000000c9b7f4f7>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+
+stack backtrace:
+CPU: 1 PID: 6424 Comm: syz-executor0 Not tainted 4.16.0-rc2+ #326
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_circular_bug.isra.38+0x2cd/0x2dc kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x30a8/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ lock_sock_nested+0xc2/0x110 net/core/sock.c:2777
+ lock_sock include/net/sock.h:1463 [inline]
+ do_ip_getsockopt+0x1b3/0x2170 net/ipv4/ip_sockglue.c:1329
+ ip_getsockopt+0x90/0x220 net/ipv4/ip_sockglue.c:1560
+ udp_getsockopt+0x45/0x80 net/ipv4/udp.c:2478
+ sock_common_getsockopt+0x95/0xd0 net/core/sock.c:2934
+ SYSC_getsockopt net/socket.c:1880 [inline]
+ SyS_getsockopt+0x178/0x340 net/socket.c:1862
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x453de9
+RSP: 002b:00007f877c29ac68 EFLAGS: 00000246 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 00007f877c29b6d4 RCX: 0000000000453de9
+RDX: 0000000000000030 RSI: 0000000000000000 RDI: 0000000000000014
+RBP: 000000000072bea0 R08: 0000000020000080 R09: 0000000000000000
+R10: 0000000020000040 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000000000f2 R14: 00000000006f1750 R15: 0000000000000000
+IPv6: veth0: IPv6 duplicate address fe80::a8aa:aaff:feaa:a used by aa:aa:aa:aa:00:0a detected!
+IPv6: veth1: IPv6 duplicate address fe80::a8aa:aaff:feaa:a used by aa:aa:aa:aa:00:0a detected!
+ipt_CLUSTERIP: Please specify destination IP
+audit: type=1400 audit(1519471960.051:39): avc:  denied  { getopt } for  pid=6461 comm="syz-executor1" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_netfilter_socket permissive=1
+audit: type=1400 audit(1519471960.074:40): avc:  denied  { ioctl } for  pid=6461 comm="syz-executor1" path="socket:[16956]" dev="sockfs" ino=16956 ioctlcmd=0x8903 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_netfilter_socket permissive=1
+audit: type=1400 audit(1519471960.273:41): avc:  denied  { map } for  pid=6550 comm="syz-executor2" path="/dev/ashmem" dev="devtmpfs" ino=9502 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:device_t:s0 tclass=chr_file permissive=1
+audit: type=1400 audit(1519471960.360:42): avc:  denied  { setuid } for  pid=6584 comm="syz-executor6" capability=7  scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=cap_userns permissive=1
+binder: 6592 RLIMIT_NICE not set
+audit: type=1400 audit(1519471960.398:43): avc:  denied  { map } for  pid=6591 comm="syz-executor7" path="/dev/snd/pcmC0D0c" dev="devtmpfs" ino=9542 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:sound_device_t:s0 tclass=chr_file permissive=1
+binder: 6590:6606 unknown command 0
+audit: type=1400 audit(1519471960.418:44): avc:  denied  { call } for  pid=6590 comm="syz-executor5" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=binder permissive=1
+binder: 6590:6606 ioctl c0306201 2000afd0 returned -22
+binder: 6590:6606 ioctl 8904 20000b40 returned -22
+binder: BINDER_SET_CONTEXT_MGR already set
+binder: 6590:6606 ioctl 40046207 0 returned -16
+binder: 6590:6592 unknown command 0
+binder_alloc: 6590: binder_alloc_buf, no vma
+binder: 6590:6592 ioctl c0306201 2000a000 returned -22
+binder: 6590:6606 transaction failed 29189/-3, size 0-0 line 2963
+binder: undelivered TRANSACTION_ERROR: 29189
+binder: undelivered TRANSACTION_COMPLETE
+netlink: 4096 bytes leftover after parsing attributes in process `syz-executor3'.
+syz-executor5 uses obsolete (PF_INET,SOCK_PACKET)
+audit: type=1400 audit(1519471960.762:45): avc:  denied  { setopt } for  pid=6716 comm="syz-executor3" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_netfilter_socket permissive=1
+device syz7 entered promiscuous mode
+netlink: 544 bytes leftover after parsing attributes in process `syz-executor3'.
+device syz7 left promiscuous mode
+netlink: 544 bytes leftover after parsing attributes in process `syz-executor3'.
+device syz7 entered promiscuous mode
+device syz7 left promiscuous mode
+TCP: request_sock_TCP: Possible SYN flooding on port 20014. Sending cookies.  Check SNMP counters.
+PPPIOCDETACH file->f_count=2
+PPPIOCDETACH file->f_count=2
+Can not set IPV6_FL_F_REFLECT if flowlabel_consistency sysctl is enable
+Can not set IPV6_FL_F_REFLECT if flowlabel_consistency sysctl is enable
+netlink: 8 bytes leftover after parsing attributes in process `syz-executor7'.
+netlink: 8 bytes leftover after parsing attributes in process `syz-executor7'.
+dccp_xmit_packet: Payload too large (65423) for featneg.
+dccp_close: ABORT with 65423 bytes unread
+device eql entered promiscuous mode
+binder: BINDER_SET_CONTEXT_MGR already set
+binder: 7068:7082 ioctl 40046207 0 returned -16
+kvm [7178]: vcpu0, guest rIP: 0xfff0 Hyper-V uhandled wrmsr: 0x40000020 data 0x0
+kvm [7178]: vcpu0, guest rIP: 0xfff0 Hyper-V uhandled wrmsr: 0x40000020 data 0x0
+9pnet_virtio: no channels available for device ./file0
+QAT: Invalid ioctl
+9pnet_virtio: no channels available for device ./file0
+QAT: Invalid ioctl
+netlink: 'syz-executor3': attribute type 21 has an invalid length.
+QAT: Invalid ioctl
+netlink: 'syz-executor3': attribute type 21 has an invalid length.
+sctp: [Deprecated]: syz-executor7 (pid 7252) Use of int in maxseg socket option.
+Use struct sctp_assoc_value instead
+sctp: [Deprecated]: syz-executor7 (pid 7260) Use of int in maxseg socket option.
+Use struct sctp_assoc_value instead
+binder: 7307:7315 ioctl c0306201 20019fd0 returned -14
+binder: 7307:7315 ioctl c0306201 20019fd0 returned -14
+device eql entered promiscuous mode
+ip6t_srh: unknown srh invflags B59
+ip6t_srh: unknown srh invflags B59
+PPPIOCDETACH file->f_count=2
+skbuff: bad partial csum: csum=65535/0 len=316
+xt_connbytes: Forcing CT accounting to be enabled
+x_tables: ip6_tables: mh match: only valid for protocol 135
+x_tables: ip6_tables: mh match: only valid for protocol 135
+SELinux:  policydb string length -411 does not match expected length 8
+SELinux: failed to load policy
+SELinux:  policydb string length -411 does not match expected length 8
+SELinux: failed to load policy
+netlink: 4652 bytes leftover after parsing attributes in process `syz-executor2'.
+netlink: 4652 bytes leftover after parsing attributes in process `syz-executor2'.
+device eql entered promiscuous mode
+netlink: 4096 bytes leftover after parsing attributes in process `syz-executor1'.
+xt_AUDIT: Audit type out of range (valid range: 0..2)
+xt_AUDIT: Audit type out of range (valid range: 0..2)
+netlink: 4096 bytes leftover after parsing attributes in process `syz-executor1'.
+ion_ioctl: ioctl validate failed
+*** Guest State ***
+CR0: actual=0x000000001ffffff0, shadow=0x000000007ffffff0, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002050, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x0000000000000000  RIP = 0x0000000000008000
+RFLAGS=0x00000002         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0x3000, attr=0x08093, limit=0xffffffff, base=0x0000000000030000
+DS:   sel=0x0000, attr=0x08093, limit=0xffffffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x08093, limit=0xffffffff, base=0x0000000000000000
+ES:   sel=0x0000, attr=0x08093, limit=0xffffffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x08093, limit=0xffffffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x08093, limit=0xffffffff, base=0x0000000000000000
+GDTR:                           limit=0x00000000, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x10000, limit=0x00000000, base=0x0000000000000000
+IDTR:                           limit=0x00000000, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x10000, limit=0x00000000, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000008  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811cd945  RSP = 0xffff8801b309f3b8
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007f4092620700 GSBase=ffff8801db300000 TRBase=fffffe0000034000
+GDTBase=fffffe0000032000 IDTBase=fffffe0000000000
+CR0=0000000080050033 CR3=00000001d70a5001 CR4=00000000001626e0
+Sysenter RSP=fffffe0000033200 CS:RIP=0010:ffffffff85e01e70
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b599edfa SecondaryExec=000000c2
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=00060042 PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=00000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000003
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffffe1b8b0779f
+EPT pointer = 0x00000001d8e7101e
+ipt_CLUSTERIP: ipt_CLUSTERIP is deprecated and it will removed soon, use xt_cluster instead
+syz-executor1 (7929) used greatest stack depth: 14384 bytes left
+binder: BINDER_SET_CONTEXT_MGR already set
+binder: 7944:7973 BC_REQUEST_DEATH_NOTIFICATION invalid ref 0
+binder: 7944:7969 ioctl 40046207 0 returned -16
+binder: 7944:7972 BC_CLEAR_DEATH_NOTIFICATION death notification not active
+binder: undelivered death notification, 0000000000000000
+device bond0 entered promiscuous mode
+ipt_CLUSTERIP: bad local_nodes[0] 0
+netlink: 'syz-executor7': attribute type 3 has an invalid length.
+kauditd_printk_skb: 6 callbacks suppressed
+audit: type=1400 audit(1519471966.836:52): avc:  denied  { ioctl } for  pid=8143 comm="syz-executor7" path="socket:[22895]" dev="sockfs" ino=22895 ioctlcmd=0x89e2 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+netlink: 'syz-executor7': attribute type 3 has an invalid length.
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=29440 sclass=netlink_route_socket pig=8170 comm=syz-executor0
+device eql entered promiscuous mode
+Cannot find add_set index 0 as target
+audit: type=1400 audit(1519471967.334:53): avc:  denied  { map } for  pid=8303 comm="syz-executor2" path="socket:[23222]" dev="sockfs" ino=23222 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=dccp_socket permissive=1
+xt_TPROXY: Can be used only in combination with either -p tcp or -p udp
+Cannot find add_set index 0 as target
+xt_TPROXY: Can be used only in combination with either -p tcp or -p udp
+xt_HMARK: hash modulus can't be zero
+QAT: Invalid ioctl
+can: request_module (can-proto-5) failed.
+QAT: Invalid ioctl
+QAT: Invalid ioctl
+can: request_module (can-proto-5) failed.
+QAT: Invalid ioctl
+FAULT_FLAG_ALLOW_RETRY missing 30
+CPU: 0 PID: 8420 Comm: syz-executor1 Not tainted 4.16.0-rc2+ #326
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ handle_userfault+0xbd9/0x2500 fs/userfaultfd.c:430
+ do_anonymous_page mm/memory.c:3163 [inline]
+ handle_pte_fault mm/memory.c:3977 [inline]
+ __handle_mm_fault+0x3440/0x3b60 mm/memory.c:4103
+ handle_mm_fault+0x44a/0xb00 mm/memory.c:4140
+ __do_page_fault+0x5c9/0xc90 arch/x86/mm/fault.c:1426
+ do_page_fault+0xee/0x730 arch/x86/mm/fault.c:1501
+ page_fault+0x62/0x90 arch/x86/entry/entry_64.S:1122
+RIP: 0010:fault_in_pages_readable arch/x86/include/asm/smap.h:58 [inline]
+RIP: 0010:iov_iter_fault_in_readable+0x1aa/0x420 lib/iov_iter.c:421
+RSP: 0018:ffff8801b350f7e0 EFLAGS: 00010246
+RAX: 0000000000010000 RBX: 0000000020011fd2 RCX: ffffffff825caf11
+RDX: 0000000000000103 RSI: ffffc90003264000 RDI: ffff8801b350fbe0
+RBP: ffff8801b350f8c0 R08: 0000000000000000 R09: 1ffff100366a1ea8
+R10: ffff8801b350f710 R11: ffff8801cc0136d0 R12: 1ffff100366a1eff
+R13: ffff8801b350f898 R14: 0000000000000000 R15: ffff8801b350fbd8
+ generic_perform_write+0x200/0x600 mm/filemap.c:3128
+ __generic_file_write_iter+0x366/0x5b0 mm/filemap.c:3263
+ generic_file_write_iter+0x399/0x790 mm/filemap.c:3291
+ call_write_iter include/linux/fs.h:1781 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x453de9
+RSP: 002b:00007f34aea35c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007f34aea366d4 RCX: 0000000000453de9
+RDX: 0000000000000030 RSI: 0000000020011fd2 RDI: 0000000000000014
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000000662 R14: 00000000006f99d0 R15: 0000000000000000
+TCP: request_sock_TCP: Possible SYN flooding on port 20006. Sending cookies.  Check SNMP counters.
+audit: type=1400 audit(1519471968.540:54): avc:  denied  { relabelto } for  pid=8507 comm="syz-executor6" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:udev_var_run_t:s0 tclass=packet permissive=1
+QAT: Invalid ioctl
+x_tables: ip6_tables: rpfilter match: used from hooks PREROUTING/OUTPUT, but only valid from PREROUTING
+audit: type=1400 audit(1519471968.665:55): avc:  denied  { map } for  pid=8551 comm="syz-executor4" path="/dev/usbmon0" dev="devtmpfs" ino=1143 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:usbmon_device_t:s0 tclass=chr_file permissive=1
+x_tables: ip6_tables: rpfilter match: used from hooks PREROUTING/OUTPUT, but only valid from PREROUTING
+audit: type=1400 audit(1519471969.006:56): avc:  denied  { read } for  pid=8678 comm="syz-executor2" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+audit: type=1400 audit(1519471969.066:57): avc:  denied  { bind } for  pid=8701 comm="syz-executor3" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_netfilter_socket permissive=1

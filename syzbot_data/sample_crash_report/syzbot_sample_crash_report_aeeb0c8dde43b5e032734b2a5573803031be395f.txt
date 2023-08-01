@@ -1,0 +1,124 @@
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+rcu: 	Tasks blocked on level-0 rcu_node (CPUs 0-1):
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 6881 at kernel/sched/core.c:3013 rq_unlock kernel/sched/sched.h:1326 [inline]
+WARNING: CPU: 1 PID: 6881 at kernel/sched/core.c:3013 try_invoke_on_locked_down_task+0x21d/0x2f0 kernel/sched/core.c:3019
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 6881 Comm: syz-executor033 Not tainted 5.9.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ panic+0x382/0x7fb kernel/panic.c:231
+ __warn.cold+0x20/0x4b kernel/panic.c:600
+ report_bug+0x1bd/0x210 lib/bug.c:198
+ handle_bug+0x38/0x90 arch/x86/kernel/traps.c:234
+ exc_invalid_op+0x14/0x40 arch/x86/kernel/traps.c:254
+ asm_exc_invalid_op+0x12/0x20 arch/x86/include/asm/idtentry.h:536
+RIP: 0010:try_invoke_on_locked_down_task+0x21d/0x2f0 kernel/sched/core.c:3013
+Code: 45 31 f6 49 39 c0 74 3a 8b 74 24 38 49 8d 78 18 4c 89 04 24 e8 a4 e7 08 00 4c 8b 04 24 4c 89 c7 e8 28 ab d6 06 e9 20 ff ff ff <0f> 0b e9 7d fe ff ff 4c 89 ee 48 89 ef 41 ff d4 41 89 c6 e9 08 ff
+RSP: 0018:ffffc90000da7da0 EFLAGS: 00010046
+RAX: 0000000000000000 RBX: 1ffff920001b4fb6 RCX: 0000000000000001
+RDX: 0000000000000000 RSI: ffffffff8162da10 RDI: ffff88808f528100
+RBP: ffff88808f528100 R08: 0000000000000033 R09: ffffffff8a05ae03
+R10: 00000000000005b1 R11: 0000000000000001 R12: ffffffff8162da10
+R13: ffffc90000da7ec8 R14: ffff88808f528100 R15: 0000000000000000
+ rcu_print_task_stall kernel/rcu/tree_stall.h:267 [inline]
+ print_other_cpu_stall kernel/rcu/tree_stall.h:475 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:634 [inline]
+ rcu_pending kernel/rcu/tree.c:3639 [inline]
+ rcu_sched_clock_irq.cold+0x97e/0xdfd kernel/rcu/tree.c:2521
+ update_process_times+0x25/0xa0 kernel/time/timer.c:1710
+ tick_sched_handle+0x9b/0x180 kernel/time/tick-sched.c:176
+ tick_sched_timer+0x1d1/0x2a0 kernel/time/tick-sched.c:1328
+ __run_hrtimer kernel/time/hrtimer.c:1524 [inline]
+ __hrtimer_run_queues+0x1d5/0xfc0 kernel/time/hrtimer.c:1588
+ hrtimer_interrupt+0x334/0x940 kernel/time/hrtimer.c:1650
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1080 [inline]
+ __sysvec_apic_timer_interrupt+0x147/0x5f0 arch/x86/kernel/apic/apic.c:1097
+ run_sysvec_on_irqstack_cond arch/x86/include/asm/irq_stack.h:91 [inline]
+ sysvec_apic_timer_interrupt+0x4c/0xf0 arch/x86/kernel/apic/apic.c:1091
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:581
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:770 [inline]
+RIP: 0010:kmem_cache_free.part.0+0x90/0x1e0 mm/slab.c:3698
+Code: 48 89 de 48 89 ef 4c 89 ea e8 5c 26 00 00 84 c0 74 50 4d 85 f6 75 5e 48 83 3d a3 a0 45 08 00 0f 84 10 01 00 00 4c 89 e7 57 9d <0f> 1f 44 00 00 4c 8b 64 24 28 0f 1f 44 00 00 65 8b 05 fa c7 4a 7e
+RSP: 0018:ffffc90000da8280 EFLAGS: 00000286
+RAX: 0000000000463106 RBX: ffff8880a48fb0c0 RCX: ffffffff815b7ef2
+RDX: 0000000000000000 RSI: 0000000000000103 RDI: 0000000000000286
+RBP: ffff8880aa221300 R08: 0000000000000001 R09: ffffffff8d0c0a9f
+R10: fffffbfff1a18153 R11: 0000000000000000 R12: 0000000000000286
+R13: ffffffff86660c26 R14: 0000000000000200 R15: ffff8880a05f0040
+ kfree_skbmem+0x166/0x1b0 net/core/skbuff.c:643
+ sk_wmem_free_skb include/net/sock.h:1539 [inline]
+ tcp_rtx_queue_unlink_and_free include/net/tcp.h:1859 [inline]
+ tcp_clean_rtx_queue net/ipv4/tcp_input.c:3177 [inline]
+ tcp_ack+0x1bf0/0x5700 net/ipv4/tcp_input.c:3721
+ tcp_rcv_established+0x1339/0x1e70 net/ipv4/tcp_input.c:5703
+ tcp_v4_do_rcv+0x5d1/0x870 net/ipv4/tcp_ipv4.c:1642
+ tcp_v4_rcv+0x2d10/0x3750 net/ipv4/tcp_ipv4.c:2024
+ ip_protocol_deliver_rcu+0x5c/0x8a0 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish+0x20a/0x370 net/ipv4/ip_input.c:231
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ NF_HOOK include/linux/netfilter.h:295 [inline]
+ ip_local_deliver+0x1b3/0x200 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:449 [inline]
+ ip_sublist_rcv_finish+0x9a/0x2c0 net/ipv4/ip_input.c:550
+ ip_list_rcv_finish.constprop.0+0x514/0x6e0 net/ipv4/ip_input.c:600
+ ip_sublist_rcv net/ipv4/ip_input.c:608 [inline]
+ ip_list_rcv+0x34e/0x488 net/ipv4/ip_input.c:643
+ __netif_receive_skb_list_ptype net/core/dev.c:5329 [inline]
+ __netif_receive_skb_list_core+0x549/0x8e0 net/core/dev.c:5377
+ __netif_receive_skb_list net/core/dev.c:5429 [inline]
+ netif_receive_skb_list_internal+0x777/0xd70 net/core/dev.c:5534
+ gro_normal_list net/core/dev.c:5645 [inline]
+ gro_normal_list net/core/dev.c:5641 [inline]
+ napi_complete_done+0x1f1/0x940 net/core/dev.c:6370
+ virtqueue_napi_complete+0x2c/0xc0 drivers/net/virtio_net.c:329
+ virtnet_poll+0xae2/0xd89 drivers/net/virtio_net.c:1455
+ napi_poll net/core/dev.c:6688 [inline]
+ net_rx_action+0x50d/0xfc0 net/core/dev.c:6758
+ __do_softirq+0x1f8/0xb23 kernel/softirq.c:298
+ asm_call_irq_on_stack+0xf/0x20
+ </IRQ>
+ __run_on_irqstack arch/x86/include/asm/irq_stack.h:26 [inline]
+ run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:77 [inline]
+ do_softirq_own_stack+0x9b/0xd0 arch/x86/kernel/irq_64.c:77
+ invoke_softirq kernel/softirq.c:393 [inline]
+ __irq_exit_rcu kernel/softirq.c:423 [inline]
+ irq_exit_rcu+0x235/0x280 kernel/softirq.c:435
+ common_interrupt+0xa3/0x1f0 arch/x86/kernel/irq.c:239
+ asm_common_interrupt+0x1e/0x40 arch/x86/include/asm/idtentry.h:572
+RIP: 0010:__raw_spin_unlock_irq include/linux/spinlock_api_smp.h:169 [inline]
+RIP: 0010:_raw_spin_unlock_irq+0x4b/0x80 kernel/locking/spinlock.c:199
+Code: c0 f8 6b fc 89 48 ba 00 00 00 00 00 fc ff df 48 c1 e8 03 80 3c 10 00 75 31 48 83 3d 46 82 d3 01 00 74 25 fb 66 0f 1f 44 00 00 <bf> 01 00 00 00 e8 6b 0b 28 f9 65 8b 05 b4 14 d9 77 85 c0 74 02 5d
+RSP: 0018:ffffc900011a7b50 EFLAGS: 00000282
+RAX: 1ffffffff13f8d7f RBX: ffff88809145e140 RCX: 1ffffffff16b25a1
+RDX: dffffc0000000000 RSI: 0000000000000002 RDI: 0000000000000000
+RBP: ffff8880ae535e00 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8880ae535e00
+R13: ffff888092de81c0 R14: 0000000000000000 R15: 0000000000000001
+ finish_lock_switch kernel/sched/core.c:3517 [inline]
+ finish_task_switch+0x150/0x790 kernel/sched/core.c:3617
+ context_switch kernel/sched/core.c:3781 [inline]
+ __schedule+0xed1/0x2280 kernel/sched/core.c:4527
+ schedule+0xd0/0x2a0 kernel/sched/core.c:4602
+ freezable_schedule include/linux/freezer.h:172 [inline]
+ do_nanosleep+0x222/0x650 kernel/time/hrtimer.c:1883
+ hrtimer_nanosleep+0x1f9/0x430 kernel/time/hrtimer.c:1936
+ __do_sys_nanosleep kernel/time/hrtimer.c:1970 [inline]
+ __se_sys_nanosleep kernel/time/hrtimer.c:1957 [inline]
+ __x64_sys_nanosleep+0x1dc/0x260 kernel/time/hrtimer.c:1957
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x448e30
+Code: c0 5b 5d c3 66 0f 1f 44 00 00 8b 04 24 48 83 c4 18 5b 5d c3 66 0f 1f 44 00 00 83 3d e1 91 29 00 00 75 14 b8 23 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 04 e3 fb ff c3 48 83 ec 08 e8 fa 42 00 00
+RSP: 002b:00007ffd981623a8 EFLAGS: 00000246 ORIG_RAX: 0000000000000023
+RAX: ffffffffffffffda RBX: 0000000000004858 RCX: 0000000000448e30
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007ffd981623b0
+RBP: 00000000000e5d4c R08: 0000000000001ae1 R09: 000000000261e880
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004075c0
+R13: 0000000000407650 R14: 0000000000000000 R15: 0000000000000000
+Shutting down cpus with NMI
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

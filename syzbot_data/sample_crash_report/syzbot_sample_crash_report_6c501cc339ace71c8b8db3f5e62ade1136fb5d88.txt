@@ -1,0 +1,55 @@
+============================================
+WARNING: possible recursive locking detected
+6.2.0-syzkaller-18300-g2ebd1fbb946d #0 Not tainted
+--------------------------------------------
+syz-executor219/5923 is trying to acquire lock:
+ffff0000c140c130 (sk_lock-AF_PPPOX){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ffff0000c140c130 (sk_lock-AF_PPPOX){+.+.}-{0:0}, at: l2tp_tunnel_register+0x888/0x19f8 net/l2tp/l2tp_core.c:1483
+
+but task is already holding lock:
+ffff0000cbfdf130 (sk_lock-AF_PPPOX){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ffff0000cbfdf130 (sk_lock-AF_PPPOX){+.+.}-{0:0}, at: pppol2tp_connect+0x53c/0x1348 net/l2tp/l2tp_ppp.c:675
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(sk_lock-AF_PPPOX);
+  lock(sk_lock-AF_PPPOX);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+1 lock held by syz-executor219/5923:
+ #0: ffff0000cbfdf130 (sk_lock-AF_PPPOX){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ #0: ffff0000cbfdf130 (sk_lock-AF_PPPOX){+.+.}-{0:0}, at: pppol2tp_connect+0x53c/0x1348 net/l2tp/l2tp_ppp.c:675
+
+stack backtrace:
+CPU: 0 PID: 5923 Comm: syz-executor219 Not tainted 6.2.0-syzkaller-18300-g2ebd1fbb946d #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call trace:
+ dump_backtrace+0x1c8/0x1f4 arch/arm64/kernel/stacktrace.c:158
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:165
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd0/0x124 lib/dump_stack.c:106
+ dump_stack+0x1c/0x28 lib/dump_stack.c:113
+ __lock_acquire+0x6310/0x764c kernel/locking/lockdep.c:5055
+ lock_acquire+0x2e8/0x8c0 kernel/locking/lockdep.c:5668
+ lock_sock_nested+0x78/0x138 net/core/sock.c:3471
+ lock_sock include/net/sock.h:1725 [inline]
+ l2tp_tunnel_register+0x888/0x19f8 net/l2tp/l2tp_core.c:1483
+ pppol2tp_connect+0x944/0x1348 net/l2tp/l2tp_ppp.c:723
+ __sys_connect_file net/socket.c:1979 [inline]
+ __sys_connect+0x268/0x290 net/socket.c:1996
+ __do_sys_connect net/socket.c:2006 [inline]
+ __se_sys_connect net/socket.c:2003 [inline]
+ __arm64_sys_connect+0x7c/0x94 net/socket.c:2003
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x98/0x2c0 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0x138/0x258 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x168 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591

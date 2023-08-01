@@ -1,0 +1,40 @@
+================================================================================
+UBSAN: shift-out-of-bounds in sound/core/timer.c:1376:23
+shift exponent 105 is too large for 32-bit type 'int'
+CPU: 1 PID: 10368 Comm: syz-executor.1 Not tainted 5.13.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ubsan_epilogue+0xb/0x5a lib/ubsan.c:148
+ __ubsan_handle_shift_out_of_bounds.cold+0xb1/0x181 lib/ubsan.c:327
+ snd_timer_user_ccallback.cold+0x19/0x1e sound/core/timer.c:1376
+ snd_timer_notify1+0x243/0x3b0 sound/core/timer.c:525
+ snd_timer_stop1+0x641/0x890 sound/core/timer.c:656
+ snd_timer_pause+0x6e/0x90 sound/core/timer.c:738
+ seq_timer_stop sound/core/seq/seq_timer.c:331 [inline]
+ snd_seq_timer_stop+0x93/0xd0 sound/core/seq/seq_timer.c:341
+ queue_delete+0x42/0xa0 sound/core/seq/seq_queue.c:133
+ snd_seq_queue_client_leave+0x37/0x1a0 sound/core/seq/seq_queue.c:552
+ seq_free_client1.part.0+0x10a/0x260 sound/core/seq/seq_clientmgr.c:280
+ seq_free_client1 sound/core/seq/seq_clientmgr.c:273 [inline]
+ seq_free_client+0x7b/0xf0 sound/core/seq/seq_clientmgr.c:301
+ snd_seq_release+0x4d/0xe0 sound/core/seq/seq_clientmgr.c:382
+ __fput+0x288/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:174 [inline]
+ exit_to_user_mode_prepare+0x272/0x280 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:301
+ do_syscall_64+0x47/0xb0 arch/x86/entry/common.c:57
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4193eb
+Code: 0f 05 48 3d 00 f0 ff ff 77 45 c3 0f 1f 40 00 48 83 ec 18 89 7c 24 0c e8 63 fc ff ff 8b 7c 24 0c 41 89 c0 b8 03 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 35 44 89 c7 89 44 24 0c e8 a1 fc ff ff 8b 44
+RSP: 002b:0000000000a9fb80 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000005 RCX: 00000000004193eb
+RDX: 0000000000571b58 RSI: ffffffff89166efe RDI: 0000000000000004
+RBP: 0000000000000001 R08: 0000000000000000 R09: 0000001b2ea280a8
+R10: 00000000000001d1 R11: 0000000000000293 R12: 000000000014d248
+R13: 00000000000003e8 R14: 000000000056bf80 R15: 000000000014d1dd
+================================================================================

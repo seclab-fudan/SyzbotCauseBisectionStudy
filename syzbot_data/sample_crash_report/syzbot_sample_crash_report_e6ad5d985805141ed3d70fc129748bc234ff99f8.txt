@@ -1,0 +1,98 @@
+==================================================================
+BUG: KASAN: use-after-free in rawv6_send_hdrinc net/ipv6/raw.c:692 [inline]
+BUG: KASAN: use-after-free in rawv6_sendmsg+0x4421/0x4630 net/ipv6/raw.c:921
+Read of size 8 at addr ffff8801c1310c70 by task syz-executor645/20842
+
+CPU: 1 PID: 20842 Comm: syz-executor645 Not tainted 4.19.0-rc3+ #231
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+ print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ rawv6_send_hdrinc net/ipv6/raw.c:692 [inline]
+ rawv6_sendmsg+0x4421/0x4630 net/ipv6/raw.c:921
+ inet_sendmsg+0x1a1/0x690 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2114
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2152
+ __do_sys_sendmsg net/socket.c:2161 [inline]
+ __se_sys_sendmsg net/socket.c:2159 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2159
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x443759
+Code: e8 bc e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 bb 02 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffebd1ec3d8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000443759
+RDX: 0000000000000000 RSI: 0000000020003840 RDI: 0000000000000004
+RBP: 0000000000000000 R08: 0000000000000a0a R09: 0000000000000a0a
+R10: 0000000000000004 R11: 0000000000000246 R12: 000000000000091d
+R13: 00000000000f8d82 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 20842:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x730 mm/slab.c:3554
+ dst_alloc+0xbb/0x1d0 net/core/dst.c:105
+ ip6_dst_alloc+0x35/0xa0 net/ipv6/route.c:353
+ ip6_rt_cache_alloc+0x247/0x7b0 net/ipv6/route.c:1186
+ ip6_pol_route+0x8f8/0xd90 net/ipv6/route.c:1895
+ ip6_pol_route_output+0x54/0x70 net/ipv6/route.c:2093
+ fib6_rule_lookup+0x13a/0x860 net/ipv6/fib6_rules.c:118
+ ip6_route_output_flags+0x2c5/0x350 net/ipv6/route.c:2121
+ ip6_route_output include/net/ip6_route.h:88 [inline]
+ ip6_dst_lookup_tail+0xe27/0x1d60 net/ipv6/ip6_output.c:951
+ ip6_dst_lookup_flow+0xc8/0x270 net/ipv6/ip6_output.c:1079
+ rawv6_sendmsg+0x12d9/0x4630 net/ipv6/raw.c:905
+ inet_sendmsg+0x1a1/0x690 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2114
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2152
+ __do_sys_sendmsg net/socket.c:2161 [inline]
+ __se_sys_sendmsg net/socket.c:2159 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2159
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 5357:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x83/0x290 mm/slab.c:3756
+ dst_destroy+0x267/0x3c0 net/core/dst.c:141
+ dst_destroy_rcu+0x16/0x19 net/core/dst.c:154
+ __rcu_reclaim kernel/rcu/rcu.h:236 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2576 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2880 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2847 [inline]
+ rcu_process_callbacks+0xf23/0x2670 kernel/rcu/tree.c:2864
+ __do_softirq+0x30b/0xad8 kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff8801c1310bc0
+ which belongs to the cache ip6_dst_cache of size 240
+The buggy address is located 176 bytes inside of
+ 240-byte region [ffff8801c1310bc0, ffff8801c1310cb0)
+The buggy address belongs to the page:
+page:ffffea000704c400 count:1 mapcount:0 mapping:ffff8801cb5d21c0 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea000716c988 ffffea0007020508 ffff8801cb5d21c0
+raw: 0000000000000000 ffff8801c1310080 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c1310b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fc fc
+ ffff8801c1310b80: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>ffff8801c1310c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff8801c1310c80: fb fb fb fb fb fb fc fc fc fc fc fc fc fc fc fc
+ ffff8801c1310d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

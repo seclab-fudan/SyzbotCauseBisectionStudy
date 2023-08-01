@@ -1,0 +1,55 @@
+=============================
+WARNING: suspicious RCU usage
+6.2.0-syzkaller-18300-g2ebd1fbb946d #0 Not tainted
+-----------------------------
+lib/maple_tree.c:852 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+5 locks held by syz-executor179/6429:
+ #0: ffff0000d8dc0460 (sb_writers#7){.+.+}-{0:0}, at: vfs_write+0x244/0x914 fs/read_write.c:580
+ #1: ffff0000d2f28088 (&of->mutex){+.+.}-{3:3}, at: kernfs_fop_write_iter+0x1c8/0x48c fs/kernfs/file.c:325
+ #2: ffff0000c110ecb8 (kn->active#42){.+.+}-{0:0}, at: kernfs_fop_write_iter+0x1e4/0x48c fs/kernfs/file.c:326
+ #3: ffff800015e40b88 (ksm_thread_mutex){+.+.}-{3:3}, at: run_store+0x10c/0xa1c mm/ksm.c:2954
+ #4: ffff0000cd695f88 (&mm->mmap_lock){++++}-{3:3}, at: mmap_read_lock include/linux/mmap_lock.h:117 [inline]
+ #4: ffff0000cd695f88 (&mm->mmap_lock){++++}-{3:3}, at: unmerge_and_remove_all_rmap_items mm/ksm.c:990 [inline]
+ #4: ffff0000cd695f88 (&mm->mmap_lock){++++}-{3:3}, at: run_store+0x274/0xa1c mm/ksm.c:2960
+
+stack backtrace:
+CPU: 1 PID: 6429 Comm: syz-executor179 Not tainted 6.2.0-syzkaller-18300-g2ebd1fbb946d #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call trace:
+ dump_backtrace+0x1c8/0x1f4 arch/arm64/kernel/stacktrace.c:158
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:165
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd0/0x124 lib/dump_stack.c:106
+ dump_stack+0x1c/0x28 lib/dump_stack.c:113
+ lockdep_rcu_suspicious+0x188/0x1e0 kernel/locking/lockdep.c:6597
+ mas_root lib/maple_tree.c:852 [inline]
+ mas_start lib/maple_tree.c:1357 [inline]
+ mas_state_walk+0x2ac/0x400 lib/maple_tree.c:3838
+ mas_walk+0x44/0x148 lib/maple_tree.c:5046
+ mas_find+0x1bc/0x200 lib/maple_tree.c:6012
+ vma_find include/linux/mm.h:674 [inline]
+ vma_next include/linux/mm.h:683 [inline]
+ unmerge_and_remove_all_rmap_items mm/ksm.c:991 [inline]
+ run_store+0x28c/0xa1c mm/ksm.c:2960
+ kobj_attr_store+0x6c/0x90 lib/kobject.c:824
+ sysfs_kf_write+0x200/0x280 fs/sysfs/file.c:136
+ kernfs_fop_write_iter+0x334/0x48c fs/kernfs/file.c:334
+ call_write_iter include/linux/fs.h:2189 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x610/0x914 fs/read_write.c:584
+ ksys_write+0x15c/0x26c fs/read_write.c:637
+ __do_sys_write fs/read_write.c:649 [inline]
+ __se_sys_write fs/read_write.c:646 [inline]
+ __arm64_sys_write+0x7c/0x90 fs/read_write.c:646
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x98/0x2c0 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0x138/0x258 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x168 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591

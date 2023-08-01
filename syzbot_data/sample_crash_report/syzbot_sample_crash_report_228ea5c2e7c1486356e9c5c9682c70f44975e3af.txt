@@ -1,0 +1,48 @@
+==================================================================
+BUG: KASAN: user-memory-access in fib6_drop_pcpu_from net/ipv6/ip6_fib.c:925 [inline]
+BUG: KASAN: user-memory-access in fib6_purge_rt+0x1b3/0x5e0 net/ipv6/ip6_fib.c:937
+Write of size 8 at addr 0000000000008554 by task kworker/u4:11/14115
+
+CPU: 1 PID: 14115 Comm: kworker/u4:11 Not tainted 5.2.0-rc1+ #28
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ __kasan_report.cold+0x5/0x40 mm/kasan/report.c:321
+ kasan_report+0x12/0x20 mm/kasan/common.c:614
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x123/0x190 mm/kasan/generic.c:191
+ kasan_check_write+0x14/0x20 mm/kasan/common.c:100
+ fib6_drop_pcpu_from net/ipv6/ip6_fib.c:925 [inline]
+ fib6_purge_rt+0x1b3/0x5e0 net/ipv6/ip6_fib.c:937
+ fib6_del_route net/ipv6/ip6_fib.c:1812 [inline]
+ fib6_del+0xac2/0x10a0 net/ipv6/ip6_fib.c:1843
+ fib6_clean_node+0x3a5/0x590 net/ipv6/ip6_fib.c:2005
+ fib6_walk_continue+0x4a9/0x8e0 net/ipv6/ip6_fib.c:1927
+ fib6_walk+0x9d/0x100 net/ipv6/ip6_fib.c:1975
+ fib6_clean_tree+0xe0/0x120 net/ipv6/ip6_fib.c:2054
+ __fib6_clean_all+0x118/0x2a0 net/ipv6/ip6_fib.c:2070
+ fib6_clean_all+0x2b/0x40 net/ipv6/ip6_fib.c:2081
+ rt6_sync_down_dev+0x134/0x150 net/ipv6/route.c:4169
+ rt6_disable_ip+0x27/0x5f0 net/ipv6/route.c:4174
+ addrconf_ifdown+0xa2/0x1220 net/ipv6/addrconf.c:3709
+ addrconf_notify+0x5db/0x2270 net/ipv6/addrconf.c:3634
+ notifier_call_chain+0xc2/0x230 kernel/notifier.c:95
+ __raw_notifier_call_chain kernel/notifier.c:396 [inline]
+ raw_notifier_call_chain+0x2e/0x40 kernel/notifier.c:403
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1753
+ call_netdevice_notifiers_extack net/core/dev.c:1765 [inline]
+ call_netdevice_notifiers net/core/dev.c:1779 [inline]
+ dev_close_many+0x33f/0x6f0 net/core/dev.c:1522
+ rollback_registered_many+0x43b/0xfc0 net/core/dev.c:8193
+ unregister_netdevice_many.part.0+0x1b/0x1f0 net/core/dev.c:9324
+ unregister_netdevice_many net/core/dev.c:9323 [inline]
+ default_device_exit_batch+0x34e/0x410 net/core/dev.c:9793
+ ops_exit_list.isra.0+0xfc/0x150 net/core/net_namespace.c:157
+ cleanup_net+0x3fb/0x960 net/core/net_namespace.c:553
+ process_one_work+0x989/0x1790 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x354/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+==================================================================

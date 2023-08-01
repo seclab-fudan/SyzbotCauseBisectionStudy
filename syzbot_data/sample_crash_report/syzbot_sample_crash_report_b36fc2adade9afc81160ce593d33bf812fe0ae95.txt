@@ -1,0 +1,104 @@
+usb 1-1: ath9k_htc: Firmware ath9k_htc/htc_9271-1.4.0.fw requested
+usb 1-1: ath9k_htc: Transferred FW: ath9k_htc/htc_9271-1.4.0.fw, size: 51008
+usb 1-1: Service connection timeout for: 256
+==================================================================
+BUG: KASAN: use-after-free in atomic_read include/asm-generic/atomic-instrumented.h:26 [inline]
+BUG: KASAN: use-after-free in refcount_read include/linux/refcount.h:147 [inline]
+BUG: KASAN: use-after-free in skb_unref include/linux/skbuff.h:1044 [inline]
+BUG: KASAN: use-after-free in kfree_skb+0x32/0x3d0 net/core/skbuff.c:692
+Read of size 4 at addr ffff8881cd3030d4 by task kworker/1:2/95
+
+CPU: 1 PID: 95 Comm: kworker/1:2 Not tainted 5.7.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events request_firmware_work_func
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xef/0x16e lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd3/0x415 mm/kasan/report.c:382
+ __kasan_report.cold+0x37/0x7d mm/kasan/report.c:511
+ kasan_report+0x33/0x50 mm/kasan/common.c:625
+ check_memory_region_inline mm/kasan/generic.c:187 [inline]
+ check_memory_region+0x173/0x1d0 mm/kasan/generic.c:193
+ atomic_read include/asm-generic/atomic-instrumented.h:26 [inline]
+ refcount_read include/linux/refcount.h:147 [inline]
+ skb_unref include/linux/skbuff.h:1044 [inline]
+ kfree_skb+0x32/0x3d0 net/core/skbuff.c:692
+ htc_connect_service.cold+0xa9/0x109 drivers/net/wireless/ath/ath9k/htc_hst.c:282
+ ath9k_wmi_connect+0xd2/0x1a0 drivers/net/wireless/ath/ath9k/wmi.c:265
+ ath9k_init_htc_services.constprop.0+0xb4/0x650 drivers/net/wireless/ath/ath9k/htc_drv_init.c:146
+ ath9k_htc_probe_device+0x25a/0x1da0 drivers/net/wireless/ath/ath9k/htc_drv_init.c:959
+ ath9k_htc_hw_init+0x31/0x60 drivers/net/wireless/ath/ath9k/htc_hst.c:501
+ ath9k_hif_usb_firmware_cb+0x274/0x510 drivers/net/wireless/ath/ath9k/hif_usb.c:1187
+ request_firmware_work_func+0x126/0x242 drivers/base/firmware_loader/main.c:1005
+ process_one_work+0x965/0x1630 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x326/0x430 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:351
+
+Allocated by task 95:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ __kasan_kmalloc mm/kasan/common.c:495 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:468
+ slab_post_alloc_hook mm/slab.h:586 [inline]
+ slab_alloc_node mm/slub.c:2797 [inline]
+ kmem_cache_alloc_node+0xdc/0x330 mm/slub.c:2833
+ __alloc_skb+0xba/0x5a0 net/core/skbuff.c:198
+ alloc_skb include/linux/skbuff.h:1083 [inline]
+ htc_connect_service+0x2cc/0x840 drivers/net/wireless/ath/ath9k/htc_hst.c:257
+ ath9k_wmi_connect+0xd2/0x1a0 drivers/net/wireless/ath/ath9k/wmi.c:265
+ ath9k_init_htc_services.constprop.0+0xb4/0x650 drivers/net/wireless/ath/ath9k/htc_drv_init.c:146
+ ath9k_htc_probe_device+0x25a/0x1da0 drivers/net/wireless/ath/ath9k/htc_drv_init.c:959
+ ath9k_htc_hw_init+0x31/0x60 drivers/net/wireless/ath/ath9k/htc_hst.c:501
+ ath9k_hif_usb_firmware_cb+0x274/0x510 drivers/net/wireless/ath/ath9k/hif_usb.c:1187
+ request_firmware_work_func+0x126/0x242 drivers/base/firmware_loader/main.c:1005
+ process_one_work+0x965/0x1630 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x326/0x430 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:351
+
+Freed by task 383:
+ save_stack+0x1b/0x40 mm/kasan/common.c:49
+ set_track mm/kasan/common.c:57 [inline]
+ kasan_set_free_info mm/kasan/common.c:317 [inline]
+ __kasan_slab_free+0x117/0x160 mm/kasan/common.c:456
+ slab_free_hook mm/slub.c:1455 [inline]
+ slab_free_freelist_hook mm/slub.c:1488 [inline]
+ slab_free mm/slub.c:3045 [inline]
+ kmem_cache_free+0x9b/0x360 mm/slub.c:3061
+ kfree_skbmem net/core/skbuff.c:622 [inline]
+ kfree_skbmem+0xef/0x1b0 net/core/skbuff.c:616
+ __kfree_skb net/core/skbuff.c:679 [inline]
+ kfree_skb net/core/skbuff.c:696 [inline]
+ kfree_skb+0x102/0x3d0 net/core/skbuff.c:690
+ ath9k_htc_txcompletion_cb+0x1f8/0x2b0 drivers/net/wireless/ath/ath9k/htc_hst.c:356
+ hif_usb_regout_cb+0x115/0x1c0 drivers/net/wireless/ath/ath9k/hif_usb.c:90
+ __usb_hcd_giveback_urb+0x29a/0x550 drivers/usb/core/hcd.c:1650
+ usb_hcd_giveback_urb+0x368/0x420 drivers/usb/core/hcd.c:1716
+ dummy_timer+0x125e/0x32b4 drivers/usb/gadget/udc/dummy_hcd.c:1967
+ call_timer_fn+0x1ac/0x700 kernel/time/timer.c:1405
+ expire_timers kernel/time/timer.c:1450 [inline]
+ __run_timers kernel/time/timer.c:1774 [inline]
+ __run_timers kernel/time/timer.c:1741 [inline]
+ run_timer_softirq+0x5f9/0x1500 kernel/time/timer.c:1787
+ __do_softirq+0x21e/0x9aa kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff8881cd303000
+ which belongs to the cache skbuff_head_cache of size 224
+The buggy address is located 212 bytes inside of
+ 224-byte region [ffff8881cd303000, ffff8881cd3030e0)
+The buggy address belongs to the page:
+page:ffffea000734c0c0 refcount:1 mapcount:0 mapping:00000000d18be20a index:0x0
+flags: 0x200000000000200(slab)
+raw: 0200000000000200 dead000000000100 dead000000000122 ffff8881da175400
+raw: 0000000000000000 00000000800c000c 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881cd302f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8881cd303000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881cd303080: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+                                                 ^
+ ffff8881cd303100: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8881cd303180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

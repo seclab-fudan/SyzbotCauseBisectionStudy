@@ -1,0 +1,61 @@
+Process accounting resumed
+Process accounting resumed
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc4-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+3 locks held by syz-executor.1/20572:
+ #0: 
+ffff88801dae7500 (&acct->lock#2){+.+.}-{3:3}, at: acct_get kernel/acct.c:161 [inline]
+ffff88801dae7500 (&acct->lock#2){+.+.}-{3:3}, at: slow_acct_process kernel/acct.c:576 [inline]
+ffff88801dae7500 (&acct->lock#2){+.+.}-{3:3}, at: acct_process+0x213/0x4f0 kernel/acct.c:602
+ #1: ffff8880290ca460 (sb_writers#5){.+.+}-{0:0}, at: slow_acct_process kernel/acct.c:578 [inline]
+ #1: ffff8880290ca460 (sb_writers#5){.+.+}-{0:0}, at: acct_process+0x3b7/0x4f0 kernel/acct.c:602
+ #2: ffff8880752da270 (&sb->s_type->i_mutex_key#10){++++}-{3:3}, at: inode_lock include/linux/fs.h:774 [inline]
+ #2: ffff8880752da270 (&sb->s_type->i_mutex_key#10){++++}-{3:3}, at: ext4_buffered_write_iter+0xb6/0x4d0 fs/ext4/file.c:263
+
+stack backtrace:
+CPU: 1 PID: 20572 Comm: syz-executor.1 Not tainted 5.13.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ __ext4_mark_inode_dirty+0xea/0x8d0 fs/ext4/inode.c:5908
+ ext4_dirty_inode+0xd4/0x110 fs/ext4/inode.c:5947
+ __mark_inode_dirty+0x6e3/0x10f0 fs/fs-writeback.c:2274
+ mark_inode_dirty include/linux/fs.h:2404 [inline]
+ generic_write_end+0x316/0x4f0 fs/buffer.c:2223
+ ext4_da_write_end+0x20f/0xb50 fs/ext4/inode.c:3110
+ generic_perform_write+0x2c0/0x4f0 mm/filemap.c:3671
+ ext4_buffered_write_iter+0x244/0x4d0 fs/ext4/file.c:269
+ ext4_file_write_iter+0x423/0x14e0 fs/ext4/file.c:680
+ __kernel_write+0x58d/0xa90 fs/read_write.c:550
+ do_acct_process+0xd0a/0x1420 kernel/acct.c:519
+ slow_acct_process kernel/acct.c:578 [inline]
+ acct_process+0x3b7/0x4f0 kernel/acct.c:602
+ do_exit+0x1979/0x2a60 kernel/exit.c:816
+ do_group_exit+0x125/0x310 kernel/exit.c:923
+ get_signal+0x47f/0x2150 kernel/signal.c:2835
+ arch_do_signal_or_restart+0x2a8/0x1eb0 arch/x86/kernel/signal.c:789
+ handle_signal_work kernel/entry/common.c:147 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x171/0x280 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:301
+ do_syscall_64+0x47/0xb0 arch/x86/entry/common.c:57
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4665d9
+Code: Unable to access opcode bytes at RIP 0x4665af.
+RSP: 002b:00007effc6b68218 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 000000000056c040 RCX: 00000000004665d9
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 000000000056c040
+RBP: 000000000056c038 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056c044
+R13: 00007fff3643907f R14: 00007effc6b68300 R15: 0000000000022000

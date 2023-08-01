@@ -1,0 +1,102 @@
+watchdog: BUG: soft lockup - CPU#0 stuck for 123s! [kworker/0:7:2966]
+Modules linked in:
+irq event stamp: 224455
+hardirqs last  enabled at (224454): [<ffffffff8131e863>] kvm_wait arch/x86/kernel/kvm.c:813 [inline]
+hardirqs last  enabled at (224454): [<ffffffff8131e863>] kvm_wait+0x183/0x240 arch/x86/kernel/kvm.c:793
+hardirqs last disabled at (224455): [<ffffffff81007652>] trace_hardirqs_off_thunk+0x1a/0x1c arch/x86/entry/thunk_64.S:42
+softirqs last  enabled at (179556): [<ffffffff84af9c8d>] rcu_read_unlock_bh include/linux/rcupdate.h:686 [inline]
+softirqs last  enabled at (179556): [<ffffffff84af9c8d>] mod_peer_timer drivers/net/wireguard/timers.c:38 [inline]
+softirqs last  enabled at (179556): [<ffffffff84af9c8d>] wg_timers_any_authenticated_packet_traversal+0x21d/0x340 drivers/net/wireguard/timers.c:215
+softirqs last disabled at (179560): [<ffffffff84b05d7e>] wg_socket_send_skb_to_peer+0x5e/0x220 drivers/net/wireguard/socket.c:184
+CPU: 0 PID: 2966 Comm: kworker/0:7 Not tainted 5.7.0-rc1-next-20200415-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: wg-crypt-wg1 wg_packet_tx_worker
+RIP: 0010:native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:61
+Code: cc cc cc cc cc cc cc cc cc cc cc cc e9 07 00 00 00 0f 00 2d 94 1d 52 00 f4 c3 66 90 e9 07 00 00 00 0f 00 2d 84 1d 52 00 fb f4 <c3> cc 41 56 41 55 41 54 55 53 e8 73 95 8a f9 e8 fe 12 c4 fb 0f 1f
+RSP: 0018:ffffc9000963f4a8 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff132989f RBX: ffff88808e9b20f0 RCX: 1ffffffff186bda6
+RDX: dffffc0000000000 RSI: 0000000000000000 RDI: ffff88809e4c4c4c
+RBP: 0000000000000003 R08: 0000000000000001 R09: fffffbfff1862757
+R10: ffffffff8c313ab7 R11: fffffbfff1862756 R12: 0000000000000286
+R13: ffffed1011d3641e R14: 0000000000000001 R15: ffff8880ae638700
+FS:  0000000000000000(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c0004bdc80 CR3: 00000000a926f000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ arch_safe_halt arch/x86/include/asm/paravirt.h:144 [inline]
+ kvm_wait arch/x86/kernel/kvm.c:813 [inline]
+ kvm_wait+0x1b1/0x240 arch/x86/kernel/kvm.c:793
+ pv_wait arch/x86/include/asm/paravirt.h:655 [inline]
+ pv_wait_head_or_lock kernel/locking/qspinlock_paravirt.h:470 [inline]
+ __pv_queued_spin_lock_slowpath+0x918/0xb60 kernel/locking/qspinlock.c:508
+ pv_queued_spin_lock_slowpath arch/x86/include/asm/paravirt.h:645 [inline]
+ queued_spin_lock_slowpath arch/x86/include/asm/qspinlock.h:50 [inline]
+ queued_spin_lock include/asm-generic/qspinlock.h:81 [inline]
+ do_raw_spin_lock+0x20d/0x2e0 kernel/locking/spinlock_debug.c:113
+ spin_lock include/linux/spinlock.h:353 [inline]
+ __dev_xmit_skb net/core/dev.c:3685 [inline]
+ __dev_queue_xmit+0x147c/0x3070 net/core/dev.c:4021
+ neigh_hh_output include/net/neighbour.h:499 [inline]
+ neigh_output include/net/neighbour.h:508 [inline]
+ ip_finish_output2+0x17b7/0x2610 net/ipv4/ip_output.c:228
+ __ip_finish_output net/ipv4/ip_output.c:306 [inline]
+ __ip_finish_output+0x5f3/0xbd0 net/ipv4/ip_output.c:288
+ ip_finish_output+0x34/0x1f0 net/ipv4/ip_output.c:316
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip_output+0x1fe/0x620 net/ipv4/ip_output.c:430
+ dst_output include/net/dst.h:435 [inline]
+ ip_local_out+0xaf/0x1a0 net/ipv4/ip_output.c:125
+ iptunnel_xmit+0x619/0x9d0 net/ipv4/ip_tunnel_core.c:81
+ send4+0x4e3/0xea0 drivers/net/wireguard/socket.c:91
+ wg_socket_send_skb_to_peer+0x192/0x220 drivers/net/wireguard/socket.c:186
+ wg_packet_create_data_done drivers/net/wireguard/send.c:250 [inline]
+ wg_packet_tx_worker+0x30c/0xc30 drivers/net/wireguard/send.c:278
+ process_one_work+0x965/0x16a0 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x388/0x470 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 2824 Comm: kworker/1:21 Not tainted 5.7.0-rc1-next-20200415-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: wg-crypt-wg0 wg_packet_tx_worker
+RIP: 0010:sfq_dequeue+0x15f/0xcc0 net/sched/sch_sfq.c:496
+Code: 48 89 9d 28 03 00 00 48 c1 e8 03 42 0f b6 14 30 4c 89 e8 83 e0 07 83 c0 01 38 d0 7c 08 84 d2 0f 85 72 0a 00 00 48 8b 44 24 08 <44> 0f b7 63 1a 0f b6 00 38 44 24 10 7c 08 84 c0 0f 85 3b 0a 00 00
+RSP: 0018:ffffc90008fcf4e0 EFLAGS: 00000246
+RAX: ffffed1011d3645c RBX: ffff88808fbc9bc8 RCX: ffffffff864c86e7
+RDX: 0000000000000000 RSI: ffffffff864c8622 RDI: 0000000000000003
+RBP: ffff88808e9b2000 R08: ffff88809f7c0400 R09: fffff520011f9e8e
+R10: 0000000000000003 R11: fffff520011f9e8d R12: 0000000000001bc8
+R13: ffff88808fbc9be2 R14: dffffc0000000000 R15: 000000000000007f
+FS:  0000000000000000(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c00045b980 CR3: 00000000a926f000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ dequeue_skb net/sched/sch_generic.c:263 [inline]
+ qdisc_restart net/sched/sch_generic.c:366 [inline]
+ __qdisc_run+0x1ac/0x17b0 net/sched/sch_generic.c:384
+ __dev_xmit_skb net/core/dev.c:3704 [inline]
+ __dev_queue_xmit+0x1cfa/0x3070 net/core/dev.c:4021
+ neigh_hh_output include/net/neighbour.h:499 [inline]
+ neigh_output include/net/neighbour.h:508 [inline]
+ ip6_finish_output2+0xfb5/0x25b0 net/ipv6/ip6_output.c:117
+ __ip6_finish_output+0x442/0xab0 net/ipv6/ip6_output.c:143
+ ip6_finish_output+0x34/0x1f0 net/ipv6/ip6_output.c:153
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x239/0x810 net/ipv6/ip6_output.c:176
+ dst_output include/net/dst.h:435 [inline]
+ ip6_local_out+0xaf/0x1a0 net/ipv6/output_core.c:179
+ ip6tunnel_xmit include/net/ip6_tunnel.h:160 [inline]
+ udp_tunnel6_xmit_skb+0x6f4/0xcd0 net/ipv6/ip6_udp_tunnel.c:114
+ send6+0x4e3/0xb20 drivers/net/wireguard/socket.c:164
+ wg_socket_send_skb_to_peer+0xf5/0x220 drivers/net/wireguard/socket.c:189
+ wg_packet_create_data_done drivers/net/wireguard/send.c:250 [inline]
+ wg_packet_tx_worker+0x30c/0xc30 drivers/net/wireguard/send.c:278
+ process_one_work+0x965/0x16a0 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x388/0x470 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352

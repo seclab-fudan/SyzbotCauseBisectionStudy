@@ -1,0 +1,104 @@
+==================================================================
+BUG: KASAN: use-after-free in h5_rx_3wire_hdr+0x38f/0x3c0 drivers/bluetooth/hci_h5.c:431
+Read of size 8 at addr ffff888087d29708 by task syz-executor.2/10267
+
+CPU: 0 PID: 10267 Comm: syz-executor.2 Not tainted 5.2.0-next-20190718 #41
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0xd4/0x306 mm/kasan/report.c:351
+ __kasan_report.cold+0x1b/0x36 mm/kasan/report.c:482
+ kasan_report+0x12/0x17 mm/kasan/common.c:612
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ h5_rx_3wire_hdr+0x38f/0x3c0 drivers/bluetooth/hci_h5.c:431
+ h5_recv+0x32f/0x500 drivers/bluetooth/hci_h5.c:563
+ hci_uart_tty_receive+0x279/0x790 drivers/bluetooth/hci_ldisc.c:600
+ tiocsti drivers/tty/tty_io.c:2197 [inline]
+ tty_ioctl+0x949/0x14f0 drivers/tty/tty_io.c:2573
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xdb6/0x13e0 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x459829
+Code: fd b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 cb b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffd1dc41858 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000459829
+RDX: 0000000020000080 RSI: 0000000000005412 RDI: 0000000000000003
+RBP: 000000000075bf20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000555555d0c914
+R13: 00000000004c408a R14: 00000000004d7ff0 R15: 00000000ffffffff
+
+Allocated by task 9300:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:487 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:460
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:495
+ slab_post_alloc_hook mm/slab.h:520 [inline]
+ slab_alloc_node mm/slab.c:3262 [inline]
+ kmem_cache_alloc_node+0x138/0x740 mm/slab.c:3574
+ __alloc_skb+0xd5/0x5e0 net/core/skbuff.c:197
+ alloc_skb include/linux/skbuff.h:1055 [inline]
+ bt_skb_alloc include/net/bluetooth/bluetooth.h:339 [inline]
+ h5_rx_pkt_start+0xce/0x270 drivers/bluetooth/hci_h5.c:474
+ h5_recv+0x32f/0x500 drivers/bluetooth/hci_h5.c:563
+ hci_uart_tty_receive+0x279/0x790 drivers/bluetooth/hci_ldisc.c:600
+ tty_ldisc_receive_buf+0x15f/0x1c0 drivers/tty/tty_buffer.c:465
+ tty_port_default_receive_buf+0x7d/0xb0 drivers/tty/tty_port.c:38
+ receive_buf drivers/tty/tty_buffer.c:481 [inline]
+ flush_to_ldisc+0x222/0x390 drivers/tty/tty_buffer.c:533
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 9300:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:449
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:457
+ __cache_free mm/slab.c:3425 [inline]
+ kmem_cache_free+0x86/0x320 mm/slab.c:3693
+ kfree_skbmem net/core/skbuff.c:623 [inline]
+ kfree_skbmem+0xc5/0x150 net/core/skbuff.c:617
+ __kfree_skb net/core/skbuff.c:680 [inline]
+ kfree_skb net/core/skbuff.c:697 [inline]
+ kfree_skb+0x109/0x3c0 net/core/skbuff.c:691
+ h5_reset_rx+0x4c/0x120 drivers/bluetooth/hci_h5.c:530
+ h5_rx_3wire_hdr+0x2f5/0x3c0 drivers/bluetooth/hci_h5.c:440
+ h5_recv+0x32f/0x500 drivers/bluetooth/hci_h5.c:563
+ hci_uart_tty_receive+0x279/0x790 drivers/bluetooth/hci_ldisc.c:600
+ tty_ldisc_receive_buf+0x15f/0x1c0 drivers/tty/tty_buffer.c:465
+ tty_port_default_receive_buf+0x7d/0xb0 drivers/tty/tty_port.c:38
+ receive_buf drivers/tty/tty_buffer.c:481 [inline]
+ flush_to_ldisc+0x222/0x390 drivers/tty/tty_buffer.c:533
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff888087d29640
+ which belongs to the cache skbuff_head_cache of size 224
+The buggy address is located 200 bytes inside of
+ 224-byte region [ffff888087d29640, ffff888087d29720)
+The buggy address belongs to the page:
+page:ffffea00021f4a40 refcount:1 mapcount:0 mapping:ffff88821b69fa80 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea000237d008 ffffea0002344808 ffff88821b69fa80
+raw: 0000000000000000 ffff888087d29000 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888087d29600: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff888087d29680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888087d29700: fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc
+                      ^
+ ffff888087d29780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888087d29800: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+==================================================================

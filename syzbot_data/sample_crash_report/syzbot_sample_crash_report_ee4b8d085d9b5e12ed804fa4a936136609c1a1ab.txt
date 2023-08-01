@@ -1,0 +1,116 @@
+================================
+WARNING: inconsistent lock state
+4.20.0+ #8 Not tainted
+--------------------------------
+inconsistent {IN-SOFTIRQ-W} -> {SOFTIRQ-ON-W} usage.
+syz-executor824/24993 [HC0[0]:SC0[0]:HE1:SE1] takes:
+00000000d25ee9df (slock-AF_NETROM){+.?.}, at: spin_lock include/linux/spinlock.h:329 [inline]
+00000000d25ee9df (slock-AF_NETROM){+.?.}, at: nr_find_socket+0x117/0x160 net/netrom/af_netrom.c:177
+{IN-SOFTIRQ-W} state was registered at:
+  lock_acquire+0x1db/0x570 kernel/locking/lockdep.c:3841
+  __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+  _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:144
+  spin_lock include/linux/spinlock.h:329 [inline]
+  nr_find_listener net/netrom/af_netrom.c:156 [inline]
+  nr_rx_frame+0x60c/0x1d50 net/netrom/af_netrom.c:955
+  nr_loopback_timer+0x7b/0x170 net/netrom/nr_loopback.c:62
+  call_timer_fn+0x254/0x900 kernel/time/timer.c:1325
+  expire_timers kernel/time/timer.c:1362 [inline]
+  __run_timers+0x6fc/0xd50 kernel/time/timer.c:1681
+  run_timer_softirq+0x52/0xb0 kernel/time/timer.c:1694
+  __do_softirq+0x30b/0xb11 kernel/softirq.c:292
+  invoke_softirq kernel/softirq.c:373 [inline]
+  irq_exit+0x180/0x1d0 kernel/softirq.c:413
+  exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+  smp_apic_timer_interrupt+0x1b7/0x760 arch/x86/kernel/apic/apic.c:1062
+  apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+  arch_local_irq_restore arch/x86/include/asm/paravirt.h:766 [inline]
+  console_unlock+0xd46/0x11e0 kernel/printk/printk.c:2416
+  vprintk_emit+0x370/0x960 kernel/printk/printk.c:1931
+  vprintk_default+0x28/0x30 kernel/printk/printk.c:1958
+  vprintk_func+0x7e/0x189 kernel/printk/printk_safe.c:398
+  printk+0xba/0xed kernel/printk/printk.c:1991
+  addrconf_notify+0x15f9/0x25f0 net/ipv6/addrconf.c:3498
+  notifier_call_chain+0x179/0x380 kernel/notifier.c:93
+  __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+  raw_notifier_call_chain+0x2e/0x40 kernel/notifier.c:401
+  call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1739
+  call_netdevice_notifiers_extack net/core/dev.c:1751 [inline]
+  call_netdevice_notifiers net/core/dev.c:1765 [inline]
+  __dev_notify_flags+0x173/0x470 net/core/dev.c:7605
+  dev_change_flags+0x10d/0x170 net/core/dev.c:7643
+  do_setlink+0x17f5/0x3e10 net/core/rtnetlink.c:2492
+  __rtnl_newlink+0xd58/0x1a70 net/core/rtnetlink.c:3115
+  rtnl_newlink+0x69/0xa0 net/core/rtnetlink.c:3240
+  rtnetlink_rcv_msg+0x481/0xc30 net/core/rtnetlink.c:5125
+  netlink_rcv_skb+0x17d/0x410 net/netlink/af_netlink.c:2477
+  rtnetlink_rcv+0x1d/0x30 net/core/rtnetlink.c:5143
+  netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+  netlink_unicast+0x574/0x770 net/netlink/af_netlink.c:1336
+  netlink_sendmsg+0xa05/0xf90 net/netlink/af_netlink.c:1917
+  sock_sendmsg_nosec net/socket.c:621 [inline]
+  sock_sendmsg+0xdd/0x130 net/socket.c:631
+  __sys_sendto+0x387/0x5f0 net/socket.c:1788
+  __do_sys_sendto net/socket.c:1800 [inline]
+  __se_sys_sendto net/socket.c:1796 [inline]
+  __x64_sys_sendto+0xe1/0x1a0 net/socket.c:1796
+  do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+irq event stamp: 306
+hardirqs last  enabled at (303): [<ffffffff814d34fa>] __local_bh_enable_ip+0x15a/0x270 kernel/softirq.c:194
+hardirqs last disabled at (305): [<ffffffff814d34ba>] __local_bh_enable_ip+0x11a/0x270 kernel/softirq.c:171
+softirqs last  enabled at (306): [<ffffffff86fe858d>] spin_unlock_bh include/linux/spinlock.h:374 [inline]
+softirqs last  enabled at (306): [<ffffffff86fe858d>] nr_find_socket+0x12d/0x160 net/netrom/af_netrom.c:183
+softirqs last disabled at (304): [<ffffffff86fe8484>] spin_lock_bh include/linux/spinlock.h:334 [inline]
+softirqs last disabled at (304): [<ffffffff86fe8484>] nr_find_socket+0x24/0x160 net/netrom/af_netrom.c:172
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(slock-AF_NETROM);
+  <Interrupt>
+    lock(slock-AF_NETROM);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor824/24993:
+ #0: 00000000d25ee9df (slock-AF_NETROM){+.?.}, at: spin_lock include/linux/spinlock.h:329 [inline]
+ #0: 00000000d25ee9df (slock-AF_NETROM){+.?.}, at: nr_find_socket+0x117/0x160 net/netrom/af_netrom.c:177
+
+stack backtrace:
+CPU: 1 PID: 24993 Comm: syz-executor824 Not tainted 4.20.0+ #8
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_usage_bug.cold+0x330/0x42a kernel/locking/lockdep.c:2475
+ valid_state kernel/locking/lockdep.c:2488 [inline]
+ mark_lock_irq kernel/locking/lockdep.c:2682 [inline]
+ mark_lock+0x10c4/0x1cd0 kernel/locking/lockdep.c:3062
+ mark_held_locks+0xb1/0x100 kernel/locking/lockdep.c:2740
+ __trace_hardirqs_on_caller kernel/locking/lockdep.c:2769 [inline]
+ lockdep_hardirqs_on+0x415/0x5d0 kernel/locking/lockdep.c:2814
+ trace_hardirqs_on+0xbd/0x310 kernel/trace/trace_preemptirq.c:30
+ __local_bh_enable_ip+0x15a/0x270 kernel/softirq.c:194
+ __raw_spin_unlock_bh include/linux/spinlock_api_smp.h:176 [inline]
+ _raw_spin_unlock_bh+0x31/0x40 kernel/locking/spinlock.c:200
+ spin_unlock_bh include/linux/spinlock.h:374 [inline]
+ nr_find_socket+0x12d/0x160 net/netrom/af_netrom.c:183
+ nr_find_next_circuit+0x71/0x90 net/netrom/af_netrom.c:225
+ nr_connect+0x6e8/0x1380 net/netrom/af_netrom.c:704
+ __sys_connect+0x357/0x490 net/socket.c:1664
+ __do_sys_connect net/socket.c:1675 [inline]
+ __se_sys_connect net/socket.c:1672 [inline]
+ __x64_sys_connect+0x73/0xb0 net/socket.c:1672
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x447919
+Code: e8 ac e7 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f86372cad88 EFLAGS: 00000297 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00000000006dcc28 RCX: 0000000000447919
+RDX: 0000000000000048 RSI: 0000000020000000 RDI: 0000000000000004
+RBP: 00000000006dcc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000297 R12: 00000000006dcc2c
+R13: 0000000000000004 R14: 0000000000000003 R15: 00007f86372cb6d0

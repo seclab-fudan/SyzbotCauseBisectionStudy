@@ -1,0 +1,102 @@
+INFO: trying to register non-static key.
+The code is fine but needs lockdep annotation, or maybe
+you didn't initialize this object before use?
+turning off the locking correctness validator.
+CPU: 0 PID: 14579 Comm: syz-executor.5 Not tainted 6.2.0-rc3-syzkaller-16387-g9598c377d828 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ assign_lock_key+0x134/0x140 kernel/locking/lockdep.c:981
+ register_lock_class+0xc4/0x2f8 kernel/locking/lockdep.c:1294
+ __lock_acquire+0xa8/0x3084 kernel/locking/lockdep.c:4934
+ lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5668
+ __raw_write_lock_bh include/linux/rwlock_api_smp.h:202 [inline]
+ _raw_write_lock_bh+0x54/0x6c kernel/locking/spinlock.c:334
+ sock_orphan include/net/sock.h:2094 [inline]
+ nr_release+0x70/0x274 net/netrom/af_netrom.c:521
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0x50/0xf0 net/socket.c:1365
+ __fput+0x198/0x3e4 fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:348
+ task_work_run+0x100/0x148 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x2b8/0xc2c kernel/exit.c:867
+ do_group_exit+0x98/0xcc kernel/exit.c:1012
+ get_signal+0xac4/0xb34 kernel/signal.c:2859
+ do_signal+0x128/0x438 arch/arm64/kernel/signal.c:1081
+ do_notify_resume+0xc0/0x1f0 arch/arm64/kernel/signal.c:1134
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:638
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Unable to handle kernel paging request at virtual address ffff80280d4860a4
+Mem abort info:
+  ESR = 0x0000000096000045
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x05: level 1 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000045
+  CM = 0, WnR = 1
+swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000001c5270000
+[ffff80280d4860a4] pgd=100000023ffff003, p4d=100000023ffff003, pud=0000000000000000
+Internal error: Oops: 0000000096000045 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 14579 Comm: syz-executor.5 Not tainted 6.2.0-rc3-syzkaller-16387-g9598c377d828 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 00400005 (nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : queued_spin_lock_slowpath+0x198/0x394 kernel/locking/qspinlock.c:474
+lr : queued_spin_lock_slowpath+0x114/0x394 kernel/locking/qspinlock.c:405
+sp : ffff8000210a3a30
+x29: ffff8000210a3a30 x28: 00000000002e0003 x27: 00000000000008a0
+x26: ffff00011e099750 x25: 0000000000000000 x24: ffff0001feff1080
+x23: 0000000000000000 x22: ffff80000d51d068 x21: ffff80000d486080
+x20: 0000000000000001 x19: ffff000119aef898 x18: 00000000000003ae
+x17: ffff80000c15d8bc x16: 00000000000003b4 x15: 0000000000000001
+x14: 0000000000000000 x13: 000000000000003c x12: 0000002800000024
+x11: ffff80000d486080 x10: 0000000000080000 x9 : ffff0001feff1088
+x8 : ffff0001feff1080 x7 : 7f7f7f7f7f7f7f7f x6 : ffff80000b29d7bc
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000001 x1 : ffff80000d017f93 x0 : 0000000000000001
+Call trace:
+ decode_tail kernel/locking/qspinlock.c:131 [inline]
+ queued_spin_lock_slowpath+0x198/0x394 kernel/locking/qspinlock.c:471
+ queued_spin_lock include/asm-generic/qspinlock.h:114 [inline]
+ do_raw_spin_lock+0x10c/0x110 kernel/locking/spinlock_debug.c:115
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:127 [inline]
+ _raw_spin_lock_bh+0x5c/0x6c kernel/locking/spinlock.c:178
+ spin_lock_bh include/linux/spinlock.h:355 [inline]
+ lock_sock_nested+0x88/0xd8 net/core/sock.c:3473
+ lock_sock include/net/sock.h:1725 [inline]
+ nr_release+0x98/0x274 net/netrom/af_netrom.c:522
+ __sock_release net/socket.c:650 [inline]
+ sock_close+0x50/0xf0 net/socket.c:1365
+ __fput+0x198/0x3e4 fs/file_table.c:320
+ ____fput+0x20/0x30 fs/file_table.c:348
+ task_work_run+0x100/0x148 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x2b8/0xc2c kernel/exit.c:867
+ do_group_exit+0x98/0xcc kernel/exit.c:1012
+ get_signal+0xac4/0xb34 kernel/signal.c:2859
+ do_signal+0x128/0x438 arch/arm64/kernel/signal.c:1081
+ do_notify_resume+0xc0/0x1f0 arch/arm64/kernel/signal.c:1134
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:638
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 8b2c4ecc f85f818c 1200056b 8b2b52ab (f82b6988) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	8b2c4ecc 	add	x12, x22, w12, uxtw #3
+   4:	f85f818c 	ldur	x12, [x12, #-8]
+   8:	1200056b 	and	w11, w11, #0x3
+   c:	8b2b52ab 	add	x11, x21, w11, uxtw #4
+* 10:	f82b6988 	str	x8, [x12, x11] <-- trapping instruction

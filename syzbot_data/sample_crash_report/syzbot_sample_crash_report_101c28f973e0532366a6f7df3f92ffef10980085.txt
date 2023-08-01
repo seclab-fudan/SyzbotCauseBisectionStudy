@@ -1,0 +1,120 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.0.0-rc7-syzkaller-18095-gbbed346d5a96 #0 Not tainted
+------------------------------------------------------
+syz-executor131/3038 is trying to acquire lock:
+ffff0000c909cc70 (&dat_lock_key){.+.+}-{3:3}, at: nilfs_count_free_blocks+0x2c/0x6c fs/nilfs2/the_nilfs.c:693
+
+but task is already holding lock:
+ffff0000ca83f090 (&nilfs->ns_sem){++++}-{3:3}
+, at: nilfs_put_super+0x4c/0x9c fs/nilfs2/super.c:471
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (
+&nilfs->ns_sem){++++}-{3:3}:
+       down_write+0x5c/0xcc kernel/locking/rwsem.c:1552
+       nilfs_set_error fs/nilfs2/super.c:92 [inline]
+       __nilfs_error+0xb4/0x284 fs/nilfs2/super.c:137
+       nilfs_bmap_convert_error fs/nilfs2/bmap.c:35 [inline]
+       nilfs_bmap_lookup_contig+0x98/0xc0 fs/nilfs2/bmap.c:95
+       nilfs_get_block+0x7c/0x364 fs/nilfs2/inode.c:85
+       block_truncate_page+0x1b4/0xab4 fs/buffer.c:2583
+       nilfs_truncate+0xb8/0x178 fs/nilfs2/inode.c:857
+       nilfs_setattr+0xf8/0x164 fs/nilfs2/inode.c:955
+       notify_change+0x758/0x7f0 fs/attr.c:420
+       do_truncate+0x108/0x150 fs/open.c:65
+       vfs_truncate+0x1dc/0x24c fs/open.c:111
+       do_sys_truncate+0x94/0x140 fs/open.c:134
+       __do_sys_truncate fs/open.c:146 [inline]
+       __se_sys_truncate fs/open.c:144 [inline]
+       __arm64_sys_truncate+0x20/0x30 fs/open.c:144
+       __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+       invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+       el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+       do_el0_svc+0x48/0x164 arch/arm64/kernel/syscall.c:206
+       el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:636
+       el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+       el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+
+-> #0 (&dat_lock_key){.+.+}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3095 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3214 [inline]
+       validate_chain kernel/locking/lockdep.c:3829 [inline]
+       __lock_acquire+0x1530/0x30a4 kernel/locking/lockdep.c:5053
+       lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5666
+       down_read+0x5c/0x78 kernel/locking/rwsem.c:1499
+       nilfs_count_free_blocks+0x2c/0x6c fs/nilfs2/the_nilfs.c:693
+       nilfs_set_log_cursor fs/nilfs2/super.c:236 [inline]
+       nilfs_cleanup_super+0x118/0x1f0 fs/nilfs2/super.c:318
+       nilfs_put_super+0x54/0x9c fs/nilfs2/super.c:472
+       generic_shutdown_super+0x8c/0x190 fs/super.c:491
+       kill_block_super+0x30/0x78 fs/super.c:1427
+       deactivate_locked_super+0x70/0xe8 fs/super.c:332
+       deactivate_super+0xd0/0xd4 fs/super.c:363
+       cleanup_mnt+0x1f8/0x234 fs/namespace.c:1186
+       __cleanup_mnt+0x20/0x30 fs/namespace.c:1193
+       task_work_run+0xc4/0x14c kernel/task_work.c:177
+       resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+       do_notify_resume+0x174/0x1f0 arch/arm64/kernel/signal.c:1127
+       prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+       exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+       el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:637
+       el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+       el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&nilfs->ns_sem);
+                               lock(&dat_lock_key);
+                               lock(&nilfs->ns_sem);
+  lock(&dat_lock_key);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor131/3038:
+ #0: ffff0000c5ff50e0 (&type->s_umount_key#41){+.+.}-{3:3}, at: deactivate_super+0xc8/0xd4 fs/super.c:362
+ #1: ffff0000ca83f090 (&nilfs->ns_sem){++++}-{3:3}, at: nilfs_put_super+0x4c/0x9c fs/nilfs2/super.c:471
+
+stack backtrace:
+CPU: 0 PID: 3038 Comm: syz-executor131 Not tainted 6.0.0-rc7-syzkaller-18095-gbbed346d5a96 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x54 arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ print_circular_bug+0x2c4/0x2c8 kernel/locking/lockdep.c:2053
+ check_noncircular+0x14c/0x154 kernel/locking/lockdep.c:2175
+ check_prev_add kernel/locking/lockdep.c:3095 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3214 [inline]
+ validate_chain kernel/locking/lockdep.c:3829 [inline]
+ __lock_acquire+0x1530/0x30a4 kernel/locking/lockdep.c:5053
+ lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5666
+ down_read+0x5c/0x78 kernel/locking/rwsem.c:1499
+ nilfs_count_free_blocks+0x2c/0x6c fs/nilfs2/the_nilfs.c:693
+ nilfs_set_log_cursor fs/nilfs2/super.c:236 [inline]
+ nilfs_cleanup_super+0x118/0x1f0 fs/nilfs2/super.c:318
+ nilfs_put_super+0x54/0x9c fs/nilfs2/super.c:472
+ generic_shutdown_super+0x8c/0x190 fs/super.c:491
+ kill_block_super+0x30/0x78 fs/super.c:1427
+ deactivate_locked_super+0x70/0xe8 fs/super.c:332
+ deactivate_super+0xd0/0xd4 fs/super.c:363
+ cleanup_mnt+0x1f8/0x234 fs/namespace.c:1186
+ __cleanup_mnt+0x20/0x30 fs/namespace.c:1193
+ task_work_run+0xc4/0x14c kernel/task_work.c:177
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ do_notify_resume+0x174/0x1f0 arch/arm64/kernel/signal.c:1127
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581

@@ -1,0 +1,47 @@
+INFO: task swapper/0:1 blocked for more than 143 seconds.
+      Not tainted 5.19.0-rc1-syzkaller-00039-g0dde9a46a2cf #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:swapper/0       state:D stack:23280 pid:    1 ppid:     0 flags:0x00004000
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5116 [inline]
+ __schedule+0x93c/0x25e0 kernel/sched/core.c:6428
+ schedule+0xd2/0x1f0 kernel/sched/core.c:6500
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6559
+ __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+ __mutex_lock+0xa70/0x1350 kernel/locking/mutex.c:747
+ add_early_randomness+0x1a/0x170 drivers/char/hw_random/core.c:69
+ hwrng_register+0x399/0x510 drivers/char/hw_random/core.c:599
+ virtrng_scan+0x37/0x90 drivers/char/hw_random/virtio-rng.c:205
+ virtio_dev_probe+0x639/0x910 drivers/virtio/virtio.c:313
+ call_driver_probe drivers/base/dd.c:555 [inline]
+ really_probe+0x23e/0xb90 drivers/base/dd.c:634
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:764
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:794
+ __driver_attach+0x22d/0x550 drivers/base/dd.c:1163
+ bus_for_each_dev+0x147/0x1d0 drivers/base/bus.c:301
+ bus_add_driver+0x422/0x640 drivers/base/bus.c:618
+ driver_register+0x220/0x3a0 drivers/base/driver.c:240
+ do_one_initcall+0x103/0x650 init/main.c:1295
+ do_initcall_level init/main.c:1368 [inline]
+ do_initcalls init/main.c:1384 [inline]
+ do_basic_setup init/main.c:1403 [inline]
+ kernel_init_freeable+0x6ac/0x735 init/main.c:1610
+ kernel_init+0x1a/0x1d0 init/main.c:1499
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+
+Showing all locks held in the system:
+2 locks held by swapper/0/1:
+ #0: ffff88810cc0a170 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #0: ffff88810cc0a170 (&dev->mutex){....}-{3:3}, at: __device_driver_lock drivers/base/dd.c:1054 [inline]
+ #0: ffff88810cc0a170 (&dev->mutex){....}-{3:3}, at: __driver_attach+0x222/0x550 drivers/base/dd.c:1162
+ #1: ffffffff87edbbe8 (reading_mutex){+.+.}-{3:3}, at: add_early_randomness+0x1a/0x170 drivers/char/hw_random/core.c:69
+2 locks held by pr/ttyS0/14:
+1 lock held by khungtaskd/27:
+ #0: ffffffff87a94840 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6491
+1 lock held by hwrng/134:
+ #0: ffffffff87edbbe8 (reading_mutex){+.+.}-{3:3}, at: hwrng_fillfn+0x141/0x370 drivers/char/hw_random/core.c:503
+
+=============================================
+

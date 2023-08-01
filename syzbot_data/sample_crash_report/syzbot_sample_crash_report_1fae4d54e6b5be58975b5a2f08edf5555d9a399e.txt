@@ -1,0 +1,242 @@
+fuse: Bad value for 'user_id'
+======================================================
+WARNING: possible circular locking dependency detected
+5.15.0-rc2-syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor.4/14825 is trying to acquire lock:
+ffff8880256db918 (&disk->open_mutex){+.+.}-{3:3}, at: bd_register_pending_holders+0x2c/0x470 block/holder.c:160
+
+but task is already holding lock:
+ffffffff8c201588 (major_names_lock){+.+.}-{3:3}, at: blk_request_module+0x25/0x1d0 block/genhd.c:634
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #8 (major_names_lock){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:596 [inline]
+       __mutex_lock+0x131/0x12f0 kernel/locking/mutex.c:729
+       blk_request_module+0x25/0x1d0 block/genhd.c:634
+       blkdev_get_no_open+0x178/0x1e0 block/bdev.c:739
+       blkdev_get_by_dev.part.0+0x22/0xb60 block/bdev.c:803
+       blkdev_get_by_dev+0x6b/0x80 block/bdev.c:856
+       swsusp_check+0x4d/0x270 kernel/power/swap.c:1525
+       software_resume.part.0+0x102/0x1f0 kernel/power/hibernate.c:977
+       software_resume kernel/power/hibernate.c:86 [inline]
+       resume_store+0x161/0x190 kernel/power/hibernate.c:1179
+       kobj_attr_store+0x50/0x80 lib/kobject.c:856
+       sysfs_kf_write+0x110/0x160 fs/sysfs/file.c:139
+       kernfs_fop_write_iter+0x342/0x500 fs/kernfs/file.c:296
+       call_write_iter include/linux/fs.h:2163 [inline]
+       new_sync_write+0x429/0x660 fs/read_write.c:507
+       vfs_write+0x7cf/0xae0 fs/read_write.c:594
+       ksys_write+0x12d/0x250 fs/read_write.c:647
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #7 (system_transition_mutex/1){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:596 [inline]
+       __mutex_lock+0x131/0x12f0 kernel/locking/mutex.c:729
+       software_resume.part.0+0x19/0x1f0 kernel/power/hibernate.c:932
+       software_resume kernel/power/hibernate.c:86 [inline]
+       resume_store+0x161/0x190 kernel/power/hibernate.c:1179
+       kobj_attr_store+0x50/0x80 lib/kobject.c:856
+       sysfs_kf_write+0x110/0x160 fs/sysfs/file.c:139
+       kernfs_fop_write_iter+0x342/0x500 fs/kernfs/file.c:296
+       call_write_iter include/linux/fs.h:2163 [inline]
+       new_sync_write+0x429/0x660 fs/read_write.c:507
+       vfs_write+0x7cf/0xae0 fs/read_write.c:594
+       ksys_write+0x12d/0x250 fs/read_write.c:647
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #6 (&of->mutex){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:596 [inline]
+       __mutex_lock+0x131/0x12f0 kernel/locking/mutex.c:729
+       kernfs_seq_start+0x4b/0x260 fs/kernfs/file.c:112
+       seq_read_iter+0x2c7/0x1240 fs/seq_file.c:225
+       kernfs_fop_read_iter+0x44f/0x5f0 fs/kernfs/file.c:241
+       call_read_iter include/linux/fs.h:2157 [inline]
+       new_sync_read+0x421/0x6e0 fs/read_write.c:404
+       vfs_read+0x35c/0x600 fs/read_write.c:485
+       ksys_read+0x12d/0x250 fs/read_write.c:623
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #5 (&p->lock){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:596 [inline]
+       __mutex_lock+0x131/0x12f0 kernel/locking/mutex.c:729
+       seq_read_iter+0xdf/0x1240 fs/seq_file.c:182
+       call_read_iter include/linux/fs.h:2157 [inline]
+       generic_file_splice_read+0x453/0x6d0 fs/splice.c:311
+       do_splice_to+0x1bf/0x250 fs/splice.c:796
+       splice_direct_to_actor+0x2c2/0x8c0 fs/splice.c:870
+       do_splice_direct+0x1b3/0x280 fs/splice.c:979
+       do_sendfile+0xae9/0x1240 fs/read_write.c:1249
+       __do_sys_sendfile64 fs/read_write.c:1314 [inline]
+       __se_sys_sendfile64 fs/read_write.c:1300 [inline]
+       __x64_sys_sendfile64+0x1cc/0x210 fs/read_write.c:1300
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #4 (sb_writers#3){.+.+}-{0:0}:
+       percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
+       __sb_start_write include/linux/fs.h:1812 [inline]
+       sb_start_write include/linux/fs.h:1882 [inline]
+       file_start_write include/linux/fs.h:3008 [inline]
+       lo_write_bvec+0x3b6/0x6d0 drivers/block/loop.c:327
+       lo_write_simple drivers/block/loop.c:350 [inline]
+       do_req_filebacked drivers/block/loop.c:668 [inline]
+       loop_handle_cmd drivers/block/loop.c:2201 [inline]
+       loop_process_work+0xc60/0x24e0 drivers/block/loop.c:2241
+       process_one_work+0x9bf/0x16b0 kernel/workqueue.c:2297
+       worker_thread+0x658/0x11f0 kernel/workqueue.c:2444
+       kthread+0x3e5/0x4d0 kernel/kthread.c:319
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+-> #3 ((work_completion)(&lo->rootcg_work)){+.+.}-{0:0}:
+       process_one_work+0x92e/0x16b0 kernel/workqueue.c:2273
+       worker_thread+0x658/0x11f0 kernel/workqueue.c:2444
+       kthread+0x3e5/0x4d0 kernel/kthread.c:319
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+-> #2 ((wq_completion)loop3){+.+.}-{0:0}:
+       flush_workqueue+0x110/0x15b0 kernel/workqueue.c:2817
+       drain_workqueue+0x1a5/0x3c0 kernel/workqueue.c:2982
+       destroy_workqueue+0x71/0x800 kernel/workqueue.c:4419
+       __loop_clr_fd+0x212/0x15e0 drivers/block/loop.c:1368
+       loop_clr_fd drivers/block/loop.c:1494 [inline]
+       lo_ioctl+0x3c3/0x1880 drivers/block/loop.c:1850
+       blkdev_ioctl+0x2a1/0x700 block/ioctl.c:589
+       block_ioctl+0xfa/0x140 block/fops.c:477
+       vfs_ioctl fs/ioctl.c:51 [inline]
+       __do_sys_ioctl fs/ioctl.c:874 [inline]
+       __se_sys_ioctl fs/ioctl.c:860 [inline]
+       __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:860
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #1 (&lo->lo_mutex){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:596 [inline]
+       __mutex_lock+0x131/0x12f0 kernel/locking/mutex.c:729
+       lo_open+0x75/0x120 drivers/block/loop.c:2040
+       blkdev_get_whole+0x99/0x2a0 block/bdev.c:668
+       blkdev_get_by_dev.part.0+0x354/0xb60 block/bdev.c:823
+       blkdev_get_by_dev+0x6b/0x80 block/bdev.c:856
+       blkdev_open+0x154/0x2b0 block/fops.c:447
+       do_dentry_open+0x4c8/0x11d0 fs/open.c:822
+       do_open fs/namei.c:3428 [inline]
+       path_openat+0x1c9a/0x2740 fs/namei.c:3561
+       do_filp_open+0x1aa/0x400 fs/namei.c:3588
+       do_sys_openat2+0x16d/0x4d0 fs/open.c:1200
+       do_sys_open fs/open.c:1216 [inline]
+       __do_sys_open fs/open.c:1224 [inline]
+       __se_sys_open fs/open.c:1220 [inline]
+       __x64_sys_open+0x119/0x1c0 fs/open.c:1220
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #0 (&disk->open_mutex){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3051 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3174 [inline]
+       validate_chain kernel/locking/lockdep.c:3789 [inline]
+       __lock_acquire+0x2a07/0x54a0 kernel/locking/lockdep.c:5015
+       lock_acquire kernel/locking/lockdep.c:5625 [inline]
+       lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+       __mutex_lock_common kernel/locking/mutex.c:596 [inline]
+       __mutex_lock+0x131/0x12f0 kernel/locking/mutex.c:729
+       bd_register_pending_holders+0x2c/0x470 block/holder.c:160
+       device_add_disk+0x74c/0xfc0 block/genhd.c:475
+       add_disk include/linux/genhd.h:221 [inline]
+       loop_add+0x753/0x960 drivers/block/loop.c:2397
+       loop_probe+0x6a/0x80 drivers/block/loop.c:2436
+       blk_request_module+0x111/0x1d0 block/genhd.c:637
+       blkdev_get_no_open+0x178/0x1e0 block/bdev.c:739
+       blkdev_get_by_dev.part.0+0x22/0xb60 block/bdev.c:803
+       blkdev_get_by_dev+0x6b/0x80 block/bdev.c:856
+       blkdev_open+0x154/0x2b0 block/fops.c:447
+       do_dentry_open+0x4c8/0x11d0 fs/open.c:822
+       do_open fs/namei.c:3428 [inline]
+       path_openat+0x1c9a/0x2740 fs/namei.c:3561
+       do_filp_open+0x1aa/0x400 fs/namei.c:3588
+       do_sys_openat2+0x16d/0x4d0 fs/open.c:1200
+       do_sys_open fs/open.c:1216 [inline]
+       __do_sys_openat fs/open.c:1232 [inline]
+       __se_sys_openat fs/open.c:1227 [inline]
+       __x64_sys_openat+0x13f/0x1f0 fs/open.c:1227
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+other info that might help us debug this:
+
+Chain exists of:
+  &disk->open_mutex --> system_transition_mutex/1 --> major_names_lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(major_names_lock);
+                               lock(system_transition_mutex/1);
+                               lock(major_names_lock);
+  lock(&disk->open_mutex);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor.4/14825:
+ #0: ffffffff8c201588 (major_names_lock){+.+.}-{3:3}, at: blk_request_module+0x25/0x1d0 block/genhd.c:634
+
+stack backtrace:
+CPU: 0 PID: 14825 Comm: syz-executor.4 Not tainted 5.15.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2131
+ check_prev_add kernel/locking/lockdep.c:3051 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3174 [inline]
+ validate_chain kernel/locking/lockdep.c:3789 [inline]
+ __lock_acquire+0x2a07/0x54a0 kernel/locking/lockdep.c:5015
+ lock_acquire kernel/locking/lockdep.c:5625 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+ __mutex_lock_common kernel/locking/mutex.c:596 [inline]
+ __mutex_lock+0x131/0x12f0 kernel/locking/mutex.c:729
+ bd_register_pending_holders+0x2c/0x470 block/holder.c:160
+ device_add_disk+0x74c/0xfc0 block/genhd.c:475
+ add_disk include/linux/genhd.h:221 [inline]
+ loop_add+0x753/0x960 drivers/block/loop.c:2397
+ loop_probe+0x6a/0x80 drivers/block/loop.c:2436
+ blk_request_module+0x111/0x1d0 block/genhd.c:637
+ blkdev_get_no_open+0x178/0x1e0 block/bdev.c:739
+ blkdev_get_by_dev.part.0+0x22/0xb60 block/bdev.c:803
+ blkdev_get_by_dev+0x6b/0x80 block/bdev.c:856
+ blkdev_open+0x154/0x2b0 block/fops.c:447
+ do_dentry_open+0x4c8/0x11d0 fs/open.c:822
+ do_open fs/namei.c:3428 [inline]
+ path_openat+0x1c9a/0x2740 fs/namei.c:3561
+ do_filp_open+0x1aa/0x400 fs/namei.c:3588
+ do_sys_openat2+0x16d/0x4d0 fs/open.c:1200
+ do_sys_open fs/open.c:1216 [inline]
+ __do_sys_openat fs/open.c:1232 [inline]
+ __se_sys_openat fs/open.c:1227 [inline]
+ __x64_sys_openat+0x13f/0x1f0 fs/open.c:1227
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7fe47deed739
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fe47b464188 EFLAGS: 00000246 ORIG_RAX: 0000000000000101
+RAX: ffffffffffffffda RBX: 00007fe47dff1f80 RCX: 00007fe47deed739
+RDX: 0000000000000000 RSI: 0000000020002040 RDI: ffffffffffffff9c
+RBP: 00007fe47df47cc4 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fe47dff1f80
+R13: 00007ffdec06f97f R14: 00007fe47b464300 R15: 0000000000022000
+fuse: Bad value for 'user_id'

@@ -1,0 +1,35 @@
+WARNING: suspicious RCU usage
+5.12.0-rc5-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8294 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+no locks held by systemd-udevd/4825.
+
+stack backtrace:
+CPU: 0 PID: 4825 Comm: systemd-udevd Not tainted 5.12.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8294
+ __might_fault+0x6e/0x180 mm/memory.c:5018
+ strncpy_from_user+0x2f/0x3e0 lib/strncpy_from_user.c:117
+ getname_flags.part.0+0x95/0x4f0 fs/namei.c:149
+ getname_flags fs/namei.c:2733 [inline]
+ user_path_at_empty+0xa1/0x100 fs/namei.c:2733
+ user_path_at include/linux/namei.h:60 [inline]
+ do_faccessat+0x127/0x850 fs/open.c:425
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f840445f9c7
+Code: 83 c4 08 48 3d 01 f0 ff ff 73 01 c3 48 8b 0d c8 d4 2b 00 f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 b8 15 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d a1 d4 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007ffdc40178d8 EFLAGS: 00000246 ORIG_RAX: 0000000000000015
+RAX: ffffffffffffffda RBX: 0000564d558c9760 RCX: 00007f840445f9c7
+RDX: 00746e657665752f RSI: 0000000000000000 RDI: 00007ffdc40178e0
+RBP: 00007ffdc4017960 R08: 0000000000004400 R09: 0000000000001010
+R10: 0000000000000020 R11: 0000000000000246 R12: 0000564d557b1856
+R13: 0000564d558ed190 R14: 00007ffdc40178e0 R15: 0000564d558fe590

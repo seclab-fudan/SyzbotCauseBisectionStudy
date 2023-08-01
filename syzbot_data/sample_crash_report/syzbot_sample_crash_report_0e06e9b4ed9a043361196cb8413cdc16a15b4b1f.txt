@@ -1,0 +1,416 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+
+=====================================================
+WARNING: HARDIRQ-safe -> HARDIRQ-unsafe lock order detected
+4.17.0-rc2+ #17 Not tainted
+-----------------------------------------------------
+syz-executor862/4516 [HC0[0]:SC0[0]:HE0:SE1] is trying to acquire:
+        (ptrval) (fs_reclaim){+.+.}, at: fs_reclaim_acquire.part.82+0x0/0x30 mm/page_alloc.c:463
+
+and this task is already holding:
+        (ptrval) (&(&dev->event_lock)->rlock){-...}, at: input_inject_event+0xe0/0x3ed drivers/input/input.c:461
+which would create a new lock dependency:
+ (&(&dev->event_lock)->rlock){-...} -> (fs_reclaim){+.+.}
+
+but this new dependency connects a HARDIRQ-irq-safe lock:
+ (&(&dev->event_lock)->rlock){-...}
+
+... which became HARDIRQ-irq-safe at:
+  lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+  __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+  _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+  input_event+0x67/0xa0 drivers/input/input.c:435
+  input_report_key include/linux/input.h:393 [inline]
+  psmouse_report_standard_buttons+0x31/0x90 drivers/input/mouse/psmouse-base.c:127
+  psmouse_report_standard_packet drivers/input/mouse/psmouse-base.c:145 [inline]
+  psmouse_process_byte+0x1ef/0x710 drivers/input/mouse/psmouse-base.c:236
+  psmouse_handle_byte+0x4a/0x570 drivers/input/mouse/psmouse-base.c:278
+  psmouse_interrupt+0x38a/0x1420 drivers/input/mouse/psmouse-base.c:428
+  serio_interrupt+0x98/0x160 drivers/input/serio/serio.c:1018
+  i8042_interrupt+0x385/0x5e0 drivers/input/serio/i8042.c:586
+  __handle_irq_event_percpu+0x1c0/0xad0 kernel/irq/handle.c:149
+  handle_irq_event_percpu+0x98/0x1c0 kernel/irq/handle.c:189
+  handle_irq_event+0xa7/0x135 kernel/irq/handle.c:206
+  handle_edge_irq+0x20f/0x870 kernel/irq/chip.c:791
+  generic_handle_irq_desc include/linux/irqdesc.h:159 [inline]
+  handle_irq+0x18c/0x2e7 arch/x86/kernel/irq_64.c:77
+  do_IRQ+0x78/0x190 arch/x86/kernel/irq.c:245
+  ret_from_intr+0x0/0x1e
+  arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+  __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+  _raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+  spin_unlock_irqrestore include/linux/spinlock.h:365 [inline]
+  i8042_command+0x3f/0x50 drivers/input/serio/i8042.c:350
+  i8042_aux_write+0xd6/0x110 drivers/input/serio/i8042.c:385
+  serio_write include/linux/serio.h:128 [inline]
+  ps2_do_sendbyte+0x306/0x6b0 drivers/input/serio/libps2.c:44
+  ps2_sendbyte+0x51/0xa0 drivers/input/serio/libps2.c:96
+  cypress_ps2_sendbyte drivers/input/mouse/cypress_ps2.c:45 [inline]
+  cypress_ps2_read_cmd_status drivers/input/mouse/cypress_ps2.c:119 [inline]
+  cypress_send_ext_cmd+0x1d1/0x8b0 drivers/input/mouse/cypress_ps2.c:192
+  cypress_detect+0x78/0x1f0 drivers/input/mouse/cypress_ps2.c:208
+  psmouse_do_detect+0xad/0x110 drivers/input/mouse/psmouse-base.c:1001
+  psmouse_try_protocol+0x15d/0x2b0 drivers/input/mouse/psmouse-base.c:1015
+  psmouse_extensions+0x41f/0x830 drivers/input/mouse/psmouse-base.c:1138
+  psmouse_switch_protocol+0x53d/0x740 drivers/input/mouse/psmouse-base.c:1529
+  psmouse_connect+0x51e/0xc10 drivers/input/mouse/psmouse-base.c:1619
+  serio_connect_driver+0x4f/0x70 drivers/input/serio/serio.c:63
+  serio_driver_probe+0x47/0x60 drivers/input/serio/serio.c:794
+  really_probe drivers/base/dd.c:448 [inline]
+  driver_probe_device+0x69b/0x960 drivers/base/dd.c:590
+  __driver_attach+0x1b2/0x1f0 drivers/base/dd.c:824
+  bus_for_each_dev+0x151/0x1d0 drivers/base/bus.c:311
+  driver_attach+0x3d/0x50 drivers/base/dd.c:843
+  serio_attach_driver drivers/input/serio/serio.c:824 [inline]
+  serio_handle_event+0x70a/0xb20 drivers/input/serio/serio.c:243
+  process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+  worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+  kthread+0x345/0x410 kernel/kthread.c:238
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+to a HARDIRQ-irq-unsafe lock:
+ (fs_reclaim){+.+.}
+
+... which became HARDIRQ-irq-unsafe at:
+...
+  lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+  fs_reclaim_acquire.part.82+0x24/0x30 mm/page_alloc.c:3739
+  fs_reclaim_acquire+0x14/0x20 mm/page_alloc.c:3740
+  slab_pre_alloc_hook mm/slab.h:418 [inline]
+  slab_alloc_node mm/slab.c:3299 [inline]
+  kmem_cache_alloc_node_trace+0x39/0x770 mm/slab.c:3661
+  kmalloc_node include/linux/slab.h:550 [inline]
+  kzalloc_node include/linux/slab.h:712 [inline]
+  alloc_worker+0xbd/0x2e0 kernel/workqueue.c:1704
+  init_rescuer.part.25+0x1f/0x190 kernel/workqueue.c:4000
+  init_rescuer kernel/workqueue.c:3997 [inline]
+  workqueue_init+0x51f/0x7d0 kernel/workqueue.c:5732
+  kernel_init_freeable+0x2ad/0x58e init/main.c:1115
+  kernel_init+0x11/0x1b3 init/main.c:1053
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+other info that might help us debug this:
+
+ Possible interrupt unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(fs_reclaim);
+                               local_irq_disable();
+                               lock(&(&dev->event_lock)->rlock);
+                               lock(fs_reclaim);
+  <Interrupt>
+    lock(&(&dev->event_lock)->rlock);
+
+ *** DEADLOCK ***
+
+3 locks held by syz-executor862/4516:
+ #0:         (ptrval) (&evdev->mutex){+.+.}, at: evdev_ioctl_handler+0x82/0x1a0 drivers/input/evdev.c:1294
+ #1:         (ptrval) (&(&dev->event_lock)->rlock){-...}, at: input_inject_event+0xe0/0x3ed drivers/input/input.c:461
+ #2:         (ptrval) (rcu_read_lock){....}, at: is_event_supported drivers/input/input.c:56 [inline]
+ #2:         (ptrval) (rcu_read_lock){....}, at: input_inject_event+0xc5/0x3ed drivers/input/input.c:460
+
+the dependencies between HARDIRQ-irq-safe lock and the holding lock:
+-> (&(&dev->event_lock)->rlock){-...} ops: 12141 {
+   IN-HARDIRQ-W at:
+                    lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+                    __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+                    _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+                    input_event+0x67/0xa0 drivers/input/input.c:435
+                    input_report_key include/linux/input.h:393 [inline]
+                    psmouse_report_standard_buttons+0x31/0x90 drivers/input/mouse/psmouse-base.c:127
+                    psmouse_report_standard_packet drivers/input/mouse/psmouse-base.c:145 [inline]
+                    psmouse_process_byte+0x1ef/0x710 drivers/input/mouse/psmouse-base.c:236
+                    psmouse_handle_byte+0x4a/0x570 drivers/input/mouse/psmouse-base.c:278
+                    psmouse_interrupt+0x38a/0x1420 drivers/input/mouse/psmouse-base.c:428
+                    serio_interrupt+0x98/0x160 drivers/input/serio/serio.c:1018
+                    i8042_interrupt+0x385/0x5e0 drivers/input/serio/i8042.c:586
+                    __handle_irq_event_percpu+0x1c0/0xad0 kernel/irq/handle.c:149
+                    handle_irq_event_percpu+0x98/0x1c0 kernel/irq/handle.c:189
+                    handle_irq_event+0xa7/0x135 kernel/irq/handle.c:206
+                    handle_edge_irq+0x20f/0x870 kernel/irq/chip.c:791
+                    generic_handle_irq_desc include/linux/irqdesc.h:159 [inline]
+                    handle_irq+0x18c/0x2e7 arch/x86/kernel/irq_64.c:77
+                    do_IRQ+0x78/0x190 arch/x86/kernel/irq.c:245
+                    ret_from_intr+0x0/0x1e
+                    arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+                    __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+                    _raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+                    spin_unlock_irqrestore include/linux/spinlock.h:365 [inline]
+                    i8042_command+0x3f/0x50 drivers/input/serio/i8042.c:350
+                    i8042_aux_write+0xd6/0x110 drivers/input/serio/i8042.c:385
+                    serio_write include/linux/serio.h:128 [inline]
+                    ps2_do_sendbyte+0x306/0x6b0 drivers/input/serio/libps2.c:44
+                    ps2_sendbyte+0x51/0xa0 drivers/input/serio/libps2.c:96
+                    cypress_ps2_sendbyte drivers/input/mouse/cypress_ps2.c:45 [inline]
+                    cypress_ps2_read_cmd_status drivers/input/mouse/cypress_ps2.c:119 [inline]
+                    cypress_send_ext_cmd+0x1d1/0x8b0 drivers/input/mouse/cypress_ps2.c:192
+                    cypress_detect+0x78/0x1f0 drivers/input/mouse/cypress_ps2.c:208
+                    psmouse_do_detect+0xad/0x110 drivers/input/mouse/psmouse-base.c:1001
+                    psmouse_try_protocol+0x15d/0x2b0 drivers/input/mouse/psmouse-base.c:1015
+                    psmouse_extensions+0x41f/0x830 drivers/input/mouse/psmouse-base.c:1138
+                    psmouse_switch_protocol+0x53d/0x740 drivers/input/mouse/psmouse-base.c:1529
+                    psmouse_connect+0x51e/0xc10 drivers/input/mouse/psmouse-base.c:1619
+                    serio_connect_driver+0x4f/0x70 drivers/input/serio/serio.c:63
+                    serio_driver_probe+0x47/0x60 drivers/input/serio/serio.c:794
+                    really_probe drivers/base/dd.c:448 [inline]
+                    driver_probe_device+0x69b/0x960 drivers/base/dd.c:590
+                    __driver_attach+0x1b2/0x1f0 drivers/base/dd.c:824
+                    bus_for_each_dev+0x151/0x1d0 drivers/base/bus.c:311
+                    driver_attach+0x3d/0x50 drivers/base/dd.c:843
+                    serio_attach_driver drivers/input/serio/serio.c:824 [inline]
+                    serio_handle_event+0x70a/0xb20 drivers/input/serio/serio.c:243
+                    process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+                    worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+                    kthread+0x345/0x410 kernel/kthread.c:238
+                    ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+   INITIAL USE at:
+                   lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+                   __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+                   _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+                   input_inject_event+0xe0/0x3ed drivers/input/input.c:461
+                   input_leds_brightness_set+0x81/0xb0 drivers/input/input-leds.c:66
+                   __led_set_brightness drivers/leds/led-core.c:34 [inline]
+                   led_set_brightness_nopm+0x4c/0xe0 drivers/leds/led-core.c:261
+                   led_set_brightness_nosleep drivers/leds/led-core.c:278 [inline]
+                   led_set_brightness+0x113/0x220 drivers/leds/led-core.c:253
+                   led_trigger_event+0x77/0xd0 drivers/leds/led-triggers.c:292
+                   kbd_led_trigger_activate+0xed/0x120 drivers/tty/vt/keyboard.c:969
+                   led_trigger_set+0x668/0x930 drivers/leds/led-triggers.c:138
+                   led_trigger_set_default+0x10a/0x180 drivers/leds/led-triggers.c:171
+                   of_led_classdev_register+0x485/0x640 drivers/leds/led-class.c:302
+                   input_leds_connect+0x410/0x7c0 drivers/input/input-leds.c:143
+                   input_attach_handler+0x1b1/0x210 drivers/input/input.c:996
+                   input_register_device.cold.22+0xe8/0x297 drivers/input/input.c:2152
+                   atkbd_connect+0x6fe/0x930 drivers/input/keyboard/atkbd.c:1200
+                   serio_connect_driver+0x4f/0x70 drivers/input/serio/serio.c:63
+                   serio_driver_probe+0x47/0x60 drivers/input/serio/serio.c:794
+                   really_probe drivers/base/dd.c:448 [inline]
+                   driver_probe_device+0x69b/0x960 drivers/base/dd.c:590
+                   __driver_attach+0x1b2/0x1f0 drivers/base/dd.c:824
+                   bus_for_each_dev+0x151/0x1d0 drivers/base/bus.c:311
+                   driver_attach+0x3d/0x50 drivers/base/dd.c:843
+                   serio_attach_driver drivers/input/serio/serio.c:824 [inline]
+                   serio_handle_event+0x70a/0xb20 drivers/input/serio/serio.c:243
+                   process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+                   worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+                   kthread+0x345/0x410 kernel/kthread.c:238
+                   ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+ }
+ ... key      at: [<ffffffff8b147da0>] __key.33441+0x0/0x40
+ ... acquired at:
+   lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+   fs_reclaim_acquire.part.82+0x24/0x30 mm/page_alloc.c:3739
+   fs_reclaim_acquire+0x14/0x20 mm/page_alloc.c:3740
+   slab_pre_alloc_hook mm/slab.h:418 [inline]
+   slab_alloc mm/slab.c:3378 [inline]
+   __do_kmalloc mm/slab.c:3716 [inline]
+   __kmalloc+0x45/0x760 mm/slab.c:3727
+   kmalloc_array include/linux/slab.h:631 [inline]
+   kcalloc include/linux/slab.h:642 [inline]
+   numa_crng_init drivers/char/random.c:798 [inline]
+   crng_reseed+0x427/0x920 drivers/char/random.c:923
+   credit_entropy_bits+0x98d/0xa30 drivers/char/random.c:708
+   add_timer_randomness+0x26b/0x320 drivers/char/random.c:1133
+   add_input_randomness+0xce/0x3e0 drivers/char/random.c:1148
+   input_handle_event+0xb3/0x1210 drivers/input/input.c:375
+   input_inject_event+0x367/0x3ed drivers/input/input.c:466
+   evdev_do_ioctl+0x467/0x21c0 drivers/input/evdev.c:1102
+   evdev_ioctl_handler+0x144/0x1a0 drivers/input/evdev.c:1303
+   evdev_ioctl+0x27/0x2e drivers/input/evdev.c:1312
+   vfs_ioctl fs/ioctl.c:46 [inline]
+   file_ioctl fs/ioctl.c:500 [inline]
+   do_vfs_ioctl+0x1cf/0x16a0 fs/ioctl.c:684
+   ksys_ioctl+0xa9/0xd0 fs/ioctl.c:701
+   __do_sys_ioctl fs/ioctl.c:708 [inline]
+   __se_sys_ioctl fs/ioctl.c:706 [inline]
+   __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:706
+   do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+   entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+
+the dependencies between the lock to be acquired
+ and HARDIRQ-irq-unsafe lock:
+-> (fs_reclaim){+.+.} ops: 1066443 {
+   HARDIRQ-ON-W at:
+                    lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+                    fs_reclaim_acquire.part.82+0x24/0x30 mm/page_alloc.c:3739
+                    fs_reclaim_acquire+0x14/0x20 mm/page_alloc.c:3740
+                    slab_pre_alloc_hook mm/slab.h:418 [inline]
+                    slab_alloc_node mm/slab.c:3299 [inline]
+                    kmem_cache_alloc_node_trace+0x39/0x770 mm/slab.c:3661
+                    kmalloc_node include/linux/slab.h:550 [inline]
+                    kzalloc_node include/linux/slab.h:712 [inline]
+                    alloc_worker+0xbd/0x2e0 kernel/workqueue.c:1704
+                    init_rescuer.part.25+0x1f/0x190 kernel/workqueue.c:4000
+                    init_rescuer kernel/workqueue.c:3997 [inline]
+                    workqueue_init+0x51f/0x7d0 kernel/workqueue.c:5732
+                    kernel_init_freeable+0x2ad/0x58e init/main.c:1115
+                    kernel_init+0x11/0x1b3 init/main.c:1053
+                    ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+   SOFTIRQ-ON-W at:
+                    lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+                    fs_reclaim_acquire.part.82+0x24/0x30 mm/page_alloc.c:3739
+                    fs_reclaim_acquire+0x14/0x20 mm/page_alloc.c:3740
+                    slab_pre_alloc_hook mm/slab.h:418 [inline]
+                    slab_alloc_node mm/slab.c:3299 [inline]
+                    kmem_cache_alloc_node_trace+0x39/0x770 mm/slab.c:3661
+                    kmalloc_node include/linux/slab.h:550 [inline]
+                    kzalloc_node include/linux/slab.h:712 [inline]
+                    alloc_worker+0xbd/0x2e0 kernel/workqueue.c:1704
+                    init_rescuer.part.25+0x1f/0x190 kernel/workqueue.c:4000
+                    init_rescuer kernel/workqueue.c:3997 [inline]
+                    workqueue_init+0x51f/0x7d0 kernel/workqueue.c:5732
+                    kernel_init_freeable+0x2ad/0x58e init/main.c:1115
+                    kernel_init+0x11/0x1b3 init/main.c:1053
+                    ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+   INITIAL USE at:
+                   lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+                   fs_reclaim_acquire.part.82+0x24/0x30 mm/page_alloc.c:3739
+                   fs_reclaim_acquire+0x14/0x20 mm/page_alloc.c:3740
+                   slab_pre_alloc_hook mm/slab.h:418 [inline]
+                   slab_alloc_node mm/slab.c:3299 [inline]
+                   kmem_cache_alloc_node_trace+0x39/0x770 mm/slab.c:3661
+                   kmalloc_node include/linux/slab.h:550 [inline]
+                   kzalloc_node include/linux/slab.h:712 [inline]
+                   alloc_worker+0xbd/0x2e0 kernel/workqueue.c:1704
+                   init_rescuer.part.25+0x1f/0x190 kernel/workqueue.c:4000
+                   init_rescuer kernel/workqueue.c:3997 [inline]
+                   workqueue_init+0x51f/0x7d0 kernel/workqueue.c:5732
+                   kernel_init_freeable+0x2ad/0x58e init/main.c:1115
+                   kernel_init+0x11/0x1b3 init/main.c:1053
+                   ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+ }
+ ... key      at: [<ffffffff88df47a0>] __fs_reclaim_map+0x0/0x40
+ ... acquired at:
+   lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+   fs_reclaim_acquire.part.82+0x24/0x30 mm/page_alloc.c:3739
+   fs_reclaim_acquire+0x14/0x20 mm/page_alloc.c:3740
+   slab_pre_alloc_hook mm/slab.h:418 [inline]
+   slab_alloc mm/slab.c:3378 [inline]
+   __do_kmalloc mm/slab.c:3716 [inline]
+   __kmalloc+0x45/0x760 mm/slab.c:3727
+   kmalloc_array include/linux/slab.h:631 [inline]
+   kcalloc include/linux/slab.h:642 [inline]
+   numa_crng_init drivers/char/random.c:798 [inline]
+   crng_reseed+0x427/0x920 drivers/char/random.c:923
+   credit_entropy_bits+0x98d/0xa30 drivers/char/random.c:708
+   add_timer_randomness+0x26b/0x320 drivers/char/random.c:1133
+   add_input_randomness+0xce/0x3e0 drivers/char/random.c:1148
+   input_handle_event+0xb3/0x1210 drivers/input/input.c:375
+   input_inject_event+0x367/0x3ed drivers/input/input.c:466
+   evdev_do_ioctl+0x467/0x21c0 drivers/input/evdev.c:1102
+   evdev_ioctl_handler+0x144/0x1a0 drivers/input/evdev.c:1303
+   evdev_ioctl+0x27/0x2e drivers/input/evdev.c:1312
+   vfs_ioctl fs/ioctl.c:46 [inline]
+   file_ioctl fs/ioctl.c:500 [inline]
+   do_vfs_ioctl+0x1cf/0x16a0 fs/ioctl.c:684
+   ksys_ioctl+0xa9/0xd0 fs/ioctl.c:701
+   __do_sys_ioctl fs/ioctl.c:708 [inline]
+   __se_sys_ioctl fs/ioctl.c:706 [inline]
+   __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:706
+   do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+   entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+
+stack backtrace:
+CPU: 1 PID: 4516 Comm: syz-executor862 Not tainted 4.17.0-rc2+ #17
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_bad_irq_dependency kernel/locking/lockdep.c:1570 [inline]
+ check_usage.cold.58+0x6d5/0xac7 kernel/locking/lockdep.c:1602
+ check_irq_usage kernel/locking/lockdep.c:1658 [inline]
+ check_prev_add_irq kernel/locking/lockdep_states.h:7 [inline]
+ check_prev_add kernel/locking/lockdep.c:1868 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x2417/0x5140 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1dc/0x520 kernel/locking/lockdep.c:3920
+ fs_reclaim_acquire.part.82+0x24/0x30 mm/page_alloc.c:3739
+ fs_reclaim_acquire+0x14/0x20 mm/page_alloc.c:3740
+ slab_pre_alloc_hook mm/slab.h:418 [inline]
+ slab_alloc mm/slab.c:3378 [inline]
+ __do_kmalloc mm/slab.c:3716 [inline]
+ __kmalloc+0x45/0x760 mm/slab.c:3727
+ kmalloc_array include/linux/slab.h:631 [inline]
+ kcalloc include/linux/slab.h:642 [inline]
+ numa_crng_init drivers/char/random.c:798 [inline]
+ crng_reseed+0x427/0x920 drivers/char/random.c:923
+ credit_entropy_bits+0x98d/0xa30 drivers/char/random.c:708
+ add_timer_randomness+0x26b/0x320 drivers/char/random.c:1133
+ add_input_randomness+0xce/0x3e0 drivers/char/random.c:1148
+ input_handle_event+0xb3/0x1210 drivers/input/input.c:375
+ input_inject_event+0x367/0x3ed drivers/input/input.c:466
+ evdev_do_ioctl+0x467/0x21c0 drivers/input/evdev.c:1102
+ evdev_ioctl_handler+0x144/0x1a0 drivers/input/evdev.c:1303
+ evdev_ioctl+0x27/0x2e drivers/input/evdev.c:1312
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:500 [inline]
+ do_vfs_ioctl+0x1cf/0x16a0 fs/ioctl.c:684
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:701
+ __do_sys_ioctl fs/ioctl.c:708 [inline]
+ __se_sys_ioctl fs/ioctl.c:706 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:706
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x443e09
+RSP: 002b:00007ffd01f4cc18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 746e6576652f7475 RCX: 0000000000443e09
+RDX: 0000000020000000 RSI: 0000000040084503 RDI: 00000000000003ff
+RBP: 706e692f7665642f R08: 00000000004002e0 R09: 00000000004002e0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0010000000028001
+R13: 0000000000401b40 R14: 0000000000000000 R15: 0000000000000000
+BUG: sleeping function called from invalid context at mm/slab.h:421
+in_atomic(): 1, irqs_disabled(): 1, pid: 4516, name: syz-executor862
+INFO: lockdep is turned off.
+irq event stamp: 236160
+hardirqs last  enabled at (236159): [<ffffffff8100c172>] do_syscall_64+0x92/0x800 arch/x86/entry/common.c:274
+hardirqs last disabled at (236160): [<ffffffff876ed4c4>] __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:108 [inline]
+hardirqs last disabled at (236160): [<ffffffff876ed4c4>] _raw_spin_lock_irqsave+0x74/0xc0 kernel/locking/spinlock.c:152
+softirqs last  enabled at (235836): [<ffffffff87a00778>] __do_softirq+0x778/0xaf5 kernel/softirq.c:311
+softirqs last disabled at (235829): [<ffffffff81475041>] invoke_softirq kernel/softirq.c:365 [inline]
+softirqs last disabled at (235829): [<ffffffff81475041>] irq_exit+0x1d1/0x200 kernel/softirq.c:405
+CPU: 1 PID: 4516 Comm: syz-executor862 Not tainted 4.17.0-rc2+ #17
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ ___might_sleep.cold.87+0x11f/0x13a kernel/sched/core.c:6188
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6141
+ slab_pre_alloc_hook mm/slab.h:421 [inline]
+ slab_alloc mm/slab.c:3378 [inline]
+ __do_kmalloc mm/slab.c:3716 [inline]
+ __kmalloc+0x2b9/0x760 mm/slab.c:3727
+ kmalloc_array include/linux/slab.h:631 [inline]
+ kcalloc include/linux/slab.h:642 [inline]
+ numa_crng_init drivers/char/random.c:798 [inline]
+ crng_reseed+0x427/0x920 drivers/char/random.c:923
+ credit_entropy_bits+0x98d/0xa30 drivers/char/random.c:708
+ add_timer_randomness+0x26b/0x320 drivers/char/random.c:1133
+ add_input_randomness+0xce/0x3e0 drivers/char/random.c:1148
+ input_handle_event+0xb3/0x1210 drivers/input/input.c:375
+ input_inject_event+0x367/0x3ed drivers/input/input.c:466
+ evdev_do_ioctl+0x467/0x21c0 drivers/input/evdev.c:1102
+ evdev_ioctl_handler+0x144/0x1a0 drivers/input/evdev.c:1303
+ evdev_ioctl+0x27/0x2e drivers/input/evdev.c:1312
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:500 [inline]
+ do_vfs_ioctl+0x1cf/0x16a0 fs/ioctl.c:684
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:701
+ __do_sys_ioctl fs/ioctl.c:708 [inline]
+ __se_sys_ioctl fs/ioctl.c:706 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:706
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x443e09
+RSP: 002b:00007ffd01f4cc18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 746e6576652f7475 RCX: 0000000000443e09
+RDX: 0000000020000000 RSI: 0000000040084503 RDI: 00000000000003ff
+RBP: 706e692f7665642f R08: 00000000004002e0 R09: 00000000004002e0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0010000000028001
+R13: 0000000000401b40 R14: 0000000000000000 R15: 0000000000000000
+random: crng init done

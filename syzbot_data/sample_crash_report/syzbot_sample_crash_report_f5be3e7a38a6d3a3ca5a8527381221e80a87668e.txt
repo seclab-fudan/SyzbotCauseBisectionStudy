@@ -1,0 +1,66 @@
+netdevsim netdevsim1 netdevsim1 (unregistering): unset [1, 1] type 2 family 0 port 48522 - 0
+netdevsim netdevsim1 netdevsim0 (unregistering): unset [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim1 netdevsim0 (unregistering): unset [1, 1] type 2 family 0 port 48522 - 0
+general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 0 PID: 12517 Comm: kworker/u4:13 Not tainted 5.16.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+RIP: 0010:vlan_group_set_device net/8021q/vlan.h:90 [inline]
+RIP: 0010:unregister_vlan_dev+0x278/0x550 net/8021q/vlan.c:111
+Code: d0 02 00 00 48 8d 44 d0 02 41 81 e5 ff 01 00 00 48 8b 44 c5 10 4e 8d 2c e8 48 b8 00 00 00 00 00 fc ff df 4c 89 ea 48 c1 ea 03 <80> 3c 02 00 0f 85 be 02 00 00 49 c7 45 00 00 00 00 00 e8 21 40 1d
+RSP: 0018:ffffc90003eafad0 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff88807b530000 RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: 1ffff110051b2a44 RDI: ffff888028d95220
+RBP: ffff888028d95200 R08: ffffffff8ac91880 R09: ffffffff885a5899
+R10: 0000000000000002 R11: 0000000000000081 R12: ffff8880253b0000
+R13: 0000000000000000 R14: ffff888028d95208 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fff5cb52a77 CR3: 0000000018891000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ default_device_exit_batch+0x229/0x3c0 net/core/dev.c:11602
+ ops_exit_list+0x10d/0x160 net/core/net_namespace.c:171
+ cleanup_net+0x4ea/0xb00 net/core/net_namespace.c:593
+ process_one_work+0x9b2/0x1690 kernel/workqueue.c:2298
+ worker_thread+0x658/0x11f0 kernel/workqueue.c:2445
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+Modules linked in:
+---[ end trace 4637053460a95901 ]---
+RIP: 0010:vlan_group_set_device net/8021q/vlan.h:90 [inline]
+RIP: 0010:unregister_vlan_dev+0x278/0x550 net/8021q/vlan.c:111
+Code: d0 02 00 00 48 8d 44 d0 02 41 81 e5 ff 01 00 00 48 8b 44 c5 10 4e 8d 2c e8 48 b8 00 00 00 00 00 fc ff df 4c 89 ea 48 c1 ea 03 <80> 3c 02 00 0f 85 be 02 00 00 49 c7 45 00 00 00 00 00 e8 21 40 1d
+RSP: 0018:ffffc90003eafad0 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff88807b530000 RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: 1ffff110051b2a44 RDI: ffff888028d95220
+RBP: ffff888028d95200 R08: ffffffff8ac91880 R09: ffffffff885a5899
+R10: 0000000000000002 R11: 0000000000000081 R12: ffff8880253b0000
+R13: 0000000000000000 R14: ffff888028d95208 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f4b1159d740 CR3: 00000000198c0000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	d0 02                	rolb   (%rdx)
+   2:	00 00                	add    %al,(%rax)
+   4:	48 8d 44 d0 02       	lea    0x2(%rax,%rdx,8),%rax
+   9:	41 81 e5 ff 01 00 00 	and    $0x1ff,%r13d
+  10:	48 8b 44 c5 10       	mov    0x10(%rbp,%rax,8),%rax
+  15:	4e 8d 2c e8          	lea    (%rax,%r13,8),%r13
+  19:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  20:	fc ff df
+  23:	4c 89 ea             	mov    %r13,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	0f 85 be 02 00 00    	jne    0x2f2
+  34:	49 c7 45 00 00 00 00 	movq   $0x0,0x0(%r13)
+  3b:	00
+  3c:	e8                   	.byte 0xe8
+  3d:	21 40 1d             	and    %eax,0x1d(%rax)

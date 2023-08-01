@@ -1,0 +1,141 @@
+INFO: rcu_sched self-detected stall on CPU
+	3-....: (124993 ticks this GP) idle=d2e/1/4611686018427387906 softirq=3461/3461 fqs=29117 
+	 (t=125001 jiffies g=1442 c=1441 q=520)
+INFO: rcu_sched detected stalls on CPUs/tasks:
+	3-....: (124993 ticks this GP) idle=d2e/1/4611686018427387906 softirq=3461/3461 fqs=29117 
+	(detected by 1, t=125002 jiffies, g=1442, c=1441, q=520)
+Sending NMI from CPU 1 to CPUs 3:
+NMI backtrace for cpu 3
+CPU: 3 PID: 2985 Comm: syzkaller007191 Not tainted 4.14.0-rc5-next-20171018+ #8
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+task: ffff88003d98a680 task.stack: ffff880039e18000
+RIP: 0010:inb arch/x86/include/asm/io.h:308 [inline]
+RIP: 0010:io_serial_in+0x6b/0x90 drivers/tty/serial/8250/8250_port.c:438
+RSP: 0018:ffff88006df06ff8 EFLAGS: 00000002
+RAX: dffffc0000000060 RBX: 00000000000003fd RCX: 0000000000000000
+RDX: 00000000000003fd RSI: 0000000000000005 RDI: ffffffff8788b418
+RBP: ffff88006df07008 R08: ffffffff828744e6 R09: 000000000000000c
+R10: ffff88006df06f78 R11: 0000000000000040 R12: ffffffff8788b3e0
+R13: 0000000000000020 R14: fffffbfff0f116c2 R15: fffffbfff0f11685
+FS:  00000000016cc880(0000) GS:ffff88006df00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020101000 CR3: 000000006a50d000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ serial_in drivers/tty/serial/8250/8250.h:115 [inline]
+ wait_for_xmitr+0x93/0x1e0 drivers/tty/serial/8250/8250_port.c:2040
+ serial8250_console_putchar+0x1f/0x60 drivers/tty/serial/8250/8250_port.c:3174
+ uart_console_write+0xac/0xe0 drivers/tty/serial/serial_core.c:1872
+ serial8250_console_write+0x647/0xa20 drivers/tty/serial/8250/8250_port.c:3240
+ univ8250_console_write+0x64/0x80 drivers/tty/serial/8250/8250_core.c:596
+ call_console_drivers kernel/printk/printk.c:1693 [inline]
+ console_unlock+0x788/0xd70 kernel/printk/printk.c:2351
+ vprintk_emit+0x4ad/0x590 kernel/printk/printk.c:1876
+ vprintk_default+0x28/0x30 kernel/printk/printk.c:1915
+ vprintk_func+0x57/0xc0 kernel/printk/printk_safe.c:379
+ printk+0xaa/0xca kernel/printk/printk.c:1948
+ print_cpu_stall kernel/rcu/tree.c:1520 [inline]
+ check_cpu_stall.isra.65+0xba8/0x15b0 kernel/rcu/tree.c:1594
+ __rcu_pending kernel/rcu/tree.c:3358 [inline]
+ rcu_pending kernel/rcu/tree.c:3420 [inline]
+ rcu_check_callbacks+0x238/0xd20 kernel/rcu/tree.c:2760
+ update_process_times+0x30/0x60 kernel/time/timer.c:1590
+ tick_sched_handle+0x85/0x160 kernel/time/tick-sched.c:162
+ tick_sched_timer+0x42/0x120 kernel/time/tick-sched.c:1192
+ __run_hrtimer kernel/time/hrtimer.c:1213 [inline]
+ __hrtimer_run_queues+0x349/0xe10 kernel/time/hrtimer.c:1277
+ hrtimer_interrupt+0x1c2/0x5e0 kernel/time/hrtimer.c:1311
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x14a/0x700 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0x9d/0xb0 arch/x86/entry/entry_64.S:577
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:777 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x5e/0xba kernel/locking/spinlock.c:189
+RSP: 0018:ffff880039e1f558 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff11
+RAX: dffffc0000000000 RBX: 0000000000000282 RCX: 0000000000000000
+RDX: 1ffffffff0b58f39 RSI: 0000000000000001 RDI: 0000000000000282
+RBP: ffff880039e1f568 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff88006cd33340
+R13: ffff88003d98a680 R14: 0000000000000001 R15: ffff88006cd33378
+ spin_unlock_irqrestore include/linux/spinlock.h:369 [inline]
+ prepare_to_wait+0x192/0x4d0 kernel/sched/wait.c:238
+ sock_wait_for_wmem net/core/sock.c:2030 [inline]
+ sock_alloc_send_pskb+0x4c5/0x9b0 net/core/sock.c:2076
+ tun_alloc_skb drivers/net/tun.c:1349 [inline]
+ tun_get_user+0x91a/0x36d0 drivers/net/tun.c:1636
+ tun_chr_write_iter+0xb9/0x160 drivers/net/tun.c:1792
+ call_write_iter include/linux/fs.h:1770 [inline]
+ new_sync_write fs/read_write.c:468 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:481
+ vfs_write+0x189/0x510 fs/read_write.c:543
+ SYSC_write fs/read_write.c:588 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:580
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x439359
+RSP: 002b:00007ffdf939ceb8 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000439359
+RDX: 0000000000000046 RSI: 0000000020101000 RDI: 0000000000000005
+RBP: 0000000000000082 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000013 R11: 0000000000000293 R12: 0000000000000000
+R13: 0000000000401fb0 R14: 0000000000402040 R15: 0000000000000000
+Code: 24 d1 00 00 00 49 8d 7c 24 38 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 d3 e3 80 3c 02 00 75 17 41 03 5c 24 38 89 da ec <5b> 0f b6 c0 41 5c 5d c3 e8 e8 af 1d ff eb c2 e8 41 b0 1d ff eb 
+NMI backtrace for cpu 3
+CPU: 3 PID: 2985 Comm: syzkaller007191 Not tainted 4.14.0-rc5-next-20171018+ #8
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ nmi_cpu_backtrace+0x20e/0x240 lib/nmi_backtrace.c:102
+ nmi_trigger_cpumask_backtrace+0x122/0x180 lib/nmi_backtrace.c:61
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:37
+ trigger_single_cpu_backtrace include/linux/nmi.h:155 [inline]
+ rcu_dump_cpu_stacks+0x186/0x1da kernel/rcu/tree.c:1377
+ print_cpu_stall kernel/rcu/tree.c:1526 [inline]
+ check_cpu_stall.isra.65+0xbb8/0x15b0 kernel/rcu/tree.c:1594
+ __rcu_pending kernel/rcu/tree.c:3358 [inline]
+ rcu_pending kernel/rcu/tree.c:3420 [inline]
+ rcu_check_callbacks+0x238/0xd20 kernel/rcu/tree.c:2760
+ update_process_times+0x30/0x60 kernel/time/timer.c:1590
+ tick_sched_handle+0x85/0x160 kernel/time/tick-sched.c:162
+ tick_sched_timer+0x42/0x120 kernel/time/tick-sched.c:1192
+ __run_hrtimer kernel/time/hrtimer.c:1213 [inline]
+ __hrtimer_run_queues+0x349/0xe10 kernel/time/hrtimer.c:1277
+ hrtimer_interrupt+0x1c2/0x5e0 kernel/time/hrtimer.c:1311
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x14a/0x700 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0x9d/0xb0 arch/x86/entry/entry_64.S:577
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:777 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x5e/0xba kernel/locking/spinlock.c:189
+RSP: 0018:ffff880039e1f558 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff11
+RAX: dffffc0000000000 RBX: 0000000000000282 RCX: 0000000000000000
+RDX: 1ffffffff0b58f39 RSI: 0000000000000001 RDI: 0000000000000282
+RBP: ffff880039e1f568 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff88006cd33340
+R13: ffff88003d98a680 R14: 0000000000000001 R15: ffff88006cd33378
+ spin_unlock_irqrestore include/linux/spinlock.h:369 [inline]
+ prepare_to_wait+0x192/0x4d0 kernel/sched/wait.c:238
+ sock_wait_for_wmem net/core/sock.c:2030 [inline]
+ sock_alloc_send_pskb+0x4c5/0x9b0 net/core/sock.c:2076
+ tun_alloc_skb drivers/net/tun.c:1349 [inline]
+ tun_get_user+0x91a/0x36d0 drivers/net/tun.c:1636
+ tun_chr_write_iter+0xb9/0x160 drivers/net/tun.c:1792
+ call_write_iter include/linux/fs.h:1770 [inline]
+ new_sync_write fs/read_write.c:468 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:481
+ vfs_write+0x189/0x510 fs/read_write.c:543
+ SYSC_write fs/read_write.c:588 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:580
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x439359
+RSP: 002b:00007ffdf939ceb8 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000439359
+RDX: 0000000000000046 RSI: 0000000020101000 RDI: 0000000000000005
+RBP: 0000000000000082 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000013 R11: 0000000000000293 R12: 0000000000000000
+R13: 0000000000401fb0 R14: 0000000000402040 R15: 0000000000000000

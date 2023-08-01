@@ -1,0 +1,123 @@
+==================================================================
+BUG: KCSAN: data-race in __dev_queue_xmit / pfifo_fast_dequeue
+
+write to 0xffff88812525d908 of 1 bytes by interrupt on cpu 1:
+ pfifo_fast_dequeue+0x49a/0x6e0 net/sched/sch_generic.c:660
+ dequeue_skb net/sched/sch_generic.c:263 [inline]
+ qdisc_restart net/sched/sch_generic.c:366 [inline]
+ __qdisc_run+0x14f/0xdd0 net/sched/sch_generic.c:384
+ __dev_xmit_skb net/core/dev.c:3401 [inline]
+ __dev_queue_xmit+0x1acd/0x1b40 net/core/dev.c:3761
+ dev_queue_xmit+0x21/0x30 net/core/dev.c:3825
+ neigh_hh_output include/net/neighbour.h:500 [inline]
+ neigh_output include/net/neighbour.h:509 [inline]
+ ip_finish_output2+0x836/0xe40 net/ipv4/ip_output.c:228
+ __ip_finish_output net/ipv4/ip_output.c:308 [inline]
+ __ip_finish_output+0x23a/0x490 net/ipv4/ip_output.c:290
+ ip_finish_output+0x41/0x160 net/ipv4/ip_output.c:318
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip_output+0xdf/0x210 net/ipv4/ip_output.c:432
+ dst_output include/net/dst.h:436 [inline]
+ ip_local_out+0x74/0x90 net/ipv4/ip_output.c:125
+ __ip_queue_xmit+0x3a8/0xa40 net/ipv4/ip_output.c:532
+ ip_queue_xmit+0x45/0x60 include/net/ip.h:237
+ __tcp_transmit_skb+0xe81/0x1d60 net/ipv4/tcp_output.c:1169
+ __tcp_send_ack+0x246/0x300 net/ipv4/tcp_output.c:3696
+ tcp_send_ack+0x34/0x40 net/ipv4/tcp_output.c:3702
+ __tcp_ack_snd_check+0xd9/0x4f0 net/ipv4/tcp_input.c:5243
+ tcp_rcv_established+0xce9/0xf50 net/ipv4/tcp_input.c:5674
+ tcp_v4_do_rcv+0x3b5/0x520 net/ipv4/tcp_ipv4.c:1564
+ tcp_v4_rcv+0x19ec/0x1bd0 net/ipv4/tcp_ipv4.c:1945
+ ip_protocol_deliver_rcu+0x4d/0x420 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish+0x110/0x140 net/ipv4/ip_input.c:231
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_local_deliver+0x133/0x210 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:442 [inline]
+ ip_rcv_finish+0x121/0x160 net/ipv4/ip_input.c:413
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_rcv+0x18f/0x1a0 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core+0xa7/0xe0 net/core/dev.c:4929
+ __netif_receive_skb+0x37/0xf0 net/core/dev.c:5043
+ netif_receive_skb_internal+0x59/0x190 net/core/dev.c:5133
+ napi_skb_finish net/core/dev.c:5596 [inline]
+ napi_gro_receive+0x28f/0x330 net/core/dev.c:5629
+ receive_buf+0x284/0x30b0 drivers/net/virtio_net.c:1061
+ virtnet_receive drivers/net/virtio_net.c:1323 [inline]
+ virtnet_poll+0x436/0x7d0 drivers/net/virtio_net.c:1428
+ napi_poll net/core/dev.c:6311 [inline]
+ net_rx_action+0x3ae/0xa90 net/core/dev.c:6379
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0xbb/0xe0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ do_IRQ+0x81/0x130 arch/x86/kernel/irq.c:263
+ ret_from_intr+0x0/0x19
+ arch_local_irq_restore arch/x86/include/asm/paravirt.h:756 [inline]
+ kcsan_setup_watchpoint+0x1d4/0x460 kernel/kcsan/core.c:436
+ check_access kernel/kcsan/core.c:466 [inline]
+ __tsan_read8 kernel/kcsan/core.c:596 [inline]
+ __tsan_read8+0xc6/0x100 kernel/kcsan/core.c:596
+ PageAnon include/linux/page-flags.h:464 [inline]
+ mm_counter include/linux/mm.h:1671 [inline]
+ copy_one_pte mm/memory.c:774 [inline]
+ copy_pte_range mm/memory.c:823 [inline]
+ copy_pmd_range mm/memory.c:874 [inline]
+ copy_pud_range mm/memory.c:908 [inline]
+ copy_p4d_range mm/memory.c:930 [inline]
+ copy_page_range+0xd2e/0x1a80 mm/memory.c:992
+ dup_mmap kernel/fork.c:601 [inline]
+ dup_mm+0x74a/0xba0 kernel/fork.c:1361
+ copy_mm kernel/fork.c:1417 [inline]
+ copy_process+0x36f3/0x3b50 kernel/fork.c:2012
+ _do_fork+0xfe/0x6e0 kernel/fork.c:2366
+ __do_sys_clone kernel/fork.c:2521 [inline]
+ __se_sys_clone kernel/fork.c:2502 [inline]
+ __x64_sys_clone+0x12b/0x160 kernel/fork.c:2502
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffff88812525d908 of 1 bytes by task 7620 on cpu 0:
+ __dev_xmit_skb net/core/dev.c:3389 [inline]
+ __dev_queue_xmit+0x9db/0x1b40 net/core/dev.c:3761
+ dev_queue_xmit+0x21/0x30 net/core/dev.c:3825
+ neigh_hh_output include/net/neighbour.h:500 [inline]
+ neigh_output include/net/neighbour.h:509 [inline]
+ ip_finish_output2+0x836/0xe40 net/ipv4/ip_output.c:228
+ __ip_finish_output net/ipv4/ip_output.c:308 [inline]
+ __ip_finish_output+0x23a/0x490 net/ipv4/ip_output.c:290
+ ip_finish_output+0x41/0x160 net/ipv4/ip_output.c:318
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip_output+0xdf/0x210 net/ipv4/ip_output.c:432
+ dst_output include/net/dst.h:436 [inline]
+ ip_local_out+0x74/0x90 net/ipv4/ip_output.c:125
+ __ip_queue_xmit+0x3a8/0xa40 net/ipv4/ip_output.c:532
+ ip_queue_xmit+0x45/0x60 include/net/ip.h:237
+ __tcp_transmit_skb+0xe81/0x1d60 net/ipv4/tcp_output.c:1169
+ tcp_transmit_skb net/ipv4/tcp_output.c:1185 [inline]
+ tcp_write_xmit+0xa54/0x3120 net/ipv4/tcp_output.c:2440
+ __tcp_push_pending_frames+0x7b/0x1d0 net/ipv4/tcp_output.c:2616
+ tcp_push+0x1e9/0x3d0 net/ipv4/tcp.c:726
+ tcp_sendmsg_locked+0x1d2b/0x1fb0 net/ipv4/tcp.c:1405
+ tcp_sendmsg+0x39/0x60 net/ipv4/tcp.c:1436
+ inet_sendmsg+0x6d/0x90 net/ipv4/af_inet.c:807
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg+0x9f/0xc0 net/socket.c:657
+ sock_write_iter+0x16b/0x210 net/socket.c:989
+ call_write_iter include/linux/fs.h:1895 [inline]
+ new_sync_write+0x388/0x4a0 fs/read_write.c:483
+ __vfs_write+0xb1/0xc0 fs/read_write.c:496
+ vfs_write fs/read_write.c:558 [inline]
+ vfs_write+0x18a/0x390 fs/read_write.c:542
+ ksys_write+0xd5/0x1b0 fs/read_write.c:611
+ __do_sys_write fs/read_write.c:623 [inline]
+ __se_sys_write fs/read_write.c:620 [inline]
+ __x64_sys_write+0x4c/0x60 fs/read_write.c:620
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 7620 Comm: sshd Not tainted 5.4.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

@@ -1,0 +1,69 @@
+ri_length = 1
+ri_data0 = 19
+ri_data = 2060
+ri_bitbytes = 514
+start=0 len=514 offset=128
+gfs2: fsid=syz:syz.s:  R: n:18 f:00 b:0/0 i:0 q:0 r:0 e:0
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000004
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010e23f000
+[0000000000000004] pgd=080000010b804003, p4d=080000010b804003, pud=080000010a4e8003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 3072 Comm: syz-executor147 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : gfs2_rgrp_dump+0xa0/0x138 fs/gfs2/rgrp.c:2313
+lr : gfs2_rgrp_dump+0x90/0x138
+sp : ffff80000fb93780
+x29: ffff80000fb937a0 x28: ffff0000cb82a000 x27: ffff0000cb82a000
+x26: ffff0000ca4de000 x25: 0000000000000808 x24: 000000000000080c
+x23: 000000000001c103 x22: ffff0000ca4de000 x21: 0000000000000000
+x20: ffff80000fb937e0 x19: ffff0000ca4de080 x18: 00000000000000c0
+x17: ffff80000dda8198 x16: ffff80000dbe6158 x15: ffff0000c6800000
+x14: 0000000000000000 x13: 00000000ffffffff x12: ffff0000c6800000
+x11: ff808000092a5154 x10: 0000000000000000 x9 : ffff8000092a5154
+x8 : 0000000000000000 x7 : ffff80000c091ebc x6 : 0000000000000000
+x5 : 0000000000000080 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0001fefbecd0 x1 : ffff80000cc9c685 x0 : 0000000000000000
+Call trace:
+ gfs2_rgrp_dump+0xa0/0x138 fs/gfs2/rgrp.c:2312
+ gfs2_consist_rgrpd_i+0x78/0xe4 fs/gfs2/util.c:480
+ read_rindex_entry fs/gfs2/rgrp.c:931 [inline]
+ gfs2_ri_update+0x398/0x7e4 fs/gfs2/rgrp.c:1001
+ gfs2_rindex_update+0x1b0/0x21c fs/gfs2/rgrp.c:1051
+ init_inodes+0x11c/0x184 fs/gfs2/ops_fstype.c:917
+ gfs2_fill_super+0x630/0x874 fs/gfs2/ops_fstype.c:1247
+ get_tree_bdev+0x1e8/0x2a0 fs/super.c:1324
+ gfs2_get_tree+0x30/0xc0 fs/gfs2/ops_fstype.c:1330
+ vfs_get_tree+0x40/0x140 fs/super.c:1531
+ do_new_mount+0x1dc/0x4e4 fs/namespace.c:3040
+ path_mount+0x358/0x890 fs/namespace.c:3370
+ do_mount fs/namespace.c:3383 [inline]
+ __do_sys_mount fs/namespace.c:3591 [inline]
+ __se_sys_mount fs/namespace.c:3568 [inline]
+ __arm64_sys_mount+0x2c4/0x3c4 fs/namespace.c:3568
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: f94036c8 f001cfa1 911a1421 aa1503e0 (2940a909) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	f94036c8 	ldr	x8, [x22, #104]
+   4:	f001cfa1 	adrp	x1, 0x39f7000
+   8:	911a1421 	add	x1, x1, #0x685
+   c:	aa1503e0 	mov	x0, x21
+* 10:	2940a909 	ldp	w9, w10, [x8, #4] <-- trapping instruction

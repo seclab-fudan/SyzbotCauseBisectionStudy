@@ -1,0 +1,57 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 22783 Comm: syz-executor7 Not tainted 4.13.0-rc5+ #16
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801cdda6740 task.stack: ffff8801ccbd0000
+RIP: 0010:__ipv6_prefix_equal64_half include/net/ipv6.h:486 [inline]
+RIP: 0010:ipv6_prefix_equal include/net/ipv6.h:503 [inline]
+RIP: 0010:fib6_add_1 net/ipv6/ip6_fib.c:590 [inline]
+RIP: 0010:fib6_add+0x6f8/0x33e0 net/ipv6/ip6_fib.c:1086
+RSP: 0018:ffff8801ccbd7140 EFLAGS: 00010202
+RAX: 0000000000000020 RBX: 0000000000000001 RCX: ffffc90003a71000
+RDX: 00000000000004ab RSI: ffffffff843004ca RDI: 0000000000000100
+RBP: ffff8801ccbd7360 R08: ffff8801ccbd7958 R09: 0000000000000004
+R10: ffff8801ccbd7228 R11: ffffffff842dcc86 R12: dffffc0000000000
+R13: 0000000000000000 R14: ffff8801cd346980 R15: 0000000000000000
+FS:  00007f2972f1a700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020bcdfde CR3: 00000001cb4b5000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __ip6_ins_rt+0x6c/0x90 net/ipv6/route.c:945
+ ip6_route_add+0x148/0x1a0 net/ipv6/route.c:2111
+ inet6_rtm_newroute+0x139/0x150 net/ipv6/route.c:3283
+ rtnetlink_rcv_msg+0x733/0x1090 net/core/rtnetlink.c:4246
+ netlink_rcv_skb+0x216/0x440 net/netlink/af_netlink.c:2397
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4258
+ netlink_unicast_kernel net/netlink/af_netlink.c:1265 [inline]
+ netlink_unicast+0x4e8/0x6f0 net/netlink/af_netlink.c:1291
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1854
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ sock_write_iter+0x31a/0x5d0 net/socket.c:912
+ call_write_iter include/linux/fs.h:1743 [inline]
+ new_sync_write fs/read_write.c:457 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:470
+ vfs_write+0x189/0x510 fs/read_write.c:518
+ SYSC_write fs/read_write.c:565 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:557
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x4512e9
+RSP: 002b:00007f2972f19c08 EFLAGS: 00000216 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000007180a8 RCX: 00000000004512e9
+RDX: 0000000000000022 RSI: 0000000020bcdfde RDI: 0000000000000018
+RBP: 0000000000000086 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000216 R12: 0000000000000000
+R13: 0000000000a6f7ef R14: 00007f2972f1a9c0 R15: 0000000000000009
+Code: c8 24 00 00 49 89 1e 49 89 de e9 f0 02 00 00 e8 df f5 3d fd 85 db 74 66 e8 d6 f5 3d fd 49 8d bd 00 01 00 00 48 89 f8 48 c1 e8 03 <42> 80 3c 20 00 0f 85 0d 2b 00 00 48 8b 85 60 fe ff ff 49 8b 95 
+RIP: __ipv6_prefix_equal64_half include/net/ipv6.h:486 [inline] RSP: ffff8801ccbd7140
+RIP: ipv6_prefix_equal include/net/ipv6.h:503 [inline] RSP: ffff8801ccbd7140
+RIP: fib6_add_1 net/ipv6/ip6_fib.c:590 [inline] RSP: ffff8801ccbd7140
+RIP: fib6_add+0x6f8/0x33e0 net/ipv6/ip6_fib.c:1086 RSP: ffff8801ccbd7140
+---[ end trace a3e1b2fc8473cb0e ]---

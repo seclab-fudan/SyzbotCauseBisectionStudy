@@ -1,0 +1,156 @@
+vcan0: j1939_xtp_rx_dpo: no connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: use-after-free in atomic_fetch_add_relaxed include/asm-generic/atomic-instrumented.h:142 [inline]
+BUG: KASAN: use-after-free in __refcount_add include/linux/refcount.h:193 [inline]
+BUG: KASAN: use-after-free in __refcount_inc include/linux/refcount.h:250 [inline]
+BUG: KASAN: use-after-free in refcount_inc include/linux/refcount.h:267 [inline]
+BUG: KASAN: use-after-free in kref_get include/linux/kref.h:45 [inline]
+BUG: KASAN: use-after-free in j1939_priv_get net/can/j1939/main.c:170 [inline]
+BUG: KASAN: use-after-free in j1939_can_recv+0x9f/0x930 net/can/j1939/main.c:54
+Write of size 4 at addr ffff88807805d058 by task syz-fuzzer/13096
+
+CPU: 1 PID: 13096 Comm: syz-fuzzer Not tainted 5.12.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ print_address_description.constprop.0.cold+0x5b/0x2f8 mm/kasan/report.c:232
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report.cold+0x7c/0xd8 mm/kasan/report.c:416
+ check_region_inline mm/kasan/generic.c:180 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:186
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_fetch_add_relaxed include/asm-generic/atomic-instrumented.h:142 [inline]
+ __refcount_add include/linux/refcount.h:193 [inline]
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ kref_get include/linux/kref.h:45 [inline]
+ j1939_priv_get net/can/j1939/main.c:170 [inline]
+ j1939_can_recv+0x9f/0x930 net/can/j1939/main.c:54
+ deliver net/can/af_can.c:574 [inline]
+ can_rcv_filter+0x5d4/0x8d0 net/can/af_can.c:608
+ can_receive+0x336/0x580 net/can/af_can.c:665
+ can_rcv+0x120/0x1c0 net/can/af_can.c:696
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5384
+ __netif_receive_skb+0x27/0x1c0 net/core/dev.c:5498
+ process_backlog+0x232/0x6c0 net/core/dev.c:6365
+ __napi_poll+0xaf/0x440 net/core/dev.c:6912
+ napi_poll net/core/dev.c:6979 [inline]
+ net_rx_action+0x801/0xb40 net/core/dev.c:7065
+ __do_softirq+0x29b/0x9f6 kernel/softirq.c:345
+ do_softirq.part.0+0xd9/0x130 kernel/softirq.c:248
+ </IRQ>
+ do_softirq kernel/softirq.c:240 [inline]
+ __local_bh_enable_ip+0x102/0x120 kernel/softirq.c:198
+ local_bh_enable include/linux/bottom_half.h:32 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:745 [inline]
+ ip_finish_output2+0x88b/0x21f0 net/ipv4/ip_output.c:231
+ __ip_finish_output net/ipv4/ip_output.c:308 [inline]
+ __ip_finish_output+0x396/0x640 net/ipv4/ip_output.c:290
+ ip_finish_output+0x35/0x200 net/ipv4/ip_output.c:318
+ NF_HOOK_COND include/linux/netfilter.h:290 [inline]
+ ip_output+0x196/0x310 net/ipv4/ip_output.c:432
+ dst_output include/net/dst.h:448 [inline]
+ ip_local_out net/ipv4/ip_output.c:126 [inline]
+ __ip_queue_xmit+0x8e9/0x1a00 net/ipv4/ip_output.c:533
+ __tcp_transmit_skb+0x188c/0x38f0 net/ipv4/tcp_output.c:1405
+ tcp_transmit_skb net/ipv4/tcp_output.c:1423 [inline]
+ tcp_write_xmit+0xdee/0x6030 net/ipv4/tcp_output.c:2689
+ __tcp_push_pending_frames+0xaa/0x390 net/ipv4/tcp_output.c:2869
+ tcp_push+0x446/0x6c0 net/ipv4/tcp.c:735
+ tcp_sendmsg_locked+0x256e/0x2e40 net/ipv4/tcp.c:1427
+ tcp_sendmsg+0x2b/0x40 net/ipv4/tcp.c:1457
+ inet_sendmsg+0x99/0xe0 net/ipv4/af_inet.c:821
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:674
+ sock_write_iter+0x289/0x3c0 net/socket.c:1001
+ call_write_iter include/linux/fs.h:1977 [inline]
+ new_sync_write+0x426/0x650 fs/read_write.c:518
+ vfs_write+0x796/0xa30 fs/read_write.c:605
+ ksys_write+0x1ee/0x250 fs/read_write.c:658
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4af19b
+Code: fb ff eb bd e8 a6 b6 fb ff e9 61 ff ff ff cc e8 9b 82 fb ff 48 8b 7c 24 10 48 8b 74 24 18 48 8b 54 24 20 48 8b 44 24 08 0f 05 <48> 3d 01 f0 ff ff 76 20 48 c7 44 24 28 ff ff ff ff 48 c7 44 24 30
+RSP: 002b:000000c0026f7408 EFLAGS: 00000216 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 000000c00001e800 RCX: 00000000004af19b
+RDX: 00000000000000f0 RSI: 000000c00000a200 RDI: 0000000000000006
+RBP: 000000c0026f7458 R08: 000000c0026f7501 R09: 0000000000000004
+R10: 000000c00000a1e0 R11: 0000000000000216 R12: 000000000000011e
+R13: 000000c0003da000 R14: 000000000000007f R15: ffffffffffffa244
+
+Allocated by task 22101:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:427 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:506 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:465 [inline]
+ __kasan_kmalloc+0x99/0xc0 mm/kasan/common.c:515
+ kmalloc include/linux/slab.h:554 [inline]
+ kzalloc include/linux/slab.h:684 [inline]
+ j1939_priv_create net/can/j1939/main.c:124 [inline]
+ j1939_netdev_start+0xfc/0x890 net/can/j1939/main.c:254
+ j1939_sk_bind+0x9b8/0xe20 net/can/j1939/socket.c:479
+ __sys_bind+0x1e9/0x250 net/socket.c:1637
+ __do_sys_bind net/socket.c:1648 [inline]
+ __se_sys_bind net/socket.c:1646 [inline]
+ __x64_sys_bind+0x6f/0xb0 net/socket.c:1646
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 22099:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:357
+ ____kasan_slab_free mm/kasan/common.c:360 [inline]
+ ____kasan_slab_free mm/kasan/common.c:325 [inline]
+ __kasan_slab_free+0xf5/0x130 mm/kasan/common.c:367
+ kasan_slab_free include/linux/kasan.h:199 [inline]
+ slab_free_hook mm/slub.c:1562 [inline]
+ slab_free_freelist_hook+0x92/0x210 mm/slub.c:1600
+ slab_free mm/slub.c:3161 [inline]
+ kfree+0xe5/0x7f0 mm/slub.c:4213
+ kref_put include/linux/kref.h:65 [inline]
+ j1939_priv_put+0x78/0xa0 net/can/j1939/main.c:165
+ j1939_sk_sock_destruct+0x44/0x90 net/can/j1939/socket.c:371
+ __sk_destruct+0x4b/0x900 net/core/sock.c:1795
+ sk_destruct+0xbd/0xe0 net/core/sock.c:1839
+ __sk_free+0xef/0x3d0 net/core/sock.c:1850
+ sk_free+0x78/0xa0 net/core/sock.c:1861
+ sock_put include/net/sock.h:1803 [inline]
+ j1939_sk_release+0x51e/0x790 net/can/j1939/socket.c:640
+ __sock_release+0xcd/0x280 net/socket.c:599
+ sock_close+0x18/0x20 net/socket.c:1258
+ __fput+0x288/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:140
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:174 [inline]
+ exit_to_user_mode_prepare+0x249/0x250 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff88807805c000
+ which belongs to the cache kmalloc-8k of size 8192
+The buggy address is located 4184 bytes inside of
+ 8192-byte region [ffff88807805c000, ffff88807805e000)
+The buggy address belongs to the page:
+page:ffffea0001e01600 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x78058
+head:ffffea0001e01600 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head)
+raw: 00fff00000010200 dead000000000100 dead000000000122 ffff888010842280
+raw: 0000000000000000 0000000080020002 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88807805cf00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88807805cf80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88807805d000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff88807805d080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88807805d100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

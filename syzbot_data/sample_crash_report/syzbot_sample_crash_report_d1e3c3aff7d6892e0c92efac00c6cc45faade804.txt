@@ -1,0 +1,87 @@
+==================================================================
+BUG: KASAN: use-after-free in bpf_skb_proto_xlat net/core/filter.c:2637 [inline]
+BUG: KASAN: use-after-free in ____bpf_skb_change_proto net/core/filter.c:2675 [inline]
+BUG: KASAN: use-after-free in bpf_skb_change_proto+0xe37/0x1300 net/core/filter.c:2650
+Read of size 2 at addr ffff88019ebc6c80 by task syz-executor1/7047
+
+CPU: 1 PID: 7047 Comm: syz-executor1 Not tainted 4.17.0-rc7+ #38
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load2_noabort+0x14/0x20 mm/kasan/report.c:431
+ bpf_skb_proto_xlat net/core/filter.c:2637 [inline]
+ ____bpf_skb_change_proto net/core/filter.c:2675 [inline]
+ bpf_skb_change_proto+0xe37/0x1300 net/core/filter.c:2650
+
+Allocated by task 8:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ skb_clone+0x1ed/0x4f0 net/core/skbuff.c:1282
+ deliver_clone+0x45/0xc0 net/bridge/br_forward.c:123
+ br_flood+0x828/0x980 net/bridge/br_forward.c:224
+ br_handle_frame_finish+0x1293/0x1960 net/bridge/br_input.c:169
+ br_nf_hook_thresh+0x459/0x5c0 net/bridge/br_netfilter_hooks.c:1010
+ br_nf_pre_routing_finish_ipv6+0x7b4/0xee0 net/bridge/br_netfilter_ipv6.c:209
+ NF_HOOK include/linux/netfilter.h:287 [inline]
+ br_nf_pre_routing_ipv6+0x495/0xaa0 net/bridge/br_netfilter_ipv6.c:237
+ br_nf_pre_routing+0xb1f/0x17a0 net/bridge/br_netfilter_hooks.c:493
+ nf_hook_entry_hookfn include/linux/netfilter.h:119 [inline]
+ nf_hook_slow+0xc2/0x1c0 net/netfilter/core.c:511
+ nf_hook include/linux/netfilter.h:242 [inline]
+ NF_HOOK include/linux/netfilter.h:285 [inline]
+ br_handle_frame+0xbe9/0x19f0 net/bridge/br_input.c:303
+ __netif_receive_skb_core+0x1414/0x3650 net/core/dev.c:4600
+ __netif_receive_skb+0x2c/0x1e0 net/core/dev.c:4711
+ process_backlog+0x219/0x760 net/core/dev.c:5391
+ napi_poll net/core/dev.c:5789 [inline]
+ net_rx_action+0x7b7/0x1930 net/core/dev.c:5855
+ __do_softirq+0x2e0/0xaf5 kernel/softirq.c:285
+
+Freed by task 8:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+ kfree_skbmem+0x13c/0x210 net/core/skbuff.c:582
+ __kfree_skb net/core/skbuff.c:642 [inline]
+ kfree_skb+0x19d/0x560 net/core/skbuff.c:659
+ ip6_mc_input+0x726/0xcd0 net/ipv6/ip6_input.c:407
+ dst_input include/net/dst.h:450 [inline]
+ ip6_rcv_finish+0x29c/0xa10 net/ipv6/ip6_input.c:71
+ NF_HOOK include/linux/netfilter.h:287 [inline]
+ ipv6_rcv+0xeb8/0x2040 net/ipv6/ip6_input.c:208
+ __netif_receive_skb_core+0x2468/0x3650 net/core/dev.c:4646
+ __netif_receive_skb+0x2c/0x1e0 net/core/dev.c:4711
+ process_backlog+0x219/0x760 net/core/dev.c:5391
+ napi_poll net/core/dev.c:5789 [inline]
+ net_rx_action+0x7b7/0x1930 net/core/dev.c:5855
+ __do_softirq+0x2e0/0xaf5 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff88019ebc6c80
+ which belongs to the cache skbuff_head_cache of size 232
+The buggy address is located 0 bytes inside of
+ 232-byte region [ffff88019ebc6c80, ffff88019ebc6d68)
+The buggy address belongs to the page:
+page:ffffea00067af180 count:1 mapcount:0 mapping:ffff88019ebc6000 index:0xffff88019ebc6b40
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff88019ebc6000 ffff88019ebc6b40 0000000100000001
+raw: ffffea0006c08c20 ffffea000764db20 ffff8801d942b840 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88019ebc6b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88019ebc6c00: fb fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc
+>ffff88019ebc6c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff88019ebc6d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc
+ ffff88019ebc6d80: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+==================================================================

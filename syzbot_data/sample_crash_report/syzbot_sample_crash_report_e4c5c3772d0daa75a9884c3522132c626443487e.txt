@@ -1,0 +1,95 @@
+audit: type=1400 audit(1516825697.966:7): avc:  denied  { map } for  pid=3679 comm="syzkaller842686" path="/root/syzkaller842686504" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: slab-out-of-bounds in string+0x1e8/0x200 lib/vsprintf.c:595
+Read of size 1 at addr ffff8801d902a850 by task syzkaller842686/3679
+
+CPU: 1 PID: 3679 Comm: syzkaller842686 Not tainted 4.15.0-rc9+ #278
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:427
+ string+0x1e8/0x200 lib/vsprintf.c:595
+ vsnprintf+0x863/0x1900 lib/vsprintf.c:2282
+ __request_module+0x1bf/0xc20 kernel/kmod.c:143
+ xt_request_find_target+0x8b/0xb0 net/netfilter/x_tables.c:257
+ find_check_entry.isra.8+0x612/0xcb0 net/ipv4/netfilter/ip_tables.c:551
+ translate_table+0xed1/0x1610 net/ipv4/netfilter/ip_tables.c:730
+ do_replace net/ipv4/netfilter/ip_tables.c:1148 [inline]
+ do_ipt_set_ctl+0x370/0x5f0 net/ipv4/netfilter/ip_tables.c:1682
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0xa1/0xb0 net/ipv4/ip_sockglue.c:1256
+ udp_setsockopt+0x45/0x80 net/ipv4/udp.c:2408
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+ SYSC_setsockopt net/socket.c:1831 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1810
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x43ffc9
+RSP: 002b:00007ffd06a09588 EFLAGS: 00000203 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043ffc9
+RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000000000f0 R09: 0000000000000000
+R10: 0000000020f20000 R11: 0000000000000203 R12: 00000000004018f0
+R13: 0000000000401980 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3679:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc_node mm/slab.c:3672 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3679
+ kmalloc_node include/linux/slab.h:541 [inline]
+ kvmalloc_node+0x99/0xd0 mm/util.c:397
+ kvmalloc include/linux/mm.h:541 [inline]
+ xt_alloc_table_info+0x64/0xe0 net/netfilter/x_tables.c:1006
+ do_replace net/ipv4/netfilter/ip_tables.c:1137 [inline]
+ do_ipt_set_ctl+0x29b/0x5f0 net/ipv4/netfilter/ip_tables.c:1682
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0xa1/0xb0 net/ipv4/ip_sockglue.c:1256
+ udp_setsockopt+0x45/0x80 net/ipv4/udp.c:2408
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+ SYSC_setsockopt net/socket.c:1831 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1810
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 2031:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ seq_release fs/seq_file.c:366 [inline]
+ single_release+0x80/0xb0 fs/seq_file.c:602
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x296/0x310 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x9e/0xa0
+
+The buggy address belongs to the object at ffff8801d902a780
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 208 bytes inside of
+ 256-byte region [ffff8801d902a780, ffff8801d902a880)
+The buggy address belongs to the page:
+page:ffffea0007640a80 count:1 mapcount:0 mapping:ffff8801d902a000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d902a000 0000000000000000 000000010000000c
+raw: ffffea0007652420 ffffea0007640be0 ffff8801dac007c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d902a700: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8801d902a780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801d902a800: 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc
+                                                 ^
+ ffff8801d902a880: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8801d902a900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

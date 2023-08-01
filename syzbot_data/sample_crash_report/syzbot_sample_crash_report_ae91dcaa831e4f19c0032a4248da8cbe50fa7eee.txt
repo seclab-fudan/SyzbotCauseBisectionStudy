@@ -1,0 +1,78 @@
+=====================================================
+BUG: KMSAN: kernel-infoleak in instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+BUG: KMSAN: kernel-infoleak in copyout lib/iov_iter.c:169 [inline]
+BUG: KMSAN: kernel-infoleak in _copy_to_iter+0x870/0x1fd0 lib/iov_iter.c:523
+ instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+ copyout lib/iov_iter.c:169 [inline]
+ _copy_to_iter+0x870/0x1fd0 lib/iov_iter.c:523
+ copy_to_iter include/linux/uio.h:181 [inline]
+ kernfs_file_read_iter fs/kernfs/file.c:261 [inline]
+ kernfs_fop_read_iter+0x578/0x970 fs/kernfs/file.c:280
+ call_read_iter include/linux/fs.h:1845 [inline]
+ new_sync_read fs/read_write.c:389 [inline]
+ vfs_read+0x8cd/0xf40 fs/read_write.c:470
+ ksys_read+0x21f/0x4f0 fs/read_write.c:613
+ __do_sys_read fs/read_write.c:623 [inline]
+ __se_sys_read fs/read_write.c:621 [inline]
+ __x64_sys_read+0x93/0xd0 fs/read_write.c:621
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was stored to memory at:
+ read_descriptors+0x331/0x560 drivers/usb/core/sysfs.c:889
+ sysfs_kf_bin_read+0x33d/0x400 fs/sysfs/file.c:97
+ kernfs_file_read_iter fs/kernfs/file.c:251 [inline]
+ kernfs_fop_read_iter+0x45b/0x970 fs/kernfs/file.c:280
+ call_read_iter include/linux/fs.h:1845 [inline]
+ new_sync_read fs/read_write.c:389 [inline]
+ vfs_read+0x8cd/0xf40 fs/read_write.c:470
+ ksys_read+0x21f/0x4f0 fs/read_write.c:613
+ __do_sys_read fs/read_write.c:623 [inline]
+ __se_sys_read fs/read_write.c:621 [inline]
+ __x64_sys_read+0x93/0xd0 fs/read_write.c:621
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was created at:
+ slab_post_alloc_hook+0x12d/0xb60 mm/slab.h:774
+ slab_alloc_node mm/slub.c:3452 [inline]
+ __kmem_cache_alloc_node+0x518/0x920 mm/slub.c:3491
+ __do_kmalloc_node mm/slab_common.c:966 [inline]
+ __kmalloc_node_track_caller+0x118/0x3c0 mm/slab_common.c:987
+ kvasprintf+0xce/0x220 lib/kasprintf.c:25
+ kvasprintf_const+0xe1/0x2b0 lib/kasprintf.c:49
+ kobject_set_name_vargs+0x8e/0x2c0 lib/kobject.c:265
+ dev_set_name+0x1b2/0x200 drivers/base/core.c:3380
+ usb_create_ep_devs+0x1c1/0x460 drivers/usb/core/endpoint.c:167
+ create_intf_ep_devs drivers/usb/core/message.c:1254 [inline]
+ usb_set_configuration+0x3392/0x37b0 drivers/usb/core/message.c:2177
+ usb_generic_driver_probe+0x109/0x2a0 drivers/usb/core/generic.c:238
+ usb_probe_device+0x290/0x4a0 drivers/usb/core/driver.c:293
+ really_probe+0x507/0xf40 drivers/base/dd.c:631
+ __driver_probe_device+0x300/0x3e0 drivers/base/dd.c:768
+ driver_probe_device+0x72/0x7b0 drivers/base/dd.c:798
+ __device_attach_driver+0x55a/0x8f0 drivers/base/dd.c:926
+ bus_for_each_drv+0x433/0x680 drivers/base/bus.c:457
+ __device_attach+0x406/0x660 drivers/base/dd.c:998
+ device_initial_probe+0x32/0x40 drivers/base/dd.c:1047
+ bus_probe_device+0x3d8/0x5a0 drivers/base/bus.c:532
+ device_add+0x1cb0/0x25e0 drivers/base/core.c:3589
+ usb_new_device+0x163b/0x2340 drivers/usb/core/hub.c:2575
+ hub_port_connect drivers/usb/core/hub.c:5407 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5551 [inline]
+ port_event drivers/usb/core/hub.c:5711 [inline]
+ hub_event+0x5777/0x7890 drivers/usb/core/hub.c:5793
+ process_one_work+0xb0d/0x1410 kernel/workqueue.c:2390
+ worker_thread+0x107e/0x1d60 kernel/workqueue.c:2537
+ kthread+0x31f/0x430 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+Byte 115 of 4096 is uninitialized
+Memory access of size 4096 starts at ffff888119891000
+Data copied to user address 00007fff7db6a207
+
+CPU: 1 PID: 5029 Comm: udevd Not tainted 6.3.0-rc1-syzkaller-ge61893130d87 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+=====================================================

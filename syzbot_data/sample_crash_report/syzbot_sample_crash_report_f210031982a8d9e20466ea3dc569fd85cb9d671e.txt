@@ -1,0 +1,57 @@
+Unable to handle kernel paging request at virtual address 006c69662f2e0800
+Mem abort info:
+  ESR = 0x0000000096000004
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000004
+  CM = 0, WnR = 0
+[006c69662f2e0800] address between user and kernel address ranges
+Internal error: Oops: 0000000096000004 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 4560 Comm: kworker/0:13 Not tainted 6.1.0-rc6-syzkaller-32662-g6d464646530f #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+Workqueue: events nsim_dev_trap_report_work
+pstate: 40400005 (nZcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __kmem_cache_alloc_node+0x17c/0x350 mm/slub.c:3437
+lr : slab_pre_alloc_hook mm/slab.h:712 [inline]
+lr : slab_alloc_node mm/slub.c:3318 [inline]
+lr : __kmem_cache_alloc_node+0x80/0x350 mm/slub.c:3437
+sp : ffff800013f4bbe0
+x29: ffff800013f4bbf0 x28: ffff00010c18b480 x27: 0000000000000001
+x26: ffff80000a3e2368 x25: 00000000ffffffff x24: ffff80000a3e2368
+x23: 0000000000001000 x22: 656c69662f2e0000 x21: 0000000000000000
+x20: 0000000000082a20 x19: ffff0000c0001700 x18: 00000000000000a1
+x17: 0000000000000000 x16: ffff80000dbe6158 x15: ffff00010c18b480
+x14: 00000000000000d8 x13: 00000000ffffffff x12: ffff00010c18b480
+x11: 0000000000000001 x10: 0000000000000000 x9 : 0000000000000800
+x8 : 00000000005c5788 x7 : 0000000000000000 x6 : 000000000000003f
+x5 : 0000000000000040 x4 : ffff80000a3e2368 x3 : 00000000005c5790
+x2 : 00000000ffffffff x1 : 0000000000001000 x0 : fffffc0003e5d800
+Call trace:
+ next_tid mm/slub.c:2349 [inline]
+ slab_alloc_node mm/slub.c:3382 [inline]
+ __kmem_cache_alloc_node+0x17c/0x350 mm/slub.c:3437
+ __do_kmalloc_node mm/slab_common.c:954 [inline]
+ __kmalloc_node_track_caller+0xac/0x13c mm/slab_common.c:975
+ kmalloc_reserve net/core/skbuff.c:437 [inline]
+ __alloc_skb+0x198/0x378 net/core/skbuff.c:509
+ alloc_skb include/linux/skbuff.h:1267 [inline]
+ nsim_dev_trap_skb_build drivers/net/netdevsim/dev.c:751 [inline]
+ nsim_dev_trap_report drivers/net/netdevsim/dev.c:808 [inline]
+ nsim_dev_trap_report_work+0x100/0x370 drivers/net/netdevsim/dev.c:853
+ process_one_work+0x2d8/0x504 kernel/workqueue.c:2289
+ worker_thread+0x340/0x610 kernel/workqueue.c:2436
+ kthread+0x12c/0x158 kernel/kthread.c:376
+ ret_from_fork+0x10/0x20 arch/arm64/kernel/entry.S:863
+Code: 54000ee1 34000eeb b9402a69 91002103 (f8696ada) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	54000ee1 	b.ne	0x1dc  // b.any
+   4:	34000eeb 	cbz	w11, 0x1e0
+   8:	b9402a69 	ldr	w9, [x19, #40]
+   c:	91002103 	add	x3, x8, #0x8
+* 10:	f8696ada 	ldr	x26, [x22, x9] <-- trapping instruction

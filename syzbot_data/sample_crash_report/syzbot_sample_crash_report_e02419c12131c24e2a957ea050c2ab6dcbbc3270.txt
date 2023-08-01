@@ -1,0 +1,126 @@
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.20.0-rc2+ #117 Not tainted
+------------------------------------------------------
+syz-executor874/6070 is trying to acquire lock:
+00000000403dc15a (&sb->s_type->i_mutex_key#11){+.+.}, at: inode_lock include/linux/fs.h:757 [inline]
+00000000403dc15a (&sb->s_type->i_mutex_key#11){+.+.}, at: shmem_fallocate+0x18b/0x12c0 mm/shmem.c:2604
+
+but task is already holding lock:
+0000000019817b16 (ashmem_mutex){+.+.}, at: ashmem_shrink_scan+0xb4/0x660 drivers/staging/android/ashmem.c:448
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (ashmem_mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+       __mutex_lock+0x166/0x16f0 kernel/locking/mutex.c:1072
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+       ashmem_mmap+0x55/0x520 drivers/staging/android/ashmem.c:361
+       call_mmap include/linux/fs.h:1862 [inline]
+       mmap_region+0xe85/0x1cd0 mm/mmap.c:1786
+       do_mmap+0xa22/0x1230 mm/mmap.c:1559
+       do_mmap_pgoff include/linux/mm.h:2328 [inline]
+       vm_mmap_pgoff+0x213/0x2c0 mm/util.c:350
+       ksys_mmap_pgoff+0x4da/0x660 mm/mmap.c:1609
+       __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+       __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+       __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+       do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #1 (&mm->mmap_sem){++++}:
+       down_read+0x8d/0x120 kernel/locking/rwsem.c:24
+       do_user_addr_fault arch/x86/mm/fault.c:1362 [inline]
+       __do_page_fault+0xbc9/0xe60 arch/x86/mm/fault.c:1489
+       do_page_fault+0xf2/0x7e0 arch/x86/mm/fault.c:1520
+       page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1139
+       fault_in_pages_readable include/linux/pagemap.h:609 [inline]
+       iov_iter_fault_in_readable+0x363/0x450 lib/iov_iter.c:424
+       generic_perform_write+0x216/0x6a0 mm/filemap.c:3130
+       __generic_file_write_iter+0x26e/0x630 mm/filemap.c:3265
+       generic_file_write_iter+0x34d/0x6b0 mm/filemap.c:3293
+       call_write_iter include/linux/fs.h:1857 [inline]
+       new_sync_write fs/read_write.c:474 [inline]
+       __vfs_write+0x6b8/0x9f0 fs/read_write.c:487
+       vfs_write+0x1fc/0x560 fs/read_write.c:549
+       ksys_write+0x101/0x260 fs/read_write.c:598
+       __do_sys_write fs/read_write.c:610 [inline]
+       __se_sys_write fs/read_write.c:607 [inline]
+       __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+       do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&sb->s_type->i_mutex_key#11){+.+.}:
+       lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+       down_write+0x8a/0x130 kernel/locking/rwsem.c:70
+       inode_lock include/linux/fs.h:757 [inline]
+       shmem_fallocate+0x18b/0x12c0 mm/shmem.c:2604
+       ashmem_shrink_scan+0x238/0x660 drivers/staging/android/ashmem.c:455
+       ashmem_ioctl+0x3ae/0x13a0 drivers/staging/android/ashmem.c:797
+       vfs_ioctl fs/ioctl.c:46 [inline]
+       file_ioctl fs/ioctl.c:509 [inline]
+       do_vfs_ioctl+0x1de/0x1790 fs/ioctl.c:696
+       ksys_ioctl+0xa9/0xd0 fs/ioctl.c:713
+       __do_sys_ioctl fs/ioctl.c:720 [inline]
+       __se_sys_ioctl fs/ioctl.c:718 [inline]
+       __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+       do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+  &sb->s_type->i_mutex_key#11 --> &mm->mmap_sem --> ashmem_mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(ashmem_mutex);
+                               lock(&mm->mmap_sem);
+                               lock(ashmem_mutex);
+  lock(&sb->s_type->i_mutex_key#11);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor874/6070:
+ #0: 0000000019817b16 (ashmem_mutex){+.+.}, at: ashmem_shrink_scan+0xb4/0x660 drivers/staging/android/ashmem.c:448
+
+stack backtrace:
+CPU: 1 PID: 6070 Comm: syz-executor874 Not tainted 4.20.0-rc2+ #117
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_circular_bug.isra.35.cold.54+0x1bd/0x27d kernel/locking/lockdep.c:1221
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2347 [inline]
+ __lock_acquire+0x3399/0x4c20 kernel/locking/lockdep.c:3341
+ lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+ down_write+0x8a/0x130 kernel/locking/rwsem.c:70
+ inode_lock include/linux/fs.h:757 [inline]
+ shmem_fallocate+0x18b/0x12c0 mm/shmem.c:2604
+ ashmem_shrink_scan+0x238/0x660 drivers/staging/android/ashmem.c:455
+ ashmem_ioctl+0x3ae/0x13a0 drivers/staging/android/ashmem.c:797
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0x1de/0x1790 fs/ioctl.c:696
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x446329
+Code: e8 2c b3 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 2b 09 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ff3c438ada8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000006dac38 RCX: 0000000000446329
+RDX: 0000000000000000 RSI: 000000000000770a RDI: 0000000000000004
+RBP: 00000000006dac30 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dac3c
+R13: dfdd4f11168a8b2b R14: 6873612f7665642f R15: 00000000006dad2c

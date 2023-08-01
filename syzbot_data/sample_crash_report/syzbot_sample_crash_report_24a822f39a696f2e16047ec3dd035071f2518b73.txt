@@ -1,0 +1,106 @@
+REISERFS (device loop1): Using r5 hash to sort names
+REISERFS warning (device loop1): jdm-20006 create_privroot: xattrs/ACLs enabled and couldn't find/create .reiserfs_priv. Failing mount.
+==================================================================
+BUG: KASAN: vmalloc-out-of-bounds in cleanup_bitmap_list+0x175/0x500 fs/reiserfs/journal.c:231
+Read of size 8 at addr ffffc90002e0e008 by task syz-executor100/5129
+
+CPU: 1 PID: 5129 Comm: syz-executor100 Not tainted 6.3.0-rc3-syzkaller-00317-g65aca32efdcb #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:319 [inline]
+ print_report+0x163/0x540 mm/kasan/report.c:430
+ kasan_report+0x176/0x1b0 mm/kasan/report.c:536
+ cleanup_bitmap_list+0x175/0x500 fs/reiserfs/journal.c:231
+ free_list_bitmaps+0x48/0x1a0 fs/reiserfs/journal.c:249
+ free_journal_ram+0xf8/0x3f0 fs/reiserfs/journal.c:1887
+ do_journal_release fs/reiserfs/journal.c:1960 [inline]
+ journal_release_error+0x7a/0x90 fs/reiserfs/journal.c:1978
+ reiserfs_fill_super+0x1599/0x2620 fs/reiserfs/super.c:2223
+ mount_bdev+0x271/0x3a0 fs/super.c:1380
+ legacy_get_tree+0xef/0x190 fs/fs_context.c:610
+ vfs_get_tree+0x8c/0x270 fs/super.c:1510
+ do_new_mount+0x28f/0xae0 fs/namespace.c:3042
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount+0x2d9/0x3c0 fs/namespace.c:3571
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fe73d6f77ba
+Code: 48 c7 c2 c0 ff ff ff f7 d8 64 89 02 b8 ff ff ff ff eb d2 e8 a8 00 00 00 0f 1f 84 00 00 00 00 00 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe8c01cc98 EFLAGS: 00000286 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007fe73d6f77ba
+RDX: 0000000020001100 RSI: 0000000020001140 RDI: 00007ffe8c01ccb0
+RBP: 00007ffe8c01ccb0 R08: 00007ffe8c01ccf0 R09: 0000000000000000
+R10: 0000000000800008 R11: 0000000000000286 R12: 0000000000000004
+R13: 0000555556c082c0 R14: 0000000000800008 R15: 00007ffe8c01ccf0
+ </TASK>
+
+The buggy address belongs to the virtual mapping at
+ [ffffc90002e0e000, ffffc90002e10000) created by:
+ reiserfs_allocate_list_bitmaps+0x50/0x220 fs/reiserfs/journal.c:290
+
+The buggy address belongs to the physical page:
+page:ffffea000072f4c0 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1cbd3
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 0000000000000000 dead000000000122 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x2dc2(GFP_KERNEL|__GFP_HIGHMEM|__GFP_NOWARN|__GFP_ZERO), pid 5129, tgid 5129 (syz-executor100), ts 60773363133, free_ts 59975933908
+ prep_new_page mm/page_alloc.c:2553 [inline]
+ get_page_from_freelist+0x3246/0x33c0 mm/page_alloc.c:4326
+ __alloc_pages+0x255/0x670 mm/page_alloc.c:5592
+ __alloc_pages_bulk+0x729/0xd40 mm/page_alloc.c:5540
+ vm_area_alloc_pages mm/vmalloc.c:2918 [inline]
+ __vmalloc_area_node mm/vmalloc.c:3029 [inline]
+ __vmalloc_node_range+0x798/0x13f0 mm/vmalloc.c:3199
+ __vmalloc_node mm/vmalloc.c:3264 [inline]
+ vzalloc+0x79/0x90 mm/vmalloc.c:3337
+ reiserfs_allocate_list_bitmaps+0x50/0x220 fs/reiserfs/journal.c:290
+ journal_init+0x2ec/0x24b0 fs/reiserfs/journal.c:2733
+ reiserfs_fill_super+0x1039/0x2620 fs/reiserfs/super.c:2022
+ mount_bdev+0x271/0x3a0 fs/super.c:1380
+ legacy_get_tree+0xef/0x190 fs/fs_context.c:610
+ vfs_get_tree+0x8c/0x270 fs/super.c:1510
+ do_new_mount+0x28f/0xae0 fs/namespace.c:3042
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount+0x2d9/0x3c0 fs/namespace.c:3571
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1454 [inline]
+ free_pcp_prepare mm/page_alloc.c:1504 [inline]
+ free_unref_page_prepare+0xe2f/0xe70 mm/page_alloc.c:3388
+ free_unref_page+0x37/0x3f0 mm/page_alloc.c:3483
+ vfree+0x186/0x2e0 mm/vmalloc.c:2742
+ free_list_bitmaps+0xed/0x1a0 fs/reiserfs/journal.c:250
+ free_journal_ram+0xf8/0x3f0 fs/reiserfs/journal.c:1887
+ do_journal_release fs/reiserfs/journal.c:1960 [inline]
+ journal_release_error+0x7a/0x90 fs/reiserfs/journal.c:1978
+ reiserfs_fill_super+0x1599/0x2620 fs/reiserfs/super.c:2223
+ mount_bdev+0x271/0x3a0 fs/super.c:1380
+ legacy_get_tree+0xef/0x190 fs/fs_context.c:610
+ vfs_get_tree+0x8c/0x270 fs/super.c:1510
+ do_new_mount+0x28f/0xae0 fs/namespace.c:3042
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount+0x2d9/0x3c0 fs/namespace.c:3571
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Memory state around the buggy address:
+ ffffc90002e0df00: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90002e0df80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+>ffffc90002e0e000: 00 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+                      ^
+ ffffc90002e0e080: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90002e0e100: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+==================================================================

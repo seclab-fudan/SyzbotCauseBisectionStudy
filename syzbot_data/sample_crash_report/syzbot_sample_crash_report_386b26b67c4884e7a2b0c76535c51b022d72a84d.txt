@@ -1,0 +1,143 @@
+INFO: task syz-executor.2:22898 blocked for more than 143 seconds.
+      Not tainted 6.2.0-rc8-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor.2  state:D stack:28392 pid:22898 ppid:5116   flags:0x00004004
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5293 [inline]
+ __schedule+0x1409/0x43f0 kernel/sched/core.c:6606
+ schedule+0xc3/0x190 kernel/sched/core.c:6682
+ schedule_preempt_disabled+0x13/0x20 kernel/sched/core.c:6741
+ __mutex_lock_common+0xe33/0x2530 kernel/locking/mutex.c:679
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x1b/0x20 kernel/locking/mutex.c:799
+ tls_sw_sendmsg+0x2ad/0x1890 net/tls/tls_sw.c:944
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ sock_write_iter+0x398/0x4e0 net/socket.c:1108
+ call_write_iter include/linux/fs.h:2189 [inline]
+ new_sync_write fs/read_write.c:491 [inline]
+ vfs_write+0x7b2/0xbb0 fs/read_write.c:584
+ ksys_write+0x1a0/0x2c0 fs/read_write.c:637
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fd9fa68c0f9
+RSP: 002b:00007fd9fb482168 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007fd9fa7ac120 RCX: 00007fd9fa68c0f9
+RDX: 000000000000000b RSI: 0000000020000140 RDI: 0000000000000003
+RBP: 00007fd9fa6e7ae9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffe3ec0ccaf R14: 00007fd9fb482300 R15: 0000000000022000
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/12:
+ #0: ffffffff8cf258d0 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x26/0xce0 kernel/rcu/tasks.h:507
+1 lock held by rcu_tasks_trace/13:
+ #0: ffffffff8cf260d0 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x26/0xce0 kernel/rcu/tasks.h:507
+1 lock held by khungtaskd/28:
+ #0: ffffffff8cf25700 (rcu_read_lock){....}-{1:2}, at: rcu_lock_acquire+0x0/0x30
+2 locks held by getty/4736:
+ #0: ffff88802862b098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:244
+ #1: ffffc900015b02f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0x6ab/0x1db0 drivers/tty/n_tty.c:2177
+3 locks held by kworker/0:9/5169:
+ #0: ffff888012470d38 ((wq_completion)events){+.+.}-{0:0}, at: process_one_work+0x77f/0x1370
+ #1: ffffc9000468fd20 ((work_completion)(&(&sw_ctx_tx->tx_work.work)->work)){+.+.}-{0:0}, at: process_one_work+0x7c6/0x1370 kernel/workqueue.c:2264
+ #2: ffff8880823940d8 (&ctx->tx_lock){+.+.}-{3:3}, at: tx_work_handler+0x108/0x160 net/tls/tls_sw.c:2419
+2 locks held by kworker/1:19/20174:
+ #0: ffff888012472538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: process_one_work+0x77f/0x1370
+ #1: ffffc900050ffd20 ((work_completion)(&rew->rew_work)){+.+.}-{0:0}, at: process_one_work+0x7c6/0x1370 kernel/workqueue.c:2264
+1 lock held by syz-executor.2/22898:
+ #0: ffff8880823940d8 (&ctx->tx_lock){+.+.}-{3:3}, at: tls_sw_sendmsg+0x2ad/0x1890 net/tls/tls_sw.c:944
+2 locks held by kworker/u4:3/23349:
+1 lock held by syz-executor.4/26576:
+ #0: ffff88803f2cc0e0 (&type->s_umount_key#65/1){+.+.}-{3:3}, at: alloc_super+0x217/0x930 fs/super.c:228
+2 locks held by dhcpcd/26582:
+ #0: ffff888073916e10 (&sb->s_type->i_mutex_key#9){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #0: ffff888073916e10 (&sb->s_type->i_mutex_key#9){+.+.}-{3:3}, at: __sock_release net/socket.c:649 [inline]
+ #0: ffff888073916e10 (&sb->s_type->i_mutex_key#9){+.+.}-{3:3}, at: sock_close+0x9c/0x230 net/socket.c:1365
+ #1: ffffffff8cf2acf8 (rcu_state.exp_mutex){+.+.}-{3:3}, at: exp_funnel_lock kernel/rcu/tree_exp.h:324 [inline]
+ #1: ffffffff8cf2acf8 (rcu_state.exp_mutex){+.+.}-{3:3}, at: synchronize_rcu_expedited+0x474/0x890 kernel/rcu/tree_exp.h:946
+1 lock held by dhcpcd/26591:
+ #0: ffff888073bd5010 (&sb->s_type->i_mutex_key#9){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #0: ffff888073bd5010 (&sb->s_type->i_mutex_key#9){+.+.}-{3:3}, at: __sock_release net/socket.c:649 [inline]
+ #0: ffff888073bd5010 (&sb->s_type->i_mutex_key#9){+.+.}-{3:3}, at: sock_close+0x9c/0x230 net/socket.c:1365
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 28 Comm: khungtaskd Not tainted 6.2.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ nmi_cpu_backtrace+0x4e5/0x560 lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x1b4/0x3f0 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:220 [inline]
+ watchdog+0xf70/0xfb0 kernel/hung_task.c:377
+ kthread+0x270/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 26576 Comm: syz-executor.4 Not tainted 6.2.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+RIP: 0010:lookup_chain_cache kernel/locking/lockdep.c:3725 [inline]
+RIP: 0010:lookup_chain_cache_add kernel/locking/lockdep.c:3744 [inline]
+RIP: 0010:validate_chain+0x1a0/0x58e0 kernel/locking/lockdep.c:3799
+Code: 89 df e8 83 4e 75 00 48 89 5c 24 20 48 8b 1b 48 85 db 74 48 48 83 c3 f8 74 42 4c 8d 7b 18 4c 89 f8 48 c1 e8 03 42 80 3c 20 00 <74> 08 4c 89 ff e8 56 4e 75 00 49 8b 07 4c 39 f0 0f 84 dc 03 00 00
+RSP: 0018:ffffc900162b6740 EFLAGS: 00000046
+RAX: 1ffffffff208b4ab RBX: ffffffff9045a540 RCX: ffffffff816bc159
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: ffffffff901c22d8
+RBP: ffffc900162b69f0 R08: dffffc0000000000 R09: fffffbfff203845c
+R10: 0000000000000000 R11: dffffc0000000001 R12: dffffc0000000000
+R13: ffff888017fac6b8 R14: ce845abdc50e21ad R15: ffffffff9045a558
+FS:  00007f7369a7a700(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020001000 CR3: 000000001f0a4000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __lock_acquire+0x125b/0x1f80 kernel/locking/lockdep.c:5055
+ lock_acquire+0x235/0x630 kernel/locking/lockdep.c:5668
+ __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+ _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+ spin_lock include/linux/spinlock.h:350 [inline]
+ insert_delayed_ref+0x39/0x8e0 fs/btrfs/delayed-ref.c:613
+ btrfs_add_delayed_tree_ref+0x8e1/0x1110 fs/btrfs/delayed-ref.c:981
+ btrfs_alloc_tree_block+0xf50/0x1800 fs/btrfs/extent-tree.c:5026
+ insert_new_root+0x296/0x990 fs/btrfs/ctree.c:2827
+ split_leaf+0xdb1/0x1260 fs/btrfs/ctree.c:3642
+ search_leaf fs/btrfs/ctree.c:1990 [inline]
+ btrfs_search_slot+0x2678/0x2f70 fs/btrfs/ctree.c:2177
+ btrfs_insert_empty_items fs/btrfs/ctree.c:4206 [inline]
+ btrfs_insert_empty_item fs/btrfs/ctree.h:631 [inline]
+ btrfs_insert_item+0x198/0x3a0 fs/btrfs/ctree.c:4235
+ create_pending_snapshot+0xfe0/0x2870 fs/btrfs/transaction.c:1783
+ create_pending_snapshots+0x195/0x1d0 fs/btrfs/transaction.c:1894
+ btrfs_commit_transaction+0x12be/0x3310 fs/btrfs/transaction.c:2351
+ create_snapshot+0x4a5/0x7e0 fs/btrfs/ioctl.c:844
+ btrfs_mksubvol+0x75e/0x8d0 fs/btrfs/ioctl.c:994
+ btrfs_mksnapshot+0xb5/0xf0 fs/btrfs/ioctl.c:1040
+ __btrfs_ioctl_snap_create+0x338/0x450 fs/btrfs/ioctl.c:1293
+ btrfs_ioctl_snap_create+0x123/0x180 fs/btrfs/ioctl.c:1320
+ btrfs_ioctl+0xbbc/0xd40
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl+0xf1/0x160 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f7368c8c0f9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f7369a7a168 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007f7368dabf80 RCX: 00007f7368c8c0f9
+RDX: 00000000200000c0 RSI: 0000000050009401 RDI: 0000000000000006
+RBP: 00007f7368ce7ae9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffe2bd5238f R14: 00007f7369a7a300 R15: 0000000000022000
+ </TASK>

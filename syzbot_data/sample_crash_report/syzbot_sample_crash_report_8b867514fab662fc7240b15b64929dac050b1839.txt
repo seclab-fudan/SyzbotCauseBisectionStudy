@@ -1,0 +1,64 @@
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 0 PID: 7336 at lib/refcount.c:28 refcount_warn_saturate+0x1d1/0x1e0 lib/refcount.c:28
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 7336 Comm: syz-executor080 Not tainted 5.7.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x188/0x20d lib/dump_stack.c:118
+ panic+0x2e3/0x75c kernel/panic.c:221
+ __warn.cold+0x2f/0x35 kernel/panic.c:582
+ report_bug+0x27b/0x2f0 lib/bug.c:195
+ fixup_bug arch/x86/kernel/traps.c:175 [inline]
+ fixup_bug arch/x86/kernel/traps.c:170 [inline]
+ do_error_trap+0x12b/0x220 arch/x86/kernel/traps.c:267
+ do_invalid_op+0x32/0x40 arch/x86/kernel/traps.c:286
+ invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1027
+RIP: 0010:refcount_warn_saturate+0x1d1/0x1e0 lib/refcount.c:28
+Code: e9 db fe ff ff 48 89 df e8 2c 7f 1a fe e9 8a fe ff ff e8 82 b2 dc fd 48 c7 c7 00 5c 72 88 c6 05 e9 16 ee 06 01 e8 87 ed ad fd <0f> 0b e9 af fe ff ff 0f 1f 84 00 00 00 00 00 41 56 41 55 41 54 55
+RSP: 0018:ffffc90001be7b20 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff815ce171 RDI: fffff5200037cf56
+RBP: 0000000000000003 R08: ffff88808ddb6400 R09: ffffed1015cc66a9
+R10: ffff8880ae633547 R11: ffffed1015cc66a8 R12: ffff88809f93c07c
+R13: ffff88809e23b400 R14: 0000000000000000 R15: ffff88809e23b410
+ refcount_sub_and_test include/linux/refcount.h:274 [inline]
+ refcount_dec_and_test include/linux/refcount.h:294 [inline]
+ crypto_alg_put crypto/internal.h:93 [inline]
+ crypto_mod_put crypto/api.c:45 [inline]
+ crypto_destroy_tfm+0x2a1/0x310 crypto/api.c:566
+ crypto_exit_ops crypto/api.c:308 [inline]
+ crypto_destroy_tfm+0xb1/0x310 crypto/api.c:565
+ crypto_free_aead include/crypto/aead.h:191 [inline]
+ aead_release+0x2d/0x50 crypto/algif_aead.c:506
+ alg_do_release crypto/af_alg.c:114 [inline]
+ alg_sock_destruct+0x85/0xe0 crypto/af_alg.c:358
+ __sk_destruct+0x4b/0x7c0 net/core/sock.c:1696
+ sk_destruct+0xc6/0x100 net/core/sock.c:1740
+ __sk_free+0xef/0x3d0 net/core/sock.c:1751
+ sk_free+0x78/0xa0 net/core/sock.c:1762
+ sock_put include/net/sock.h:1778 [inline]
+ af_alg_release+0xdb/0x110 crypto/af_alg.c:121
+ __sock_release+0xcd/0x280 net/socket.c:605
+ sock_close+0x18/0x20 net/socket.c:1283
+ __fput+0x33e/0x880 fs/file_table.c:280
+ task_work_run+0xf4/0x1b0 kernel/task_work.c:123
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0xb34/0x2dd0 kernel/exit.c:796
+ do_group_exit+0x125/0x340 kernel/exit.c:894
+ __do_sys_exit_group kernel/exit.c:905 [inline]
+ __se_sys_exit_group kernel/exit.c:903 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:903
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x43ffc8
+Code: 00 00 be 3c 00 00 00 eb 19 66 0f 1f 84 00 00 00 00 00 48 89 d7 89 f0 0f 05 48 3d 00 f0 ff ff 77 21 f4 48 89 d7 44 89 c0 0f 05 <48> 3d 00 f0 ff ff 76 e0 f7 d8 64 41 89 01 eb d8 0f 1f 84 00 00 00
+RSP: 002b:00007ffd619a8288 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043ffc8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004bf890 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 00000000004002c8 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d1180 R14: 0000000000000000 R15: 0000000000000000
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

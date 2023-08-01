@@ -1,0 +1,68 @@
+audit: type=1400 audit(1520316143.623:6): avc:  denied  { map } for  pid=4228 comm="bash" path="/bin/bash" dev="sda1" ino=1457 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:file_t:s0 tclass=file permissive=1
+audit: type=1400 audit(1520316149.914:7): avc:  denied  { map } for  pid=4242 comm="syzkaller418919" path="/root/syzkaller418919618" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: slab-out-of-bounds in setup_udp_tunnel_sock+0x3ee/0x5f0 net/ipv4/udp_tunnel.c:69
+Write of size 1 at addr ffff8801d5146550 by task syzkaller418919/4242
+
+CPU: 0 PID: 4242 Comm: syzkaller418919 Not tainted 4.16.0-rc4+ #342
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_store1_noabort+0x17/0x20 mm/kasan/report.c:435
+ setup_udp_tunnel_sock+0x3ee/0x5f0 net/ipv4/udp_tunnel.c:69
+ l2tp_tunnel_create+0x1361/0x1800 net/l2tp/l2tp_core.c:1538
+ pppol2tp_connect+0x14b8/0x1dd0 net/l2tp/l2tp_ppp.c:698
+ SYSC_connect+0x213/0x4a0 net/socket.c:1639
+ SyS_connect+0x24/0x30 net/socket.c:1620
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43fd99
+RSP: 002b:00007ffc18065c38 EFLAGS: 00000217 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd99
+RDX: 000000000000002e RSI: 00000000200000c0 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000217 R12: 00000000004016c0
+R13: 0000000000401750 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4242:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3541
+ sk_prot_alloc+0x65/0x2a0 net/core/sock.c:1465
+ sk_alloc+0x105/0x1440 net/core/sock.c:1525
+ inet_create+0x47c/0xf50 net/ipv4/af_inet.c:320
+ __sock_create+0x4d4/0x850 net/socket.c:1285
+ sock_create net/socket.c:1325 [inline]
+ SYSC_socket net/socket.c:1355 [inline]
+ SyS_socket+0xeb/0x1d0 net/socket.c:1335
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801d5146040
+ which belongs to the cache RAW of size 1296
+The buggy address is located 0 bytes to the right of
+ 1296-byte region [ffff8801d5146040, ffff8801d5146550)
+The buggy address belongs to the page:
+page:ffffea0007545180 count:1 mapcount:0 mapping:ffff8801d5146040 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801d5146040 0000000000000000 0000000100000005
+raw: ffff8801d6bbf748 ffff8801d6bbf748 ffff8801d5bdbb00 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d5146400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801d5146480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801d5146500: 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc
+                                                 ^
+ ffff8801d5146580: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801d5146600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

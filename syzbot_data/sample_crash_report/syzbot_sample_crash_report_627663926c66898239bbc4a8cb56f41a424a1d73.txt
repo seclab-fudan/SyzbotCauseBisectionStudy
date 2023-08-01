@@ -1,0 +1,60 @@
+general protection fault, probably for non-canonical address 0xffff000000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: maybe wild-memory-access in range [0xfff8200000000000-0xfff8200000000007]
+CPU: 1 PID: 21 Comm: ksoftirqd/1 Not tainted 5.19.0-next-20220815-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+RIP: 0010:rcu_do_batch kernel/rcu/tree.c:2245 [inline]
+RIP: 0010:rcu_core+0x7b3/0x1890 kernel/rcu/tree.c:2505
+Code: 83 ae f7 ff 48 8d 7d 08 5e 48 89 f8 48 c1 e8 03 42 80 3c 20 00 0f 85 e1 0c 00 00 48 8b 45 08 48 89 ef 48 c7 45 08 00 00 00 00 <ff> d0 48 c7 c6 24 d0 67 81 48 c7 c7 a0 96 f8 8b e8 c8 a6 f7 ff 65
+RSP: 0000:ffffc900001b7d50 EFLAGS: 00010246
+RAX: ffff000000000000 RBX: 0000000000000001 RCX: a874641a40bae7d8
+RDX: 1ffff110023474fe RSI: ffffffff8167cfc1 RDI: ffff88801fe75028
+RBP: ffff88801fe75028 R08: 0000000000000000 R09: ffffffff908de95f
+R10: fffffbfff211bd2b R11: 0000000000000001 R12: dffffc0000000000
+R13: 0000000000000000 R14: ffffc900001b7dc8 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000bc8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __do_softirq+0x1d3/0x9c6 kernel/softirq.c:571
+ run_ksoftirqd kernel/softirq.c:934 [inline]
+ run_ksoftirqd+0x2d/0x60 kernel/softirq.c:926
+ smpboot_thread_fn+0x645/0x9c0 kernel/smpboot.c:164
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:rcu_do_batch kernel/rcu/tree.c:2245 [inline]
+RIP: 0010:rcu_core+0x7b3/0x1890 kernel/rcu/tree.c:2505
+Code: 83 ae f7 ff 48 8d 7d 08 5e 48 89 f8 48 c1 e8 03 42 80 3c 20 00 0f 85 e1 0c 00 00 48 8b 45 08 48 89 ef 48 c7 45 08 00 00 00 00 <ff> d0 48 c7 c6 24 d0 67 81 48 c7 c7 a0 96 f8 8b e8 c8 a6 f7 ff 65
+RSP: 0000:ffffc900001b7d50 EFLAGS: 00010246
+RAX: ffff000000000000 RBX: 0000000000000001 RCX: a874641a40bae7d8
+RDX: 1ffff110023474fe RSI: ffffffff8167cfc1 RDI: ffff88801fe75028
+RBP: ffff88801fe75028 R08: 0000000000000000 R09: ffffffff908de95f
+R10: fffffbfff211bd2b R11: 0000000000000001 R12: dffffc0000000000
+R13: 0000000000000000 R14: ffffc900001b7dc8 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000bc8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	83 ae f7 ff 48 8d 7d 	subl   $0x7d,-0x72b70009(%rsi)
+   7:	08 5e 48             	or     %bl,0x48(%rsi)
+   a:	89 f8                	mov    %edi,%eax
+   c:	48 c1 e8 03          	shr    $0x3,%rax
+  10:	42 80 3c 20 00       	cmpb   $0x0,(%rax,%r12,1)
+  15:	0f 85 e1 0c 00 00    	jne    0xcfc
+  1b:	48 8b 45 08          	mov    0x8(%rbp),%rax
+  1f:	48 89 ef             	mov    %rbp,%rdi
+  22:	48 c7 45 08 00 00 00 	movq   $0x0,0x8(%rbp)
+  29:	00
+* 2a:	ff d0                	callq  *%rax <-- trapping instruction
+  2c:	48 c7 c6 24 d0 67 81 	mov    $0xffffffff8167d024,%rsi
+  33:	48 c7 c7 a0 96 f8 8b 	mov    $0xffffffff8bf896a0,%rdi
+  3a:	e8 c8 a6 f7 ff       	callq  0xfff7a707
+  3f:	65                   	gs

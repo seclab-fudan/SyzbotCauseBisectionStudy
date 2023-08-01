@@ -1,0 +1,146 @@
+INFO: task kworker/1:3:1146 blocked for more than 143 seconds.
+      Not tainted 5.19.0-rc1-syzkaller-00214-gfe43c0188911 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:kworker/1:3     state:D stack:25016 pid: 1146 ppid:     2 flags:0x00004000
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5116 [inline]
+ __schedule+0xa00/0x4b30 kernel/sched/core.c:6428
+ schedule+0xd2/0x1f0 kernel/sched/core.c:6500
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6559
+ __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+ __mutex_lock+0xa70/0x1350 kernel/locking/mutex.c:747
+ add_early_randomness+0x1a/0x170 drivers/char/hw_random/core.c:69
+ hwrng_register+0x399/0x510 drivers/char/hw_random/core.c:599
+ chaoskey_probe+0x7b5/0xc40 drivers/usb/misc/chaoskey.c:205
+ usb_probe_interface+0x315/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:555 [inline]
+ really_probe+0x23e/0xb90 drivers/base/dd.c:634
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:764
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:794
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:917
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:989
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbda/0x1ea0 drivers/base/core.c:3417
+ usb_set_configuration+0x101e/0x1900 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0xba/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd9/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:555 [inline]
+ really_probe+0x23e/0xb90 drivers/base/dd.c:634
+ __driver_probe_device+0x338/0x4d0 drivers/base/dd.c:764
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:794
+ __device_attach_driver+0x20b/0x2f0 drivers/base/dd.c:917
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:989
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:487
+ device_add+0xbda/0x1ea0 drivers/base/core.c:3417
+ usb_new_device.cold+0x641/0x1091 drivers/usb/core/hub.c:2566
+ hub_port_connect drivers/usb/core/hub.c:5363 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5507 [inline]
+ port_event drivers/usb/core/hub.c:5663 [inline]
+ hub_event+0x25d5/0x4690 drivers/usb/core/hub.c:5745
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+
+Showing all locks held in the system:
+2 locks held by pr/ttyS0/16:
+1 lock held by khungtaskd/29:
+ #0: ffffffff8bd867a0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6491
+1 lock held by hwrng/756:
+ #0: ffffffff8c832aa8 (reading_mutex){+.+.}-{3:3}, at: hwrng_fillfn+0x141/0x370 drivers/char/hw_random/core.c:503
+6 locks held by kworker/1:3/1146:
+ #0: ffff888011b4d138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888011b4d138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888011b4d138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888011b4d138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
+ #0: ffff888011b4d138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
+ #0: ffff888011b4d138 ((wq_completion)usb_hub_wq){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
+ #1: ffffc900056a7da8 ((work_completion)(&hub->events)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
+ #2: ffff888020a99190 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #2: ffff888020a99190 (&dev->mutex){....}-{3:3}, at: hub_event+0x1c1/0x4690 drivers/usb/core/hub.c:5691
+ #3: ffff88814739f190 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #3: ffff88814739f190 (&dev->mutex){....}-{3:3}, at: __device_attach+0x76/0x530 drivers/base/dd.c:964
+ #4: ffff88814739e118 (&dev->mutex){....}-{3:3}, at: device_lock include/linux/device.h:835 [inline]
+ #4: ffff88814739e118 (&dev->mutex){....}-{3:3}, at: __device_attach+0x76/0x530 drivers/base/dd.c:964
+ #5: ffffffff8c832aa8 (reading_mutex){+.+.}-{3:3}, at: add_early_randomness+0x1a/0x170 drivers/char/hw_random/core.c:69
+2 locks held by getty/3289:
+ #0: ffff888026ccf098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc90002d162e8 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xe50/0x13c0 drivers/tty/n_tty.c:2124
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 29 Comm: khungtaskd Not tainted 5.19.0-rc1-syzkaller-00214-gfe43c0188911 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x47/0x144 lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x1e6/0x230 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:220 [inline]
+ watchdog+0xc22/0xf90 kernel/hung_task.c:378
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 16 Comm: pr/ttyS0 Not tainted 5.19.0-rc1-syzkaller-00214-gfe43c0188911 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:io_serial_in+0x83/0xa0 drivers/tty/serial/8250/8250_port.c:461
+Code: 84 1a fd 48 8d 7d 40 44 89 e1 48 b8 00 00 00 00 00 fc ff df 48 89 fa d3 e3 48 c1 ea 03 80 3c 02 00 75 16 66 03 5d 40 89 da ec <5b> 0f b6 c0 5d 41 5c c3 e8 70 47 67 fd eb a6 e8 99 47 67 fd eb e3
+RSP: 0018:ffffc90000157b10 EFLAGS: 00000002
+RAX: dffffc0000000000 RBX: 00000000000003fd RCX: 0000000000000000
+RDX: 00000000000003fd RSI: ffffffff845ff27c RDI: ffffffff9121a2a0
+RBP: ffffffff9121a260 R08: 0000000000000001 R09: 000000000000001f
+R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000000
+R13: fffffbfff22434a0 R14: fffffbfff2243456 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000555a44ae7ca8 CR3: 0000000022325000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ serial_in drivers/tty/serial/8250/8250.h:118 [inline]
+ wait_for_lsr+0x96/0xf0 drivers/tty/serial/8250/8250_port.c:2085
+ serial8250_console_fifo_write drivers/tty/serial/8250/8250_port.c:3354 [inline]
+ serial8250_console_write+0xc87/0xfe0 drivers/tty/serial/8250/8250_port.c:3436
+ call_console_driver kernel/printk/printk.c:2075 [inline]
+ __console_emit_next_record+0x896/0xa60 kernel/printk/printk.c:2916
+ console_emit_next_record kernel/printk/printk.c:3721 [inline]
+ printk_kthread_func.cold+0x702/0x73d kernel/printk/printk.c:3837
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	84 1a                	test   %bl,(%rdx)
+   2:	fd                   	std
+   3:	48 8d 7d 40          	lea    0x40(%rbp),%rdi
+   7:	44 89 e1             	mov    %r12d,%ecx
+   a:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  11:	fc ff df
+  14:	48 89 fa             	mov    %rdi,%rdx
+  17:	d3 e3                	shl    %cl,%ebx
+  19:	48 c1 ea 03          	shr    $0x3,%rdx
+  1d:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+  21:	75 16                	jne    0x39
+  23:	66 03 5d 40          	add    0x40(%rbp),%bx
+  27:	89 da                	mov    %ebx,%edx
+  29:	ec                   	in     (%dx),%al
+* 2a:	5b                   	pop    %rbx <-- trapping instruction
+  2b:	0f b6 c0             	movzbl %al,%eax
+  2e:	5d                   	pop    %rbp
+  2f:	41 5c                	pop    %r12
+  31:	c3                   	retq
+  32:	e8 70 47 67 fd       	callq  0xfd6747a7
+  37:	eb a6                	jmp    0xffffffdf
+  39:	e8 99 47 67 fd       	callq  0xfd6747d7
+  3e:	eb e3                	jmp    0x23

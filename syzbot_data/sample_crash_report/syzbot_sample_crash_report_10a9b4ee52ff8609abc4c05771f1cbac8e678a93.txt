@@ -1,0 +1,65 @@
+Kernel panic - not syncing: corrupted stack end detected inside scheduler
+CPU: 0 PID: 3538 Comm: syz-executor.0 Not tainted 5.17.0-rc1-syzkaller-00002-g0966d385830d #0
+Hardware name: riscv-virtio,qemu (DT)
+Call Trace:
+[<ffffffff8000a228>] dump_backtrace+0x2e/0x3c arch/riscv/kernel/stacktrace.c:113
+[<ffffffff831668cc>] show_stack+0x34/0x40 arch/riscv/kernel/stacktrace.c:119
+[<ffffffff831756ba>] __dump_stack lib/dump_stack.c:88 [inline]
+[<ffffffff831756ba>] dump_stack_lvl+0xe4/0x150 lib/dump_stack.c:106
+[<ffffffff83175742>] dump_stack+0x1c/0x24 lib/dump_stack.c:113
+[<ffffffff83166fa8>] panic+0x24a/0x634 kernel/panic.c:233
+[<ffffffff831a688a>] schedule_debug kernel/sched/core.c:5541 [inline]
+[<ffffffff831a688a>] schedule+0x0/0x14c kernel/sched/core.c:6187
+[<ffffffff831a6b00>] preempt_schedule_common+0x4e/0xde kernel/sched/core.c:6462
+[<ffffffff831a6bc4>] preempt_schedule+0x34/0x36 kernel/sched/core.c:6487
+[<ffffffff831afd78>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+[<ffffffff831afd78>] _raw_spin_unlock_irqrestore+0x8c/0x98 kernel/locking/spinlock.c:194
+[<ffffffff80b09fdc>] __debug_check_no_obj_freed lib/debugobjects.c:1002 [inline]
+[<ffffffff80b09fdc>] debug_check_no_obj_freed+0x14c/0x24a lib/debugobjects.c:1023
+[<ffffffff80410994>] free_pages_prepare mm/page_alloc.c:1358 [inline]
+[<ffffffff80410994>] free_pcp_prepare+0x24e/0x45e mm/page_alloc.c:1404
+[<ffffffff804142fe>] free_unref_page_prepare mm/page_alloc.c:3325 [inline]
+[<ffffffff804142fe>] free_unref_page+0x6a/0x31e mm/page_alloc.c:3404
+[<ffffffff8041471e>] free_the_page mm/page_alloc.c:706 [inline]
+[<ffffffff8041471e>] __free_pages+0xe2/0x112 mm/page_alloc.c:5474
+[<ffffffff8046d728>] __free_slab+0x122/0x27c mm/slub.c:2028
+[<ffffffff8046d8ce>] free_slab mm/slub.c:2043 [inline]
+[<ffffffff8046d8ce>] discard_slab+0x4c/0x7a mm/slub.c:2049
+[<ffffffff8046deec>] __unfreeze_partials+0x16a/0x18e mm/slub.c:2536
+[<ffffffff8046e006>] put_cpu_partial+0xf6/0x162 mm/slub.c:2612
+[<ffffffff8046d0ec>] __slab_free+0x166/0x29c mm/slub.c:3378
+[<ffffffff8047258c>] do_slab_free mm/slub.c:3497 [inline]
+[<ffffffff8047258c>] ___cache_free+0x17c/0x354 mm/slub.c:3516
+[<ffffffff8047692e>] qlink_free mm/kasan/quarantine.c:157 [inline]
+[<ffffffff8047692e>] qlist_free_all+0x7c/0x132 mm/kasan/quarantine.c:176
+[<ffffffff80476ed4>] kasan_quarantine_reduce+0x14c/0x1c8 mm/kasan/quarantine.c:283
+[<ffffffff804742b2>] __kasan_slab_alloc+0x5c/0x98 mm/kasan/common.c:446
+[<ffffffff804709fc>] kasan_slab_alloc include/linux/kasan.h:260 [inline]
+[<ffffffff804709fc>] slab_post_alloc_hook mm/slab.h:732 [inline]
+[<ffffffff804709fc>] slab_alloc_node mm/slub.c:3230 [inline]
+[<ffffffff804709fc>] slab_alloc mm/slub.c:3238 [inline]
+[<ffffffff804709fc>] kmem_cache_alloc+0x338/0x3de mm/slub.c:3243
+[<ffffffff804fe03c>] __d_alloc+0x3a/0x3e0 fs/dcache.c:1769
+[<ffffffff804fe4ec>] d_alloc+0x32/0x102 fs/dcache.c:1848
+[<ffffffff80505a82>] d_alloc_parallel+0xe0/0x143c fs/dcache.c:2600
+[<ffffffff804e116c>] __lookup_slow+0x14a/0x306 fs/namei.c:1692
+[<ffffffff804e51ee>] lookup_one_len+0x158/0x170 fs/namei.c:2736
+[<ffffffff80874106>] start_creating.part.0+0x104/0x2b4 fs/debugfs/inode.c:352
+[<ffffffff80875664>] start_creating fs/debugfs/inode.c:325 [inline]
+[<ffffffff80875664>] __debugfs_create_file+0xae/0x34e fs/debugfs/inode.c:397
+[<ffffffff80875954>] debugfs_create_file+0x50/0x64 fs/debugfs/inode.c:459
+[<ffffffff80ab7024>] debugfs_create_files block/blk-mq-debugfs.c:703 [inline]
+[<ffffffff80ab7024>] debugfs_create_files+0xac/0xd8 block/blk-mq-debugfs.c:694
+[<ffffffff80ab7a68>] blk_mq_debugfs_register_hctx+0x116/0x2ee block/blk-mq-debugfs.c:767
+[<ffffffff80ab82c4>] blk_mq_debugfs_register+0x162/0x254 block/blk-mq-debugfs.c:725
+[<ffffffff80a218f2>] blk_register_queue+0x166/0x30a block/blk-sysfs.c:868
+[<ffffffff80a5573a>] device_add_disk+0x4a4/0x772 block/genhd.c:497
+[<ffffffff8143c728>] add_disk include/linux/genhd.h:169 [inline]
+[<ffffffff8143c728>] loop_add+0x47a/0x524 drivers/block/loop.c:2047
+[<ffffffff8143c9aa>] loop_control_ioctl+0x158/0x440 drivers/block/loop.c:2168
+[<ffffffff804f6ff8>] vfs_ioctl fs/ioctl.c:51 [inline]
+[<ffffffff804f6ff8>] __do_sys_ioctl fs/ioctl.c:874 [inline]
+[<ffffffff804f6ff8>] sys_ioctl+0x75c/0x139e fs/ioctl.c:860
+[<ffffffff80005716>] ret_from_syscall+0x0/0x2
+SMP: stopping secondary CPUs
+Rebooting in 86400 seconds..

@@ -1,0 +1,123 @@
+INFO: task kworker/u4:0:7 blocked for more than 143 seconds.
+      Not tainted 5.6.0-rc1-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+kworker/u4:0    D24608     7      2 0x80004000
+Workqueue: netns cleanup_net
+Call Trace:
+ context_switch kernel/sched/core.c:3386 [inline]
+ __schedule+0x87f/0xcd0 kernel/sched/core.c:4082
+ schedule+0x188/0x210 kernel/sched/core.c:4156
+ schedule_preempt_disabled+0x13/0x20 kernel/sched/core.c:4215
+ __mutex_lock_common+0x11f1/0x2f30 kernel/locking/mutex.c:1033
+ __mutex_lock kernel/locking/mutex.c:1103 [inline]
+ mutex_lock_nested+0x1b/0x30 kernel/locking/mutex.c:1118
+ hashlimit_proc_net_exit net/netfilter/xt_hashlimit.c:1253 [inline]
+ hashlimit_net_exit+0x40/0x210 net/netfilter/xt_hashlimit.c:1276
+ ops_exit_list net/core/net_namespace.c:172 [inline]
+ cleanup_net+0x6f8/0xb80 net/core/net_namespace.c:589
+ process_one_work+0x7f5/0x10f0 kernel/workqueue.c:2264
+ worker_thread+0xbbc/0x1630 kernel/workqueue.c:2410
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Showing all locks held in the system:
+4 locks held by kworker/u4:0/7:
+ #0: ffff8880a9a7e128 ((wq_completion)netns){+.+.}, at: spin_unlock_irq include/linux/spinlock.h:388 [inline]
+ #0: ffff8880a9a7e128 ((wq_completion)netns){+.+.}, at: process_one_work+0x763/0x10f0 kernel/workqueue.c:2237
+ #1: ffffc90000cdfd78 (net_cleanup_work){+.+.}, at: process_one_work+0x7a5/0x10f0 kernel/workqueue.c:2239
+ #2: ffffffff8958f1e8 (pernet_ops_rwsem){++++}, at: cleanup_net+0xa5/0xb80 net/core/net_namespace.c:551
+ #3: ffffffff895adf30 (hashlimit_mutex){+.+.}, at: hashlimit_proc_net_exit net/netfilter/xt_hashlimit.c:1253 [inline]
+ #3: ffffffff895adf30 (hashlimit_mutex){+.+.}, at: hashlimit_net_exit+0x40/0x210 net/netfilter/xt_hashlimit.c:1276
+1 lock held by khungtaskd/1105:
+ #0: ffffffff892d98c8 (rcu_read_lock){....}, at: rcu_lock_acquire+0x4/0x30 include/linux/rcupdate.h:207
+1 lock held by rsyslogd/8690:
+ #0: ffff88809b7546a0 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0x279/0x310 fs/file.c:821
+2 locks held by getty/8780:
+ #0: ffff8880a4ba2090 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:267
+ #1: ffffc9000187b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x22f/0x1bc0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8781:
+ #0: ffff88809f8a7090 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:267
+ #1: ffffc9000188b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x22f/0x1bc0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8782:
+ #0: ffff88809f0a2090 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:267
+ #1: ffffc9000186b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x22f/0x1bc0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8783:
+ #0: ffff8880a69c0090 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:267
+ #1: ffffc900018ab2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x22f/0x1bc0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8784:
+ #0: ffff88809fba8090 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:267
+ #1: ffffc900018bb2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x22f/0x1bc0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8785:
+ #0: ffff8880a6987090 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:267
+ #1: ffffc9000189b2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x22f/0x1bc0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8786:
+ #0: ffff8880a925b090 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x25/0x70 drivers/tty/tty_ldisc.c:267
+ #1: ffffc900017fb2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x22f/0x1bc0 drivers/tty/n_tty.c:2156
+2 locks held by syz-executor.0/8879:
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 1105 Comm: khungtaskd Not tainted 5.6.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1fb/0x318 lib/dump_stack.c:118
+ nmi_cpu_backtrace+0xaa/0x190 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x16f/0x290 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x10/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace+0x17/0x20 include/linux/nmi.h:146
+ check_hung_uninterruptible_tasks kernel/hung_task.c:205 [inline]
+ watchdog+0xd40/0xd60 kernel/hung_task.c:289
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 8879 Comm: syz-executor.0 Not tainted 5.6.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:preempt_count_sub+0x6/0x190 kernel/sched/core.c:3807
+Code: e1 07 80 c1 03 38 c1 7c 93 48 c7 c7 04 e6 69 89 e8 ef fd 60 00 83 3d 5c be 16 08 00 0f 85 ef fe ff ff eb 85 55 48 89 e5 41 56 <53> 89 fb 48 c7 c0 20 f1 43 8a 48 c1 e8 03 49 be 00 00 00 00 00 fc
+RSP: 0000:ffffc900017a7988 EFLAGS: 00000006
+RAX: ffff888097bd4914 RBX: ffff888097bd4914 RCX: ffff888097bd4080
+RDX: dffffc0000000000 RSI: ffffffff8818d11f RDI: 0000000000000200
+RBP: ffffc900017a7990 R08: ffffffff817caae6 R09: fffff52001bcd20a
+R10: fffff52001bcd20a R11: 0000000000000000 R12: ffff888097bd48e0
+R13: dffffc0000000000 R14: ffffffff86bdbb4e R15: 0000000000000200
+FS:  00007f9fe7065700(0000) GS:ffff8880aea00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fe2ca4ba140 CR3: 00000000a8e0f000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __local_bh_enable_ip+0x104/0x240 kernel/softirq.c:182
+ __raw_spin_unlock_bh include/linux/spinlock_api_smp.h:176 [inline]
+ _raw_spin_unlock_bh+0x2f/0x40 kernel/locking/spinlock.c:207
+ spin_unlock_bh include/linux/spinlock.h:383 [inline]
+ htable_selective_cleanup+0x27e/0x320 net/netfilter/xt_hashlimit.c:373
+ htable_destroy net/netfilter/xt_hashlimit.c:408 [inline]
+ htable_put+0x213/0x2a0 net/netfilter/xt_hashlimit.c:435
+ hashlimit_mt_destroy_v2+0x5b/0x70 net/netfilter/xt_hashlimit.c:957
+ cleanup_match net/ipv4/netfilter/ip_tables.c:460 [inline]
+ find_check_entry net/ipv4/netfilter/ip_tables.c:564 [inline]
+ translate_table+0x1b2b/0x2230 net/ipv4/netfilter/ip_tables.c:717
+ do_replace net/ipv4/netfilter/ip_tables.c:1136 [inline]
+ do_ipt_set_ctl+0x2c3/0x550 net/ipv4/netfilter/ip_tables.c:1672
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x27a/0x2a0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0xd8/0xf0 net/ipv4/ip_sockglue.c:1260
+ tcp_setsockopt+0xbe/0xd0 net/ipv4/tcp.c:3165
+ sock_common_setsockopt+0x99/0xb0 net/core/sock.c:3149
+ __sys_setsockopt+0x582/0x720 net/socket.c:2130
+ __do_sys_setsockopt net/socket.c:2146 [inline]
+ __se_sys_setsockopt net/socket.c:2143 [inline]
+ __x64_sys_setsockopt+0xbf/0xd0 net/socket.c:2143
+ do_syscall_64+0xf7/0x1c0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x45b3b9
+Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f9fe7064c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00007f9fe70656d4 RCX: 000000000045b3b9
+RDX: 0000000000000040 RSI: 0004000000000000 RDI: 0000000000000003
+RBP: 000000000075bf20 R08: 00000000000003a8 R09: 0000000000000000
+R10: 0000000020000ac0 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000000a06 R14: 00000000004cb697 R15: 000000000075bf2c

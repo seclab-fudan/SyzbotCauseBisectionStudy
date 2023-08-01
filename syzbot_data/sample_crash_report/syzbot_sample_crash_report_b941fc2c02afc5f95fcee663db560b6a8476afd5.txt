@@ -1,0 +1,40 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: use-after-free in pskb_may_pull include/linux/skbuff.h:2108 [inline]
+BUG: KASAN: use-after-free in skb_ensure_writable+0x554/0x620 net/core/skbuff.c:5118
+Read of size 4 at addr ffff8801b0b40fc0 by task syz-executor258/4479
+
+CPU: 0 PID: 4479 Comm: syz-executor258 Not tainted 4.17.0-rc6+ #29
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ pskb_may_pull include/linux/skbuff.h:2108 [inline]
+ skb_ensure_writable+0x554/0x620 net/core/skbuff.c:5118
+ __bpf_try_make_writable net/core/filter.c:1606 [inline]
+ bpf_try_make_writable net/core/filter.c:1612 [inline]
+ ____bpf_l3_csum_replace net/core/filter.c:1774 [inline]
+ bpf_l3_csum_replace+0x8c/0x4d0 net/core/filter.c:1765
+
+The buggy address belongs to the page:
+page:ffffea0006c2d000 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: ffffea00075ea760 ffffea0006c39660 ffff8801b5848738 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b0b40e80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801b0b40f00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8801b0b40f80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                           ^
+ ffff8801b0b41000: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801b0b41080: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

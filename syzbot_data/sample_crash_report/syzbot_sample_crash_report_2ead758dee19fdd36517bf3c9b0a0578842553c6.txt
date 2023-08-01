@@ -1,0 +1,163 @@
+==================================================================
+BUG: KASAN: use-after-free in br_dev_xmit+0x13b8/0x1540 net/bridge/br_device.c:64
+Read of size 2 at addr ffff88804ef0400e by task syz-fuzzer/9815
+
+CPU: 0 PID: 9815 Comm: syz-fuzzer Not tainted 5.6.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x32 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:641
+ __asan_report_load_n_noabort+0xf/0x20 mm/kasan/generic_report.c:145
+ br_dev_xmit+0x13b8/0x1540 net/bridge/br_device.c:64
+ __netdev_start_xmit include/linux/netdevice.h:4523 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4537 [inline]
+ xmit_one net/core/dev.c:3475 [inline]
+ dev_hard_start_xmit+0x1a3/0x9b0 net/core/dev.c:3491
+ sch_direct_xmit+0x372/0xd30 net/sched/sch_generic.c:313
+ __dev_xmit_skb net/core/dev.c:3697 [inline]
+ __dev_queue_xmit+0x1cc6/0x3080 net/core/dev.c:4019
+ dev_queue_xmit+0x18/0x20 net/core/dev.c:4083
+ vlan_dev_hard_start_xmit+0x41f/0x8d0 net/8021q/vlan_dev.c:125
+ __netdev_start_xmit include/linux/netdevice.h:4523 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4537 [inline]
+ xmit_one net/core/dev.c:3475 [inline]
+ dev_hard_start_xmit+0x1a3/0x9b0 net/core/dev.c:3491
+ __dev_queue_xmit+0x25df/0x3080 net/core/dev.c:4050
+ dev_queue_xmit+0x18/0x20 net/core/dev.c:4083
+ neigh_connected_output+0x3fc/0x5f0 net/core/neighbour.c:1516
+ neigh_output include/net/neighbour.h:510 [inline]
+ ip6_finish_output2+0x109a/0x25c0 net/ipv6/ip6_output.c:116
+ __ip6_finish_output+0x444/0xaa0 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x38/0x1f0 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x25e/0x880 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ mld_sendpack+0x9c2/0xed0 net/ipv6/mcast.c:1682
+ mld_send_cr net/ipv6/mcast.c:1978 [inline]
+ mld_ifc_timer_expire+0x454/0x950 net/ipv6/mcast.c:2477
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x19b/0x1e0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:546 [inline]
+ smp_apic_timer_interrupt+0x1a3/0x610 arch/x86/kernel/apic/apic.c:1146
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0033:0x40c2ee
+Code: 48 8b 8c 24 a0 00 00 00 48 89 4c 24 08 b9 30 00 00 00 48 0f 44 f9 48 89 7c 24 38 48 89 7c 24 10 4c 89 44 24 18 e8 92 96 00 00 <48> 8b 84 24 a8 00 00 00 48 8b 08 48 8b 54 24 38 48 39 ca 76 2e 48
+RSP: 002b:000000c0107d1c88 EFLAGS: 00000202 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000203004 RBX: 0000000000000008 RCX: 0000000000000030
+RDX: 0000000000203004 RSI: 00007f02468e1e90 RDI: 0000000000000000
+RBP: 000000c0107d1d18 R08: 00007f02468e1e8f R09: 0000000000203004
+R10: 0000000000000008 R11: 0000000000000077 R12: 00000000000000ff
+R13: 01ffffffffffffff R14: 0000000000ac74d8 R15: 0000000000000039
+
+Allocated by task 9815:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:488
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:529
+ __do_kmalloc_node mm/slab.c:3616 [inline]
+ __kmalloc_node_track_caller+0x4e/0x70 mm/slab.c:3630
+ __kmalloc_reserve.isra.0+0x40/0xf0 net/core/skbuff.c:142
+ __alloc_skb+0x10b/0x5e0 net/core/skbuff.c:210
+ alloc_skb include/linux/skbuff.h:1081 [inline]
+ alloc_skb_with_frags+0x93/0x590 net/core/skbuff.c:5764
+ sock_alloc_send_pskb+0x7ad/0x920 net/core/sock.c:2250
+ sock_alloc_send_skb+0x32/0x40 net/core/sock.c:2267
+ mld_newpack+0x1d7/0x7f0 net/ipv6/mcast.c:1609
+ add_grhead.isra.0+0x299/0x370 net/ipv6/mcast.c:1713
+ add_grec+0x7db/0x10b0 net/ipv6/mcast.c:1844
+ mld_send_cr net/ipv6/mcast.c:1970 [inline]
+ mld_ifc_timer_expire+0x3d3/0x950 net/ipv6/mcast.c:2477
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+
+Freed by task 9815:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:476
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:485
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ skb_free_head+0x93/0xb0 net/core/skbuff.c:590
+ pskb_expand_head+0x2bd/0xff0 net/core/skbuff.c:1660
+ __skb_cow include/linux/skbuff.h:3169 [inline]
+ skb_cow_head include/linux/skbuff.h:3203 [inline]
+ __vlan_insert_inner_tag include/linux/if_vlan.h:339 [inline]
+ vlan_insert_inner_tag include/linux/if_vlan.h:409 [inline]
+ vlan_insert_tag include/linux/if_vlan.h:434 [inline]
+ vlan_insert_tag_set_proto include/linux/if_vlan.h:453 [inline]
+ __allowed_ingress net/bridge/br_vlan.c:498 [inline]
+ br_allowed_ingress+0x4a2/0x1900 net/bridge/br_vlan.c:587
+ br_dev_xmit+0x45e/0x1540 net/bridge/br_device.c:60
+ __netdev_start_xmit include/linux/netdevice.h:4523 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4537 [inline]
+ xmit_one net/core/dev.c:3475 [inline]
+ dev_hard_start_xmit+0x1a3/0x9b0 net/core/dev.c:3491
+ sch_direct_xmit+0x372/0xd30 net/sched/sch_generic.c:313
+ __dev_xmit_skb net/core/dev.c:3697 [inline]
+ __dev_queue_xmit+0x1cc6/0x3080 net/core/dev.c:4019
+ dev_queue_xmit+0x18/0x20 net/core/dev.c:4083
+ vlan_dev_hard_start_xmit+0x41f/0x8d0 net/8021q/vlan_dev.c:125
+ __netdev_start_xmit include/linux/netdevice.h:4523 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4537 [inline]
+ xmit_one net/core/dev.c:3475 [inline]
+ dev_hard_start_xmit+0x1a3/0x9b0 net/core/dev.c:3491
+ __dev_queue_xmit+0x25df/0x3080 net/core/dev.c:4050
+ dev_queue_xmit+0x18/0x20 net/core/dev.c:4083
+ neigh_connected_output+0x3fc/0x5f0 net/core/neighbour.c:1516
+ neigh_output include/net/neighbour.h:510 [inline]
+ ip6_finish_output2+0x109a/0x25c0 net/ipv6/ip6_output.c:116
+ __ip6_finish_output+0x444/0xaa0 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x38/0x1f0 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x25e/0x880 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ mld_sendpack+0x9c2/0xed0 net/ipv6/mcast.c:1682
+ mld_send_cr net/ipv6/mcast.c:1978 [inline]
+ mld_ifc_timer_expire+0x454/0x950 net/ipv6/mcast.c:2477
+ call_timer_fn+0x1ac/0x780 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x6c3/0x1790 kernel/time/timer.c:1786
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff88804ef04000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 14 bytes inside of
+ 2048-byte region [ffff88804ef04000, ffff88804ef04800)
+The buggy address belongs to the page:
+page:ffffea00013bc100 refcount:1 mapcount:0 mapping:ffff8880aa400e00 index:0x0
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea00015a4908 ffffea0001759848 ffff8880aa400e00
+raw: 0000000000000000 ffff88804ef04000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88804ef03f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88804ef03f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88804ef04000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff88804ef04080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88804ef04100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

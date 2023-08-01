@@ -1,0 +1,72 @@
+reiserfs: enabling write barrier flush mode
+REISERFS (device loop5): Created .reiserfs_priv - reserved for xattr storage.
+overlayfs: upper fs needs to support d_type.
+overlayfs: upper fs does not support tmpfile.
+=====================================================
+BUG: KMSAN: uninit-value in reiserfs_new_inode+0x193f/0x24e0 fs/reiserfs/inode.c:2050
+ reiserfs_new_inode+0x193f/0x24e0 fs/reiserfs/inode.c:2050
+ reiserfs_create+0x742/0xe60 fs/reiserfs/namei.c:668
+ vfs_create+0x33a/0x540 fs/namei.c:3118
+ ovl_do_create fs/overlayfs/overlayfs.h:179 [inline]
+ ovl_create_real+0x2b1/0x6d0 fs/overlayfs/dir.c:188
+ ovl_create_temp+0x94/0xc0 fs/overlayfs/dir.c:230
+ ovl_check_rename_whiteout fs/overlayfs/super.c:1194 [inline]
+ ovl_make_workdir fs/overlayfs/super.c:1329 [inline]
+ ovl_get_workdir+0xeb1/0x2770 fs/overlayfs/super.c:1444
+ ovl_fill_super+0x33e6/0x4770 fs/overlayfs/super.c:2000
+ mount_nodev+0xdc/0x2a0 fs/super.c:1417
+ ovl_mount+0x45/0x50 fs/overlayfs/super.c:2091
+ legacy_get_tree+0x110/0x290 fs/fs_context.c:610
+ vfs_get_tree+0xa5/0x500 fs/super.c:1501
+ do_new_mount+0x69a/0x1580 fs/namespace.c:3042
+ path_mount+0x725/0x1ee0 fs/namespace.c:3372
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount+0x734/0x840 fs/namespace.c:3571
+ __ia32_sys_mount+0xe3/0x150 fs/namespace.c:3571
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Uninit was created at:
+ __alloc_pages+0x9f6/0xe90 mm/page_alloc.c:5614
+ alloc_pages+0xab0/0xd80 mm/mempolicy.c:2283
+ alloc_slab_page mm/slub.c:1851 [inline]
+ allocate_slab mm/slub.c:1998 [inline]
+ new_slab+0x425/0x15f0 mm/slub.c:2051
+ ___slab_alloc+0x109c/0x32d0 mm/slub.c:3193
+ __slab_alloc mm/slub.c:3292 [inline]
+ __slab_alloc_node mm/slub.c:3345 [inline]
+ slab_alloc_node mm/slub.c:3442 [inline]
+ slab_alloc mm/slub.c:3460 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+ kmem_cache_alloc_lru+0x5fb/0xa50 mm/slub.c:3483
+ alloc_inode_sb include/linux/fs.h:2686 [inline]
+ reiserfs_alloc_inode+0x62/0x150 fs/reiserfs/super.c:642
+ alloc_inode+0x83/0x440 fs/inode.c:260
+ new_inode_pseudo fs/inode.c:1019 [inline]
+ new_inode+0x3f/0x430 fs/inode.c:1047
+ reiserfs_mkdir+0x249/0x11b0 fs/reiserfs/namei.c:815
+ xattr_mkdir fs/reiserfs/xattr.c:76 [inline]
+ create_privroot fs/reiserfs/xattr.c:882 [inline]
+ reiserfs_xattr_init+0x43f/0xce0 fs/reiserfs/xattr.c:1005
+ reiserfs_remount+0xf51/0x2400
+ legacy_reconfigure+0x182/0x1d0 fs/fs_context.c:633
+ reconfigure_super+0x346/0xdf0 fs/super.c:947
+ do_remount fs/namespace.c:2704 [inline]
+ path_mount+0x19c1/0x1ee0 fs/namespace.c:3364
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount+0x734/0x840 fs/namespace.c:3571
+ __ia32_sys_mount+0xe3/0x150 fs/namespace.c:3571
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+CPU: 1 PID: 5630 Comm: syz-executor.5 Not tainted 6.3.0-rc3-syzkaller-g90ea0df61c98 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+=====================================================

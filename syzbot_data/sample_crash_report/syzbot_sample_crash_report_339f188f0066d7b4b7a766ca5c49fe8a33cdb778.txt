@@ -1,0 +1,105 @@
+exFAT-fs (loop0): failed to load upcase table (idx : 0x00000c00, chksum : 0x00000000, utbl_chksum : 0xe619d30d)
+exFAT-fs (loop0): error, invalid access to FAT free cluster (entry 0x00000005)
+exFAT-fs (loop0): Filesystem has been set read-only
+exFAT-fs (loop0): failed to initialize root inode
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 0 PID: 6867 Comm: syz-executor878 Not tainted 5.9.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ assign_lock_key kernel/locking/lockdep.c:894 [inline]
+ register_lock_class+0x157d/0x1630 kernel/locking/lockdep.c:1206
+ __lock_acquire+0x101/0x5780 kernel/locking/lockdep.c:4320
+ lock_acquire+0x1f3/0xaf0 kernel/locking/lockdep.c:5029
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+ spin_lock include/linux/spinlock.h:354 [inline]
+ exfat_cache_inval_inode+0x2a/0x310 fs/exfat/cache.c:226
+ exfat_evict_inode+0x76/0x33e fs/exfat/inode.c:660
+ evict+0x2ed/0x750 fs/inode.c:576
+ iput_final fs/inode.c:1652 [inline]
+ iput.part.0+0x424/0x850 fs/inode.c:1678
+ iput+0x58/0x70 fs/inode.c:1668
+ exfat_fill_super.cold+0x32/0x65a fs/exfat/super.c:681
+ get_tree_bdev+0x421/0x740 fs/super.c:1342
+ vfs_get_tree+0x89/0x2f0 fs/super.c:1547
+ do_new_mount fs/namespace.c:2875 [inline]
+ path_mount+0x1387/0x20a0 fs/namespace.c:3192
+ do_mount fs/namespace.c:3205 [inline]
+ __do_sys_mount fs/namespace.c:3413 [inline]
+ __se_sys_mount fs/namespace.c:3390 [inline]
+ __x64_sys_mount+0x27f/0x300 fs/namespace.c:3390
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x44726a
+Code: b8 08 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 fd ad fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 da ad fb ff c3 66 0f 1f 84 00 00 00 00 00
+RSP: 002b:00007fffa372a428 EFLAGS: 00000297 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007fffa372a480 RCX: 000000000044726a
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007fffa372a440
+RBP: 00007fffa372a440 R08: 00007fffa372a480 R09: 00007fff00000015
+R10: 0000000000000000 R11: 0000000000000297 R12: 0000000000000017
+R13: 0000000000000004 R14: 0000000000000003 R15: 0000000000000003
+general protection fault, probably for non-canonical address 0xdffffc0000000001: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+CPU: 0 PID: 6867 Comm: syz-executor878 Not tainted 5.9.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__list_del_entry_valid+0x1d/0xef lib/list_debug.c:42
+Code: 48 8b 34 24 eb b4 0f 1f 80 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 41 55 41 54 55 48 89 fd 48 83 c7 08 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 a0 00 00 00 48 89 ea 4c 8b 65 08 48 b8 00 00 00
+RSP: 0018:ffffc90005497a98 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: dffffc0000000000 RCX: ffffffff815cf800
+RDX: 0000000000000001 RSI: ffffffff82246855 RDI: 0000000000000008
+RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000003
+R10: fffff52000a92f49 R11: 0000000036383654 R12: ffffed1010b11adb
+R13: ffff88808588d7d8 R14: 0000000000000008 R15: 0000000000000000
+FS:  0000000002043880(0000) GS:ffff8880ae400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fffa372b000 CR3: 00000000971a2000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:132 [inline]
+ list_del_init include/linux/list.h:204 [inline]
+ __exfat_cache_inval_inode fs/exfat/cache.c:212 [inline]
+ exfat_cache_inval_inode+0xb3/0x310 fs/exfat/cache.c:227
+ exfat_evict_inode+0x76/0x33e fs/exfat/inode.c:660
+ evict+0x2ed/0x750 fs/inode.c:576
+ iput_final fs/inode.c:1652 [inline]
+ iput.part.0+0x424/0x850 fs/inode.c:1678
+ iput+0x58/0x70 fs/inode.c:1668
+ exfat_fill_super.cold+0x32/0x65a fs/exfat/super.c:681
+ get_tree_bdev+0x421/0x740 fs/super.c:1342
+ vfs_get_tree+0x89/0x2f0 fs/super.c:1547
+ do_new_mount fs/namespace.c:2875 [inline]
+ path_mount+0x1387/0x20a0 fs/namespace.c:3192
+ do_mount fs/namespace.c:3205 [inline]
+ __do_sys_mount fs/namespace.c:3413 [inline]
+ __se_sys_mount fs/namespace.c:3390 [inline]
+ __x64_sys_mount+0x27f/0x300 fs/namespace.c:3390
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x44726a
+Code: b8 08 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 fd ad fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 da ad fb ff c3 66 0f 1f 84 00 00 00 00 00
+RSP: 002b:00007fffa372a428 EFLAGS: 00000297 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007fffa372a480 RCX: 000000000044726a
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007fffa372a440
+RBP: 00007fffa372a440 R08: 00007fffa372a480 R09: 00007fff00000015
+R10: 0000000000000000 R11: 0000000000000297 R12: 0000000000000017
+R13: 0000000000000004 R14: 0000000000000003 R15: 0000000000000003
+Modules linked in:
+---[ end trace a36d9f15549196ea ]---
+RIP: 0010:__list_del_entry_valid+0x1d/0xef lib/list_debug.c:42
+Code: 48 8b 34 24 eb b4 0f 1f 80 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 41 55 41 54 55 48 89 fd 48 83 c7 08 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 a0 00 00 00 48 89 ea 4c 8b 65 08 48 b8 00 00 00
+RSP: 0018:ffffc90005497a98 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: dffffc0000000000 RCX: ffffffff815cf800
+RDX: 0000000000000001 RSI: ffffffff82246855 RDI: 0000000000000008
+RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000003
+R10: fffff52000a92f49 R11: 0000000036383654 R12: ffffed1010b11adb
+R13: ffff88808588d7d8 R14: 0000000000000008 R15: 0000000000000000
+FS:  0000000002043880(0000) GS:ffff8880ae400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fffa372b000 CR3: 00000000971a2000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

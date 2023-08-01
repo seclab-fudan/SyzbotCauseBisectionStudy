@@ -1,0 +1,134 @@
+============================================
+WARNING: possible recursive locking detected
+6.2.0-rc3-syzkaller-00009-g5a41237ad1d4 #0 Not tainted
+--------------------------------------------
+syz-executor.3/13723 is trying to acquire lock:
+ffff888030ace728 (&bmap->b_sem){++++}-{3:3}, at: nilfs_bmap_clear+0x1c/0x90 fs/nilfs2/bmap.c:311
+
+but task is already holding lock:
+ffff88803007f380 (&bmap->b_sem){++++}-{3:3}, at: nilfs_bmap_propagate+0x25/0x170 fs/nilfs2/bmap.c:336
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&bmap->b_sem);
+  lock(&bmap->b_sem);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+6 locks held by syz-executor.3/13723:
+ #0: ffff888073a30460 (sb_writers#18){.+.+}-{0:0}, at: __do_sys_sendfile64 fs/read_write.c:1323 [inline]
+ #0: ffff888073a30460 (sb_writers#18){.+.+}-{0:0}, at: __se_sys_sendfile64 fs/read_write.c:1309 [inline]
+ #0: ffff888073a30460 (sb_writers#18){.+.+}-{0:0}, at: __x64_sys_sendfile64+0x1d0/0x210 fs/read_write.c:1309
+ #1: ffff88803007f568 (&sb->s_type->i_mutex_key#24){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #1: ffff88803007f568 (&sb->s_type->i_mutex_key#24){+.+.}-{3:3}, at: generic_file_write_iter+0x92/0x350 mm/filemap.c:3929
+ #2: ffff88807dbfb2a0 (&nilfs->ns_segctor_sem){++++}-{3:3}, at: nilfs_transaction_lock+0x266/0x410 fs/nilfs2/segment.c:357
+ #3: ffff88803007f380 (&bmap->b_sem){++++}-{3:3}, at: nilfs_bmap_propagate+0x25/0x170 fs/nilfs2/bmap.c:336
+ #4: ffffffff8c88c910 (shrinker_rwsem){++++}-{3:3}, at: shrink_slab_memcg mm/vmscan.c:885 [inline]
+ #4: ffffffff8c88c910 (shrinker_rwsem){++++}-{3:3}, at: shrink_slab+0x2a0/0x660 mm/vmscan.c:991
+ #5: ffff888073a300e0 (&type->s_umount_key#75){++++}-{3:3}, at: trylock_super fs/super.c:415 [inline]
+ #5: ffff888073a300e0 (&type->s_umount_key#75){++++}-{3:3}, at: super_cache_scan+0x70/0x590 fs/super.c:79
+
+stack backtrace:
+CPU: 0 PID: 13723 Comm: syz-executor.3 Not tainted 6.2.0-rc3-syzkaller-00009-g5a41237ad1d4 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_deadlock_bug kernel/locking/lockdep.c:2990 [inline]
+ check_deadlock kernel/locking/lockdep.c:3033 [inline]
+ validate_chain kernel/locking/lockdep.c:3818 [inline]
+ __lock_acquire.cold+0x116/0x3a7 kernel/locking/lockdep.c:5055
+ lock_acquire kernel/locking/lockdep.c:5668 [inline]
+ lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+ down_write+0x94/0x220 kernel/locking/rwsem.c:1562
+ nilfs_bmap_clear+0x1c/0x90 fs/nilfs2/bmap.c:311
+ nilfs_clear_inode+0x288/0x330 fs/nilfs2/inode.c:906
+ nilfs_evict_inode+0x31c/0x440 fs/nilfs2/inode.c:925
+ evict+0x2ed/0x6b0 fs/inode.c:664
+ dispose_list+0x117/0x1e0 fs/inode.c:697
+ prune_icache_sb+0xeb/0x150 fs/inode.c:896
+ super_cache_scan+0x391/0x590 fs/super.c:106
+ do_shrink_slab+0x464/0xce0 mm/vmscan.c:843
+ shrink_slab_memcg mm/vmscan.c:912 [inline]
+ shrink_slab+0x388/0x660 mm/vmscan.c:991
+ shrink_node_memcgs mm/vmscan.c:6140 [inline]
+ shrink_node+0x95d/0x1f40 mm/vmscan.c:6169
+ shrink_zones mm/vmscan.c:6407 [inline]
+ do_try_to_free_pages+0x3b4/0x17a0 mm/vmscan.c:6469
+ try_to_free_mem_cgroup_pages+0x3ae/0xa80 mm/vmscan.c:6786
+ reclaim_high.constprop.0+0x185/0x230 mm/memcontrol.c:2394
+ mem_cgroup_handle_over_high+0x190/0x520 mm/memcontrol.c:2580
+ try_charge_memcg+0xe0f/0x12f0 mm/memcontrol.c:2819
+ try_charge mm/memcontrol.c:2830 [inline]
+ charge_memcg+0x90/0x3b0 mm/memcontrol.c:6947
+ __mem_cgroup_charge+0x2b/0x90 mm/memcontrol.c:6968
+ mem_cgroup_charge include/linux/memcontrol.h:671 [inline]
+ __filemap_add_folio+0x615/0xf80 mm/filemap.c:853
+ filemap_add_folio+0xaf/0x1e0 mm/filemap.c:935
+ __filemap_get_folio+0x389/0xd80 mm/filemap.c:1977
+ pagecache_get_page+0x2e/0x280 mm/folio-compat.c:98
+ find_or_create_page include/linux/pagemap.h:612 [inline]
+ grab_cache_page include/linux/pagemap.h:742 [inline]
+ nilfs_grab_buffer+0xc9/0x690 fs/nilfs2/page.c:57
+ nilfs_mdt_submit_block+0xa4/0xb40 fs/nilfs2/mdt.c:121
+ nilfs_mdt_read_block+0x92/0x3c0 fs/nilfs2/mdt.c:176
+ nilfs_mdt_get_block+0xe7/0xe00 fs/nilfs2/mdt.c:251
+ nilfs_palloc_get_block+0xc4/0x2b0 fs/nilfs2/alloc.c:216
+ nilfs_palloc_get_entry_block+0x16b/0x1d0 fs/nilfs2/alloc.c:318
+ nilfs_dat_prepare_entry fs/nilfs2/dat.c:43 [inline]
+ nilfs_dat_prepare_alloc fs/nilfs2/dat.c:69 [inline]
+ nilfs_dat_prepare_alloc fs/nilfs2/dat.c:61 [inline]
+ nilfs_dat_prepare_update+0x9e/0xf0 fs/nilfs2/dat.c:232
+ nilfs_btree_prepare_update_v+0x1fa/0x510 fs/nilfs2/btree.c:1910
+ nilfs_btree_prepare_propagate_v fs/nilfs2/btree.c:1978 [inline]
+ nilfs_btree_propagate_v fs/nilfs2/btree.c:2031 [inline]
+ nilfs_btree_propagate+0xb47/0xd60 fs/nilfs2/btree.c:2088
+ nilfs_bmap_propagate+0x77/0x170 fs/nilfs2/bmap.c:337
+ nilfs_collect_file_data+0x49/0xd0 fs/nilfs2/segment.c:568
+ nilfs_segctor_apply_buffers+0x14a/0x470 fs/nilfs2/segment.c:1018
+ nilfs_segctor_scan_file_dsync fs/nilfs2/segment.c:1107 [inline]
+ nilfs_segctor_collect_blocks fs/nilfs2/segment.c:1261 [inline]
+ nilfs_segctor_collect fs/nilfs2/segment.c:1503 [inline]
+ nilfs_segctor_do_construct+0x43a6/0x6b30 fs/nilfs2/segment.c:2045
+ nilfs_construct_dsync_segment+0x3e6/0x540 fs/nilfs2/segment.c:2310
+ nilfs_writepages+0x137/0x1a0 fs/nilfs2/inode.c:170
+ do_writepages+0x1af/0x690 mm/page-writeback.c:2581
+ filemap_fdatawrite_wbc mm/filemap.c:388 [inline]
+ filemap_fdatawrite_wbc+0x147/0x1b0 mm/filemap.c:378
+ __filemap_fdatawrite_range+0xb8/0xf0 mm/filemap.c:421
+ filemap_write_and_wait_range.part.0+0x85/0x100 mm/filemap.c:674
+ filemap_write_and_wait_range mm/filemap.c:670 [inline]
+ __generic_file_write_iter+0x3ee/0x500 mm/filemap.c:3886
+ generic_file_write_iter+0xe3/0x350 mm/filemap.c:3932
+ call_write_iter include/linux/fs.h:2189 [inline]
+ do_iter_readv_writev+0x20b/0x3b0 fs/read_write.c:735
+ do_iter_write+0x182/0x700 fs/read_write.c:861
+ vfs_iter_write+0x74/0xa0 fs/read_write.c:902
+ iter_file_splice_write+0x745/0xc90 fs/splice.c:686
+ do_splice_from fs/splice.c:764 [inline]
+ direct_splice_actor+0x114/0x180 fs/splice.c:931
+ splice_direct_to_actor+0x335/0x8a0 fs/splice.c:886
+ do_splice_direct+0x1ab/0x280 fs/splice.c:974
+ do_sendfile+0xb19/0x1270 fs/read_write.c:1255
+ __do_sys_sendfile64 fs/read_write.c:1323 [inline]
+ __se_sys_sendfile64 fs/read_write.c:1309 [inline]
+ __x64_sys_sendfile64+0x1d0/0x210 fs/read_write.c:1309
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f707c08c0c9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f707cde6168 EFLAGS: 00000246 ORIG_RAX: 0000000000000028
+RAX: ffffffffffffffda RBX: 00007f707c1ac050 RCX: 00007f707c08c0c9
+RDX: 0000000000000000 RSI: 0000000000000006 RDI: 0000000000000004
+RBP: 00007f707c0e7ae9 R08: 0000000000000000 R09: 0000000000000000
+R10: 000080001d00c0d0 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007fff8a28a44f R14: 00007f707cde6300 R15: 0000000000022000
+ </TASK>
+syz-executor.3 (13723) used greatest stack depth: 19816 bytes left

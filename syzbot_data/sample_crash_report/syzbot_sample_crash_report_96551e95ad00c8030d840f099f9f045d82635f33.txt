@@ -1,0 +1,67 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in fib6_drop_pcpu_from net/ipv6/ip6_fib.c:921 [inline]
+BUG: KASAN: null-ptr-deref in fib6_purge_rt+0x1b3/0x5e0 net/ipv6/ip6_fib.c:933
+Write of size 8 at addr 0000000000000095 by task syz-executor.3/24042
+
+CPU: 1 PID: 24042 Comm: syz-executor.3 Not tainted 5.2.0-rc3+ #11
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ __kasan_report.cold+0x5/0x40 mm/kasan/report.c:321
+ kasan_report+0x12/0x20 mm/kasan/common.c:614
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x123/0x190 mm/kasan/generic.c:191
+ kasan_check_write+0x14/0x20 mm/kasan/common.c:100
+ fib6_drop_pcpu_from net/ipv6/ip6_fib.c:921 [inline]
+ fib6_purge_rt+0x1b3/0x5e0 net/ipv6/ip6_fib.c:933
+ fib6_del_route net/ipv6/ip6_fib.c:1808 [inline]
+ fib6_del+0xac2/0x10a0 net/ipv6/ip6_fib.c:1839
+ fib6_clean_node+0x3a5/0x590 net/ipv6/ip6_fib.c:2001
+ fib6_walk_continue+0x4a9/0x8e0 net/ipv6/ip6_fib.c:1923
+ fib6_walk+0x9d/0x100 net/ipv6/ip6_fib.c:1971
+ fib6_clean_tree+0xe0/0x120 net/ipv6/ip6_fib.c:2050
+ __fib6_clean_all+0x118/0x2a0 net/ipv6/ip6_fib.c:2066
+ fib6_clean_all+0x2b/0x40 net/ipv6/ip6_fib.c:2077
+ rt6_sync_down_dev+0x134/0x150 net/ipv6/route.c:4165
+ rt6_disable_ip+0x27/0x5f0 net/ipv6/route.c:4170
+ addrconf_ifdown+0xa2/0x1220 net/ipv6/addrconf.c:3705
+ addrconf_notify+0x5db/0x2270 net/ipv6/addrconf.c:3630
+ notifier_call_chain+0xc2/0x230 kernel/notifier.c:95
+ __raw_notifier_call_chain kernel/notifier.c:396 [inline]
+ raw_notifier_call_chain+0x2e/0x40 kernel/notifier.c:403
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1749
+ call_netdevice_notifiers_extack net/core/dev.c:1761 [inline]
+ call_netdevice_notifiers net/core/dev.c:1775 [inline]
+ dev_close_many+0x33f/0x6f0 net/core/dev.c:1518
+ rollback_registered_many+0x43b/0xfc0 net/core/dev.c:8155
+ rollback_registered+0x109/0x1d0 net/core/dev.c:8220
+ unregister_netdevice_queue net/core/dev.c:9267 [inline]
+ unregister_netdevice_queue+0x1ee/0x2c0 net/core/dev.c:9260
+ unregister_netdevice include/linux/netdevice.h:2631 [inline]
+ __tun_detach+0xd8a/0x1040 drivers/net/tun.c:724
+ tun_detach drivers/net/tun.c:741 [inline]
+ tun_chr_close+0xe0/0x180 drivers/net/tun.c:3451
+ __fput+0x2ff/0x890 fs/file_table.c:280
+ ____fput+0x16/0x20 fs/file_table.c:313
+ task_work_run+0x145/0x1c0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x90a/0x2fa0 kernel/exit.c:877
+ do_group_exit+0x135/0x370 kernel/exit.c:981
+ get_signal+0x471/0x24b0 kernel/signal.c:2640
+ do_signal+0x87/0x1900 arch/x86/kernel/signal.c:815
+ exit_to_usermode_loop+0x244/0x2c0 arch/x86/entry/common.c:164
+ prepare_exit_to_usermode arch/x86/entry/common.c:199 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:279 [inline]
+ do_syscall_32_irqs_on arch/x86/entry/common.c:352 [inline]
+ do_fast_syscall_32+0xb51/0xd7d arch/x86/entry/common.c:408
+ entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7f3a849
+Code: Bad RIP value.
+RSP: 002b:00000000f5d3612c EFLAGS: 00000292 ORIG_RAX: 00000000000000f0
+RAX: fffffffffffffe00 RBX: 000000000816af88 RCX: 0000000000000080
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 000000000816af8c
+RBP: 00000000f5d36228 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+==================================================================

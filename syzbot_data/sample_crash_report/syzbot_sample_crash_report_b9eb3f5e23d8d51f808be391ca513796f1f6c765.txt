@@ -1,0 +1,106 @@
+(unnamed net_device) (uninitialized): option active_slave: mode dependency failed, not supported in mode balance-rr(0)
+IPVS: ftp: loaded support on port[0] = 21
+EXT4-fs (sda1): journaled quota format not specified
+==================================================================
+BUG: KASAN: use-after-free in strlen+0x83/0xa0 lib/string.c:482
+Read of size 1 at addr ffff8801ce9a9540 by task syz-executor2/486
+
+CPU: 1 PID: 486 Comm: syz-executor2 Not tainted 4.19.0-rc6+ #39
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+(unnamed net_device) (uninitialized): option active_slave: mode dependency failed, not supported in mode balance-rr(0)
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+ print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+ strlen+0x83/0xa0 lib/string.c:482
+ strlen include/linux/string.h:267 [inline]
+ string_escape_str include/linux/string_helpers.h:66 [inline]
+ seq_escape+0xd5/0x240 fs/seq_file.c:381
+ seq_show_option include/linux/seq_file.h:185 [inline]
+ ext4_show_quota_options fs/ext4/super.c:2051 [inline]
+ _ext4_show_options+0xcef/0x18f0 fs/ext4/super.c:2151
+ ext4_show_options+0x41/0x50 fs/ext4/super.c:2157
+ show_mountinfo+0x674/0x9b0 fs/proc_namespace.c:187
+ m_show+0x65/0x80 fs/namespace.c:1280
+ seq_read+0x4af/0x1150 fs/seq_file.c:229
+ do_loop_readv_writev fs/read_write.c:700 [inline]
+ do_iter_read+0x4a3/0x650 fs/read_write.c:924
+ vfs_readv+0x175/0x1c0 fs/read_write.c:986
+ do_preadv+0x1cc/0x280 fs/read_write.c:1070
+ __do_sys_preadv fs/read_write.c:1120 [inline]
+ __se_sys_preadv fs/read_write.c:1115 [inline]
+ __x64_sys_preadv+0x9a/0xf0 fs/read_write.c:1115
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457579
+Code: 1d b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f8a6dc50c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000127
+RAX: ffffffffffffffda RBX: 0000000000000004 RCX: 0000000000457579
+RDX: 1000000000000181 RSI: 0000000020000480 RDI: 0000000000000005
+RBP: 000000000072bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f8a6dc516d4
+R13: 00000000004c309c R14: 00000000004d4a40 R15: 00000000ffffffff
+
+Allocated by task 493:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc mm/slab.c:3718 [inline]
+ __kmalloc+0x14e/0x760 mm/slab.c:3727
+ kmalloc include/linux/slab.h:518 [inline]
+ match_strdup+0x5e/0xa0 lib/parser.c:331
+ set_qf_name+0x14b/0x3e0 fs/ext4/super.c:1548
+ handle_mount_opt fs/ext4/super.c:1718 [inline]
+ parse_options+0xd3e/0x29c0 fs/ext4/super.c:1979
+ ext4_remount+0x693/0x2640 fs/ext4/super.c:5139
+ do_remount_sb+0x350/0x7b0 fs/super.c:888
+ do_remount fs/namespace.c:2278 [inline]
+ do_mount+0x1513/0x31f0 fs/namespace.c:2778
+ ksys_mount+0x12d/0x140 fs/namespace.c:3003
+ __do_sys_mount fs/namespace.c:3017 [inline]
+ __se_sys_mount fs/namespace.c:3014 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 493:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3813
+ ext4_remount+0x11ec/0x2640 fs/ext4/super.c:5355
+ do_remount_sb+0x350/0x7b0 fs/super.c:888
+ do_remount fs/namespace.c:2278 [inline]
+ do_mount+0x1513/0x31f0 fs/namespace.c:2778
+ ksys_mount+0x12d/0x140 fs/namespace.c:3003
+ __do_sys_mount fs/namespace.c:3017 [inline]
+ __se_sys_mount fs/namespace.c:3014 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3014
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801ce9a9540
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8801ce9a9540, ffff8801ce9a9560)
+The buggy address belongs to the page:
+page:ffffea00073a6a40 count:1 mapcount:0 mapping:ffff8801da8001c0 index:0xffff8801ce9a9fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea000749ea48 ffffea00074b5e08 ffff8801da8001c0
+raw: ffff8801ce9a9fc1 ffff8801ce9a9000 000000010000003e 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ce9a9400: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801ce9a9480: fb fb fb fb fc fc fc fc 06 fc fc fc fc fc fc fc
+>ffff8801ce9a9500: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+                                           ^
+ ffff8801ce9a9580: 00 00 00 fc fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801ce9a9600: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================
+(unnamed net_device) (uninitialized): option active_slave: mode dependency failed, not supported in mode balance-rr(0)

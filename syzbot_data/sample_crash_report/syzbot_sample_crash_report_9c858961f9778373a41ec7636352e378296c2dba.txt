@@ -1,0 +1,49 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/l1tf.html for details.
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 9878 at arch/x86/kvm/vmx/vmx.c:4678 handle_desc.cold+0x11/0x18 arch/x86/kvm/vmx/vmx.c:4678
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 9878 Comm: syz-executor390 Not tainted 5.3.0+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ panic+0x2dc/0x755 kernel/panic.c:219
+ __warn.cold+0x20/0x4c kernel/panic.c:576
+ report_bug+0x263/0x2b0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:179 [inline]
+ fixup_bug arch/x86/kernel/traps.c:174 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:272
+ do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:291
+ invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1028
+RIP: 0010:handle_desc.cold+0x11/0x18 arch/x86/kvm/vmx/vmx.c:4678
+Code: 00 48 c7 c7 20 e7 83 87 c6 05 77 04 86 08 01 e8 f7 65 40 00 e9 a5 42 fd ff e8 e9 c6 56 00 48 c7 c7 80 e7 83 87 e8 e1 65 40 00 <0f> 0b e9 75 44 fd ff e8 d1 c6 56 00 89 de 48 c7 c7 e0 e7 83 87 c6
+RSP: 0018:ffff88809336f9a0 EFLAGS: 00010282
+RAX: 0000000000000024 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff815c3826 RDI: ffffed101266df26
+RBP: ffff88809336f9b0 R08: 0000000000000024 R09: ffffed1015d060d1
+R10: ffffed1015d060d0 R11: ffff8880ae830687 R12: ffff8880958c8040
+R13: 000000000000002f R14: ffff8880958cbc0c R15: ffff8880958c8070
+ vmx_handle_exit+0x299/0x15e0 arch/x86/kvm/vmx/vmx.c:5886
+ vcpu_enter_guest+0x1087/0x5e90 arch/x86/kvm/x86.c:8095
+ vcpu_run arch/x86/kvm/x86.c:8159 [inline]
+ kvm_arch_vcpu_ioctl_run+0x464/0x1750 arch/x86/kvm/x86.c:8367
+ kvm_vcpu_ioctl+0x4dc/0xfd0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2765
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xdb6/0x13e0 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x443819
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b 0c fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffe512f8218 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007ffe512f8220 RCX: 0000000000443819
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000006
+RBP: 0000000000000000 R08: 00000000004010a0 R09: 00000000004010a0
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004048c0
+R13: 0000000000404950 R14: 0000000000000000 R15: 0000000000000000
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

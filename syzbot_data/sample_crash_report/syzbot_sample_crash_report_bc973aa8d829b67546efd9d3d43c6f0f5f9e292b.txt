@@ -1,0 +1,90 @@
+=====================================================
+BUG: KMSAN: uninit-value in __INET_ECN_decapsulate include/net/inet_ecn.h:236 [inline]
+BUG: KMSAN: uninit-value in INET_ECN_decapsulate+0x329/0x1db0 include/net/inet_ecn.h:258
+CPU: 0 PID: 8580 Comm: syz-executor.0 Not tainted 5.12.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x24c/0x2e0 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x5c/0xa0 mm/kmsan/kmsan_instr.c:197
+ __INET_ECN_decapsulate include/net/inet_ecn.h:236 [inline]
+ INET_ECN_decapsulate+0x329/0x1db0 include/net/inet_ecn.h:258
+ geneve_rx+0x216e/0x29d0 include/net/inet_ecn.h:304
+ geneve_udp_encap_recv+0x1055/0x1340 drivers/net/geneve.c:377
+ udp_queue_rcv_one_skb+0x1943/0x1af0 net/ipv4/udp.c:2100
+ udp_queue_rcv_skb+0x286/0x1040 net/ipv4/udp.c:2174
+ udp_unicast_rcv_skb net/ipv4/udp.c:2332 [inline]
+ __udp4_lib_rcv+0x3a1f/0x58f0 net/ipv4/udp.c:2401
+ udp_rcv+0x5c/0x70 net/ipv4/udp.c:2572
+ ip_protocol_deliver_rcu+0x572/0xc50 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish net/ipv4/ip_input.c:231 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ip_local_deliver+0x585/0x8d0 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:458 [inline]
+ ip_rcv_finish net/ipv4/ip_input.c:429 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ip_rcv+0x599/0x820 net/ipv4/ip_input.c:540
+ __netif_receive_skb_one_core net/core/dev.c:5384 [inline]
+ __netif_receive_skb+0x1ec/0x640 net/core/dev.c:5498
+ process_backlog+0x517/0xbd0 net/core/dev.c:6365
+ __napi_poll+0x13e/0xca0 net/core/dev.c:6912
+ napi_poll net/core/dev.c:6979 [inline]
+ net_rx_action+0x726/0x14a0 net/core/dev.c:7065
+ __do_softirq+0x1b9/0x715 kernel/softirq.c:345
+ do_softirq+0x123/0x1c0 kernel/softirq.c:248
+ </IRQ>
+ __local_bh_enable_ip+0xa1/0xb0 kernel/softirq.c:198
+ local_bh_enable+0x36/0x40 include/linux/bottom_half.h:32
+ rcu_read_unlock_bh include/linux/rcupdate.h:745 [inline]
+ __dev_queue_xmit+0x3b4a/0x4600 net/core/dev.c:4221
+ dev_queue_xmit+0x4b/0x60 net/core/dev.c:4227
+ packet_snd net/packet/af_packet.c:3006 [inline]
+ packet_sendmsg+0x86ee/0x99d0 net/packet/af_packet.c:3031
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg net/socket.c:674 [inline]
+ __sys_sendto+0x9ea/0xc60 net/socket.c:1977
+ __do_sys_sendto net/socket.c:1989 [inline]
+ __se_sys_sendto+0x107/0x130 net/socket.c:1985
+ __ia32_sys_sendto+0x6e/0x90 net/socket.c:1985
+ do_syscall_32_irqs_on arch/x86/entry/common.c:79 [inline]
+ __do_fast_syscall_32+0x127/0x180 arch/x86/entry/common.c:142
+ do_fast_syscall_32+0x77/0xd0 arch/x86/entry/common.c:168
+ do_SYSENTER_32+0x73/0x90 arch/x86/entry/common.c:211
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+RIP: 0023:0xf7f5c549
+Code: 03 74 c0 01 10 05 03 74 b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 8d b4 26 00 00 00 00 8d b4 26 00 00 00 00
+RSP: 002b:00000000f55565fc EFLAGS: 00000296 ORIG_RAX: 0000000000000171
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000020000240
+RDX: 000000000000000e RSI: 0000000000000000 RDI: 0000000020000340
+RBP: 0000000000000014 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:121 [inline]
+ kmsan_internal_poison_shadow+0x5c/0xf0 mm/kmsan/kmsan.c:104
+ kmsan_slab_alloc+0x8e/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2922 [inline]
+ __kmalloc_node_track_caller+0xa4f/0x1470 mm/slub.c:4609
+ kmalloc_reserve net/core/skbuff.c:353 [inline]
+ __alloc_skb+0x4dd/0xe90 net/core/skbuff.c:424
+ alloc_skb include/linux/skbuff.h:1103 [inline]
+ alloc_skb_with_frags+0x1f3/0xc10 net/core/skbuff.c:5948
+ sock_alloc_send_pskb+0xdc1/0xf90 net/core/sock.c:2362
+ packet_alloc_skb net/packet/af_packet.c:2854 [inline]
+ packet_snd net/packet/af_packet.c:2949 [inline]
+ packet_sendmsg+0x6a12/0x99d0 net/packet/af_packet.c:3031
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg net/socket.c:674 [inline]
+ __sys_sendto+0x9ea/0xc60 net/socket.c:1977
+ __do_sys_sendto net/socket.c:1989 [inline]
+ __se_sys_sendto+0x107/0x130 net/socket.c:1985
+ __ia32_sys_sendto+0x6e/0x90 net/socket.c:1985
+ do_syscall_32_irqs_on arch/x86/entry/common.c:79 [inline]
+ __do_fast_syscall_32+0x127/0x180 arch/x86/entry/common.c:142
+ do_fast_syscall_32+0x77/0xd0 arch/x86/entry/common.c:168
+ do_SYSENTER_32+0x73/0x90 arch/x86/entry/common.c:211
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+=====================================================

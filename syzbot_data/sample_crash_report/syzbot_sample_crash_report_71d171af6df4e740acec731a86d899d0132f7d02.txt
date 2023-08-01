@@ -1,0 +1,66 @@
+netlink: 8 bytes leftover after parsing attributes in process `syz-executor3'.
+netlink: 8 bytes leftover after parsing attributes in process `syz-executor3'.
+refcount_t: saturated; leaking memory.
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 15197 at lib/refcount.c:77 refcount_add_not_zero+0x198/0x200 lib/refcount.c:77
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 1 PID: 15197 Comm: syz-executor0 Not tainted 4.14.0-rc7+ #158
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ panic+0x1e4/0x417 kernel/panic.c:181
+ __warn+0x1c4/0x1d9 kernel/panic.c:542
+ report_bug+0x211/0x2d0 lib/bug.c:183
+ fixup_bug+0x40/0x90 arch/x86/kernel/traps.c:178
+ do_trap_no_signal arch/x86/kernel/traps.c:212 [inline]
+ do_trap+0x260/0x390 arch/x86/kernel/traps.c:261
+ do_error_trap+0x120/0x390 arch/x86/kernel/traps.c:298
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:311
+ invalid_op+0x18/0x20 arch/x86/entry/entry_64.S:905
+RIP: 0010:refcount_add_not_zero+0x198/0x200 lib/refcount.c:77
+RSP: 0018:ffff8801d8c56948 EFLAGS: 00010286
+RAX: 0000000000000026 RBX: 0000000000001401 RCX: 0000000000000000
+RDX: 0000000000000026 RSI: ffffffff8158842e RDI: ffffed003b18ad1d
+RBP: ffff8801d8c569d8 R08: 0000000000000001 R09: 0000000000000000
+R10: ffff8801cd2db5fa R11: 0000000000000000 R12: ffff8801d84accbc
+R13: 1ffff1003b18ad2a R14: 00000000ffffffff R15: 00000000fffff54c
+ refcount_add+0x1b/0x60 lib/refcount.c:101
+ tcp_gso_segment+0x1072/0x1650 net/ipv4/tcp_offload.c:155
+ tcp4_gso_segment+0xd4/0x2d0 net/ipv4/tcp_offload.c:51
+ inet_gso_segment+0x60c/0x11c0 net/ipv4/af_inet.c:1270
+ skb_mac_gso_segment+0x33f/0x660 net/core/dev.c:2720
+ __skb_gso_segment+0x35f/0x7f0 net/core/dev.c:2792
+ skb_gso_segment include/linux/netdevice.h:3954 [inline]
+ ip_finish_output_gso net/ipv4/ip_output.c:269 [inline]
+ ip_finish_output+0x8a1/0xd10 net/ipv4/ip_output.c:312
+ NF_HOOK_COND include/linux/netfilter.h:238 [inline]
+ ip_output+0x1cc/0x860 net/ipv4/ip_output.c:405
+ dst_output include/net/dst.h:458 [inline]
+ ip_local_out+0x95/0x160 net/ipv4/ip_output.c:124
+ ip_queue_xmit+0x8c6/0x18e0 net/ipv4/ip_output.c:504
+ tcp_transmit_skb+0x19a1/0x3450 net/ipv4/tcp_output.c:1125
+ tcp_write_xmit+0x609/0x49a0 net/ipv4/tcp_output.c:2313
+ tcp_push_one+0xb5/0xe0 net/ipv4/tcp_output.c:2502
+ tcp_sendmsg_locked+0x1d6a/0x3bc0 net/ipv4/tcp.c:1388
+ tcp_sendmsg+0x2f/0x50 net/ipv4/tcp.c:1445
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:762
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ ___sys_sendmsg+0x31c/0x890 net/socket.c:2049
+ __sys_sendmmsg+0x1e6/0x5f0 net/socket.c:2139
+ SYSC_sendmmsg net/socket.c:2170 [inline]
+ SyS_sendmmsg+0x35/0x60 net/socket.c:2165
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x452869
+RSP: 002b:00007f22424a4be8 EFLAGS: 00000212 ORIG_RAX: 0000000000000133
+RAX: ffffffffffffffda RBX: 0000000000758020 RCX: 0000000000452869
+RDX: 0000000000000001 RSI: 0000000020c0de5c RDI: 0000000000000014
+RBP: 0000000000000082 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000004000000 R11: 0000000000000212 R12: 0000000000000000
+R13: 0000000000a6f7ff R14: 00007f22424a59c0 R15: 0000000000000000
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,55 @@
+netdevsim netdevsim0 netdevsim1: set [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim0 netdevsim2: set [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim0 netdevsim3: set [1, 0] type 2 family 0 port 6081 - 0
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:256
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 3590, name: syz-executor266
+preempt_count: 1, expected: 0
+RCU nest depth: 0, expected: 0
+3 locks held by syz-executor266/3590:
+ #0: ffffffff8d3c09f0 (cb_lock){++++}-{3:3}, at: genl_rcv+0x15/0x40 net/netlink/genetlink.c:802
+ #1: ffffffff8d3c0aa8 (genl_mutex){+.+.}-{3:3}, at: genl_lock net/netlink/genetlink.c:33 [inline]
+ #1: ffffffff8d3c0aa8 (genl_mutex){+.+.}-{3:3}, at: genl_rcv_msg+0x3e0/0x580 net/netlink/genetlink.c:790
+ #2: ffff888015bd8318 (&pnettable->lock){+.+.}-{2:2}, at: smc_pnet_add_eth net/smc/smc_pnet.c:373 [inline]
+ #2: ffff888015bd8318 (&pnettable->lock){+.+.}-{2:2}, at: smc_pnet_enter net/smc/smc_pnet.c:495 [inline]
+ #2: ffff888015bd8318 (&pnettable->lock){+.+.}-{2:2}, at: smc_pnet_add+0x46e/0x1710 net/smc/smc_pnet.c:558
+Preemption disabled at:
+[<0000000000000000>] 0x0
+CPU: 1 PID: 3590 Comm: syz-executor266 Not tainted 5.17.0-rc2-syzkaller-00180-g28f922213886 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __might_resched.cold+0x222/0x26b kernel/sched/core.c:9576
+ might_alloc include/linux/sched/mm.h:256 [inline]
+ slab_pre_alloc_hook mm/slab.h:705 [inline]
+ slab_alloc_node mm/slub.c:3144 [inline]
+ slab_alloc mm/slub.c:3238 [inline]
+ kmem_cache_alloc_trace+0x25d/0x2c0 mm/slub.c:3255
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ ref_tracker_alloc+0x10a/0x460 lib/ref_tracker.c:77
+ netdev_tracker_alloc include/linux/netdevice.h:3860 [inline]
+ smc_pnet_add_eth net/smc/smc_pnet.c:384 [inline]
+ smc_pnet_enter net/smc/smc_pnet.c:495 [inline]
+ smc_pnet_add+0x78f/0x1710 net/smc/smc_pnet.c:558
+ genl_family_rcv_msg_doit+0x228/0x320 net/netlink/genetlink.c:731
+ genl_family_rcv_msg net/netlink/genetlink.c:775 [inline]
+ genl_rcv_msg+0x328/0x580 net/netlink/genetlink.c:792
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2494
+ genl_rcv+0x24/0x40 net/netlink/genetlink.c:803
+ netlink_unicast_kernel net/netlink/af_netlink.c:1317 [inline]
+ netlink_unicast+0x539/0x7e0 net/netlink/af_netlink.c:1343
+ netlink_sendmsg+0x904/0xe00 net/netlink/af_netlink.c:1919
+ sock_sendmsg_nosec net/socket.c:705 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:725
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2413
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2467
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2496
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f979ef8b4a9
+Code: 28 c3 e8 4a 15 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fffc3499db8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007fffc3499dc8 RCX: 00007f979ef8b4a9

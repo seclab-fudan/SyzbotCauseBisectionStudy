@@ -1,0 +1,69 @@
+INFO: task kworker/0:0:6880 blocked for more than 143 seconds.
+      Not tainted 5.9.0-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:kworker/0:0     state:D stack:29440 pid: 6880 ppid:     2 flags:0x00004000
+Workqueue: ipv6_addrconf addrconf_verify_work
+Call Trace:
+ context_switch kernel/sched/core.c:3778 [inline]
+ __schedule+0xec9/0x2280 kernel/sched/core.c:4527
+ schedule+0xd0/0x2a0 kernel/sched/core.c:4602
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:4661
+ __mutex_lock_common kernel/locking/mutex.c:1033 [inline]
+ __mutex_lock+0x3e2/0x10e0 kernel/locking/mutex.c:1103
+ addrconf_verify_work+0xa/0x20 net/ipv6/addrconf.c:4568
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1174:
+ #0: ffffffff8a067ec0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:5852
+1 lock held by in:imklog/6562:
+ #0: ffff8880961b48f0 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:930
+3 locks held by kworker/0:0/6880:
+ #0: ffff88809a304538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff88809a304538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: atomic64_set include/asm-generic/atomic-instrumented.h:856 [inline]
+ #0: ffff88809a304538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: atomic_long_set include/asm-generic/atomic-long.h:41 [inline]
+ #0: ffff88809a304538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:616 [inline]
+ #0: ffff88809a304538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:643 [inline]
+ #0: ffff88809a304538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: process_one_work+0x82b/0x1670 kernel/workqueue.c:2240
+ #1: ffffc90005637da8 ((addr_chk_work).work){+.+.}-{0:0}, at: process_one_work+0x85f/0x1670 kernel/workqueue.c:2244
+ #2: ffffffff8b150908 (rtnl_mutex){+.+.}-{3:3}, at: addrconf_verify_work+0xa/0x20 net/ipv6/addrconf.c:4568
+1 lock held by syz-executor433/6910:
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1174 Comm: khungtaskd Not tainted 5.9.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x70/0xb1 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x1b3/0x223 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:209 [inline]
+ watchdog+0xd7d/0x1000 kernel/hung_task.c:295
+ kthread+0x3b5/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 6910 Comm: syz-executor433 Not tainted 5.9.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:arch_local_save_flags arch/x86/include/asm/paravirt.h:765 [inline]
+RIP: 0010:arch_local_irq_save+0x28/0x90 arch/x86/include/asm/paravirt.h:787
+Code: 00 00 48 c7 c0 60 6b fc 89 41 54 48 ba 00 00 00 00 00 fc ff df 48 c1 e8 03 80 3c 10 00 75 4a 48 83 3d cb 4a a1 08 00 74 3c 9c <58> 0f 1f 44 00 00 48 ba 00 00 00 00 00 fc ff df 49 89 c4 48 c7 c0
+RSP: 0018:ffffc900052a6a80 EFLAGS: 00000286
+RAX: 1ffffffff13f8d6c RBX: 0000000000000000 RCX: ffffffff815c09ee
+RDX: dffffc0000000000 RSI: 00000000ffffffff RDI: ffffffff8a067e00
+RBP: ffff8880943a2480 R08: 0000000000000000 R09: ffffffff8b5996cf
+R10: fffffbfff16b32d9 R11: 0000000000000000 R12: ffffffff8a067e00
+R13: ffff8880943a2d68 R14: 0000000000000000 R15: 0000000000000001
+FS:  0000000000770880(0000) GS:ffff8880ae500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f8a15f60000 CR3: 00000000902dd000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 0.000 msecs

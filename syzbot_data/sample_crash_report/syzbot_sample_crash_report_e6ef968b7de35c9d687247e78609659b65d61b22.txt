@@ -1,0 +1,47 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: null-ptr-deref in atomic_dec_return include/linux/atomic/atomic-instrumented.h:251 [inline]
+BUG: KASAN: null-ptr-deref in dst_release net/core/dst.c:172 [inline]
+BUG: KASAN: null-ptr-deref in dst_release+0x26/0xe0 net/core/dst.c:167
+Write of size 4 at addr 0000000000000240 by task syz-executor.3/25939
+
+CPU: 1 PID: 25939 Comm: syz-executor.3 Not tainted 5.16.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __kasan_report mm/kasan/report.c:437 [inline]
+ kasan_report.cold+0x66/0xdf mm/kasan/report.c:450
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_dec_return include/linux/atomic/atomic-instrumented.h:251 [inline]
+ dst_release net/core/dst.c:172 [inline]
+ dst_release+0x26/0xe0 net/core/dst.c:167
+ dst_cache_destroy net/core/dst_cache.c:160 [inline]
+ dst_cache_destroy+0xcb/0x190 net/core/dst_cache.c:152
+ ipip6_dev_free net/ipv6/sit.c:1414 [inline]
+ sit_init_net+0x7d8/0xaa0 net/ipv6/sit.c:1936
+ ops_init+0xaf/0x470 net/core/net_namespace.c:140
+ setup_net+0x40f/0xa30 net/core/net_namespace.c:326
+ copy_net_ns+0x318/0x760 net/core/net_namespace.c:470
+ create_new_namespaces+0x3f6/0xb20 kernel/nsproxy.c:110
+ unshare_nsproxy_namespaces+0xc1/0x1f0 kernel/nsproxy.c:226
+ ksys_unshare+0x445/0x920 kernel/fork.c:3075
+ __do_sys_unshare kernel/fork.c:3146 [inline]
+ __se_sys_unshare kernel/fork.c:3144 [inline]
+ __x64_sys_unshare+0x2d/0x40 kernel/fork.c:3144
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f0931baae99
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f0930520168 EFLAGS: 00000246 ORIG_RAX: 0000000000000110
+RAX: ffffffffffffffda RBX: 00007f0931cbdf60 RCX: 00007f0931baae99
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000060000000
+RBP: 00007f0931c04ff1 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f09321f1b1f R14: 00007f0930520300 R15: 0000000000022000
+ </TASK>
+==================================================================

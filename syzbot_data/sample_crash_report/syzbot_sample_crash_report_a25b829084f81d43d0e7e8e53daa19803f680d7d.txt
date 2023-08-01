@@ -1,0 +1,156 @@
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read include/linux/instrumented.h:71 [inline]
+BUG: KASAN: use-after-free in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:134 [inline]
+BUG: KASAN: use-after-free in nbd_genl_connect+0x235/0x16a0 drivers/block/nbd.c:1869
+Read of size 8 at addr ffff8881463eeab0 by task syz-executor010/6561
+
+CPU: 1 PID: 6561 Comm: syz-executor010 Not tainted 5.14.0-rc6-next-20210820-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0x6c/0x309 mm/kasan/report.c:256
+ __kasan_report mm/kasan/report.c:442 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:459
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read include/linux/instrumented.h:71 [inline]
+ test_bit include/asm-generic/bitops/instrumented-non-atomic.h:134 [inline]
+ nbd_genl_connect+0x235/0x16a0 drivers/block/nbd.c:1869
+ genl_family_rcv_msg_doit+0x228/0x320 net/netlink/genetlink.c:731
+ genl_family_rcv_msg net/netlink/genetlink.c:775 [inline]
+ genl_rcv_msg+0x32d/0x590 net/netlink/genetlink.c:792
+ netlink_rcv_skb+0x154/0x430 net/netlink/af_netlink.c:2504
+ genl_rcv+0x24/0x40 net/netlink/genetlink.c:803
+ netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1340
+ netlink_sendmsg+0x86d/0xdb0 net/netlink/af_netlink.c:1929
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:724
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2403
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2457
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2486
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4406d9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 14 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffec8655a78 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000000103b8 RCX: 00000000004406d9
+RDX: 0000000000000000 RSI: 0000000020000280 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000000 R09: 00007ffec8655c18
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffec8655a8c
+R13: 431bde82d7b634db R14: 00000000004ae018 R15: 00000000004004a0
+
+Allocated by task 1:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:513 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:472 [inline]
+ __kasan_kmalloc+0xa8/0xe0 mm/kasan/common.c:522
+ kmalloc include/linux/slab.h:594 [inline]
+ kzalloc include/linux/slab.h:731 [inline]
+ nbd_dev_add+0x54/0xaf0 drivers/block/nbd.c:1696
+ nbd_init+0x297/0x2a7 drivers/block/nbd.c:2457
+ do_one_initcall+0x103/0x650 init/main.c:1292
+ do_initcall_level init/main.c:1367 [inline]
+ do_initcalls init/main.c:1383 [inline]
+ do_basic_setup init/main.c:1402 [inline]
+ kernel_init_freeable+0x6b4/0x73d init/main.c:1604
+ kernel_init+0x1a/0x1d0 init/main.c:1496
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Freed by task 10:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:360
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free mm/kasan/common.c:328 [inline]
+ __kasan_slab_free+0x103/0x140 mm/kasan/common.c:374
+ kasan_slab_free include/linux/kasan.h:230 [inline]
+ slab_free_hook mm/slub.c:1681 [inline]
+ slab_free_freelist_hook+0x85/0x190 mm/slub.c:1706
+ slab_free mm/slub.c:3459 [inline]
+ kfree+0xea/0x540 mm/slub.c:4519
+ process_one_work+0x9c9/0x16b0 kernel/workqueue.c:2297
+ worker_thread+0x65b/0x1200 kernel/workqueue.c:2444
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Last potentially related work creation:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_record_aux_stack+0xed/0x120 mm/kasan/generic.c:348
+ insert_work+0x48/0x370 kernel/workqueue.c:1353
+ __queue_work+0x5d1/0xf30 kernel/workqueue.c:1519
+ queue_work_on+0xf6/0x110 kernel/workqueue.c:1546
+ queue_work include/linux/workqueue.h:502 [inline]
+ nbd_put drivers/block/nbd.c:283 [inline]
+ nbd_put+0xd7/0x120 drivers/block/nbd.c:276
+ nbd_genl_connect+0xc73/0x16a0 drivers/block/nbd.c:2019
+ genl_family_rcv_msg_doit+0x228/0x320 net/netlink/genetlink.c:731
+ genl_family_rcv_msg net/netlink/genetlink.c:775 [inline]
+ genl_rcv_msg+0x32d/0x590 net/netlink/genetlink.c:792
+ netlink_rcv_skb+0x154/0x430 net/netlink/af_netlink.c:2504
+ genl_rcv+0x24/0x40 net/netlink/genetlink.c:803
+ netlink_unicast_kernel net/netlink/af_netlink.c:1314 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1340
+ netlink_sendmsg+0x86d/0xdb0 net/netlink/af_netlink.c:1929
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:724
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2403
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2457
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2486
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff8881463ee800
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 688 bytes inside of
+ 1024-byte region [ffff8881463ee800, ffff8881463eec00)
+The buggy address belongs to the page:
+page:ffffea000518fa00 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff8881463ef800 pfn:0x1463e8
+head:ffffea000518fa00 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0x57ff00000010200(slab|head|node=1|zone=2|lastcpupid=0x7ff)
+raw: 057ff00000010200 ffffea00050c7a08 ffffea00050fe608 ffff888010c41dc0
+raw: ffff8881463ef800 000000000010000f 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 1, ts 7639818470, free_ts 0
+ prep_new_page mm/page_alloc.c:2424 [inline]
+ get_page_from_freelist+0xa76/0x2f90 mm/page_alloc.c:4151
+ __alloc_pages+0x1ba/0x510 mm/page_alloc.c:5373
+ alloc_page_interleave+0x1e/0x200 mm/mempolicy.c:2033
+ alloc_pages+0x29f/0x300 mm/mempolicy.c:2183
+ alloc_slab_page mm/slub.c:1744 [inline]
+ allocate_slab mm/slub.c:1881 [inline]
+ new_slab+0x321/0x490 mm/slub.c:1944
+ ___slab_alloc+0x937/0x1000 mm/slub.c:2970
+ __slab_alloc.constprop.0+0x51/0xa0 mm/slub.c:3057
+ slab_alloc_node mm/slub.c:3148 [inline]
+ kmem_cache_alloc_node_trace+0x187/0x400 mm/slub.c:3232
+ kmalloc_node include/linux/slab.h:613 [inline]
+ kzalloc_node include/linux/slab.h:743 [inline]
+ blk_throtl_init+0x7c/0x660 block/blk-throttle.c:2420
+ blkcg_init_queue+0x199/0x770 block/blk-cgroup.c:1193
+ blk_alloc_queue+0x451/0x630 block/blk-core.c:567
+ blk_mq_init_queue_data block/blk-mq.c:3120 [inline]
+ __blk_mq_alloc_disk+0x47/0x190 block/blk-mq.c:3143
+ loop_add+0x324/0x940 drivers/block/loop.c:2344
+ loop_init+0x1f5/0x218 drivers/block/loop.c:2575
+ do_one_initcall+0x103/0x650 init/main.c:1292
+ do_initcall_level init/main.c:1367 [inline]
+ do_initcalls init/main.c:1383 [inline]
+ do_basic_setup init/main.c:1402 [inline]
+ kernel_init_freeable+0x6b4/0x73d init/main.c:1604
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff8881463ee980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881463eea00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881463eea80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff8881463eeb00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881463eeb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

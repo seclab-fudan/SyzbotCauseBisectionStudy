@@ -1,0 +1,84 @@
+RAX: ffffffffffffffda RBX: 0000000000000066 RCX: 0000000000455971
+RDX: 0000000000000001 RSI: 00007f6109978bf0 RDI: 00000000000000fc
+RBP: 0000000020000000 R08: 00000000000000fc R09: 0000000000000000
+R10: 0000000000000066 R11: 0000000000000293 R12: 0000000000000013
+R13: 00000000004c20a6 R14: 00000000004d3ae0 R15: 0000000000000001
+BUG: unable to handle kernel paging request at ffffffffffffffc7
+PGD 8e6d067 P4D 8e6d067 PUD 8e6f067 PMD 0 
+Oops: 0000 [#1] SMP KASAN
+CPU: 0 PID: 6442 Comm: syz-executor5 Not tainted 4.18.0-rc3+ #130
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:debug_write_lock_before kernel/locking/spinlock_debug.c:178 [inline]
+RIP: 0010:do_raw_write_lock+0x33/0x1b0 kernel/locking/spinlock_debug.c:202
+Code: df 55 48 89 e5 41 56 41 55 41 54 53 48 89 fb 48 83 c7 08 48 89 fa 48 c1 ea 03 0f b6 04 02 84 c0 74 08 3c 03 0f 8e 4d 01 00 00 <81> 7b 08 ed 1e af de 0f 85 17 01 00 00 48 b8 00 00 00 00 00 fc ff 
+RSP: 0018:ffff88019a6ce858 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffffffffffffffbf RCX: 0000000000000000
+RDX: 1ffffffffffffff8 RSI: 0000000000000000 RDI: ffffffffffffffc7
+RBP: ffff88019a6ce878 R08: 0000000000000001 R09: 0000000000000000
+R10: fffffbfff12fab24 R11: ffffffff897d5923 R12: dffffc0000000000
+R13: 0000000000000004 R14: 0000000040000007 R15: 0000000000000000
+FS:  00007f6109979700(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffffffffc7 CR3: 00000001cf1e7000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __raw_write_lock_bh include/linux/rwlock_api_smp.h:204 [inline]
+ _raw_write_lock_bh+0x39/0x40 kernel/locking/spinlock.c:312
+ neigh_update+0xdf/0x1f60 net/core/neighbour.c:1130
+ ndisc_update+0x3c/0xd0 net/ipv6/ndisc.c:748
+ ndisc_router_discovery+0x1319/0x3370 net/ipv6/ndisc.c:1400
+ ndisc_rcv+0x565/0x660 net/ipv6/ndisc.c:1751
+ icmpv6_rcv+0x1456/0x1a60 net/ipv6/icmp.c:875
+ ip6_input_finish+0x407/0x1a40 net/ipv6/ip6_input.c:383
+ NF_HOOK include/linux/netfilter.h:287 [inline]
+ ip6_input+0xe9/0x600 net/ipv6/ip6_input.c:426
+ ip6_mc_input+0x45a/0xcf0 net/ipv6/ip6_input.c:503
+ dst_input include/net/dst.h:450 [inline]
+ ip6_rcv_finish+0x17a/0x330 net/ipv6/ip6_input.c:76
+ NF_HOOK include/linux/netfilter.h:287 [inline]
+ ipv6_rcv+0x11e/0x650 net/ipv6/ip6_input.c:271
+ __netif_receive_skb_one_core+0x14d/0x200 net/core/dev.c:4878
+ __netif_receive_skb+0x2c/0x1e0 net/core/dev.c:4988
+ netif_receive_skb_internal+0x12e/0x5f0 net/core/dev.c:5091
+ napi_frags_finish net/core/dev.c:5629 [inline]
+ napi_gro_frags+0x64e/0xc60 net/core/dev.c:5702
+ tun_get_user+0x31ad/0x42f0 drivers/net/tun.c:1964
+ tun_chr_write_iter+0xb9/0x154 drivers/net/tun.c:2009
+ call_write_iter include/linux/fs.h:1793 [inline]
+ do_iter_readv_writev+0x897/0xa90 fs/read_write.c:680
+ do_iter_write+0x185/0x5f0 fs/read_write.c:959
+ vfs_writev+0x1f1/0x360 fs/read_write.c:1004
+ do_writev+0x11a/0x310 fs/read_write.c:1039
+ __do_sys_writev fs/read_write.c:1112 [inline]
+ __se_sys_writev fs/read_write.c:1109 [inline]
+ __x64_sys_writev+0x75/0xb0 fs/read_write.c:1109
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455971
+Code: 75 14 b8 14 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 54 bb fb ff c3 48 83 ec 08 e8 da 2c 00 00 48 89 04 24 b8 14 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 23 2d 00 00 48 89 d0 48 83 c4 08 48 3d 01 
+RSP: 002b:00007f6109978ba0 EFLAGS: 00000293 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 0000000000000066 RCX: 0000000000455971
+RDX: 0000000000000001 RSI: 00007f6109978bf0 RDI: 00000000000000fc
+RBP: 0000000020000000 R08: 00000000000000fc R09: 0000000000000000
+R10: 0000000000000066 R11: 0000000000000293 R12: 0000000000000013
+R13: 00000000004c20a6 R14: 00000000004d3ae0 R15: 0000000000000001
+Modules linked in:
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+CR2: ffffffffffffffc7
+---[ end trace b85d6686d14d5673 ]---
+RIP: 0010:debug_write_lock_before kernel/locking/spinlock_debug.c:178 [inline]
+RIP: 0010:do_raw_write_lock+0x33/0x1b0 kernel/locking/spinlock_debug.c:202
+Code: df 55 48 89 e5 41 56 41 55 41 54 53 48 89 fb 48 83 c7 08 48 89 fa 48 c1 ea 03 0f b6 04 02 84 c0 74 08 3c 03 0f 8e 4d 01 00 00 <81> 7b 08 ed 1e af de 0f 85 17 01 00 00 48 b8 00 00 00 00 00 fc ff 
+RSP: 0018:ffff88019a6ce858 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffffffffffffffbf RCX: 0000000000000000
+RDX: 1ffffffffffffff8 RSI: 0000000000000000 RDI: ffffffffffffffc7
+RBP: ffff88019a6ce878 R08: 0000000000000001 R09: 0000000000000000
+R10: fffffbfff12fab24 R11: ffffffff897d5923 R12: dffffc0000000000
+R13: 0000000000000004 R14: 0000000040000007 R15: 0000000000000000
+FS:  00007f6109979700(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffffffffc7 CR3: 00000001cf1e7000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

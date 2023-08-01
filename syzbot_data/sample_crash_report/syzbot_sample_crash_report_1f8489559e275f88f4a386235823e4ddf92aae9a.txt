@@ -1,0 +1,96 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in skb_release_data+0x5cf/0x790 net/core/skbuff.c:567
+Read of size 1 at addr ffff880036948442 by task swapper/2/0
+
+CPU: 2 PID: 0 Comm: swapper/2 Not tainted 4.13.0-rc5-next-20170816+ #4
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:427
+ skb_release_data+0x5cf/0x790 net/core/skbuff.c:567
+ skb_release_all+0x4a/0x60 net/core/skbuff.c:631
+ __kfree_skb net/core/skbuff.c:645 [inline]
+ kfree_skb+0x15d/0x4c0 net/core/skbuff.c:663
+ inet_frag_destroy+0x121/0x270 net/ipv4/inet_fragment.c:304
+ inet_frag_put include/net/inet_frag.h:133 [inline]
+ ipq_put net/ipv4/ip_fragment.c:170 [inline]
+ ip_expire+0x1be/0x6d0 net/ipv4/ip_fragment.c:254
+ call_timer_fn+0x233/0x830 kernel/time/timer.c:1268
+ expire_timers kernel/time/timer.c:1307 [inline]
+ __run_timers+0x7fd/0xb90 kernel/time/timer.c:1601
+ run_timer_softirq+0x21/0x80 kernel/time/timer.c:1614
+ __do_softirq+0x2f5/0xba3 kernel/softirq.c:284
+ invoke_softirq kernel/softirq.c:364 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:638 [inline]
+ smp_trace_apic_timer_interrupt+0x139/0x6a0 arch/x86/kernel/apic/apic.c:1065
+ trace_apic_timer_interrupt+0x9d/0xb0 arch/x86/entry/entry_64.S:577
+ </IRQ>
+RIP: 0010:native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:53
+RSP: 0018:ffff88006dab7db0 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff10
+RAX: dffffc0000000000 RBX: 1ffff1000db56fb9 RCX: 0100000000000000
+RDX: 1ffffffff0b58d6c RSI: 0000000000000000 RDI: ffffffff85ac6b60
+RBP: ffff88006dab7db0 R08: ffffffff857f0a90 R09: 1ffff1000db56f4f
+R10: ffff88007fff7090 R11: ffff88007fff709d R12: ffffffff85ac6b50
+R13: ffff88006dab7e68 R14: 0000000000000000 R15: ffff88006daac040
+ arch_safe_halt arch/x86/include/asm/paravirt.h:98 [inline]
+ default_idle+0xbf/0x460 arch/x86/kernel/process.c:341
+ arch_cpu_idle+0xa/0x10 arch/x86/kernel/process.c:332
+ default_idle_call+0x36/0x90 kernel/sched/idle.c:98
+ cpuidle_idle_call kernel/sched/idle.c:156 [inline]
+ do_idle+0x256/0x3b0 kernel/sched/idle.c:246
+ cpu_startup_entry+0x18/0x20 kernel/sched/idle.c:351
+ start_secondary+0x277/0x310 arch/x86/kernel/smpboot.c:275
+ secondary_startup_64+0xa5/0xa5 arch/x86/kernel/head_64.S:235
+
+Allocated by task 20100:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3561
+ getname_flags+0xcb/0x580 fs/namei.c:137
+ getname+0x19/0x20 fs/namei.c:208
+ do_sys_open+0x2e7/0x6d0 fs/open.c:1053
+ SYSC_open fs/open.c:1077 [inline]
+ SyS_open+0x2d/0x40 fs/open.c:1072
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 20100:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kmem_cache_free+0x77/0x280 mm/slab.c:3763
+ putname+0xee/0x130 fs/namei.c:257
+ do_sys_open+0x31b/0x6d0 fs/open.c:1068
+ SYSC_open fs/open.c:1077 [inline]
+ SyS_open+0x2d/0x40 fs/open.c:1072
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+The buggy address belongs to the object at ffff880036948940
+ which belongs to the cache names_cache of size 4096
+The buggy address is located 1278 bytes to the left of
+ 4096-byte region [ffff880036948940, ffff880036949940)
+The buggy address belongs to the page:
+page:ffffea0000da5200 count:1 mapcount:0 mapping:ffff880036948940 index:0x0 compound_mapcount: 0
+flags: 0x100000000008100(slab|head)
+raw: 0100000000008100 ffff880036948940 0000000000000000 0000000100000001
+raw: ffffea00009a14a0 ffffea0000eb2020 ffff88003e87c200 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff880036948300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff880036948380: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff880036948400: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                           ^
+ ffff880036948480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff880036948500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

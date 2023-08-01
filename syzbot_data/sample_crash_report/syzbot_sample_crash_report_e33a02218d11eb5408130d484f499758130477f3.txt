@@ -1,0 +1,44 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc5-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+1 lock held by syz-executor.3/10482:
+ #0: 
+ffff8880127a3218
+ (
+&mm->mmap_lock
+#2
+){++++}-{3:3}
+, at: mmap_write_lock_killable include/linux/mmap_lock.h:87 [inline]
+, at: vm_mmap_pgoff+0x15c/0x290 mm/util.c:517
+
+stack backtrace:
+CPU: 1 PID: 10482 Comm: syz-executor.3 Not tainted 5.13.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ down_read+0x73/0x440 kernel/locking/rwsem.c:1352
+ anon_vma_lock_read include/linux/rmap.h:129 [inline]
+ validate_mm+0xd3/0x810 mm/mmap.c:406
+ mmap_region+0xeff/0x1730 mm/mmap.c:1864
+ do_mmap+0xcff/0x11d0 mm/mmap.c:1587
+ vm_mmap_pgoff+0x1b7/0x290 mm/util.c:519
+ ksys_mmap_pgoff+0xe4/0x620 mm/mmap.c:1638
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x466622
+Code: 00 00 00 00 00 0f 1f 00 41 f7 c1 ff 0f 00 00 75 27 55 48 89 fd 53 89 cb 48 85 ff 74 3b 41 89 da 48 89 ef b8 09 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 66 5b 5d c3 0f 1f 00 48 c7 c0 bc ff ff ff 64
+RSP: 002b:00007fff6b288bd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 0000000000020022 RCX: 0000000000466622
+RDX: 0000000000000000 RSI: 0000000000021000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 00000000ffffffff R09: 0000000000000000
+R10: 0000000000020022 R11: 0000000000000246 R12: 00007fff6b288dd0
+R13: 00007f6a5677f700 R14: 0000000000000000 R15: 0000000000022000

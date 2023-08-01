@@ -1,0 +1,130 @@
+dccp_close: ABORT with 9275 bytes unread
+==================================================================
+BUG: KASAN: use-after-free in ccid2_hc_tx_rto_expire+0x51c/0x5c0 net/dccp/ccids/ccid2.c:144
+Read of size 4 at addr ffff8801bf85d500 by task modprobe/25669
+
+CPU: 1 PID: 25669 Comm: modprobe Not tainted 4.13.0-rc5+ #14
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ ccid2_hc_tx_rto_expire+0x51c/0x5c0 net/dccp/ccids/ccid2.c:144
+ call_timer_fn+0x233/0x830 kernel/time/timer.c:1268
+ expire_timers kernel/time/timer.c:1307 [inline]
+ __run_timers+0x7fd/0xb90 kernel/time/timer.c:1601
+ run_timer_softirq+0x21/0x80 kernel/time/timer.c:1614
+ __do_softirq+0x2f5/0xba3 kernel/softirq.c:284
+ invoke_softirq kernel/softirq.c:364 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:638 [inline]
+ smp_apic_timer_interrupt+0x76/0xa0 arch/x86/kernel/apic/apic.c:1044
+ apic_timer_interrupt+0x93/0xa0 arch/x86/entry/entry_64.S:702
+RIP: 0010:unlock_page+0x1ca/0x270 mm/filemap.c:1093
+RSP: 0000:ffff8801bfa576c8 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff10
+RAX: dffffc0000000000 RBX: ffffea00076cb240 RCX: 1ffffd4000ed964c
+RDX: 0000000000000000 RSI: 00007f3ea29e8000 RDI: ffffea00076cb240
+RBP: ffff8801bfa576f0 R08: 0000000000000001 R09: 1ffff10037f4ae45
+R10: ffff8801bfa57148 R11: 0000000000000003 R12: 1ffff10037f4aec5
+R13: ffffea00076cb240 R14: ffff8801bfa576c8 R15: ffffea00076cb220
+ </IRQ>
+ filemap_map_pages+0x10a0/0x15d0 mm/filemap.c:2520
+ do_fault_around mm/memory.c:3365 [inline]
+ do_read_fault mm/memory.c:3399 [inline]
+ do_fault mm/memory.c:3504 [inline]
+ handle_pte_fault mm/memory.c:3734 [inline]
+ __handle_mm_fault+0x1e5d/0x3810 mm/memory.c:3852
+ handle_mm_fault+0x3bb/0x940 mm/memory.c:3889
+ __do_page_fault+0x4f6/0xb60 arch/x86/mm/fault.c:1445
+ do_page_fault+0x54/0x70 arch/x86/mm/fault.c:1508
+ page_fault+0x28/0x30 arch/x86/entry/entry_64.S:1007
+RIP: 0033:0x7f3ea29ebc50
+RSP: 002b:00007ffe07abad58 EFLAGS: 00010202
+RAX: 0000000000000003 RBX: 0000000000000000 RCX: 00007f3ea2a57120
+RDX: 00007ffe07abaf8c RSI: 00007f3ea2d22363 RDI: 0000000000000000
+RBP: 00007f3ea2f27300 R08: 0000000000000000 R09: 00000038cd3ab219
+R10: 0000000000000000 R11: 00007f3ea29ebc50 R12: 00000038cd3a3210
+R13: 00000038cd3ab210 R14: 00000038cd3a3210 R15: 00007ffe07abaf70
+
+Allocated by task 25576:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x127/0x750 mm/slab.c:3561
+ ccid_new+0x20e/0x390 net/dccp/ccid.c:151
+ dccp_hdlr_ccid+0x27/0x140 net/dccp/feat.c:44
+ __dccp_feat_activate+0x142/0x2a0 net/dccp/feat.c:344
+ dccp_feat_activate_values+0x34e/0xa90 net/dccp/feat.c:1538
+ dccp_create_openreq_child+0x474/0x600 net/dccp/minisocks.c:121
+ dccp_v4_request_recv_sock+0xaa/0x9c0 net/dccp/ipv4.c:408
+ dccp_v6_request_recv_sock+0xfb3/0x1aa0 net/dccp/ipv6.c:412
+ dccp_check_req+0x321/0x5a0 net/dccp/minisocks.c:190
+ dccp_v4_rcv+0x645/0x1c00 net/dccp/ipv4.c:837
+ ip_local_deliver_finish+0x2e2/0xba0 net/ipv4/ip_input.c:216
+ NF_HOOK include/linux/netfilter.h:248 [inline]
+ ip_local_deliver+0x1ce/0x6d0 net/ipv4/ip_input.c:257
+ dst_input include/net/dst.h:478 [inline]
+ ip_rcv_finish+0x8db/0x19c0 net/ipv4/ip_input.c:397
+ NF_HOOK include/linux/netfilter.h:248 [inline]
+ ip_rcv+0xc3f/0x17d0 net/ipv4/ip_input.c:488
+ __netif_receive_skb_core+0x19af/0x33d0 net/core/dev.c:4418
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4456
+ process_backlog+0x203/0x740 net/core/dev.c:5132
+ napi_poll net/core/dev.c:5529 [inline]
+ net_rx_action+0x792/0x1910 net/core/dev.c:5595
+ __do_softirq+0x2f5/0xba3 kernel/softirq.c:284
+
+Freed by task 25626:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kmem_cache_free+0x77/0x280 mm/slab.c:3763
+ ccid_hc_tx_delete+0xc5/0x100 net/dccp/ccid.c:190
+ dccp_destroy_sock+0x2fb/0x460 net/dccp/proto.c:222
+ dccp_v6_destroy_sock+0x15/0x20 net/dccp/ipv6.c:994
+ inet_csk_destroy_sock+0x166/0x3f0 net/ipv4/inet_connection_sock.c:833
+ dccp_close+0x84d/0xc10 net/dccp/proto.c:1064
+ inet_release+0xed/0x1c0 net/ipv4/af_inet.c:425
+ inet6_release+0x50/0x70 net/ipv6/af_inet6.c:432
+ sock_release+0x8d/0x1e0 net/socket.c:597
+ sock_close+0x16/0x20 net/socket.c:1126
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:246
+ task_work_run+0x18a/0x260 kernel/task_work.c:116
+ exit_task_work include/linux/task_work.h:21 [inline]
+ do_exit+0xa3a/0x1b10 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:969
+ get_signal+0x7e8/0x17e0 kernel/signal.c:2330
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:808
+ exit_to_usermode_loop+0x224/0x300 arch/x86/entry/common.c:157
+ prepare_exit_to_usermode arch/x86/entry/common.c:194 [inline]
+ syscall_return_slowpath+0x3a7/0x450 arch/x86/entry/common.c:263
+ entry_SYSCALL_64_fastpath+0xbc/0xbe
+
+The buggy address belongs to the object at ffff8801bf85d0c0
+ which belongs to the cache ccid2_hc_tx_sock of size 1240
+The buggy address is located 1088 bytes inside of
+ 1240-byte region [ffff8801bf85d0c0, ffff8801bf85d598)
+The buggy address belongs to the page:
+page:ffffea0006fe1700 count:1 mapcount:0 mapping:ffff8801bf85c040 index:0x0 compound_mapcount: 0
+flags: 0x200000000008100(slab|head)
+raw: 0200000000008100 ffff8801bf85c040 0000000000000000 0000000100000005
+raw: ffff8801d3ab9e48 ffffea0007261da0 ffff8801d3ab7540 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bf85d400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bf85d480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801bf85d500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8801bf85d580: fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801bf85d600: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+==================================================================

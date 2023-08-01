@@ -1,0 +1,57 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: null-ptr-deref in atomic_inc include/asm-generic/atomic-instrumented.h:240 [inline]
+BUG: KASAN: null-ptr-deref in mmgrab include/linux/sched/mm.h:36 [inline]
+BUG: KASAN: null-ptr-deref in kthread_use_mm+0x11c/0x2a0 kernel/kthread.c:1257
+Write of size 4 at addr 0000000000000060 by task io_uring-sq/9432
+
+CPU: 1 PID: 9432 Comm: io_uring-sq Not tainted 5.10.0-rc1-next-20201030-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:118
+ __kasan_report mm/kasan/report.c:549 [inline]
+ kasan_report.cold+0x5/0x37 mm/kasan/report.c:562
+ check_memory_region_inline mm/kasan/generic.c:186 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:192
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_inc include/asm-generic/atomic-instrumented.h:240 [inline]
+ mmgrab include/linux/sched/mm.h:36 [inline]
+ kthread_use_mm+0x11c/0x2a0 kernel/kthread.c:1257
+ __io_sq_thread_acquire_mm fs/io_uring.c:1092 [inline]
+ __io_sq_thread_acquire_mm+0x1c4/0x220 fs/io_uring.c:1085
+ io_sq_thread_acquire_mm_files.isra.0+0x125/0x180 fs/io_uring.c:1104
+ io_init_req fs/io_uring.c:6661 [inline]
+ io_submit_sqes+0x89d/0x25f0 fs/io_uring.c:6757
+ __io_sq_thread fs/io_uring.c:6904 [inline]
+ io_sq_thread+0x462/0x1630 fs/io_uring.c:6971
+ kthread+0x3af/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 9432 Comm: io_uring-sq Tainted: G    B             5.10.0-rc1-next-20201030-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:118
+ panic+0x306/0x73d kernel/panic.c:231
+ end_report+0x58/0x5e mm/kasan/report.c:106
+ __kasan_report mm/kasan/report.c:552 [inline]
+ kasan_report.cold+0xd/0x37 mm/kasan/report.c:562
+ check_memory_region_inline mm/kasan/generic.c:186 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:192
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_inc include/asm-generic/atomic-instrumented.h:240 [inline]
+ mmgrab include/linux/sched/mm.h:36 [inline]
+ kthread_use_mm+0x11c/0x2a0 kernel/kthread.c:1257
+ __io_sq_thread_acquire_mm fs/io_uring.c:1092 [inline]
+ __io_sq_thread_acquire_mm+0x1c4/0x220 fs/io_uring.c:1085
+ io_sq_thread_acquire_mm_files.isra.0+0x125/0x180 fs/io_uring.c:1104
+ io_init_req fs/io_uring.c:6661 [inline]
+ io_submit_sqes+0x89d/0x25f0 fs/io_uring.c:6757
+ __io_sq_thread fs/io_uring.c:6904 [inline]
+ io_sq_thread+0x462/0x1630 fs/io_uring.c:6971
+ kthread+0x3af/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

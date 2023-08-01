@@ -1,0 +1,118 @@
+BUG: sleeping function called from invalid context at include/linux/sched/mm.h:256
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 0, name: swapper/0
+preempt_count: 701, expected: 0
+RCU nest depth: 4, expected: 0
+INFO: lockdep is turned off.
+Preemption disabled at:
+[<ffffffff8955b3f9>] schedule_preempt_disabled+0x19/0x20 kernel/sched/core.c:6429
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.16.0-rc4-next-20211210-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ __might_resched.cold+0x222/0x26b kernel/sched/core.c:9583
+ might_alloc include/linux/sched/mm.h:256 [inline]
+ slab_pre_alloc_hook mm/slab.h:739 [inline]
+ slab_alloc_node mm/slub.c:3145 [inline]
+ slab_alloc mm/slub.c:3239 [inline]
+ kmem_cache_alloc_trace+0x25d/0x2c0 mm/slub.c:3256
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ ref_tracker_alloc+0xe1/0x430 lib/ref_tracker.c:74
+ netdev_tracker_alloc include/linux/netdevice.h:3860 [inline]
+ dev_hold_track include/linux/netdevice.h:3877 [inline]
+ rt6_probe net/ipv6/route.c:661 [inline]
+ find_match.part.0+0xac9/0xd00 net/ipv6/route.c:752
+ find_match net/ipv6/route.c:825 [inline]
+ __find_rr_leaf+0x17f/0xd20 net/ipv6/route.c:826
+ find_rr_leaf net/ipv6/route.c:847 [inline]
+ rt6_select net/ipv6/route.c:891 [inline]
+ fib6_table_lookup+0x649/0xa20 net/ipv6/route.c:2185
+ ip6_pol_route+0x1c5/0x11e0 net/ipv6/route.c:2221
+ pol_lookup_func include/net/ip6_fib.h:580 [inline]
+ fib6_rule_lookup+0x52a/0x6f0 net/ipv6/fib6_rules.c:120
+ ip6_route_output_flags_noref+0x2e2/0x380 net/ipv6/route.c:2629
+ ip6_route_output_flags+0x72/0x320 net/ipv6/route.c:2642
+ ip6_route_output include/net/ip6_route.h:98 [inline]
+ ip6_dst_lookup_tail+0x5ab/0x1620 net/ipv6/ip6_output.c:1070
+ ip6_dst_lookup_flow+0x8c/0x1d0 net/ipv6/ip6_output.c:1200
+ geneve_get_v6_dst+0x46f/0x9a0 drivers/net/geneve.c:858
+ geneve6_xmit_skb drivers/net/geneve.c:991 [inline]
+ geneve_xmit+0x520/0x3530 drivers/net/geneve.c:1074
+ __netdev_start_xmit include/linux/netdevice.h:4685 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4699 [inline]
+ xmit_one net/core/dev.c:3473 [inline]
+ dev_hard_start_xmit+0x1eb/0x920 net/core/dev.c:3489
+ __dev_queue_xmit+0x2983/0x3640 net/core/dev.c:4112
+ neigh_resolve_output net/core/neighbour.c:1522 [inline]
+ neigh_resolve_output+0x50e/0x820 net/core/neighbour.c:1502
+ neigh_output include/net/neighbour.h:541 [inline]
+ ip6_finish_output2+0x56e/0x14f0 net/ipv6/ip6_output.c:126
+ __ip6_finish_output net/ipv6/ip6_output.c:191 [inline]
+ __ip6_finish_output+0x61e/0xe80 net/ipv6/ip6_output.c:170
+ ip6_finish_output+0x32/0x200 net/ipv6/ip6_output.c:201
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip6_output+0x1e4/0x530 net/ipv6/ip6_output.c:224
+ dst_output include/net/dst.h:451 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ ndisc_send_skb+0xa99/0x17f0 net/ipv6/ndisc.c:508
+ ndisc_send_rs+0x12e/0x6f0 net/ipv6/ndisc.c:702
+ addrconf_rs_timer+0x3f2/0x820 net/ipv6/addrconf.c:3898
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1421
+ expire_timers kernel/time/timer.c:1466 [inline]
+ __run_timers.part.0+0x675/0xa20 kernel/time/timer.c:1734
+ __run_timers kernel/time/timer.c:1715 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1747
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:637
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:649
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:native_save_fl arch/x86/include/asm/irqflags.h:29 [inline]
+RIP: 0010:arch_local_save_flags arch/x86/include/asm/irqflags.h:70 [inline]
+RIP: 0010:arch_irqs_disabled arch/x86/include/asm/irqflags.h:130 [inline]
+RIP: 0010:acpi_safe_halt drivers/acpi/processor_idle.c:111 [inline]
+RIP: 0010:acpi_idle_do_entry+0x1c6/0x250 drivers/acpi/processor_idle.c:551
+Code: 89 de e8 ad 23 21 f8 84 db 75 ac e8 c4 1f 21 f8 e8 7f 68 27 f8 eb 0c e8 b8 1f 21 f8 0f 00 2d b1 a6 ba 00 e8 ac 1f 21 f8 fb f4 <9c> 5b 81 e3 00 02 00 00 fa 31 ff 48 89 de e8 27 22 21 f8 48 85 db
+RSP: 0018:ffffffff8b807d60 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffffffff8b8bc6c0 RSI: ffffffff8956dbd4 RDI: 0000000000000000
+RBP: ffff8881427a4864 R08: 0000000000000001 R09: 0000000000000001
+R10: ffffffff817e4478 R11: 0000000000000000 R12: 0000000000000001
+R13: ffff8881427a4800 R14: ffff8881427a4864 R15: ffff8880176a6804
+ acpi_idle_enter+0x361/0x500 drivers/acpi/processor_idle.c:686
+ cpuidle_enter_state+0x1b1/0xc80 drivers/cpuidle/cpuidle.c:237
+ cpuidle_enter+0x4a/0xa0 drivers/cpuidle/cpuidle.c:351
+ call_cpuidle kernel/sched/idle.c:158 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:239 [inline]
+ do_idle+0x3e8/0x590 kernel/sched/idle.c:306
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:403
+ start_kernel+0x47a/0x49b init/main.c:1141
+ secondary_startup_64_no_verify+0xc3/0xcb
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	89 de                	mov    %ebx,%esi
+   2:	e8 ad 23 21 f8       	callq  0xf82123b4
+   7:	84 db                	test   %bl,%bl
+   9:	75 ac                	jne    0xffffffb7
+   b:	e8 c4 1f 21 f8       	callq  0xf8211fd4
+  10:	e8 7f 68 27 f8       	callq  0xf8276894
+  15:	eb 0c                	jmp    0x23
+  17:	e8 b8 1f 21 f8       	callq  0xf8211fd4
+  1c:	0f 00 2d b1 a6 ba 00 	verw   0xbaa6b1(%rip)        # 0xbaa6d4
+  23:	e8 ac 1f 21 f8       	callq  0xf8211fd4
+  28:	fb                   	sti
+  29:	f4                   	hlt
+* 2a:	9c                   	pushfq <-- trapping instruction
+  2b:	5b                   	pop    %rbx
+  2c:	81 e3 00 02 00 00    	and    $0x200,%ebx
+  32:	fa                   	cli
+  33:	31 ff                	xor    %edi,%edi
+  35:	48 89 de             	mov    %rbx,%rsi
+  38:	e8 27 22 21 f8       	callq  0xf8212264
+  3d:	48 85 db             	test   %rbx,%rbx

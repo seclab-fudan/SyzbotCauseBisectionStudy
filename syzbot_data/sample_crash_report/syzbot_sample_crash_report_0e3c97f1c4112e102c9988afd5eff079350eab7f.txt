@@ -1,0 +1,84 @@
+==================================================================
+BUG: KASAN: use-after-free in v4l2_fh_init drivers/media/v4l2-core/v4l2-fh.c:25 [inline]
+BUG: KASAN: use-after-free in v4l2_fh_open+0xc7/0x430 drivers/media/v4l2-core/v4l2-fh.c:63
+Read of size 8 at addr ffff88801e3448b8 by task v4l_id/9085
+
+CPU: 1 PID: 9085 Comm: v4l_id Not tainted 5.13.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x202/0x31e lib/dump_stack.c:120
+ print_address_description+0x5f/0x3b0 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report+0x15c/0x200 mm/kasan/report.c:436
+ v4l2_fh_init drivers/media/v4l2-core/v4l2-fh.c:25 [inline]
+ v4l2_fh_open+0xc7/0x430 drivers/media/v4l2-core/v4l2-fh.c:63
+ em28xx_v4l2_open+0x15c/0xa60 drivers/media/usb/em28xx/em28xx-video.c:2163
+ v4l2_open+0x229/0x360 drivers/media/v4l2-core/v4l2-dev.c:429
+ chrdev_open+0x53b/0x5f0 fs/char_dev.c:414
+ do_dentry_open+0x7cb/0x1010 fs/open.c:826
+ do_open fs/namei.c:3361 [inline]
+ path_openat+0x28e6/0x39b0 fs/namei.c:3494
+ do_filp_open+0x221/0x460 fs/namei.c:3521
+ do_sys_openat2+0x124/0x460 fs/open.c:1187
+ do_sys_open fs/open.c:1203 [inline]
+ __do_sys_open fs/open.c:1211 [inline]
+ __se_sys_open fs/open.c:1207 [inline]
+ __x64_sys_open+0x221/0x270 fs/open.c:1207
+ do_syscall_64+0x3f/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f35ca4d3840
+Code: 73 01 c3 48 8b 0d 68 77 20 00 f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 83 3d 89 bb 20 00 00 75 10 b8 02 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 1e f6 ff ff 48 89 04 24
+RSP: 002b:00007ffd4728d3b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 00007ffd4728d528 RCX: 00007f35ca4d3840
+RDX: 00007f35ca4bfea0 RSI: 0000000000000000 RDI: 00007ffd4728ef1e
+RBP: 0000000000000003 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000002 R11: 0000000000000246 R12: 00005644f66df8d0
+R13: 00007ffd4728d520 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea000078d100 refcount:0 mapcount:-128 mapping:0000000000000000 index:0x0 pfn:0x1e344
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 ffffea00005be908 ffff88813fffb910 0000000000000000
+raw: 0000000000000000 0000000000000002 00000000ffffff7f 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as freed
+page last allocated via order 2, migratetype Unmovable, gfp_mask 0x40dc0(GFP_KERNEL|__GFP_COMP|__GFP_ZERO), pid 8571, ts 62798090898, free_ts 62877735033
+ prep_new_page mm/page_alloc.c:2358 [inline]
+ get_page_from_freelist+0x779/0xa20 mm/page_alloc.c:3994
+ __alloc_pages+0x26c/0x5f0 mm/page_alloc.c:5200
+ kmalloc_order+0x41/0x170 mm/slab_common.c:924
+ kmalloc_order_trace+0x15/0x70 mm/slab_common.c:940
+ kmalloc_large include/linux/slab.h:485 [inline]
+ kmalloc include/linux/slab.h:549 [inline]
+ kzalloc include/linux/slab.h:686 [inline]
+ em28xx_v4l2_init+0x1c3/0x4f90 drivers/media/usb/em28xx/em28xx-video.c:2542
+ em28xx_init_extension+0x128/0x1d0 drivers/media/usb/em28xx/em28xx-core.c:1126
+ process_one_work+0x833/0x10c0 kernel/workqueue.c:2276
+ process_scheduled_works kernel/workqueue.c:2338 [inline]
+ worker_thread+0xdad/0x1300 kernel/workqueue.c:2427
+ kthread+0x39a/0x3c0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1298 [inline]
+ __free_pages_ok+0x10a5/0x1180 mm/page_alloc.c:1572
+ kfree+0x287/0x2d0 mm/slub.c:4214
+ em28xx_free_v4l2 drivers/media/usb/em28xx/em28xx-video.c:2128 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ em28xx_v4l2_init+0x22cb/0x4f90 drivers/media/usb/em28xx/em28xx-video.c:2911
+ em28xx_init_extension+0x128/0x1d0 drivers/media/usb/em28xx/em28xx-core.c:1126
+ process_one_work+0x833/0x10c0 kernel/workqueue.c:2276
+ process_scheduled_works kernel/workqueue.c:2338 [inline]
+ worker_thread+0xdad/0x1300 kernel/workqueue.c:2427
+ kthread+0x39a/0x3c0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Memory state around the buggy address:
+ ffff88801e344780: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88801e344800: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff88801e344880: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                        ^
+ ffff88801e344900: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88801e344980: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

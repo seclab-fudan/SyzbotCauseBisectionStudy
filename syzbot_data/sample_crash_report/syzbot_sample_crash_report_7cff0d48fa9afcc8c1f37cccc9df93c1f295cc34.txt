@@ -1,0 +1,150 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ip6_dst_idev include/net/ip6_fib.h:207 [inline]
+BUG: KASAN: slab-out-of-bounds in icmpv6_xrlim_allow net/ipv6/icmp.c:215 [inline]
+BUG: KASAN: slab-out-of-bounds in icmp6_send+0x2030/0x21f0 net/ipv6/icmp.c:541
+Read of size 8 at addr ffff88809532aba9 by task udevd/12321
+
+CPU: 1 PID: 12321 Comm: udevd Not tainted 5.0.0+ #97
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ ip6_dst_idev include/net/ip6_fib.h:207 [inline]
+ icmpv6_xrlim_allow net/ipv6/icmp.c:215 [inline]
+ icmp6_send+0x2030/0x21f0 net/ipv6/icmp.c:541
+ icmpv6_send+0xee/0x230 net/ipv6/ip6_icmp.c:43
+ ip6_link_failure+0x2b/0x530 net/ipv6/route.c:2243
+ dst_link_failure include/net/dst.h:427 [inline]
+ ndisc_error_report+0xd1/0x1c0 net/ipv6/ndisc.c:695
+ neigh_invalidate+0x24b/0x570 net/core/neighbour.c:995
+ neigh_timer_handler+0xc35/0xf30 net/core/neighbour.c:1081
+ call_timer_fn+0x190/0x720 kernel/time/timer.c:1325
+ expire_timers kernel/time/timer.c:1362 [inline]
+ __run_timers kernel/time/timer.c:1681 [inline]
+ __run_timers kernel/time/timer.c:1649 [inline]
+ run_timer_softirq+0x652/0x1700 kernel/time/timer.c:1694
+ __do_softirq+0x266/0x95a kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x180/0x1d0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x14a/0x570 arch/x86/kernel/apic/apic.c:1062
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+RIP: 0010:unwind_next_frame+0x0/0x50 arch/x86/kernel/unwind_frame.c:287
+Code: 95 58 ff ff ff 48 8d 4d d8 4c 8b 9d 60 ff ff ff 48 8b 95 68 ff ff ff 4c 8b 8d 70 ff ff ff e9 4e fb ff ff 0f 1f 80 00 00 00 00 <48> b8 00 00 00 00 00 fc ff df 48 89 fa 55 48 c1 ea 03 48 89 e5 48
+RSP: 0018:ffff88806b3ff530 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000000 RBX: ffff88806b3ff5d8 RCX: ffff88806b3ff5c0
+RDX: 0000000000000000 RSI: ffffffff81295b3a RDI: ffff88806b3ff538
+RBP: ffff88806b3ff5b8 R08: 0000000000000001 R09: ffff88806b3ff588
+R10: ffff88806b3ff560 R11: ffff88806b3ff570 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff888063506700 R15: ffff88812c3eb0c0
+ save_stack_trace+0x1a/0x20 arch/x86/kernel/stacktrace.c:60
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_kmalloc mm/kasan/common.c:495 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:468
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:503
+ slab_post_alloc_hook mm/slab.h:440 [inline]
+ slab_alloc mm/slab.c:3388 [inline]
+ kmem_cache_alloc+0x11a/0x6f0 mm/slab.c:3548
+ ptlock_alloc mm/memory.c:4577 [inline]
+ ptlock_init include/linux/mm.h:1955 [inline]
+ pgtable_pmd_page_ctor include/linux/mm.h:2041 [inline]
+ pmd_alloc_one arch/x86/include/asm/pgalloc.h:112 [inline]
+ __pmd_alloc+0xc9/0x460 mm/memory.c:4029
+ pmd_alloc include/linux/mm.h:1905 [inline]
+ __handle_mm_fault+0x192a/0x3f20 mm/memory.c:3878
+ handle_mm_fault+0x43f/0xb30 mm/memory.c:3948
+ faultin_page mm/gup.c:535 [inline]
+ __get_user_pages+0x7b6/0x1a40 mm/gup.c:738
+ __get_user_pages_locked mm/gup.c:914 [inline]
+ get_user_pages_remote+0x21d/0x440 mm/gup.c:1106
+ get_arg_page fs/exec.c:216 [inline]
+ copy_strings.isra.0+0x3dc/0x890 fs/exec.c:559
+ copy_strings_kernel+0xa5/0x110 fs/exec.c:604
+ __do_execve_file.isra.0+0x10ef/0x23f0 fs/exec.c:1803
+ do_execveat_common fs/exec.c:1865 [inline]
+ do_execve fs/exec.c:1882 [inline]
+ __do_sys_execve fs/exec.c:1963 [inline]
+ __se_sys_execve fs/exec.c:1958 [inline]
+ __x64_sys_execve+0x8f/0xc0 fs/exec.c:1958
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x7f3d694e6207
+Code: 77 19 f4 48 89 d7 44 89 c0 0f 05 48 3d 00 f0 ff ff 76 e0 f7 d8 64 41 89 01 eb d8 f7 d8 64 41 89 01 eb df b8 3b 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 02 f3 c3 48 8b 15 00 8c 2d 00 f7 d8 64 89 02
+RSP: 002b:00007ffe38fc9d68 EFLAGS: 00000202 ORIG_RAX: 000000000000003b
+RAX: ffffffffffffffda RBX: 00000000ffffffff RCX: 00007f3d694e6207
+RDX: 0000000002106fd0 RSI: 00007ffe38fc9e60 RDI: 00007ffe38fcae70
+RBP: 0000000000625500 R08: 000000000000252b R09: 000000000000252b
+R10: 0000000000000000 R11: 0000000000000202 R12: 0000000002106fd0
+R13: 0000000000000007 R14: 00000000020f7250 R15: 0000000000000005
+
+Allocated by task 8104:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_kmalloc mm/kasan/common.c:495 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:468
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:503
+ slab_post_alloc_hook mm/slab.h:440 [inline]
+ slab_alloc mm/slab.c:3388 [inline]
+ kmem_cache_alloc+0x11a/0x6f0 mm/slab.c:3548
+ dst_alloc+0x10e/0x200 net/core/dst.c:109
+ ip6_dst_alloc+0x34/0xa0 net/ipv6/route.c:355
+ ip6_rt_pcpu_alloc net/ipv6/route.c:1223 [inline]
+ rt6_make_pcpu_route net/ipv6/route.c:1253 [inline]
+ ip6_pol_route+0x672/0xf00 net/ipv6/route.c:1907
+ ip6_pol_route_input+0x65/0x80 net/ipv6/route.c:1923
+ fib6_rule_lookup+0x128/0x560 net/ipv6/fib6_rules.c:118
+ ip6_route_input_lookup+0xb7/0xd0 net/ipv6/route.c:1935
+ ip6_route_input+0x5e2/0x9e0 net/ipv6/route.c:2070
+ ip6_rcv_finish_core.isra.0+0x174/0x590 net/ipv6/ip6_input.c:63
+ ip6_rcv_finish+0x17d/0x320 net/ipv6/ip6_input.c:74
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ipv6_rcv+0x10e/0x420 net/ipv6/ip6_input.c:272
+ __netif_receive_skb_one_core+0x115/0x1a0 net/core/dev.c:4973
+ __netif_receive_skb+0x2c/0x1c0 net/core/dev.c:5083
+ netif_receive_skb_internal+0x117/0x660 net/core/dev.c:5186
+ napi_frags_finish net/core/dev.c:5753 [inline]
+ napi_gro_frags+0xade/0xd10 net/core/dev.c:5827
+ tun_get_user+0x2c17/0x3d70 drivers/net/tun.c:1974
+ tun_chr_write_iter+0xbd/0x160 drivers/net/tun.c:2019
+ call_write_iter include/linux/fs.h:1869 [inline]
+ do_iter_readv_writev+0x5e0/0x8e0 fs/read_write.c:680
+ do_iter_write fs/read_write.c:956 [inline]
+ do_iter_write+0x184/0x610 fs/read_write.c:937
+ vfs_writev+0x1b3/0x2f0 fs/read_write.c:1001
+ do_writev+0xf6/0x290 fs/read_write.c:1036
+ __do_sys_writev fs/read_write.c:1109 [inline]
+ __se_sys_writev fs/read_write.c:1106 [inline]
+ __x64_sys_writev+0x75/0xb0 fs/read_write.c:1106
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff88809532aac0
+ which belongs to the cache ip6_dst_cache of size 224
+The buggy address is located 9 bytes to the right of
+ 224-byte region [ffff88809532aac0, ffff88809532aba0)
+The buggy address belongs to the page:
+page:ffffea000254ca80 count:1 mapcount:0 mapping:ffff8880a0cd3240 index:0xffff88809532ac00
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea000265a048 ffffea000251e3c8 ffff8880a0cd3240
+raw: ffff88809532ac00 ffff88809532a0c0 0000000100000002 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809532aa80: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+ ffff88809532ab00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88809532ab80: 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc fc
+kobject: 'loop5' (00000000190bcae9): kobject_uevent_env
+                                  ^
+ ffff88809532ac00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88809532ac80: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+==================================================================

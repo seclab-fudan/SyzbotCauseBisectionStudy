@@ -1,0 +1,57 @@
+device syz0 entered promiscuous mode
+audit: type=1400 audit(1515254229.466:10): avc:  denied  { net_raw } for  pid=3495 comm="syzkaller190556" capability=13  scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=cap_userns permissive=1
+audit: type=1400 audit(1515254229.468:11): avc:  denied  { net_admin } for  pid=3495 comm="syzkaller190556" capability=12  scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=cap_userns permissive=1
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 3495 Comm: syzkaller190556 Not tainted 4.15.0-rc6+ #249
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:skb_segment+0x67c/0x3020 net/core/skbuff.c:3567
+RSP: 0018:ffff8801bfba6ab0 EFLAGS: 00010202
+RAX: 0000000000000010 RBX: 0000000000000000 RCX: ffffffff8430c8d7
+RDX: 0000000000000000 RSI: 0000000000000003 RDI: 0000000000000080
+RBP: ffff8801bfba6d68 R08: 0000000000000020 R09: 0000000000000002
+R10: ffff8801bfba6df0 R11: 0000000000000000 R12: 0000000000000008
+R13: dffffc0000000000 R14: 0000000000000000 R15: ffff8801bfc6dcc0
+FS:  00000000008d0880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000002355000 CR3: 00000001c02f8004 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ sctp_gso_segment+0x222/0x8b0 net/sctp/offload.c:72
+ inet_gso_segment+0x61e/0x11e0 net/ipv4/af_inet.c:1274
+ skb_mac_gso_segment+0x34e/0x670 net/core/dev.c:2731
+ __skb_gso_segment+0x363/0x800 net/core/dev.c:2804
+ skb_gso_segment include/linux/netdevice.h:3993 [inline]
+ validate_xmit_skb+0x4ba/0xb30 net/core/dev.c:3057
+ validate_xmit_skb_list+0xb7/0x120 net/core/dev.c:3108
+ sch_direct_xmit+0x3b6/0x6d0 net/sched/sch_generic.c:182
+ __dev_xmit_skb net/core/dev.c:3189 [inline]
+ __dev_queue_xmit+0x1ce2/0x2920 net/core/dev.c:3456
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3521
+ packet_snd net/packet/af_packet.c:2943 [inline]
+ packet_sendmsg+0x3aed/0x60b0 net/packet/af_packet.c:2968
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:646
+ sock_write_iter+0x31a/0x5d0 net/socket.c:915
+ call_write_iter include/linux/fs.h:1772 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x444c09
+RSP: 002b:00000000007eff48 EFLAGS: 00000297 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007ffe09f4bb20 RCX: 0000000000444c09
+RDX: 000000000000002a RSI: 0000000020634000 RDI: 0000000000000005
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000100 R11: 0000000000000297 R12: 0000000000402800
+R13: 0000000000402890 R14: 0000000000000000 R15: 0000000000000000
+Code: 8d 14 fe ff ff 39 8d 38 fe ff ff 0f 8f a5 00 00 00 e8 a9 4e 3f fd 48 8b 85 48 fe ff ff 48 8d b8 80 00 00 00 48 89 f8 48 c1 e8 03 <42> 0f b6 14 28 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 
+RIP: skb_segment+0x67c/0x3020 net/core/skbuff.c:3567 RSP: ffff8801bfba6ab0
+---[ end trace 3bff400af13fd076 ]---

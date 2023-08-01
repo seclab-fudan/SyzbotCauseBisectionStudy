@@ -1,0 +1,69 @@
+BUG: kernel NULL pointer dereference, address: 0000000000000000
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD a028b067 P4D a028b067 PUD a6fcd067 PMD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 12721 Comm: syz-executor.3 Not tainted 5.7.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__read_once_size include/linux/compiler.h:252 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x3f/0x60 kernel/kcov.c:202
+Code: c2 00 01 ff 00 74 11 f7 c2 00 01 00 00 74 35 83 b9 04 14 00 00 00 74 2c 8b 91 e0 13 00 00 83 fa 02 75 21 48 8b 91 e8 13 00 00 <48> 8b 32 48 8d 7e 01 8b 89 e4 13 00 00 48 39 cf 73 08 48 89 44 f2
+RSP: 0018:ffffc90008cef6a8 EFLAGS: 00010246
+RAX: ffffffff81b0dc66 RBX: ffffc90008cef808 RCX: ffff88805ac0a340
+RDX: 0000000000000000 RSI: 000000000003ffff RDI: 0000000000040000
+RBP: dffffc0000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000003 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: ffffc90008cef750
+FS:  00007f83cea18700(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000088054000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __get_vma_policy mm/mempolicy.c:1807 [inline]
+ get_vma_policy mm/mempolicy.c:1839 [inline]
+ alloc_pages_vma+0x116/0xd10 mm/mempolicy.c:2202
+ shmem_alloc_page mm/shmem.c:1503 [inline]
+ shmem_alloc_and_acct_page+0x40e/0xbe0 mm/shmem.c:1528
+ shmem_getpage_gfp+0x203e/0x2c60 mm/shmem.c:1824
+ shmem_fault+0x24b/0x760 mm/shmem.c:2045
+ __do_fault+0x138/0x3b0 mm/memory.c:3454
+ do_read_fault+0x5a6/0x9e0 mm/memory.c:3847
+ do_fault mm/memory.c:3975 [inline]
+ handle_pte_fault mm/memory.c:4215 [inline]
+ __handle_mm_fault mm/memory.c:4347 [inline]
+ handle_mm_fault+0x1d79/0x2910 mm/memory.c:4384
+ faultin_page mm/gup.c:888 [inline]
+ __get_user_pages+0xbf5/0x16f0 mm/gup.c:1114
+ populate_vma_page_range+0x1c8/0x220 mm/gup.c:1453
+ __mm_populate+0x283/0x3e0 mm/gup.c:1501
+ mm_populate include/linux/mm.h:2596 [inline]
+ vm_mmap_pgoff+0x1ab/0x1e0 mm/util.c:511
+ ksys_mmap_pgoff+0x111/0x570 mm/mmap.c:1595
+ do_syscall_64+0xf3/0x1b0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x45ca59
+Code: 0d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f83cea17c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000009
+RAX: ffffffffffffffda RBX: 00000000004f6720 RCX: 000000000045ca59
+RDX: b635773f06ebbeee RSI: 0000000000b36000 RDI: 0000000020000000
+RBP: 000000000078bf00 R08: ffffffffffffffff R09: 0000000000000000
+R10: 0000000000008031 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000000755 R14: 00000000004ca40b R15: 00007f83cea186d4
+Modules linked in:
+CR2: 0000000000000000
+---[ end trace 7987dac55036bd30 ]---
+RIP: 0010:__read_once_size include/linux/compiler.h:252 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x3f/0x60 kernel/kcov.c:202
+Code: c2 00 01 ff 00 74 11 f7 c2 00 01 00 00 74 35 83 b9 04 14 00 00 00 74 2c 8b 91 e0 13 00 00 83 fa 02 75 21 48 8b 91 e8 13 00 00 <48> 8b 32 48 8d 7e 01 8b 89 e4 13 00 00 48 39 cf 73 08 48 89 44 f2
+RSP: 0018:ffffc90008cef6a8 EFLAGS: 00010246
+RAX: ffffffff81b0dc66 RBX: ffffc90008cef808 RCX: ffff88805ac0a340
+RDX: 0000000000000000 RSI: 000000000003ffff RDI: 0000000000040000
+RBP: dffffc0000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000003 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: ffffc90008cef750
+FS:  00007f83cea18700(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000073e914 CR3: 0000000088054000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

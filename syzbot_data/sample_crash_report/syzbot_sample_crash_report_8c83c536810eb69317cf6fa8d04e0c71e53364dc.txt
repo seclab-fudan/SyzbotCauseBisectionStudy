@@ -1,0 +1,139 @@
+usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 1-1: Product: syz
+usb 1-1: Manufacturer: syz
+usb 1-1: SerialNumber: syz
+usb 1-1: config 0 descriptor??
+=====================================================
+BUG: KMSAN: kernel-usb-infoleak in usb_submit_urb+0x6c1/0x2aa0 drivers/usb/core/urb.c:430
+ usb_submit_urb+0x6c1/0x2aa0 drivers/usb/core/urb.c:430
+ usb_start_wait_urb+0x153/0x4b0 drivers/usb/core/message.c:58
+ usb_internal_control_msg drivers/usb/core/message.c:102 [inline]
+ usb_control_msg+0x487/0x7c0 drivers/usb/core/message.c:153
+ __usbnet_write_cmd drivers/net/usb/usbnet.c:2050 [inline]
+ usbnet_write_cmd+0x3d3/0x480 drivers/net/usb/usbnet.c:2088
+ mcs7830_set_reg drivers/net/usb/mcs7830.c:117 [inline]
+ mcs7830_hif_set_mac_address drivers/net/usb/mcs7830.c:138 [inline]
+ mcs7830_apply_base_config+0xd5/0x8a0 drivers/net/usb/mcs7830.c:387
+ mcs7830_bind+0x753/0xb70 drivers/net/usb/mcs7830.c:492
+ usbnet_probe+0x1284/0x4140 drivers/net/usb/usbnet.c:1747
+ usb_probe_interface+0xf19/0x1600 drivers/usb/core/driver.c:396
+ really_probe+0x67d/0x1510 drivers/base/dd.c:596
+ __driver_probe_device+0x3e9/0x530 drivers/base/dd.c:751
+ driver_probe_device drivers/base/dd.c:781 [inline]
+ __device_attach_driver+0x79f/0x1120 drivers/base/dd.c:898
+ bus_for_each_drv+0x2d6/0x3f0 drivers/base/bus.c:427
+ __device_attach+0x593/0x8e0 drivers/base/dd.c:969
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:1016
+ bus_probe_device+0x17b/0x3e0 drivers/base/bus.c:487
+ device_add+0x1d3e/0x2400 drivers/base/core.c:3394
+ usb_set_configuration+0x37e9/0x3ed0 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0x13c/0x300 drivers/usb/core/generic.c:238
+ usb_probe_device+0x309/0x570 drivers/usb/core/driver.c:293
+ really_probe+0x67d/0x1510 drivers/base/dd.c:596
+ __driver_probe_device+0x3e9/0x530 drivers/base/dd.c:751
+ driver_probe_device drivers/base/dd.c:781 [inline]
+ __device_attach_driver+0x79f/0x1120 drivers/base/dd.c:898
+ bus_for_each_drv+0x2d6/0x3f0 drivers/base/bus.c:427
+ __device_attach+0x593/0x8e0 drivers/base/dd.c:969
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:1016
+ bus_probe_device+0x17b/0x3e0 drivers/base/bus.c:487
+ device_add+0x1d3e/0x2400 drivers/base/core.c:3394
+ usb_new_device+0x1b8e/0x2950 drivers/usb/core/hub.c:2563
+ hub_port_connect drivers/usb/core/hub.c:5353 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5497 [inline]
+ port_event drivers/usb/core/hub.c:5643 [inline]
+ hub_event+0x5ad2/0x8910 drivers/usb/core/hub.c:5725
+ process_one_work+0xdb9/0x1820 kernel/workqueue.c:2298
+ worker_thread+0x10bc/0x21f0 kernel/workqueue.c:2445
+ kthread+0x721/0x850 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+
+Uninit was stored to memory at:
+ kmemdup+0x107/0x140 mm/util.c:130
+ __usbnet_write_cmd drivers/net/usb/usbnet.c:2039 [inline]
+ usbnet_write_cmd+0x1a0/0x480 drivers/net/usb/usbnet.c:2088
+ mcs7830_set_reg drivers/net/usb/mcs7830.c:117 [inline]
+ mcs7830_hif_set_mac_address drivers/net/usb/mcs7830.c:138 [inline]
+ mcs7830_apply_base_config+0xd5/0x8a0 drivers/net/usb/mcs7830.c:387
+ mcs7830_bind+0x753/0xb70 drivers/net/usb/mcs7830.c:492
+ usbnet_probe+0x1284/0x4140 drivers/net/usb/usbnet.c:1747
+ usb_probe_interface+0xf19/0x1600 drivers/usb/core/driver.c:396
+ really_probe+0x67d/0x1510 drivers/base/dd.c:596
+ __driver_probe_device+0x3e9/0x530 drivers/base/dd.c:751
+ driver_probe_device drivers/base/dd.c:781 [inline]
+ __device_attach_driver+0x79f/0x1120 drivers/base/dd.c:898
+ bus_for_each_drv+0x2d6/0x3f0 drivers/base/bus.c:427
+ __device_attach+0x593/0x8e0 drivers/base/dd.c:969
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:1016
+ bus_probe_device+0x17b/0x3e0 drivers/base/bus.c:487
+ device_add+0x1d3e/0x2400 drivers/base/core.c:3394
+ usb_set_configuration+0x37e9/0x3ed0 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0x13c/0x300 drivers/usb/core/generic.c:238
+ usb_probe_device+0x309/0x570 drivers/usb/core/driver.c:293
+ really_probe+0x67d/0x1510 drivers/base/dd.c:596
+ __driver_probe_device+0x3e9/0x530 drivers/base/dd.c:751
+ driver_probe_device drivers/base/dd.c:781 [inline]
+ __device_attach_driver+0x79f/0x1120 drivers/base/dd.c:898
+ bus_for_each_drv+0x2d6/0x3f0 drivers/base/bus.c:427
+ __device_attach+0x593/0x8e0 drivers/base/dd.c:969
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:1016
+ bus_probe_device+0x17b/0x3e0 drivers/base/bus.c:487
+ device_add+0x1d3e/0x2400 drivers/base/core.c:3394
+ usb_new_device+0x1b8e/0x2950 drivers/usb/core/hub.c:2563
+ hub_port_connect drivers/usb/core/hub.c:5353 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5497 [inline]
+ port_event drivers/usb/core/hub.c:5643 [inline]
+ hub_event+0x5ad2/0x8910 drivers/usb/core/hub.c:5725
+ process_one_work+0xdb9/0x1820 kernel/workqueue.c:2298
+ worker_thread+0x10bc/0x21f0 kernel/workqueue.c:2445
+ kthread+0x721/0x850 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+
+Uninit was stored to memory at:
+ __dev_addr_set include/linux/netdevice.h:4655 [inline]
+ eth_hw_addr_set include/linux/etherdevice.h:319 [inline]
+ mcs7830_bind+0x230/0xb70 drivers/net/usb/mcs7830.c:488
+ usbnet_probe+0x1284/0x4140 drivers/net/usb/usbnet.c:1747
+ usb_probe_interface+0xf19/0x1600 drivers/usb/core/driver.c:396
+ really_probe+0x67d/0x1510 drivers/base/dd.c:596
+ __driver_probe_device+0x3e9/0x530 drivers/base/dd.c:751
+ driver_probe_device drivers/base/dd.c:781 [inline]
+ __device_attach_driver+0x79f/0x1120 drivers/base/dd.c:898
+ bus_for_each_drv+0x2d6/0x3f0 drivers/base/bus.c:427
+ __device_attach+0x593/0x8e0 drivers/base/dd.c:969
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:1016
+ bus_probe_device+0x17b/0x3e0 drivers/base/bus.c:487
+ device_add+0x1d3e/0x2400 drivers/base/core.c:3394
+ usb_set_configuration+0x37e9/0x3ed0 drivers/usb/core/message.c:2170
+ usb_generic_driver_probe+0x13c/0x300 drivers/usb/core/generic.c:238
+ usb_probe_device+0x309/0x570 drivers/usb/core/driver.c:293
+ really_probe+0x67d/0x1510 drivers/base/dd.c:596
+ __driver_probe_device+0x3e9/0x530 drivers/base/dd.c:751
+ driver_probe_device drivers/base/dd.c:781 [inline]
+ __device_attach_driver+0x79f/0x1120 drivers/base/dd.c:898
+ bus_for_each_drv+0x2d6/0x3f0 drivers/base/bus.c:427
+ __device_attach+0x593/0x8e0 drivers/base/dd.c:969
+ device_initial_probe+0x4a/0x60 drivers/base/dd.c:1016
+ bus_probe_device+0x17b/0x3e0 drivers/base/bus.c:487
+ device_add+0x1d3e/0x2400 drivers/base/core.c:3394
+ usb_new_device+0x1b8e/0x2950 drivers/usb/core/hub.c:2563
+ hub_port_connect drivers/usb/core/hub.c:5353 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5497 [inline]
+ port_event drivers/usb/core/hub.c:5643 [inline]
+ hub_event+0x5ad2/0x8910 drivers/usb/core/hub.c:5725
+ process_one_work+0xdb9/0x1820 kernel/workqueue.c:2298
+ worker_thread+0x10bc/0x21f0 kernel/workqueue.c:2445
+ kthread+0x721/0x850 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30
+
+Local variable addr created at:
+ mcs7830_bind+0x9b/0xb70 drivers/net/usb/mcs7830.c:476
+ usbnet_probe+0x1284/0x4140 drivers/net/usb/usbnet.c:1747
+
+Bytes 0-3 of 6 are uninitialized
+Memory access of size 6 starts at ffff88811d26f2b0
+
+CPU: 1 PID: 19 Comm: kworker/1:0 Not tainted 5.16.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+=====================================================

@@ -1,0 +1,64 @@
+RDX: 0000000000000001 RSI: 0000000020005f00 RDI: 0000000000000003
+RBP: 00000000006dbc20 R08: 0000000000000001 R09: 0000000000000035
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc2c
+R13: 0000000000000000 R14: 00007f9a99afed80 R15: 0000000000000004
+==================================================================
+BUG: KASAN: use-after-free in tls_fill_prepend include/net/tls.h:368 [inline]
+BUG: KASAN: use-after-free in tls_push_record+0x10b9/0x1480 net/tls/tls_sw.c:220
+Write of size 1 at addr ffff8801bb268000 by task syz-executor612/5332
+
+CPU: 1 PID: 5332 Comm: syz-executor612 Not tainted 4.19.0-rc8+ #286
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+ print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_store1_noabort+0x17/0x20 mm/kasan/report.c:435
+ tls_fill_prepend include/net/tls.h:368 [inline]
+ tls_push_record+0x10b9/0x1480 net/tls/tls_sw.c:220
+ tls_sw_push_pending_record+0x22/0x30 net/tls/tls_sw.c:257
+ tls_handle_open_record net/tls/tls_main.c:156 [inline]
+ tls_sk_proto_close+0x69c/0xbb0 net/tls/tls_main.c:271
+ inet_release+0x104/0x1f0 net/ipv4/af_inet.c:428
+ inet6_release+0x50/0x70 net/ipv6/af_inet6.c:457
+ __sock_release+0xd7/0x250 net/socket.c:579
+ sock_close+0x19/0x20 net/socket.c:1141
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1ad7/0x2610 kernel/exit.c:867
+ do_group_exit+0x177/0x440 kernel/exit.c:970
+ get_signal+0x8b0/0x1980 kernel/signal.c:2513
+ do_signal+0x9c/0x21e0 arch/x86/kernel/signal.c:816
+ exit_to_usermode_loop+0x2e5/0x380 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x445cf9
+Code: Bad RIP value.
+RSP: 002b:00007f9a99afed78 EFLAGS: 00000246 ORIG_RAX: 0000000000000133
+RAX: 0000000000000001 RBX: 00000000006dbc28 RCX: 0000000000445cf9
+RDX: 0000000000000001 RSI: 0000000020005f00 RDI: 0000000000000003
+RBP: 00000000006dbc20 R08: 0000000000000001 R09: 0000000000000035
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc2c
+R13: 0000000000000000 R14: 00007f9a99afed80 R15: 0000000000000004
+
+The buggy address belongs to the page:
+page:ffffea0006ec9a00 count:0 mapcount:-128 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 ffffea0006ece208 ffff88021fffaef8 0000000000000000
+raw: 0000000000000000 0000000000000003 00000000ffffff7f 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bb267f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801bb267f80: 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc
+>ffff8801bb268000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                   ^
+ ffff8801bb268080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801bb268100: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

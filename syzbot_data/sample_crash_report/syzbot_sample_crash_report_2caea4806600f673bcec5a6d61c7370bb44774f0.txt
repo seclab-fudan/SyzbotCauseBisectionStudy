@@ -1,0 +1,116 @@
+UDF-fs: warning (device loop0): udf_load_vrs: No anchor found
+UDF-fs: Scanning with blocksize 512 failed
+UDF-fs: INFO Mounting volume 'LinuxUDF', timestamp 2020/09/19 18:44 (1000)
+UDF-fs: error (device loop0): udf_read_inode: (ino 1344) failed !bh
+=====================================================
+BUG: KMSAN: uninit-value in udf_evict_inode+0x380/0x7a0 fs/udf/inode.c:150
+CPU: 0 PID: 12200 Comm: syz-executor.0 Not tainted 5.9.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:122
+ __msan_warning+0x5f/0xa0 mm/kmsan/kmsan_instr.c:201
+ udf_evict_inode+0x380/0x7a0 fs/udf/inode.c:150
+ evict+0x4ca/0xeb0 fs/inode.c:576
+ iput_final fs/inode.c:1652 [inline]
+ iput+0xc44/0xf60 fs/inode.c:1678
+ iget_failed+0x2c3/0x380 fs/bad_inode.c:242
+ __udf_iget+0x15ae/0x4630 fs/udf/inode.c:1914
+ udf_iget fs/udf/udfdecl.h:147 [inline]
+ udf_fill_super+0x2ed8/0x3280 fs/udf/super.c:2284
+ mount_bdev+0x619/0x900 fs/super.c:1417
+ udf_mount+0xc9/0xe0 fs/udf/super.c:127
+ legacy_get_tree+0x163/0x2e0 fs/fs_context.c:592
+ vfs_get_tree+0xd8/0x5d0 fs/super.c:1547
+ do_new_mount fs/namespace.c:2875 [inline]
+ path_mount+0x3dde/0x5db0 fs/namespace.c:3192
+ do_mount+0x1c6/0x220 fs/namespace.c:3205
+ __do_compat_sys_mount fs/compat.c:122 [inline]
+ __se_compat_sys_mount+0x7bb/0xaa0 fs/compat.c:89
+ __ia32_compat_sys_mount+0x62/0x80 fs/compat.c:89
+ do_syscall_32_irqs_on arch/x86/entry/common.c:80 [inline]
+ __do_fast_syscall_32+0x129/0x180 arch/x86/entry/common.c:139
+ do_fast_syscall_32+0x6a/0xc0 arch/x86/entry/common.c:162
+ do_SYSENTER_32+0x73/0x90 arch/x86/entry/common.c:205
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+RIP: 0023:0xf7fef549
+Code: b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 00 00 00 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000f55e8f20 EFLAGS: 00000292 ORIG_RAX: 0000000000000015
+RAX: ffffffffffffffda RBX: 00000000f55e8f7c RCX: 0000000020000100
+RDX: 0000000020000000 RSI: 0000000000000000 RDI: 00000000f55e8fbc
+RBP: 00000000f55e8f7c R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:129 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:297
+ __msan_chain_origin+0x57/0xa0 mm/kmsan/kmsan_instr.c:151
+ udf_alloc_inode+0x252/0x280 fs/udf/super.c:154
+ alloc_inode fs/inode.c:232 [inline]
+ iget_locked+0x37d/0x13c0 fs/inode.c:1193
+ __udf_iget+0x14c/0x4630 fs/udf/inode.c:1902
+ udf_iget fs/udf/udfdecl.h:147 [inline]
+ udf_fill_super+0x2ed8/0x3280 fs/udf/super.c:2284
+ mount_bdev+0x619/0x900 fs/super.c:1417
+ udf_mount+0xc9/0xe0 fs/udf/super.c:127
+ legacy_get_tree+0x163/0x2e0 fs/fs_context.c:592
+ vfs_get_tree+0xd8/0x5d0 fs/super.c:1547
+ do_new_mount fs/namespace.c:2875 [inline]
+ path_mount+0x3dde/0x5db0 fs/namespace.c:3192
+ do_mount+0x1c6/0x220 fs/namespace.c:3205
+ __do_compat_sys_mount fs/compat.c:122 [inline]
+ __se_compat_sys_mount+0x7bb/0xaa0 fs/compat.c:89
+ __ia32_compat_sys_mount+0x62/0x80 fs/compat.c:89
+ do_syscall_32_irqs_on arch/x86/entry/common.c:80 [inline]
+ __do_fast_syscall_32+0x129/0x180 arch/x86/entry/common.c:139
+ do_fast_syscall_32+0x6a/0xc0 arch/x86/entry/common.c:162
+ do_SYSENTER_32+0x73/0x90 arch/x86/entry/common.c:205
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+
+Uninit was created at:
+ kmsan_save_stack_with_flags+0x3c/0x90 mm/kmsan/kmsan.c:129
+ kmsan_alloc_page+0xd3/0x1f0 mm/kmsan/kmsan_shadow.c:278
+ __alloc_pages_nodemask+0x84e/0x1040 mm/page_alloc.c:4938
+ alloc_pages_current+0x79b/0xb40 mm/mempolicy.c:2275
+ alloc_pages include/linux/gfp.h:545 [inline]
+ alloc_slab_page mm/slub.c:1630 [inline]
+ allocate_slab+0x34b/0x11c0 mm/slub.c:1773
+ new_slab mm/slub.c:1834 [inline]
+ new_slab_objects mm/slub.c:2591 [inline]
+ ___slab_alloc+0xd35/0x1940 mm/slub.c:2752
+ __slab_alloc mm/slub.c:2792 [inline]
+ slab_alloc_node mm/slub.c:2867 [inline]
+ slab_alloc mm/slub.c:2912 [inline]
+ kmem_cache_alloc+0x869/0xc70 mm/slub.c:2917
+ udf_alloc_inode+0x60/0x280 fs/udf/super.c:144
+ alloc_inode fs/inode.c:232 [inline]
+ iget_locked+0x37d/0x13c0 fs/inode.c:1193
+ __udf_iget+0x14c/0x4630 fs/udf/inode.c:1902
+ udf_iget_special fs/udf/udfdecl.h:142 [inline]
+ udf_fill_partdesc_info+0xe64/0x1510 fs/udf/super.c:1124
+ udf_load_partdesc fs/udf/super.c:1273 [inline]
+ udf_process_sequence+0x46b0/0x6df0 fs/udf/super.c:1759
+ udf_load_sequence fs/udf/super.c:1795 [inline]
+ udf_check_anchor_block+0x50b/0x880 fs/udf/super.c:1835
+ udf_scan_anchors+0x27c/0xc60 fs/udf/super.c:1868
+ udf_find_anchor fs/udf/super.c:1925 [inline]
+ udf_load_vrs+0x33c/0x1560 fs/udf/super.c:1990
+ udf_fill_super+0x11f5/0x3280 fs/udf/super.c:2183
+ mount_bdev+0x619/0x900 fs/super.c:1417
+ udf_mount+0xc9/0xe0 fs/udf/super.c:127
+ legacy_get_tree+0x163/0x2e0 fs/fs_context.c:592
+ vfs_get_tree+0xd8/0x5d0 fs/super.c:1547
+ do_new_mount fs/namespace.c:2875 [inline]
+ path_mount+0x3dde/0x5db0 fs/namespace.c:3192
+ do_mount+0x1c6/0x220 fs/namespace.c:3205
+ __do_compat_sys_mount fs/compat.c:122 [inline]
+ __se_compat_sys_mount+0x7bb/0xaa0 fs/compat.c:89
+ __ia32_compat_sys_mount+0x62/0x80 fs/compat.c:89
+ do_syscall_32_irqs_on arch/x86/entry/common.c:80 [inline]
+ __do_fast_syscall_32+0x129/0x180 arch/x86/entry/common.c:139
+ do_fast_syscall_32+0x6a/0xc0 arch/x86/entry/common.c:162
+ do_SYSENTER_32+0x73/0x90 arch/x86/entry/common.c:205
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+=====================================================

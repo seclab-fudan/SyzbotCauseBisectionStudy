@@ -1,0 +1,115 @@
+list_add corruption. prev->next should be next (ffffffff89fd1320), but was ffff8881cab96730. (prev=ffff8881ca587470).
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:28!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 7045 Comm: sh Not tainted 4.20.0-rc6+ #337
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__list_add_valid.cold.2+0x23/0x2a lib/list_debug.c:26
+Code: e8 d0 6e d2 fd 0f 0b 48 89 d9 48 c7 c7 e0 da 60 88 e8 bf 6e d2 fd 0f 0b 48 89 f1 48 c7 c7 60 db 60 88 48 89 de e8 ab 6e d2 fd <0f> 0b 90 90 90 90 90 55 48 89 e5 41 57 41 56 49 be 00 00 00 00 00
+RSP: 0018:ffff8881dae06dc0 EFLAGS: 00010286
+RAX: 0000000000000075 RBX: ffffffff89fd1320 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff8165e485 RDI: 0000000000000005
+RBP: ffff8881dae06dd8 R08: ffff8881c53ec6c0 R09: ffffed103b5c5020
+R10: ffffed103b5c5020 R11: ffff8881dae28107 R12: ffff8881caba8270
+R13: ffff8881caba8000 R14: ffffffff89fd10e0 R15: ffffffff89fd1370
+FS:  0000000000000000(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f027bb8ba8c CR3: 00000001d22ba000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __list_add include/linux/list.h:60 [inline]
+ list_add_tail include/linux/list.h:93 [inline]
+ neigh_alloc net/core/neighbour.c:395 [inline]
+ ___neigh_create+0x14b7/0x2600 net/core/neighbour.c:553
+ __neigh_create+0x30/0x40 net/core/neighbour.c:640
+8021q: adding VLAN 0 to HW filter on device bond0
+ ip6_finish_output2+0xa64/0x2940 net/ipv6/ip6_output.c:117
+ ip6_finish_output+0x58c/0xc60 net/ipv6/ip6_output.c:154
+ NF_HOOK_COND include/linux/netfilter.h:278 [inline]
+ ip6_output+0x232/0x9d0 net/ipv6/ip6_output.c:171
+ dst_output include/net/dst.h:444 [inline]
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ mld_sendpack+0xad5/0xfa0 net/ipv6/mcast.c:1683
+ mld_send_cr net/ipv6/mcast.c:1979 [inline]
+ mld_ifc_timer_expire+0x447/0x8a0 net/ipv6/mcast.c:2478
+ call_timer_fn+0x272/0x920 kernel/time/timer.c:1326
+IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0x7e5/0xc70 kernel/time/timer.c:1682
+8021q: adding VLAN 0 to HW filter on device bond0
+ run_timer_softirq+0x52/0xb0 kernel/time/timer.c:1695
+ __do_softirq+0x308/0xb7e kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x17f/0x1c0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1cb/0x760 arch/x86/kernel/apic/apic.c:1061
+IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device bond0
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+RIP: 0010:arch_atomic_read arch/x86/include/asm/atomic.h:31 [inline]
+RIP: 0010:atomic_read include/asm-generic/atomic-instrumented.h:22 [inline]
+RIP: 0010:lock_page_memcg+0x12f/0x350 mm/memcontrol.c:1871
+Code: eb 03 4c 01 e3 48 c1 e8 03 48 89 85 70 ff ff ff 4d 8d b7 80 06 00 00 be 04 00 00 00 4c 89 f7 e8 07 19 f9 ff 4c 89 f1 c6 03 04 <48> c1 e9 03 42 0f b6 34 21 4c 89 f1 83 e1 07 83 c1 03 40 38 f1 7c
+RSP: 0018:ffff8881cc98ec58 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: ffffed103b348e41 RBX: ffffed1039931d94 RCX: ffff8881d9a47200
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffff8881d9a47200
+RBP: ffff8881cc98ed08 R08: ffffed103b348e41 R09: ffffed103b348e40
+R10: ffffed103b348e40 R11: ffff8881d9a47203 R12: dffffc0000000000
+R13: ffffea00076b0a40 R14: ffff8881d9a47200 R15: ffff8881d9a46b80
+ page_remove_file_rmap mm/rmap.c:1215 [inline]
+ page_remove_rmap+0x855/0x1a30 mm/rmap.c:1300
+8021q: adding VLAN 0 to HW filter on device team0
+8021q: adding VLAN 0 to HW filter on device bond0
+ zap_pte_range mm/memory.c:1091 [inline]
+ zap_pmd_range mm/memory.c:1193 [inline]
+ zap_pud_range mm/memory.c:1222 [inline]
+ zap_p4d_range mm/memory.c:1243 [inline]
+ unmap_page_range+0x11c7/0x2930 mm/memory.c:1264
+IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+ unmap_single_vma+0x19b/0x310 mm/memory.c:1309
+ unmap_vmas+0x125/0x200 mm/memory.c:1339
+ exit_mmap+0x2be/0x590 mm/mmap.c:3145
+ __mmput kernel/fork.c:1045 [inline]
+ mmput+0x247/0x610 kernel/fork.c:1066
+ exit_mm kernel/exit.c:545 [inline]
+ do_exit+0xe74/0x26d0 kernel/exit.c:854
+IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+ do_group_exit+0x177/0x440 kernel/exit.c:970
+ __do_sys_exit_group kernel/exit.c:981 [inline]
+ __se_sys_exit_group kernel/exit.c:979 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:979
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x7f137e4f41e8
+Code: 00 00 be 3c 00 00 00 eb 19 66 0f 1f 84 00 00 00 00 00 48 89 d7 89 f0 0f 05 48 3d 00 f0 ff ff 77 19 f4 48 89 d7 44 89 c0 0f 05 <48> 3d 00 f0 ff ff 76 e0 f7 d8 64 41 89 01 eb d8 f7 d8 64 41 89 01
+RSP: 002b:00007fff971fe058 EFLAGS: 00000202 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f137e4f41e8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 0000000000000000 R08: 00000000000000e7 R09: ffffffffffffffa8
+R10: 0000000000000000 R11: 0000000000000202 R12: 000000000040247c
+IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+R13: 00007fff971fe320 R14: 0000000000000000 R15: 0000000000000000
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+Modules linked in:
+---[ end trace da68acb346ba5eee ]---
+RIP: 0010:__list_add_valid.cold.2+0x23/0x2a lib/list_debug.c:26
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+Code: e8 d0 6e d2 fd 0f 0b 48 89 d9 48 c7 c7 e0 da 60 88 e8 bf 6e d2 fd 0f 0b 48 89 f1 48 c7 c7 60 db 60 88 48 89 de e8 ab 6e d2 fd <0f> 0b 90 90 90 90 90 55 48 89 e5 41 57 41 56 49 be 00 00 00 00 00
+IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+RSP: 0018:ffff8881dae06dc0 EFLAGS: 00010286
+RAX: 0000000000000075 RBX: ffffffff89fd1320 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff8165e485 RDI: 0000000000000005
+RBP: ffff8881dae06dd8 R08: ffff8881c53ec6c0 R09: ffffed103b5c5020
+R10: ffffed103b5c5020 R11: ffff8881dae28107 R12: ffff8881caba8270
+R13: ffff8881caba8000 R14: ffffffff89fd10e0 R15: ffffffff89fd1370
+FS:  0000000000000000(0000) GS:ffff8881dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f027bb8ba8c CR3: 00000001d22ba000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

@@ -1,0 +1,137 @@
+REISERFS (device loop0): using 3.5.x disk format
+REISERFS (device loop0): Created .reiserfs_priv - reserved for xattr storage.
+======================================================
+WARNING: possible circular locking dependency detected
+6.3.0-rc4-syzkaller-00034-gfcd476ea6a88 #0 Not tainted
+------------------------------------------------------
+syz-executor228/5099 is trying to acquire lock:
+ffff888021310090 (&sbi->lock){+.+.}-{3:3}, at: reiserfs_write_lock+0x79/0x100 fs/reiserfs/lock.c:27
+
+but task is already holding lock:
+ffff88802b3a8558 (sb_pagefaults){.+.+}-{0:0}, at: do_page_mkwrite+0x19b/0x680 mm/memory.c:2925
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (sb_pagefaults){.+.+}-{0:0}:
+       percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
+       __sb_start_write include/linux/fs.h:1477 [inline]
+       sb_start_pagefault include/linux/fs.h:1581 [inline]
+       filemap_page_mkwrite+0x16e/0x780 mm/filemap.c:3569
+       do_page_mkwrite+0x19b/0x680 mm/memory.c:2925
+       wp_page_shared mm/memory.c:3274 [inline]
+       do_wp_page+0x356/0x3610 mm/memory.c:3356
+       handle_pte_fault mm/memory.c:4927 [inline]
+       __handle_mm_fault+0x19a1/0x3e60 mm/memory.c:5051
+       handle_mm_fault+0x2ba/0x9c0 mm/memory.c:5197
+       do_user_addr_fault+0x475/0x1230 arch/x86/mm/fault.c:1407
+       handle_page_fault arch/x86/mm/fault.c:1498 [inline]
+       exc_page_fault+0x98/0x170 arch/x86/mm/fault.c:1554
+       asm_exc_page_fault+0x26/0x30 arch/x86/include/asm/idtentry.h:570
+
+-> #1 (&mm->mmap_lock){++++}-{3:3}:
+       __might_fault mm/memory.c:5625 [inline]
+       __might_fault+0x10c/0x180 mm/memory.c:5618
+       reiserfs_ioctl+0x1d2/0x330 fs/reiserfs/ioctl.c:96
+       vfs_ioctl fs/ioctl.c:51 [inline]
+       __do_sys_ioctl fs/ioctl.c:870 [inline]
+       __se_sys_ioctl fs/ioctl.c:856 [inline]
+       __x64_sys_ioctl+0x197/0x210 fs/ioctl.c:856
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&sbi->lock){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3098 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+       validate_chain kernel/locking/lockdep.c:3832 [inline]
+       __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+       lock_acquire kernel/locking/lockdep.c:5669 [inline]
+       lock_acquire+0x1af/0x520 kernel/locking/lockdep.c:5634
+       __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+       __mutex_lock+0x12f/0x1350 kernel/locking/mutex.c:747
+       reiserfs_write_lock+0x79/0x100 fs/reiserfs/lock.c:27
+       reiserfs_dirty_inode+0xd2/0x260 fs/reiserfs/super.c:704
+       __mark_inode_dirty+0x1e0/0xd60 fs/fs-writeback.c:2421
+       generic_update_time+0x21b/0x2b0 fs/inode.c:1860
+       inode_update_time fs/inode.c:1873 [inline]
+       __file_update_time fs/inode.c:2058 [inline]
+       file_update_time+0x224/0x270 fs/inode.c:2089
+       filemap_page_mkwrite+0x280/0x780 mm/filemap.c:3570
+       do_page_mkwrite+0x19b/0x680 mm/memory.c:2925
+       wp_page_shared mm/memory.c:3274 [inline]
+       do_wp_page+0x356/0x3610 mm/memory.c:3356
+       handle_pte_fault mm/memory.c:4927 [inline]
+       __handle_mm_fault+0x19a1/0x3e60 mm/memory.c:5051
+       handle_mm_fault+0x2ba/0x9c0 mm/memory.c:5197
+       do_user_addr_fault+0x475/0x1230 arch/x86/mm/fault.c:1407
+       handle_page_fault arch/x86/mm/fault.c:1498 [inline]
+       exc_page_fault+0x98/0x170 arch/x86/mm/fault.c:1554
+       asm_exc_page_fault+0x26/0x30 arch/x86/include/asm/idtentry.h:570
+
+other info that might help us debug this:
+
+Chain exists of:
+  &sbi->lock --> &mm->mmap_lock --> sb_pagefaults
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(sb_pagefaults);
+                               lock(&mm->mmap_lock);
+                               lock(sb_pagefaults);
+  lock(&sbi->lock);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor228/5099:
+ #0: ffff88807d700ad8 (&mm->mmap_lock){++++}-{3:3}, at: mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff88807d700ad8 (&mm->mmap_lock){++++}-{3:3}, at: do_user_addr_fault+0x276/0x1230 arch/x86/mm/fault.c:1348
+ #1: ffff88802b3a8558 (sb_pagefaults){.+.+}-{0:0}, at: do_page_mkwrite+0x19b/0x680 mm/memory.c:2925
+
+stack backtrace:
+CPU: 0 PID: 5099 Comm: syz-executor228 Not tainted 6.3.0-rc4-syzkaller-00034-gfcd476ea6a88 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2178
+ check_prev_add kernel/locking/lockdep.c:3098 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+ validate_chain kernel/locking/lockdep.c:3832 [inline]
+ __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+ lock_acquire kernel/locking/lockdep.c:5669 [inline]
+ lock_acquire+0x1af/0x520 kernel/locking/lockdep.c:5634
+ __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+ __mutex_lock+0x12f/0x1350 kernel/locking/mutex.c:747
+ reiserfs_write_lock+0x79/0x100 fs/reiserfs/lock.c:27
+ reiserfs_dirty_inode+0xd2/0x260 fs/reiserfs/super.c:704
+ __mark_inode_dirty+0x1e0/0xd60 fs/fs-writeback.c:2421
+ generic_update_time+0x21b/0x2b0 fs/inode.c:1860
+ inode_update_time fs/inode.c:1873 [inline]
+ __file_update_time fs/inode.c:2058 [inline]
+ file_update_time+0x224/0x270 fs/inode.c:2089
+ filemap_page_mkwrite+0x280/0x780 mm/filemap.c:3570
+ do_page_mkwrite+0x19b/0x680 mm/memory.c:2925
+ wp_page_shared mm/memory.c:3274 [inline]
+ do_wp_page+0x356/0x3610 mm/memory.c:3356
+ handle_pte_fault mm/memory.c:4927 [inline]
+ __handle_mm_fault+0x19a1/0x3e60 mm/memory.c:5051
+ handle_mm_fault+0x2ba/0x9c0 mm/memory.c:5197
+ do_user_addr_fault+0x475/0x1230 arch/x86/mm/fault.c:1407
+ handle_page_fault arch/x86/mm/fault.c:1498 [inline]
+ exc_page_fault+0x98/0x170 arch/x86/mm/fault.c:1554
+ asm_exc_page_fault+0x26/0x30 arch/x86/include/asm/idtentry.h:570
+RIP: 0033:0x7fce2e0f94e9
+Code: 00 e9 3a fe ff ff c7 04 25 40 00 00 20 2e 2f 62 75 66 c7 04 25 44 00 00 20 73 00 e9 76 fe ff ff 48 b8 2f 64 65 76 2f 63 75 73 <66> c7 04 25 48 02 00 20 65 00 48 89 04 25 40 02 00 20 e9 0d ff ff
+RSP: 002b:00007ffd8ddd3730 EFLAGS: 00010246
+RAX: 7375632f7665642f RBX: 0000000000009783 RCX: 00007fce2e13beb9
+RDX: fa0b8d5febad6a06 RSI: 0000000000000000 RDI: 00005555569ba2b0
+RBP: 0000000000000000 R08: 0000000000000004 R09: 0000000000000000
+R10: 0000000004002011 R11: 0000000000000246 R12: 00007ffd8ddd375c
+R13: 00007ffd8ddd3790 R14: 00007ffd8ddd3770 R15: 000000000000000c
+ </TASK>

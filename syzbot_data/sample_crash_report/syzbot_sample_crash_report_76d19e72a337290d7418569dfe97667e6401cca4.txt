@@ -1,0 +1,57 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read include/linux/instrumented.h:72 [inline]
+BUG: KASAN: null-ptr-deref in _test_bit include/asm-generic/bitops/instrumented-non-atomic.h:141 [inline]
+BUG: KASAN: null-ptr-deref in set_buffer_uptodate include/linux/buffer_head.h:151 [inline]
+BUG: KASAN: null-ptr-deref in do_journal_end+0x135f/0x4af0 fs/reiserfs/journal.c:4081
+Read of size 8 at addr 0000000000000000 by task kworker/0:3/4398
+
+CPU: 0 PID: 4398 Comm: kworker/0:3 Not tainted 6.3.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+Workqueue: events_long flush_old_commits
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ print_report mm/kasan/report.c:433 [inline]
+ kasan_report+0xec/0x130 mm/kasan/report.c:536
+ check_region_inline mm/kasan/generic.c:181 [inline]
+ kasan_check_range+0x141/0x190 mm/kasan/generic.c:187
+ instrument_atomic_read include/linux/instrumented.h:72 [inline]
+ _test_bit include/asm-generic/bitops/instrumented-non-atomic.h:141 [inline]
+ set_buffer_uptodate include/linux/buffer_head.h:151 [inline]
+ do_journal_end+0x135f/0x4af0 fs/reiserfs/journal.c:4081
+ reiserfs_sync_fs+0xfc/0x130 fs/reiserfs/super.c:78
+ flush_old_commits+0xfb/0x200 fs/reiserfs/super.c:111
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+==================================================================
+Kernel panic - not syncing: KASAN: panic_on_warn set ...
+CPU: 0 PID: 4398 Comm: kworker/0:3 Not tainted 6.3.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+Workqueue: events_long flush_old_commits
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ panic+0x688/0x730 kernel/panic.c:340
+ check_panic_on_warn+0xb1/0xc0 kernel/panic.c:236
+ end_report+0xe9/0x120 mm/kasan/report.c:190
+ kasan_report+0xf9/0x130 mm/kasan/report.c:538
+ check_region_inline mm/kasan/generic.c:181 [inline]
+ kasan_check_range+0x141/0x190 mm/kasan/generic.c:187
+ instrument_atomic_read include/linux/instrumented.h:72 [inline]
+ _test_bit include/asm-generic/bitops/instrumented-non-atomic.h:141 [inline]
+ set_buffer_uptodate include/linux/buffer_head.h:151 [inline]
+ do_journal_end+0x135f/0x4af0 fs/reiserfs/journal.c:4081
+ reiserfs_sync_fs+0xfc/0x130 fs/reiserfs/super.c:78
+ flush_old_commits+0xfb/0x200 fs/reiserfs/super.c:111
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

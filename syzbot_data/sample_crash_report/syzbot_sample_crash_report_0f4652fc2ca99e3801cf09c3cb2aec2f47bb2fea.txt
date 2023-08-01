@@ -1,0 +1,65 @@
+BUG: sleeping function called from invalid context at kernel/locking/rwsem.c:1375
+in_atomic(): 0, irqs_disabled(): 0, non_block: 0, pid: 8518, name: syz-executor608
+1 lock held by syz-executor608/8518:
+ #0: ffffffff8b374160 (rcu_read_lock){....}-{1:2}, at: kernel_migrate_pages+0xed/0x6d0 mm/mempolicy.c:1527
+Preemption disabled at:
+[<ffffffff81c395b5>] percpu_up_read include/linux/percpu-rwsem.h:101 [inline]
+[<ffffffff81c395b5>] __sb_end_write include/linux/fs.h:1587 [inline]
+[<ffffffff81c395b5>] sb_end_write include/linux/fs.h:1614 [inline]
+[<ffffffff81c395b5>] pipe_write+0xf85/0x1ac0 fs/pipe.c:589
+CPU: 0 PID: 8518 Comm: syz-executor608 Not tainted 5.11.0-rc3-next-20210114-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ ___might_sleep.cold+0x1f1/0x237 kernel/sched/core.c:7964
+ down_read_killable+0x77/0x480 kernel/locking/rwsem.c:1375
+ mm_access+0x48/0x150 kernel/fork.c:1227
+ kernel_migrate_pages+0x1f8/0x6d0 mm/mempolicy.c:1546
+ __do_sys_migrate_pages mm/mempolicy.c:1599 [inline]
+ __se_sys_migrate_pages mm/mempolicy.c:1595 [inline]
+ __x64_sys_migrate_pages+0x93/0xf0 mm/mempolicy.c:1595
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x4401d9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fff1caf8538 EFLAGS: 00000246 ORIG_RAX: 0000000000000100
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004401d9
+RDX: 0000000000000000 RSI: 0000000000000005 RDI: 0000000000000000
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004019e0
+R13: 0000000000401a70 R14: 0000000000000000 R15: 0000000000000000
+
+=============================
+[ BUG: Invalid wait context ]
+5.11.0-rc3-next-20210114-syzkaller #0 Tainted: G        W        
+-----------------------------
+syz-executor608/8518 is trying to lock:
+ffff88801146c6d8 (&sig->exec_update_lock){++++}-{3:3}, at: mm_access+0x48/0x150 kernel/fork.c:1227
+other info that might help us debug this:
+context-{4:4}
+1 lock held by syz-executor608/8518:
+ #0: ffffffff8b374160 (rcu_read_lock){....}-{1:2}, at: kernel_migrate_pages+0xed/0x6d0 mm/mempolicy.c:1527
+stack backtrace:
+CPU: 0 PID: 8518 Comm: syz-executor608 Tainted: G        W         5.11.0-rc3-next-20210114-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ print_lock_invalid_wait_context kernel/locking/lockdep.c:4484 [inline]
+ check_wait_context kernel/locking/lockdep.c:4545 [inline]
+ __lock_acquire.cold+0x304/0x39e kernel/locking/lockdep.c:4782
+ lock_acquire kernel/locking/lockdep.c:5442 [inline]
+ lock_acquire+0x1a8/0x720 kernel/locking/lockdep.c:5407
+ down_read_killable+0x98/0x480 kernel/locking/rwsem.c:1376
+ mm_access+0x48/0x150 kernel/fork.c:1227
+ kernel_migrate_pages+0x1f8/0x6d0 mm/mempolicy.c:1546
+ __do_sys_migrate_pages mm/mempolicy.c:1599 [inline]
+ __se_sys_migrate_pages mm/mempolicy.c:1595 [inline]
+ __x64_sys_migrate_pages+0x93/0xf0 mm/mempolicy.c:1595
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x4401d9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fff1caf8538 EFLAGS: 00000246 ORIG_RAX: 0000000000000100
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000

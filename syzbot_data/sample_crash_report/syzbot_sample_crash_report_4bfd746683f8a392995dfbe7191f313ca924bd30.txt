@@ -1,0 +1,49 @@
+loop5: detected capacity change from 0 to 32768
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(lock->magic != lock)
+WARNING: CPU: 0 PID: 11706 at kernel/locking/mutex.c:582 __mutex_lock_common+0x504/0xf64 kernel/locking/mutex.c:582
+Modules linked in:
+CPU: 0 PID: 11706 Comm: syz-executor.5 Not tainted 6.2.0-rc7-syzkaller-17907-g2d3827b3f393 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __mutex_lock_common+0x504/0xf64 kernel/locking/mutex.c:582
+lr : __mutex_lock_common+0x504/0xf64 kernel/locking/mutex.c:582
+sp : ffff800013993c50
+x29: ffff800013993cc0 x28: ffff80000eeb4000 x27: 0000000000000000
+x26: 0000000000000000 x25: 0000000000000000 x24: 0000000000000002
+x23: ffff800008771cc4 x22: 0000000000000000 x21: 0000000000000000
+x20: 0000000000000000 x19: ffff000118406828 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000012 x12: 0000000000040000
+x11: 00000000000011fb x10: ffff800013387000 x9 : d4604ff9859b4c00
+x8 : d4604ff9859b4c00 x7 : 4e5241575f534b43 x6 : ffff80000bf650d4
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000000 x0 : 0000000000000028
+Call trace:
+ __mutex_lock_common+0x504/0xf64 kernel/locking/mutex.c:582
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x38/0x44 kernel/locking/mutex.c:799
+ reiserfs_write_lock+0x3c/0x64 fs/reiserfs/lock.c:27
+ reiserfs_ioctl+0x34/0x2a0 fs/reiserfs/ioctl.c:81
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __arm64_sys_ioctl+0xd0/0x148 fs/ioctl.c:856
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x64/0x178 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0xbc/0x180 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x110 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x14c arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+irq event stamp: 73649
+hardirqs last  enabled at (73649): [<ffff80000bf6aafc>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+hardirqs last  enabled at (73649): [<ffff80000bf6aafc>] _raw_spin_unlock_irqrestore+0x44/0x84 kernel/locking/spinlock.c:194
+hardirqs last disabled at (73648): [<ffff80000bf6a910>] __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:108 [inline]
+hardirqs last disabled at (73648): [<ffff80000bf6a910>] _raw_spin_lock_irqsave+0x2c/0x88 kernel/locking/spinlock.c:162
+softirqs last  enabled at (73636): [<ffff80000801c878>] local_bh_enable+0x10/0x34 include/linux/bottom_half.h:32
+softirqs last disabled at (73634): [<ffff80000801c844>] local_bh_disable+0x10/0x34 include/linux/bottom_half.h:19
+---[ end trace 0000000000000000 ]---
+list_add corruption. prev is NULL.
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:24!

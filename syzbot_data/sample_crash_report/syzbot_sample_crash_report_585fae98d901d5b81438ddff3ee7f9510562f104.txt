@@ -1,0 +1,60 @@
+BUG: KASAN: use-after-free in skb_release_data+0x5cf/0x790 net/core/skbuff.c:567
+Read of size 1 at addr ffff8801ce0c7d42 by task syz-executor3/3475
+
+CPU: 0 PID: 3475 Comm: syz-executor3 Not tainted 4.13.0-rc5-next-20170815+ #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:427
+ skb_release_data+0x5cf/0x790 net/core/skbuff.c:567
+ skb_release_all+0x4a/0x60 net/core/skbuff.c:631
+ __kfree_skb net/core/skbuff.c:645 [inline]
+ kfree_skb+0x15d/0x4c0 net/core/skbuff.c:663
+ ip_frag_queue net/ipv4/ip_fragment.c:474 [inline]
+ ip_defrag+0xc69/0x4000 net/ipv4/ip_fragment.c:680
+ ip_local_deliver+0x174/0x6d0 net/ipv4/ip_input.c:253
+ dst_input include/net/dst.h:477 [inline]
+ ip_rcv_finish+0x8db/0x19c0 net/ipv4/ip_input.c:397
+ NF_HOOK include/linux/netfilter.h:248 [inline]
+ ip_rcv+0xc3f/0x17d0 net/ipv4/ip_input.c:488
+ __netif_receive_skb_core+0x19af/0x33d0 net/core/dev.c:4418
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4456
+ netif_receive_skb_internal+0x10b/0x5e0 net/core/dev.c:4527
+ netif_receive_skb+0xae/0x390 net/core/dev.c:4551
+ tun_rx_batched.isra.43+0x5e7/0x860 drivers/net/tun.c:1221
+ tun_get_user+0x11dd/0x2150 drivers/net/tun.c:1542
+ tun_chr_write_iter+0xd8/0x190 drivers/net/tun.c:1568
+ call_write_iter include/linux/fs.h:1742 [inline]
+ new_sync_write fs/read_write.c:457 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:470
+ vfs_write+0x189/0x510 fs/read_write.c:518
+ SYSC_write fs/read_write.c:565 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:557
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x40b751
+RSP: 002b:00007fb3dbcfec10 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000718000 RCX: 000000000040b751
+RDX: 0000000000000036 RSI: 0000000020002000 RDI: 0000000000000003
+RBP: 0000000000000086 R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000000f4246 R11: 0000000000000293 R12: 00000000004bab1b
+R13: 00000000ffffffff R14: 0000000000000036 R15: 0000000020002000
+
+The buggy address belongs to the page:
+page:ffffea00073831c0 count:0 mapcount:0 mapping:          (null) index:0x0
+flags: 0x200000000000000()
+raw: 0200000000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: 0000000000000000 0000000100000001 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ce0c7c00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801ce0c7c80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8801ce0c7d00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                           ^
+ ffff8801ce0c7d80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8801ce0c7e00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

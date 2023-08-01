@@ -1,0 +1,93 @@
+smpboot: CPU0: Intel(R) Xeon(R) CPU @ 2.20GHz (family: 0x6, model: 0x4f, stepping: 0x0)
+cblist_init_generic: Setting adjustable number of callback queues.
+cblist_init_generic: Setting shift to 1 and lim to 1.
+cblist_init_generic: Setting shift to 1 and lim to 1.
+Running RCU-tasks wait API self tests
+Performance Events: unsupported p6 CPU model 79 no PMU driver, software events only.
+rcu: Hierarchical SRCU implementation.
+rcu: 	Max phase no-delay instances is 1000.
+NMI watchdog: Perf NMI watchdog permanently disabled
+smp: Bringing up secondary CPUs ...
+x86: Booting SMP configuration:
+.... node  #0, CPUs:      #1
+MDS CPU bug present and SMT on, data leak possible. See https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/mds.html for more details.
+TAA CPU bug present and SMT on, data leak possible. See https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/tsx_async_abort.html for more details.
+MMIO Stale Data CPU bug present and SMT on, data leak possible. See https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/processor_mmio_stale_data.html for more details.
+smp: Brought up 2 nodes, 2 CPUs
+smpboot: Max logical packages: 1
+smpboot: Total of 2 processors activated (8800.82 BogoMIPS)
+allocated 134217728 bytes of page_ext
+Node 0, zone      DMA: page owner found early allocated 0 pages
+Node 0, zone    DMA32: page owner found early allocated 19885 pages
+Node 0, zone   Normal: page owner found early allocated 468 pages
+Node 1, zone   Normal: page owner found early allocated 18804 pages
+devtmpfs: initialized
+x86/mm: Memory block size: 128MB
+clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+futex hash table entries: 512 (order: 4, 65536 bytes, vmalloc)
+PM: RTC time: 16:54:57, date: 2023-02-09
+NET: Registered PF_NETLINK/PF_ROUTE protocol family
+audit: initializing netlink subsys (disabled)
+thermal_sys: Registered thermal governor 'step_wise'
+thermal_sys: Registered thermal governor 'user_space'
+cpuidle: using governor menu
+NET: Registered PF_QIPCRTR protocol family
+usercopy: Kernel memory overwrite attempt detected to SLUB object 'skbuff_small_head' (offset 32, size 20)!
+------------[ cut here ]------------
+kernel BUG at mm/usercopy.c:102!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 1 Comm: swapper/0 Not tainted 6.2.0-rc6-syzkaller-01485-g5131a053f292 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+RIP: 0010:usercopy_abort+0xbd/0xbf mm/usercopy.c:102
+Code: e8 ee 8d ba f7 49 89 d9 4d 89 e8 4c 89 e1 41 56 48 89 ee 48 c7 c7 20 2b 5b 8a ff 74 24 08 41 57 48 8b 54 24 20 e8 7a 17 fe ff <0f> 0b e8 c2 8d ba f7 e8 7d db 08 f8 48 8b 0c 24 49 89 d8 44 89 ea
+RSP: 0000:ffffc90000067a48 EFLAGS: 00010286
+RAX: 000000000000006b RBX: ffffffff8b5b6ea0 RCX: 0000000000000000
+RDX: ffff88813ff58000 RSI: ffffffff8166195c RDI: fffff5200000cf3b
+RBP: ffffffff8a5b2a60 R08: 000000000000006b R09: 0000000000000000
+R10: 0000000080000000 R11: 0000000000000000 R12: ffffffff8bf2ab1d
+R13: ffffffff8a5b29a0 R14: 0000000000000014 R15: ffffffff8a5b2960
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000c48e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __check_heap_object+0xdd/0x110 mm/slub.c:4761
+ check_heap_object mm/usercopy.c:196 [inline]
+ __check_object_size mm/usercopy.c:251 [inline]
+ __check_object_size+0x1da/0x5a0 mm/usercopy.c:213
+ check_object_size include/linux/thread_info.h:199 [inline]
+ check_copy_size include/linux/thread_info.h:235 [inline]
+ copy_from_iter include/linux/uio.h:186 [inline]
+ copy_from_iter_full include/linux/uio.h:194 [inline]
+ memcpy_from_msg include/linux/skbuff.h:3977 [inline]
+ qrtr_sendmsg+0x65f/0x970 net/qrtr/af_qrtr.c:965
+ sock_sendmsg_nosec net/socket.c:722 [inline]
+ sock_sendmsg+0xde/0x190 net/socket.c:745
+ say_hello+0xf6/0x170 net/qrtr/ns.c:325
+ qrtr_ns_init+0x220/0x2b0 net/qrtr/ns.c:804
+ qrtr_proto_init+0x59/0x95 net/qrtr/af_qrtr.c:1296
+ do_one_initcall+0x141/0x790 init/main.c:1306
+ do_initcall_level init/main.c:1379 [inline]
+ do_initcalls init/main.c:1395 [inline]
+ do_basic_setup init/main.c:1414 [inline]
+ kernel_init_freeable+0x6f9/0x782 init/main.c:1634
+ kernel_init+0x1e/0x1d0 init/main.c:1522
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:usercopy_abort+0xbd/0xbf mm/usercopy.c:102
+Code: e8 ee 8d ba f7 49 89 d9 4d 89 e8 4c 89 e1 41 56 48 89 ee 48 c7 c7 20 2b 5b 8a ff 74 24 08 41 57 48 8b 54 24 20 e8 7a 17 fe ff <0f> 0b e8 c2 8d ba f7 e8 7d db 08 f8 48 8b 0c 24 49 89 d8 44 89 ea
+RSP: 0000:ffffc90000067a48 EFLAGS: 00010286
+RAX: 000000000000006b RBX: ffffffff8b5b6ea0 RCX: 0000000000000000
+RDX: ffff88813ff58000 RSI: ffffffff8166195c RDI: fffff5200000cf3b
+RBP: ffffffff8a5b2a60 R08: 000000000000006b R09: 0000000000000000
+R10: 0000000080000000 R11: 0000000000000000 R12: ffffffff8bf2ab1d
+R13: ffffffff8a5b29a0 R14: 0000000000000014 R15: ffffffff8a5b2960
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000c48e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

@@ -1,0 +1,84 @@
+==================================================================
+BUG: KASAN: use-after-free in memcpy include/linux/string.h:378 [inline]
+BUG: KASAN: use-after-free in batadv_iv_ogm_aggregate_new net/batman-adv/bat_iv_ogm.c:544 [inline]
+BUG: KASAN: use-after-free in batadv_iv_ogm_queue_add+0x31d/0x1120 net/batman-adv/bat_iv_ogm.c:640
+Read of size 52 at addr ffff888062a48180 by task kworker/u4:4/9145
+
+CPU: 1 PID: 9145 Comm: kworker/u4:4 Not tainted 5.4.0-rc5+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: bat_events batadv_iv_send_outstanding_bat_ogm_packet
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:634
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ memcpy+0x24/0x50 mm/kasan/common.c:122
+ memcpy include/linux/string.h:378 [inline]
+ batadv_iv_ogm_aggregate_new net/batman-adv/bat_iv_ogm.c:544 [inline]
+ batadv_iv_ogm_queue_add+0x31d/0x1120 net/batman-adv/bat_iv_ogm.c:640
+ batadv_iv_ogm_schedule+0xb0b/0xe50 net/batman-adv/bat_iv_ogm.c:813
+ batadv_iv_send_outstanding_bat_ogm_packet+0x580/0x760 net/batman-adv/bat_iv_ogm.c:1675
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 9145:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:510 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:483
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:524
+ __do_kmalloc mm/slab.c:3655 [inline]
+ __kmalloc+0x163/0x770 mm/slab.c:3664
+ kmalloc include/linux/slab.h:561 [inline]
+ batadv_tvlv_realloc_packet_buff net/batman-adv/tvlv.c:277 [inline]
+ batadv_tvlv_container_ogm_append+0x134/0x490 net/batman-adv/tvlv.c:318
+ batadv_iv_ogm_schedule+0xc8e/0xe50 net/batman-adv/bat_iv_ogm.c:776
+ batadv_iv_send_outstanding_bat_ogm_packet+0x580/0x760 net/batman-adv/bat_iv_ogm.c:1675
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 17582:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ kasan_set_free_info mm/kasan/common.c:332 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:471
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:480
+ __cache_free mm/slab.c:3425 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3756
+ batadv_iv_ogm_iface_disable+0x39/0x80 net/batman-adv/bat_iv_ogm.c:220
+ batadv_hardif_disable_interface.cold+0x4b4/0x87b net/batman-adv/hard-interface.c:875
+ batadv_softif_destroy_netlink+0xa9/0x130 net/batman-adv/soft-interface.c:1146
+ default_device_exit_batch+0x265/0x420 net/core/dev.c:9830
+ ops_exit_list.isra.0+0x10c/0x160 net/core/net_namespace.c:175
+ cleanup_net+0x52e/0xae0 net/core/net_namespace.c:595
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff888062a48180
+ which belongs to the cache kmalloc-64 of size 64
+The buggy address is located 0 bytes inside of
+ 64-byte region [ffff888062a48180, ffff888062a481c0)
+The buggy address belongs to the page:
+page:ffffea00018a9200 refcount:1 mapcount:0 mapping:ffff8880aa400380 index:0xffff888062a48b80
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea0000400988 ffffea0000405988 ffff8880aa400380
+raw: ffff888062a48b80 ffff888062a48000 0000000100000006 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888062a48080: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff888062a48100: 00 00 00 00 04 fc fc fc fc fc fc fc fc fc fc fc
+>ffff888062a48180: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                   ^
+ ffff888062a48200: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff888062a48280: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================

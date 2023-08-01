@@ -1,0 +1,88 @@
+scsi 0:0:1:0: Direct-Access     Google   PersistentDisk   1    PQ: 0 ANSI: 6
+general protection fault, probably for non-canonical address 0xffff000000000200: 0000 [#1] PREEMPT SMP KASAN
+KASAN: maybe wild-memory-access in range [0xfff8200000001000-0xfff8200000001007]
+CPU: 1 PID: 46 Comm: kworker/u4:3 Not tainted 5.19.0-syzkaller-14276-gaea23e7c464b #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Workqueue: events_unbound async_run_entry_fn
+RIP: 0010:freelist_dereference mm/slub.c:347 [inline]
+RIP: 0010:get_freepointer mm/slub.c:354 [inline]
+RIP: 0010:get_freepointer_safe mm/slub.c:368 [inline]
+RIP: 0010:slab_alloc_node mm/slub.c:3211 [inline]
+RIP: 0010:kmem_cache_alloc_node_trace+0x239/0x410 mm/slub.c:3307
+Code: 48 83 c4 18 44 89 e1 4c 89 f2 5b 4c 89 fe 48 89 ef 5d 41 5c 41 5d 41 5e 41 5f e9 f2 4c 00 00 48 8b 7d 00 8b 4d 28 40 f6 c7 0f <48> 8b 1c 08 0f 85 1d 01 00 00 48 8d 4a 08 65 48 0f c7 0f 0f 94 c0
+RSP: 0000:ffffc90000b775d8 EFLAGS: 00010246
+RAX: ffff000000000000 RBX: 0000000000012d00 RCX: 0000000000000200
+RDX: 00000000000015e9 RSI: 0000000000012d00 RDI: 000000000003dc40
+RBP: ffff888011841dc0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000012d00
+R13: 0000000000000000 R14: 00000000000002c0 R15: ffffffff83e37c6a
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000bc8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ kmalloc_node include/linux/slab.h:618 [inline]
+ kzalloc_node include/linux/slab.h:744 [inline]
+ blk_mq_alloc_hctx block/blk-mq.c:3526 [inline]
+ blk_mq_alloc_and_init_hctx+0x6ca/0x11e0 block/blk-mq.c:3999
+ blk_mq_realloc_hw_ctxs+0x43d/0x590 block/blk-mq.c:4032
+ blk_mq_init_allocated_queue+0x527/0x1570 block/blk-mq.c:4094
+ blk_mq_init_queue_data block/blk-mq.c:3908 [inline]
+ blk_mq_init_queue+0xc3/0x140 block/blk-mq.c:3918
+ scsi_alloc_sdev+0x852/0xcc0 drivers/scsi/scsi_scan.c:335
+ scsi_probe_and_add_lun+0x22be/0x3660 drivers/scsi/scsi_scan.c:1191
+ __scsi_scan_target+0x21f/0xdb0 drivers/scsi/scsi_scan.c:1673
+ scsi_scan_channel drivers/scsi/scsi_scan.c:1761 [inline]
+ scsi_scan_channel+0x148/0x1e0 drivers/scsi/scsi_scan.c:1737
+ scsi_scan_host_selected+0x2df/0x3b0 drivers/scsi/scsi_scan.c:1790
+ do_scsi_scan_host+0x1e8/0x260 drivers/scsi/scsi_scan.c:1929
+ do_scan_async+0x3e/0x500 drivers/scsi/scsi_scan.c:1939
+ async_run_entry_fn+0x98/0x530 kernel/async.c:127
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:freelist_dereference mm/slub.c:347 [inline]
+RIP: 0010:get_freepointer mm/slub.c:354 [inline]
+RIP: 0010:get_freepointer_safe mm/slub.c:368 [inline]
+RIP: 0010:slab_alloc_node mm/slub.c:3211 [inline]
+RIP: 0010:kmem_cache_alloc_node_trace+0x239/0x410 mm/slub.c:3307
+Code: 48 83 c4 18 44 89 e1 4c 89 f2 5b 4c 89 fe 48 89 ef 5d 41 5c 41 5d 41 5e 41 5f e9 f2 4c 00 00 48 8b 7d 00 8b 4d 28 40 f6 c7 0f <48> 8b 1c 08 0f 85 1d 01 00 00 48 8d 4a 08 65 48 0f c7 0f 0f 94 c0
+RSP: 0000:ffffc90000b775d8 EFLAGS: 00010246
+RAX: ffff000000000000 RBX: 0000000000012d00 RCX: 0000000000000200
+RDX: 00000000000015e9 RSI: 0000000000012d00 RDI: 000000000003dc40
+RBP: ffff888011841dc0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000012d00
+R13: 0000000000000000 R14: 00000000000002c0 R15: ffffffff83e37c6a
+FS:  0000000000000000(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000000bc8e000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	48 83 c4 18          	add    $0x18,%rsp
+   4:	44 89 e1             	mov    %r12d,%ecx
+   7:	4c 89 f2             	mov    %r14,%rdx
+   a:	5b                   	pop    %rbx
+   b:	4c 89 fe             	mov    %r15,%rsi
+   e:	48 89 ef             	mov    %rbp,%rdi
+  11:	5d                   	pop    %rbp
+  12:	41 5c                	pop    %r12
+  14:	41 5d                	pop    %r13
+  16:	41 5e                	pop    %r14
+  18:	41 5f                	pop    %r15
+  1a:	e9 f2 4c 00 00       	jmpq   0x4d11
+  1f:	48 8b 7d 00          	mov    0x0(%rbp),%rdi
+  23:	8b 4d 28             	mov    0x28(%rbp),%ecx
+  26:	40 f6 c7 0f          	test   $0xf,%dil
+* 2a:	48 8b 1c 08          	mov    (%rax,%rcx,1),%rbx <-- trapping instruction
+  2e:	0f 85 1d 01 00 00    	jne    0x151
+  34:	48 8d 4a 08          	lea    0x8(%rdx),%rcx
+  38:	65 48 0f c7 0f       	cmpxchg16b %gs:(%rdi)
+  3d:	0f 94 c0             	sete   %al

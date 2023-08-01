@@ -1,0 +1,61 @@
+REISERFS (device loop0): journal params: device loop0, size 15748, journal first block 18, max trans len 256, max batch 225, max commit age 30, max trans age 30
+REISERFS (device loop0): checking transaction log (loop0)
+REISERFS (device loop0): Using tea hash to sort names
+REISERFS (device loop0): using 3.5.x disk format
+==================================================================
+BUG: KASAN: use-after-free in bin_search_in_dir_item fs/reiserfs/namei.c:40 [inline]
+BUG: KASAN: use-after-free in search_by_entry_key+0x81f/0x960 fs/reiserfs/namei.c:164
+Read of size 4 at addr ffff88807d41e7bd by task syz-executor210/6891
+
+CPU: 1 PID: 6891 Comm: syz-executor210 Not tainted 5.9.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xae/0x497 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ bin_search_in_dir_item fs/reiserfs/namei.c:40 [inline]
+ search_by_entry_key+0x81f/0x960 fs/reiserfs/namei.c:164
+ reiserfs_find_entry.part.0+0x139/0xdf0 fs/reiserfs/namei.c:321
+ reiserfs_find_entry fs/reiserfs/namei.c:367 [inline]
+ reiserfs_lookup+0x24a/0x490 fs/reiserfs/namei.c:367
+ __lookup_slow+0x24c/0x480 fs/namei.c:1544
+ lookup_one_len+0x163/0x190 fs/namei.c:2562
+ reiserfs_lookup_privroot+0x92/0x280 fs/reiserfs/xattr.c:972
+ reiserfs_fill_super+0x211b/0x2df3 fs/reiserfs/super.c:2176
+ mount_bdev+0x32e/0x3f0 fs/super.c:1417
+ legacy_get_tree+0x105/0x220 fs/fs_context.c:592
+ vfs_get_tree+0x89/0x2f0 fs/super.c:1547
+ do_new_mount fs/namespace.c:2875 [inline]
+ path_mount+0x1387/0x20a0 fs/namespace.c:3192
+ do_mount fs/namespace.c:3205 [inline]
+ __do_sys_mount fs/namespace.c:3413 [inline]
+ __se_sys_mount fs/namespace.c:3390 [inline]
+ __x64_sys_mount+0x27f/0x300 fs/namespace.c:3390
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x447d9a
+Code: b8 08 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 7d a3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 5a a3 fb ff c3 66 0f 1f 84 00 00 00 00 00
+RSP: 002b:00007ffe3d8a0238 EFLAGS: 00000297 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007ffe3d8a0290 RCX: 0000000000447d9a
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007ffe3d8a0250
+RBP: 00007ffe3d8a0250 R08: 00007ffe3d8a0290 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000297 R12: 0000000000000006
+R13: 0000000000000004 R14: 0000000000000003 R15: 0000000000000003
+
+The buggy address belongs to the page:
+page:00000000b141154e refcount:0 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x7d41e
+flags: 0xfffe0000000000()
+raw: 00fffe0000000000 ffffea0001f507c8 ffff8880ae539608 0000000000000000
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88807d41e680: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88807d41e700: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff88807d41e780: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                        ^
+ ffff88807d41e800: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff88807d41e880: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

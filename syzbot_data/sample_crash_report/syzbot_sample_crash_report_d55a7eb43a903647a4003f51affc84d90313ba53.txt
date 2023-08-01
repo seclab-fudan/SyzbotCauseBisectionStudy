@@ -1,0 +1,71 @@
+usb 1-1: New USB device found, idVendor=0bd3, idProduct=0555, bcdDevice=69.6a
+usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+usb 1-1: config 0 descriptor??
+uvcvideo: Found UVC 0.00 device <unnamed> (0bd3:0555)
+uvcvideo 1-1:0.0: Entity type for entity ᠌ was not initialized!
+------------[ cut here ]------------
+kernel BUG at drivers/media/mc/mc-entity.c:666!
+invalid opcode: 0000 [#1] SMP KASAN
+CPU: 0 PID: 95 Comm: kworker/0:2 Not tainted 5.6.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+RIP: 0010:media_create_pad_link+0x40f/0x530 drivers/media/mc/mc-entity.c:666
+Code: 83 45 3a 01 45 31 e4 e8 6f 61 44 fd 44 89 e0 48 83 c4 18 5b 5d 41 5c 41 5d 41 5e 41 5f c3 e8 58 61 44 fd 0f 0b e8 51 61 44 fd <0f> 0b e8 4a 61 44 fd 0f 0b e8 f3 09 6d fd e9 91 fc ff ff e8 e9 09
+RSP: 0018:ffff8881d5f67038 EFLAGS: 00010293
+RAX: ffff8881d7114980 RBX: ffff8881ce3b3070 RCX: ffffffff83faf80b
+RDX: 0000000000000000 RSI: ffffffff83fafb9f RDI: 0000000000000000
+RBP: ffff8881ce0f1870 R08: ffff8881d7114980 R09: ffffed1039b23691
+R10: ffffed1039b23690 R11: ffff8881cd91b483 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000003 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8881db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f55517e9000 CR3: 00000001cebb0000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ uvc_mc_create_links drivers/media/usb/uvc/uvc_entity.c:50 [inline]
+ uvc_mc_register_entities+0x468/0x77a drivers/media/usb/uvc/uvc_entity.c:114
+ uvc_register_chains drivers/media/usb/uvc/uvc_driver.c:2103 [inline]
+ uvc_probe.cold+0x205c/0x2a51 drivers/media/usb/uvc/uvc_driver.c:2229
+ usb_probe_interface+0x310/0x800 drivers/usb/core/driver.c:374
+ really_probe+0x290/0xac0 drivers/base/dd.c:551
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:724
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:831
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x217/0x390 drivers/base/dd.c:897
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1459/0x1bf0 drivers/base/core.c:2487
+ usb_set_configuration+0xe47/0x17d0 drivers/usb/core/message.c:2023
+ usb_generic_driver_probe+0x9d/0xe0 drivers/usb/core/generic.c:241
+ usb_probe_device+0xd9/0x230 drivers/usb/core/driver.c:272
+ really_probe+0x290/0xac0 drivers/base/dd.c:551
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:724
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:831
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x217/0x390 drivers/base/dd.c:897
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1459/0x1bf0 drivers/base/core.c:2487
+ usb_new_device.cold+0x540/0xcd0 drivers/usb/core/hub.c:2544
+ hub_port_connect drivers/usb/core/hub.c:5191 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5331 [inline]
+ port_event drivers/usb/core/hub.c:5477 [inline]
+ hub_event+0x21cb/0x4300 drivers/usb/core/hub.c:5559
+ process_one_work+0x94b/0x1620 kernel/workqueue.c:2264
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2410
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+---[ end trace 4def2bd06d57ee51 ]---
+RIP: 0010:media_create_pad_link+0x40f/0x530 drivers/media/mc/mc-entity.c:666
+Code: 83 45 3a 01 45 31 e4 e8 6f 61 44 fd 44 89 e0 48 83 c4 18 5b 5d 41 5c 41 5d 41 5e 41 5f c3 e8 58 61 44 fd 0f 0b e8 51 61 44 fd <0f> 0b e8 4a 61 44 fd 0f 0b e8 f3 09 6d fd e9 91 fc ff ff e8 e9 09
+RSP: 0018:ffff8881d5f67038 EFLAGS: 00010293
+RAX: ffff8881d7114980 RBX: ffff8881ce3b3070 RCX: ffffffff83faf80b
+RDX: 0000000000000000 RSI: ffffffff83fafb9f RDI: 0000000000000000
+RBP: ffff8881ce0f1870 R08: ffff8881d7114980 R09: ffffed1039b23691
+R10: ffffed1039b23690 R11: ffff8881cd91b483 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000003 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8881db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f55517e9000 CR3: 00000001cebb0000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

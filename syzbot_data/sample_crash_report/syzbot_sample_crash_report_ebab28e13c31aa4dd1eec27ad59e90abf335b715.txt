@@ -1,0 +1,131 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in fq_pie_qdisc_enqueue+0x147c/0x17a0 net/sched/sch_fq_pie.c:155
+Read of size 4 at addr ffff88808b5bc044 by task syz-executor.3/16008
+
+CPU: 1 PID: 16008 Comm: syz-executor.3 Not tainted 5.13.0-rc2-next-20210518-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x13e/0x1d6 lib/dump_stack.c:129
+ print_address_description.constprop.0.cold+0x6c/0x309 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:436
+ fq_pie_qdisc_enqueue+0x147c/0x17a0 net/sched/sch_fq_pie.c:155
+ __dev_xmit_skb net/core/dev.c:3899 [inline]
+ __dev_queue_xmit+0x1845/0x3150 net/core/dev.c:4214
+ neigh_resolve_output net/core/neighbour.c:1495 [inline]
+ neigh_resolve_output+0x50e/0x820 net/core/neighbour.c:1475
+ neigh_output include/net/neighbour.h:510 [inline]
+ ip6_finish_output2+0x686/0x1700 net/ipv6/ip6_output.c:117
+ __ip6_finish_output net/ipv6/ip6_output.c:182 [inline]
+ __ip6_finish_output+0x4c1/0xe10 net/ipv6/ip6_output.c:161
+ ip6_finish_output+0x32/0x200 net/ipv6/ip6_output.c:192
+ NF_HOOK_COND include/linux/netfilter.h:290 [inline]
+ ip6_output+0x1e4/0x530 net/ipv6/ip6_output.c:215
+ dst_output include/net/dst.h:448 [inline]
+ ip6_local_out+0xaf/0x1a0 net/ipv6/output_core.c:179
+ ip6_send_skb+0xb7/0x340 net/ipv6/ip6_output.c:1904
+ ip6_push_pending_frames+0xdd/0x100 net/ipv6/ip6_output.c:1924
+ icmpv6_push_pending_frames+0x294/0x470 net/ipv6/icmp.c:310
+ icmp6_send+0x1b0d/0x2310 net/ipv6/icmp.c:626
+ __icmpv6_send include/linux/icmpv6.h:28 [inline]
+ icmpv6_send include/linux/icmpv6.h:49 [inline]
+ ip6_pkt_drop+0x30b/0x7a0 net/ipv6/route.c:4393
+ dst_input include/net/dst.h:458 [inline]
+ ip6_rcv_finish net/ipv6/ip6_input.c:76 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ NF_HOOK include/linux/netfilter.h:295 [inline]
+ ipv6_rcv+0x28c/0x3c0 net/ipv6/ip6_input.c:297
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5459
+ __netif_receive_skb+0x24/0x1b0 net/core/dev.c:5573
+ netif_receive_skb_internal net/core/dev.c:5678 [inline]
+ netif_receive_skb+0x13e/0x8e0 net/core/dev.c:5737
+ tun_rx_batched.isra.0+0x460/0x720 drivers/net/tun.c:1460
+ tun_get_user+0x2458/0x36c0 drivers/net/tun.c:1907
+ tun_chr_write_iter+0xe1/0x1f0 drivers/net/tun.c:1937
+ call_write_iter include/linux/fs.h:2114 [inline]
+ new_sync_write+0x426/0x650 fs/read_write.c:518
+ vfs_write+0x75a/0xa40 fs/read_write.c:605
+ ksys_write+0x12d/0x250 fs/read_write.c:658
+ do_syscall_64+0x31/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4192bf
+Code: 89 54 24 18 48 89 74 24 10 89 7c 24 08 e8 99 fd ff ff 48 8b 54 24 18 48 8b 74 24 10 41 89 c0 8b 7c 24 08 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 31 44 89 c7 48 89 44 24 08 e8 cc fd ff ff 48
+RSP: 002b:00007f08c7595150 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 000000000056bf80 RCX: 00000000004192bf
+RDX: 000000000000003e RSI: 0000000020000000 RDI: 00000000000000f0
+RBP: 00000000004bfcb9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000293 R12: 000000000056bf80
+R13: 00007ffcea91a07f R14: 00007f08c7595300 R15: 0000000000022000
+
+The buggy address belongs to the page:
+page:ffffea00022d6800 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x8b5a0
+head:ffffea00022d6800 order:5 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010000(head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010000 dead000000000100 dead000000000122 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 5, migratetype Unmovable, gfp_mask 0x52dc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_ZERO), pid 13008, ts 312573420274, free_ts 309887471077
+ prep_new_page mm/page_alloc.c:2377 [inline]
+ get_page_from_freelist+0x125c/0x2ed0 mm/page_alloc.c:4038
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5239
+ __alloc_pages_node include/linux/gfp.h:549 [inline]
+ alloc_pages_node include/linux/gfp.h:563 [inline]
+ kmalloc_large_node+0x62/0x130 mm/slub.c:4130
+ __kmalloc_node+0x300/0x380 mm/slub.c:4146
+ kmalloc_node include/linux/slab.h:613 [inline]
+ kvmalloc_node+0xb4/0xf0 mm/util.c:587
+ kvmalloc include/linux/mm.h:808 [inline]
+ kvmalloc_array include/linux/mm.h:826 [inline]
+ kvcalloc include/linux/mm.h:831 [inline]
+ fq_pie_init+0x584/0x8e0 net/sched/sch_fq_pie.c:417
+ qdisc_create+0x475/0x1320 net/sched/sch_api.c:1247
+ tc_modify_qdisc+0x4c8/0x1a60 net/sched/sch_api.c:1663
+ rtnetlink_rcv_msg+0x413/0xb80 net/core/rtnetlink.c:5550
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2502
+ netlink_unicast_kernel net/netlink/af_netlink.c:1312 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1338
+ netlink_sendmsg+0x84c/0xd90 net/netlink/af_netlink.c:1927
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:674
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2350
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2404
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2433
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1305 [inline]
+ __free_pages_ok+0x4cb/0xf30 mm/page_alloc.c:1586
+ unfreeze_partials+0x17c/0x1d0 mm/slub.c:2416
+ put_cpu_partial+0x13d/0x230 mm/slub.c:2452
+ qlink_free mm/kasan/quarantine.c:146 [inline]
+ qlist_free_all+0x5a/0xc0 mm/kasan/quarantine.c:165
+ kasan_quarantine_reduce+0x180/0x200 mm/kasan/quarantine.c:272
+ __kasan_slab_alloc+0x8e/0xa0 mm/kasan/common.c:441
+ kasan_slab_alloc include/linux/kasan.h:236 [inline]
+ slab_post_alloc_hook mm/slab.h:512 [inline]
+ slab_alloc_node mm/slub.c:2954 [inline]
+ kmem_cache_alloc_node+0x266/0x3e0 mm/slub.c:2990
+ __alloc_skb+0x20b/0x340 net/core/skbuff.c:413
+ alloc_skb include/linux/skbuff.h:1107 [inline]
+ nlmsg_new include/net/netlink.h:953 [inline]
+ inet6_netconf_notify_devconf+0xa0/0x1e0 net/ipv6/addrconf.c:574
+ __addrconf_sysctl_unregister net/ipv6/addrconf.c:6998 [inline]
+ addrconf_sysctl_unregister+0x131/0x1c0 net/ipv6/addrconf.c:7022
+ addrconf_ifdown.isra.0+0xf8f/0x15b0 net/ipv6/addrconf.c:3849
+ addrconf_notify+0x606/0x2400 net/ipv6/addrconf.c:3631
+ notifier_call_chain+0xb5/0x200 kernel/notifier.c:83
+ call_netdevice_notifiers_info+0xb5/0x130 net/core/dev.c:2121
+ call_netdevice_notifiers_extack net/core/dev.c:2133 [inline]
+ call_netdevice_notifiers net/core/dev.c:2147 [inline]
+ unregister_netdevice_many+0x951/0x1790 net/core/dev.c:11032
+ default_device_exit_batch+0x2fa/0x3c0 net/core/dev.c:11562
+
+Memory state around the buggy address:
+ ffff88808b5bbf00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88808b5bbf80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88808b5bc000: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+                                           ^
+ ffff88808b5bc080: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+ ffff88808b5bc100: fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe fe
+==================================================================

@@ -1,0 +1,121 @@
+batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+device hsr_slave_0 entered promiscuous mode
+device hsr_slave_1 entered promiscuous mode
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 0 PID: 4624 Comm: syz-executor.0 Not tainted 5.12.0-rc2-syzkaller #0
+Hardware name: ARM-Versatile Express
+Backtrace: 
+[<82740098>] (dump_backtrace) from [<8274030c>] (show_stack+0x18/0x1c arch/arm/kernel/traps.c:252)
+ r7:00000080 r6:600b0093 r5:00000000 r4:8422a3c4
+[<827402f4>] (show_stack) from [<82751788>] (__dump_stack lib/dump_stack.c:79 [inline])
+[<827402f4>] (show_stack) from [<82751788>] (dump_stack+0xb8/0xe8 lib/dump_stack.c:120)
+[<827516d0>] (dump_stack) from [<802c0ee0>] (assign_lock_key kernel/locking/lockdep.c:935 [inline])
+[<827516d0>] (dump_stack) from [<802c0ee0>] (register_lock_class+0xac4/0xb70 kernel/locking/lockdep.c:1247)
+ r7:00000000 r6:84a42fe8 r5:00000000 r4:00000000
+[<802c041c>] (register_lock_class) from [<802bc00c>] (__lock_acquire+0x84/0x3318 kernel/locking/lockdep.c:4779)
+ r10:00000080 r9:89b630c0 r8:00000001 r7:00000002 r6:00000000 r5:8aa60764
+ r4:00000000
+[<802bbf88>] (__lock_acquire) from [<802bfe90>] (lock_acquire.part.0+0xf0/0x41c kernel/locking/lockdep.c:5510)
+ r10:00000080 r9:600b0093 r8:00000000 r7:00000000 r6:83ecd680 r5:83ecd680
+ r4:8a3958d8
+[<802bfda0>] (lock_acquire.part.0) from [<802c0228>] (lock_acquire+0x6c/0x74 kernel/locking/lockdep.c:5483)
+ r10:81e68a18 r9:00000000 r8:00000001 r7:00000002 r6:00000000 r5:00000000
+ r4:8aa60764
+[<802c01bc>] (lock_acquire) from [<815928e0>] (seqcount_lockdep_reader_access include/linux/seqlock.h:103 [inline])
+[<802c01bc>] (lock_acquire) from [<815928e0>] (__u64_stats_fetch_begin include/linux/u64_stats_sync.h:164 [inline])
+[<802c01bc>] (lock_acquire) from [<815928e0>] (u64_stats_fetch_begin include/linux/u64_stats_sync.h:175 [inline])
+[<802c01bc>] (lock_acquire) from [<815928e0>] (nsim_get_stats64+0xe8/0x10c drivers/net/netdevsim/netdev.c:70)
+ r10:8aa60764 r9:00000001 r8:8aa60740 r7:600b0013 r6:81e68a18 r5:8aa6112c
+ r4:8aa60000
+[<815927f8>] (nsim_get_stats64) from [<81e68a18>] (dev_get_stats+0x44/0xd0 net/core/dev.c:10525)
+ r10:00000000 r9:00000000 r8:00000000 r7:00000000 r6:829fbb48 r5:8aa60000
+ r4:8aa6112c
+[<81e689d4>] (dev_get_stats) from [<81e8d30c>] (rtnl_fill_stats+0x38/0x120 net/core/rtnetlink.c:1211)
+ r7:00000000 r6:8aa60000 r5:8a8ac000 r4:8aa61128
+[<81e8d2d4>] (rtnl_fill_stats) from [<81e93ee0>] (rtnl_fill_ifinfo+0x6cc/0x1480 net/core/rtnetlink.c:1783)
+ r7:00000000 r6:84051e3c r5:8aa60000 r4:8a8ac000
+[<81e93814>] (rtnl_fill_ifinfo) from [<81e97030>] (rtmsg_ifinfo_build_skb+0x9c/0x108 net/core/rtnetlink.c:3798)
+ r10:00000cc0 r9:8a378000 r8:00000000 r7:ffffffff r6:00000010 r5:8a8ac000
+ r4:00000000
+[<81e96f94>] (rtmsg_ifinfo_build_skb) from [<81e97228>] (rtmsg_ifinfo_event net/core/rtnetlink.c:3830 [inline])
+[<81e96f94>] (rtmsg_ifinfo_build_skb) from [<81e97228>] (rtmsg_ifinfo_event net/core/rtnetlink.c:3821 [inline])
+[<81e96f94>] (rtmsg_ifinfo_build_skb) from [<81e97228>] (rtmsg_ifinfo+0x44/0x70 net/core/rtnetlink.c:3839)
+ r10:8aa6b400 r9:00000000 r8:8aa5b208 r7:00000000 r6:00000cc0 r5:00000001
+ r4:8aa60000
+[<81e971e4>] (rtmsg_ifinfo) from [<81e7fb38>] (register_netdevice+0x5cc/0x5f8 net/core/dev.c:10223)
+ r7:00000000 r6:00000000 r5:8aa60000 r4:00000000
+[<81e7f56c>] (register_netdevice) from [<81592c94>] (nsim_create+0xf8/0x124 drivers/net/netdevsim/netdev.c:315)
+ r7:8aa6b960 r6:8aa60740 r5:00000000 r4:8aa60000
+[<81592b9c>] (nsim_create) from [<8159355c>] (__nsim_dev_port_add+0x108/0x188 drivers/net/netdevsim/dev.c:941)
+ r7:00000000 r6:8aa6b960 r5:00000000 r4:8aa5b200
+[<81593454>] (__nsim_dev_port_add) from [<815944b0>] (nsim_dev_port_add_all drivers/net/netdevsim/dev.c:990 [inline])
+[<81593454>] (__nsim_dev_port_add) from [<815944b0>] (nsim_dev_probe+0x5b8/0x750 drivers/net/netdevsim/dev.c:1121)
+ r8:00000000 r7:8aa6b960 r6:00000004 r5:00000000 r4:8aa6b800
+[<81593ef8>] (nsim_dev_probe) from [<81598d80>] (nsim_bus_probe+0x10/0x14 drivers/net/netdevsim/bus.c:287)
+ r10:00000002 r9:842655d0 r8:00000000 r7:84bc91d8 r6:00000000 r5:84bc91d0
+ r4:8aa6b400
+[<81598d70>] (nsim_bus_probe) from [<811a0438>] (really_probe+0x100/0x50c drivers/base/dd.c:554)
+[<811a0338>] (really_probe) from [<811a093c>] (driver_probe_device+0xf8/0x1c8 drivers/base/dd.c:740)
+ r10:842655b8 r9:00000000 r8:84bc9178 r7:8aa6b400 r6:8a395d64 r5:842655d0
+ r4:8aa6b400
+[<811a0844>] (driver_probe_device) from [<811a0f5c>] (__device_attach_driver+0x8c/0xf0 drivers/base/dd.c:846)
+ r9:00000000 r8:84bc9178 r7:8aa6b400 r6:8a395d64 r5:842655d0 r4:00000000
+[<811a0ed0>] (__device_attach_driver) from [<8119de58>] (bus_for_each_drv+0x88/0xd8 drivers/base/bus.c:431)
+ r7:8423b698 r6:811a0ed0 r5:8a395d64 r4:00000000
+[<8119ddd0>] (bus_for_each_drv) from [<811a0be4>] (__device_attach+0xdc/0x1d0 drivers/base/dd.c:914)
+ r6:8aa6b490 r5:00000001 r4:8aa6b400
+[<811a0b08>] (__device_attach) from [<811a0fd4>] (device_initial_probe+0x14/0x18 drivers/base/dd.c:961)
+ r6:8aa6b400 r5:84265558 r4:8aa6b400
+[<811a0fc0>] (device_initial_probe) from [<8119f2d0>] (bus_probe_device+0x90/0x98 drivers/base/bus.c:491)
+[<8119f240>] (bus_probe_device) from [<8119c6f4>] (device_add+0x324/0x828 drivers/base/core.c:3242)
+ r7:8423b698 r6:00000000 r5:00000000 r4:8aa6b400
+[<8119c3d0>] (device_add) from [<8119cc14>] (device_register+0x1c/0x20 drivers/base/core.c:3315)
+ r10:00000000 r9:84265558 r8:00000000 r7:84bd2d44 r6:842654d8 r5:00000003
+ r4:8aa6b400
+[<8119cbf8>] (device_register) from [<815992b4>] (nsim_bus_dev_new drivers/net/netdevsim/bus.c:336 [inline])
+[<8119cbf8>] (device_register) from [<815992b4>] (new_device_store+0x178/0x208 drivers/net/netdevsim/bus.c:215)
+ r5:00000003 r4:8aa6b400
+[<8159913c>] (new_device_store) from [<8119dc2c>] (bus_attr_store+0x2c/0x38 drivers/base/bus.c:122)
+ r9:8aa6c180 r8:8a395f08 r7:8aa07110 r6:8aa6c180 r5:8119dc00 r4:8159913c
+[<8119dc00>] (bus_attr_store) from [<805bc88c>] (sysfs_kf_write+0x48/0x54 fs/sysfs/file.c:139)
+ r5:8119dc00 r4:00000003
+[<805bc844>] (sysfs_kf_write) from [<805bb960>] (kernfs_fop_write_iter+0x128/0x1ec fs/kernfs/file.c:296)
+ r7:8aa07110 r6:8aa07100 r5:00000000 r4:00000000
+[<805bb838>] (kernfs_fop_write_iter) from [<804da454>] (call_write_iter include/linux/fs.h:1977 [inline])
+[<805bb838>] (kernfs_fop_write_iter) from [<804da454>] (new_sync_write fs/read_write.c:518 [inline])
+[<805bb838>] (kernfs_fop_write_iter) from [<804da454>] (vfs_write+0x260/0x350 fs/read_write.c:605)
+ r9:00000003 r8:8a395f68 r7:8a394000 r6:00000000 r5:88dc1640 r4:00000000
+[<804da1f4>] (vfs_write) from [<804da6ac>] (ksys_write+0x68/0xec fs/read_write.c:658)
+ r10:00000004 r9:8a394000 r8:80200224 r7:00000000 r6:00000000 r5:88dc1640
+ r4:88dc1640
+[<804da644>] (ksys_write) from [<804da740>] (__do_sys_write fs/read_write.c:670 [inline])
+[<804da644>] (ksys_write) from [<804da740>] (sys_write+0x10/0x14 fs/read_write.c:667)
+ r7:00000004 r6:00000003 r5:023854c0 r4:00000004
+[<804da730>] (sys_write) from [<80200060>] (ret_fast_syscall+0x0/0x2c arch/arm/mm/proc-v7.S:64)
+Exception stack(0x8a395fa8 to 0x8a395ff0)
+5fa0:                   00000004 023854c0 00000004 7e8881f0 00000003 00000000
+5fc0: 00000004 023854c0 00000003 00000004 7e8881f0 7e88884c 000871cc 00000003
+5fe0: 00000000 7e8881d0 00028b34 00028e98
+netdevsim netdevsim0 netdevsim0: renamed from eth0
+netdevsim netdevsim0 netdevsim1: renamed from eth1
+netdevsim netdevsim0 netdevsim2: renamed from eth2
+netdevsim netdevsim0 netdevsim3: renamed from eth3
+8021q: adding VLAN 0 to HW filter on device bond0
+8021q: adding VLAN 0 to HW filter on device team0
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device batadv0
+device veth0_vlan entered promiscuous mode
+device veth1_vlan entered promiscuous mode
+device veth0_macvtap entered promiscuous mode
+device veth1_macvtap entered promiscuous mode
+batman_adv: batadv0: Interface activated: batadv_slave_0
+batman_adv: batadv0: Interface activated: batadv_slave_1
+netdevsim netdevsim0 netdevsim0: set [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim0 netdevsim1: set [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim0 netdevsim2: set [1, 0] type 2 family 0 port 6081 - 0
+netdevsim netdevsim0 netdevsim3: set [1, 0] type 2 family 0 port 6081 - 0
+ieee80211 phy3: Selected rate control algorithm 'minstrel_ht'
+ieee80211 phy4: Selected rate control algorithm 'minstrel_ht'
+cgroup: cgroup: disabling cgroup2 socket matching due to net_prio or net_cls activation

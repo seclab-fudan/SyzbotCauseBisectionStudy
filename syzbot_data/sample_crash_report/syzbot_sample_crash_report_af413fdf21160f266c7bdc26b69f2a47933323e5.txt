@@ -1,0 +1,106 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 5890 Comm: kworker/0:5 Not tainted 4.16.0-rc7+ #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: cgroup_destroy css_free_work_fn
+RIP: 0010:qlist_move_cache+0x70/0xf0 mm/kasan/quarantine.c:274
+RSP: 0018:ffff8801b27df0c8 EFLAGS: 00010006
+RAX: 0000e0000000e000 RBX: 000077ff80000000 RCX: 0000e0000000e000
+RDX: ffff8801cd660000 RSI: ffff8801b27df0e8 RDI: ffffffff892d6bd0
+RBP: ffff8801b27df0d8 R08: ffff8801cb968d20 R09: 0000000080000000
+R10: 0000e0000000e000 R11: ffffea0000000000 R12: ffffea00075d0d9f
+R13: ffffffff87bd6fa0 R14: ffffffff892d94e0 R15: ffff8801cd660000
+FS:  0000000000000000(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000044e3b0 CR3: 0000000007a22004 CR4: 00000000001606f0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+ quarantine_remove_cache+0x79/0xf0 mm/kasan/quarantine.c:317
+ kasan_cache_shutdown+0x9/0x10 mm/kasan/kasan.c:381
+ shutdown_cache+0x15/0x1b0 mm/slab_common.c:577
+ memcg_destroy_kmem_caches+0x62/0x80 mm/slab_common.c:781
+ memcg_free_kmem mm/memcontrol.c:2856 [inline]
+ mem_cgroup_css_free+0x2a4/0x3f0 mm/memcontrol.c:4298
+ css_free_work_fn+0x1c8/0x1420 kernel/cgroup/cgroup.c:4541
+ process_one_work+0xc47/0x1bb0 kernel/workqueue.c:2113
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
+Code: 27 48 83 3f 00 8b 40 14 74 7f 4c 8b 47 08 49 89 08 48 89 4f 08 48 c7 01 00 00 00 00 4c 89 d1 48 01 47 10 4d 85 d2 74 5c 48 89 c8 <4c> 8b 11 4c 01 c8 72 62 49 89 d8 4c 01 c0 48 c1 e8 0c 48 c1 e0 
+RIP: qlist_move_cache+0x70/0xf0 mm/kasan/quarantine.c:274 RSP: ffff8801b27df0c8
+---[ end trace ac44eb86920b00d5 ]---
+BUG: unable to handle kernel paging request
+Kernel panic - not syncing: Fatal exception
+ at ffff8801c84cf000
+IP: __memmove+0x24/0x1a0 arch/x86/lib/memmove_64.S:43
+PGD 9cee067 P4D 9cee067 PUD 1d9482063 PMD 1bb528063 PTE 80000001c84cf161
+Oops: 0003 [#2] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 14804 Comm: syz-executor0 Tainted: G      D          4.16.0-rc7+ #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__memmove+0x24/0x1a0 arch/x86/lib/memmove_64.S:43
+RSP: 0018:ffff8801db306ef8 EFLAGS: 00010287
+RAX: ffff8801c093aa44 RBX: fffffffffffffffe RCX: fffffffff846ba42
+RDX: fffffffffffffffe RSI: ffff8801c84ceffc RDI: ffff8801c84cf000
+RBP: ffff8801db306f18 R08: ffff8801c093aa3e R09: ffffed0038127549
+R10: 0000000000000001 R11: ffffed0038127548 R12: ffff8801c093aa44
+R13: ffff8801c093aa40 R14: ffff8801c6f18e86 R15: ffff8801c6f18dc0
+FS:  00007ff8cfcfe700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff8801c84cf000 CR3: 00000001bafce003 CR4: 00000000001606e0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+ <IRQ>
+ memmove include/linux/string.h:360 [inline]
+ skb_reorder_vlan_header net/core/skbuff.c:5031 [inline]
+ skb_vlan_untag+0x470/0xc40 net/core/skbuff.c:5061
+ __netif_receive_skb_core+0x119c/0x3460 net/core/dev.c:4460
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4627
+ netif_receive_skb_internal+0x10b/0x670 net/core/dev.c:4701
+ napi_skb_finish net/core/dev.c:5063 [inline]
+ napi_gro_receive+0x3d0/0x500 net/core/dev.c:5094
+ tun_napi_receive drivers/net/tun.c:283 [inline]
+ tun_napi_poll+0x41c/0x980 drivers/net/tun.c:300
+ napi_poll net/core/dev.c:5705 [inline]
+ net_rx_action+0x792/0x1910 net/core/dev.c:5771
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1040
+ </IRQ>
+ do_softirq.part.19+0x14d/0x190 kernel/softirq.c:329
+ do_softirq kernel/softirq.c:177 [inline]
+ __local_bh_enable_ip+0x1ee/0x230 kernel/softirq.c:182
+ local_bh_enable include/linux/bottom_half.h:32 [inline]
+ tun_get_user+0x1972/0x3c20 drivers/net/tun.c:1960
+ tun_chr_write_iter+0xb9/0x160 drivers/net/tun.c:1990
+ call_write_iter include/linux/fs.h:1782 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x454879
+RSP: 002b:00007ff8cfcfdc68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007ff8cfcfe6d4 RCX: 0000000000454879
+RDX: 0000000000000020 RSI: 0000000020000180 RDI: 0000000000000014
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000000006b0 R14: 00000000006fc120 R15: 0000000000000000
+Code: 90 90 90 90 90 90 90 48 89 f8 48 83 fa 20 0f 82 03 01 00 00 48 39 fe 7d 0f 49 89 f0 49 01 d0 49 39 f8 0f 8f 9f 00 00 00 48 89 d1 <f3> a4 c3 48 81 fa a8 02 00 00 72 05 40 38 fe 74 3b 48 83 ea 20 
+RIP: __memmove+0x24/0x1a0 arch/x86/lib/memmove_64.S:43 RSP: ffff8801db306ef8
+CR2: ffff8801c84cf000
+---[ end trace ac44eb86920b00d6 ]---
+Shutting down cpus with NMI
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

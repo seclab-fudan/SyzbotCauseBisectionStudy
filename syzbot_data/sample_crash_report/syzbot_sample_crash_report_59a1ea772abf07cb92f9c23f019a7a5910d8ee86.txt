@@ -1,0 +1,48 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc5-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-sched read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+no locks held by systemd-udevd/13755.
+
+stack backtrace:
+CPU: 0 PID: 13755 Comm: systemd-udevd Not tainted 5.13.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x266/0x2c0 kernel/sched/core.c:8304
+ might_alloc include/linux/sched/mm.h:201 [inline]
+ slab_pre_alloc_hook mm/slab.h:497 [inline]
+ slab_alloc_node mm/slub.c:2834 [inline]
+ slab_alloc mm/slub.c:2921 [inline]
+ kmem_cache_alloc_trace+0x277/0x2c0 mm/slub.c:2938
+ kmalloc include/linux/slab.h:556 [inline]
+ kzalloc include/linux/slab.h:686 [inline]
+ kernfs_iop_get_link fs/kernfs/symlink.c:135 [inline]
+ kernfs_iop_get_link+0x61/0x6e0 fs/kernfs/symlink.c:126
+ pick_link fs/namei.c:1741 [inline]
+ step_into+0x168e/0x1c80 fs/namei.c:1798
+ open_last_lookups fs/namei.c:3308 [inline]
+ path_openat+0x491/0x27e0 fs/namei.c:3491
+ do_filp_open+0x190/0x3d0 fs/namei.c:3521
+ do_sys_openat2+0x16d/0x420 fs/open.c:1187
+ do_sys_open fs/open.c:1203 [inline]
+ __do_sys_open fs/open.c:1211 [inline]
+ __se_sys_open fs/open.c:1207 [inline]
+ __x64_sys_open+0x119/0x1c0 fs/open.c:1207
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f0ff9316840
+Code: 73 01 c3 48 8b 0d 68 77 20 00 f7 d8 64 89 01 48 83 c8 ff c3 66 0f 1f 44 00 00 83 3d 89 bb 20 00 00 75 10 b8 02 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 1e f6 ff ff 48 89 04 24
+RSP: 002b:00007ffeb81b55a8 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 0000000000000701 RCX: 00007f0ff9316840
+RDX: 0000000000000001 RSI: 0000000000080000 RDI: 00007ffeb81b55b0
+RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000012
+R10: 0000000000000064 R11: 0000000000000246 R12: 00007ffeb81b6600
+R13: 00007ffeb81b7690 R14: 0000000000000000 R15: 0000000000000000

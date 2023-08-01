@@ -1,0 +1,40 @@
+==================================================================
+BUG: KCSAN: data-race in sock_alloc_send_pskb / unix_release_sock
+
+write to 0xffff88812fda3e78 of 1 bytes by task 18724 on cpu 0:
+ unix_release_sock+0x298/0x680 net/unix/af_unix.c:565
+ unix_release+0x4e/0x70 net/unix/af_unix.c:949
+ __sock_release net/socket.c:649 [inline]
+ sock_close+0x6c/0x150 net/socket.c:1314
+ __fput+0x295/0x520 fs/file_table.c:280
+ ____fput+0x11/0x20 fs/file_table.c:313
+ task_work_run+0x8e/0x110 kernel/task_work.c:164
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:175 [inline]
+ exit_to_user_mode_prepare+0x160/0x190 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x20/0x40 kernel/entry/common.c:300
+ do_syscall_64+0x50/0xa0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+read to 0xffff88812fda3e78 of 1 bytes by task 18726 on cpu 1:
+ sock_alloc_send_pskb+0x113/0x4e0 net/core/sock.c:2560
+ unix_stream_sendmsg+0x3da/0xf10 net/unix/af_unix.c:2064
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg net/socket.c:724 [inline]
+ ____sys_sendmsg+0x39a/0x510 net/socket.c:2409
+ ___sys_sendmsg net/socket.c:2463 [inline]
+ __sys_sendmsg+0x195/0x230 net/socket.c:2492
+ __do_sys_sendmsg net/socket.c:2501 [inline]
+ __se_sys_sendmsg net/socket.c:2499 [inline]
+ __x64_sys_sendmsg+0x42/0x50 net/socket.c:2499
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xa0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+value changed: 0x00 -> 0x03
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 18726 Comm: syz-executor.0 Not tainted 5.15.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

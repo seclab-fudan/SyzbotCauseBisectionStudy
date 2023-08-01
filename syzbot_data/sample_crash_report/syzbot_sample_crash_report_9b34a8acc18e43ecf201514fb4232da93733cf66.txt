@@ -1,0 +1,84 @@
+BUG: KASAN: use-after-free in snd_timer_user_info_compat.isra.6+0x46c/0x480 sound/core/timer_compat.c:71
+Read of size 8 at addr ffff8801d0dd9d00 by task syz-executor0/3342
+
+CPU: 1 PID: 3342 Comm: syz-executor0 Not tainted 4.14.0-rc5+ #44
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ snd_timer_user_info_compat.isra.6+0x46c/0x480 sound/core/timer_compat.c:71
+ snd_timer_user_ioctl_compat+0x464/0x821 sound/core/timer_compat.c:160
+ C_SYSC_ioctl fs/compat_ioctl.c:1593 [inline]
+ compat_SyS_ioctl+0x1d7/0x3290 fs/compat_ioctl.c:1540
+ do_syscall_32_irqs_on arch/x86/entry/common.c:329 [inline]
+ do_fast_syscall_32+0x3f2/0xf05 arch/x86/entry/common.c:391
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:124
+RIP: 0023:0xf7fd4c79
+RSP: 002b:00000000f7faf05c EFLAGS: 00000296 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000080e05411
+RDX: 0000000020db8fe5 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3341:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3627
+ kmalloc include/linux/slab.h:493 [inline]
+ kzalloc include/linux/slab.h:666 [inline]
+ snd_timer_instance_new+0xda/0x610 sound/core/timer.c:108
+ snd_timer_open+0x180/0x1790 sound/core/timer.c:253
+ snd_timer_user_tselect sound/core/timer.c:1655 [inline]
+ __snd_timer_user_ioctl sound/core/timer.c:1918 [inline]
+ snd_timer_user_ioctl+0x96f/0x32e0 sound/core/timer.c:1948
+ snd_timer_user_ioctl_compat+0x615/0x821 sound/core/timer_compat.c:156
+ C_SYSC_ioctl fs/compat_ioctl.c:1593 [inline]
+ compat_SyS_ioctl+0x1d7/0x3290 fs/compat_ioctl.c:1540
+ do_syscall_32_irqs_on arch/x86/entry/common.c:329 [inline]
+ do_fast_syscall_32+0x3f2/0xf05 arch/x86/entry/common.c:391
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:124
+
+Freed by task 3341:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ snd_timer_close+0xa02/0xf20 sound/core/timer.c:374
+ snd_timer_user_tselect sound/core/timer.c:1645 [inline]
+ __snd_timer_user_ioctl sound/core/timer.c:1918 [inline]
+ snd_timer_user_ioctl+0x80d/0x32e0 sound/core/timer.c:1948
+ snd_timer_user_ioctl_compat+0x615/0x821 sound/core/timer_compat.c:156
+ C_SYSC_ioctl fs/compat_ioctl.c:1593 [inline]
+ compat_SyS_ioctl+0x1d7/0x3290 fs/compat_ioctl.c:1540
+ do_syscall_32_irqs_on arch/x86/entry/common.c:329 [inline]
+ do_fast_syscall_32+0x3f2/0xf05 arch/x86/entry/common.c:391
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:124
+
+The buggy address belongs to the object at ffff8801d0dd9d00
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 0 bytes inside of
+ 256-byte region [ffff8801d0dd9d00, ffff8801d0dd9e00)
+The buggy address belongs to the page:
+page:ffffea0007437640 count:1 mapcount:0 mapping:ffff8801d0dd9080 index:0x0
+flags: 0x200000000000100(slab)
+raw: 0200000000000100 ffff8801d0dd9080 0000000000000000 000000010000000c
+raw: ffffea000741b4a0 ffffea0007400820 ffff8801dac007c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d0dd9c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d0dd9c80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8801d0dd9d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8801d0dd9d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d0dd9e00: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+==================================================================

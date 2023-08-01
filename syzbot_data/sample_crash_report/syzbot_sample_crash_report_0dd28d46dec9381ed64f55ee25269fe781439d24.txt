@@ -1,0 +1,55 @@
+BUG: unable to handle page fault for address: fffff52001c00000
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 7ffcd067 P4D 7ffcd067 PUD 2cd1c067 PMD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 3 PID: 3857 Comm: ion_system_heap Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org 04/01/2014
+RIP: 0010:memory_is_nonzero mm/kasan/generic.c:121 [inline]
+RIP: 0010:memory_is_poisoned_n mm/kasan/generic.c:135 [inline]
+RIP: 0010:memory_is_poisoned mm/kasan/generic.c:166 [inline]
+RIP: 0010:check_memory_region_inline mm/kasan/generic.c:182 [inline]
+RIP: 0010:check_memory_region+0x9c/0x1a0 mm/kasan/generic.c:192
+Code: c9 4d 0f 49 c1 49 c1 f8 03 45 85 c0 0f 84 10 01 00 00 41 83 e8 01 4e 8d 44 c0 08 eb 0d 48 83 c0 08 4c 39 c0 0f 84 a7 00 00 00 <48> 83 38 00 74 ed 4c 8d 40 08 eb 09 48 83 c0 01 49 39 c0 74 53 80
+RSP: 0018:ffffc9000698fab8 EFLAGS: 00010212
+RAX: fffff52001c00000 RBX: fffff52001c01600 RCX: ffffffff85decb29
+RDX: 0000000000000001 RSI: 000000000000b000 RDI: ffffc9000e000000
+RBP: ffffc9000698fad0 R08: fffff52001c01600 R09: 0000000000001600
+R10: fffff52001c015ff R11: ffffc9000e00afff R12: fffff52001c00000
+R13: 000000000000b000 R14: 0000000000000000 R15: ffffc9000698fd08
+FS:  0000000000000000(0000) GS:ffff88802d300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffff52001c00000 CR3: 0000000020c01000 CR4: 0000000000340ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ memset+0x24/0x40 mm/kasan/common.c:108
+ memset include/linux/string.h:365 [inline]
+ ion_heap_clear_pages+0x49/0x70 drivers/staging/android/ion/ion_heap.c:106
+ ion_heap_sglist_zero+0x245/0x270 drivers/staging/android/ion/ion_heap.c:130
+ ion_heap_buffer_zero+0xf5/0x150 drivers/staging/android/ion/ion_heap.c:145
+ ion_system_heap_free+0x1eb/0x250 drivers/staging/android/ion/ion_system_heap.c:163
+ ion_buffer_destroy+0x159/0x2d0 drivers/staging/android/ion/ion.c:93
+ ion_heap_deferred_free+0x29d/0x630 drivers/staging/android/ion/ion_heap.c:239
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+CR2: fffff52001c00000
+---[ end trace 4f12909ca40de3f5 ]---
+RIP: 0010:memory_is_nonzero mm/kasan/generic.c:121 [inline]
+RIP: 0010:memory_is_poisoned_n mm/kasan/generic.c:135 [inline]
+RIP: 0010:memory_is_poisoned mm/kasan/generic.c:166 [inline]
+RIP: 0010:check_memory_region_inline mm/kasan/generic.c:182 [inline]
+RIP: 0010:check_memory_region+0x9c/0x1a0 mm/kasan/generic.c:192
+Code: c9 4d 0f 49 c1 49 c1 f8 03 45 85 c0 0f 84 10 01 00 00 41 83 e8 01 4e 8d 44 c0 08 eb 0d 48 83 c0 08 4c 39 c0 0f 84 a7 00 00 00 <48> 83 38 00 74 ed 4c 8d 40 08 eb 09 48 83 c0 01 49 39 c0 74 53 80
+RSP: 0018:ffffc9000698fab8 EFLAGS: 00010212
+RAX: fffff52001c00000 RBX: fffff52001c01600 RCX: ffffffff85decb29
+RDX: 0000000000000001 RSI: 000000000000b000 RDI: ffffc9000e000000
+RBP: ffffc9000698fad0 R08: fffff52001c01600 R09: 0000000000001600
+R10: fffff52001c015ff R11: ffffc9000e00afff R12: fffff52001c00000
+R13: 000000000000b000 R14: 0000000000000000 R15: ffffc9000698fd08
+FS:  0000000000000000(0000) GS:ffff88802d300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffff52001c00000 CR3: 0000000020c01000 CR4: 0000000000340ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

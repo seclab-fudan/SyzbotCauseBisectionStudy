@@ -1,0 +1,520 @@
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.15.0+ #300 Not tainted
+------------------------------------------------------
+syz-executor6/5781 is trying to acquire lock:
+ (sk_lock-AF_INET){+.+.}, at: [<00000000306d0d21>] lock_sock include/net/sock.h:1463 [inline]
+ (sk_lock-AF_INET){+.+.}, at: [<00000000306d0d21>] do_ip_setsockopt.isra.12+0x1d9/0x3210 net/ipv4/ip_sockglue.c:646
+
+but task is already holding lock:
+ (rtnl_mutex){+.+.}, at: [<00000000e9b401c3>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (rtnl_mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+       unregister_netdevice_notifier+0x91/0x4e0 net/core/dev.c:1673
+       clusterip_config_entry_put net/ipv4/netfilter/ipt_CLUSTERIP.c:114 [inline]
+       clusterip_tg_destroy+0x389/0x6e0 net/ipv4/netfilter/ipt_CLUSTERIP.c:518
+       cleanup_entry+0x218/0x350 net/ipv4/netfilter/ip_tables.c:654
+       __do_replace+0x79d/0xa50 net/ipv4/netfilter/ip_tables.c:1089
+       do_replace net/ipv4/netfilter/ip_tables.c:1145 [inline]
+       do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1675
+       nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+       nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+       ip_setsockopt+0x97/0xa0 net/ipv4/ip_sockglue.c:1259
+       tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2905
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+       SYSC_setsockopt net/socket.c:1849 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1828
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+-> #1 (&xt[i].mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1041
+       xt_request_find_table_lock+0x28/0xc0 net/netfilter/x_tables.c:1088
+       get_info+0x154/0x690 net/ipv6/netfilter/ip6_tables.c:989
+       do_ipt_get_ctl+0x159/0xac0 net/ipv4/netfilter/ip_tables.c:1699
+       nf_sockopt net/netfilter/nf_sockopt.c:104 [inline]
+       nf_getsockopt+0x6a/0xc0 net/netfilter/nf_sockopt.c:122
+       ip_getsockopt+0x15c/0x220 net/ipv4/ip_sockglue.c:1571
+       tcp_getsockopt+0x82/0xd0 net/ipv4/tcp.c:3359
+       sock_common_getsockopt+0x95/0xd0 net/core/sock.c:2934
+       SYSC_getsockopt net/socket.c:1880 [inline]
+       SyS_getsockopt+0x178/0x340 net/socket.c:1862
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+-> #0 (sk_lock-AF_INET){+.+.}:
+       lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+       lock_sock_nested+0xc2/0x110 net/core/sock.c:2777
+       lock_sock include/net/sock.h:1463 [inline]
+       do_ip_setsockopt.isra.12+0x1d9/0x3210 net/ipv4/ip_sockglue.c:646
+       ip_setsockopt+0x3a/0xa0 net/ipv4/ip_sockglue.c:1252
+       dccp_setsockopt+0x85/0xd0 net/dccp/proto.c:576
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+       SYSC_setsockopt net/socket.c:1849 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1828
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+other info that might help us debug this:
+
+Chain exists of:
+  sk_lock-AF_INET --> &xt[i].mutex --> rtnl_mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(rtnl_mutex);
+                               lock(&xt[i].mutex);
+                               lock(rtnl_mutex);
+  lock(sk_lock-AF_INET);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor6/5781:
+ #0:  (rtnl_mutex){+.+.}, at: [<00000000e9b401c3>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+
+stack backtrace:
+CPU: 1 PID: 5781 Comm: syz-executor6 Not tainted 4.15.0+ #300
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_circular_bug.isra.38+0x2cd/0x2dc kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x30a8/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ lock_sock_nested+0xc2/0x110 net/core/sock.c:2777
+ lock_sock include/net/sock.h:1463 [inline]
+ do_ip_setsockopt.isra.12+0x1d9/0x3210 net/ipv4/ip_sockglue.c:646
+ ip_setsockopt+0x3a/0xa0 net/ipv4/ip_sockglue.c:1252
+ dccp_setsockopt+0x85/0xd0 net/dccp/proto.c:576
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+ SYSC_setsockopt net/socket.c:1849 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1828
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f73f7905c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 000000000000002f RSI: 0000000000000000 RDI: 0000000000000013
+RBP: 000000000000051d R08: 0000000000000108 R09: 0000000000000000
+R10: 0000000020000000 R11: 0000000000000212 R12: 00000000006f6b58
+R13: 00000000ffffffff R14: 00007f73f79066d4 R15: 0000000000000000
+syz-executor1 (5794) used greatest stack depth: 16272 bytes left
+do_dccp_setsockopt: sockopt(PACKET_SIZE) is deprecated: fix your app
+*** Guest State ***
+CR0: actual=0x0000000000000030, shadow=0x0000000060000010, gh_mask=fffffffffffffff7
+CR4: actual=0x0000000000002050, shadow=0x0000000000000000, gh_mask=ffffffffffffe871
+CR3 = 0x00000000fffbc000
+RSP = 0x0000000000000000  RIP = 0x0000000000000000
+RFLAGS=0x00220202         DR7 = 0x0000000000000400
+Sysenter RSP=0000000000000000 CS:RIP=0000:0000000000000000
+CS:   sel=0xf000, attr=0x0009b, limit=0x0000ffff, base=0x00000000ffff0000
+DS:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+SS:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+do_dccp_setsockopt: sockopt(PACKET_SIZE) is deprecated: fix your app
+ES:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+FS:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+GS:   sel=0x0000, attr=0x00093, limit=0x0000ffff, base=0x0000000000000000
+GDTR:                           limit=0x0000ffff, base=0x0000000000000000
+LDTR: sel=0x0000, attr=0x00082, limit=0x0000ffff, base=0x0000000000000000
+IDTR:                           limit=0x0000ffff, base=0x0000000000000000
+TR:   sel=0x0000, attr=0x0008b, limit=0x0000ffff, base=0x0000000000000000
+EFER =     0x0000000000000000  PAT = 0x0007040600070406
+DebugCtl = 0x0000000000000000  DebugExceptions = 0x0000000000000000
+Interruptibility = 00000000  ActivityState = 00000000
+*** Host State ***
+RIP = 0xffffffff811c99dc  RSP = 0xffff8801b39673b8
+CS=0010 SS=0018 DS=0000 ES=0000 FS=0000 GS=0000 TR=0040
+FSBase=00007f63bfe1b700 GSBase=ffff8801db400000 TRBase=fffffe0000003000
+GDTBase=fffffe0000001000 IDTBase=fffffe0000000000
+CR0=0000000080050033 CR3=00000001a9ac7006 CR4=00000000001626f0
+Sysenter RSP=fffffe0000002200 CS:RIP=0010:ffffffff85a019f0
+EFER = 0x0000000000000d01  PAT = 0x0000000000000000
+*** Control State ***
+PinBased=0000003f CPUBased=b6a1edfa SecondaryExec=000000c3
+EntryControls=0000d1ff ExitControls=0023efff
+ExceptionBitmap=00060042 PFECmask=00000000 PFECmatch=00000000
+VMEntry: intr_info=80000000 errcode=00000000 ilen=00000000
+VMExit: intr_info=00000000 errcode=00000000 ilen=00000000
+        reason=80000021 qualification=0000000000000000
+IDTVectoring: info=00000000 errcode=00000000
+TSC Offset = 0xffffffdcd1d8dc09
+TPR Threshold = 0x00
+EPT pointer = 0x00000001da89701e
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+can: request_module (can-proto-0) failed.
+can: request_module (can-proto-0) failed.
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 1
+CPU: 1 PID: 6274 Comm: syz-executor4 Not tainted 4.15.0+ #300
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc mm/slab.c:3365 [inline]
+ kmem_cache_alloc_trace+0x4b/0x750 mm/slab.c:3605
+ kmalloc include/linux/slab.h:512 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ mld_add_delrec net/ipv6/mcast.c:721 [inline]
+ igmp6_leave_group net/ipv6/mcast.c:2433 [inline]
+ igmp6_group_dropped+0x423/0xa80 net/ipv6/mcast.c:700
+ __ipv6_dev_mc_dec+0x241/0x350 net/ipv6/mcast.c:935
+ addrconf_leave_solict+0x19b/0x260 net/ipv6/addrconf.c:2090
+ __ipv6_dev_ac_dec+0x2c9/0x600 net/ipv6/anycast.c:326
+ ipv6_dev_ac_dec net/ipv6/anycast.c:342 [inline]
+ ipv6_sock_ac_drop+0x3b0/0x590 net/ipv6/anycast.c:167
+ do_ipv6_setsockopt.isra.8+0x279b/0x39d0 net/ipv6/ipv6_sockglue.c:664
+ ipv6_setsockopt+0xd7/0x130 net/ipv6/ipv6_sockglue.c:922
+ tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2905
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+ SYSC_setsockopt net/socket.c:1849 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1828
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f5ef91a1c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 000000000000001c RSI: 0000000000000029 RDI: 0000000000000013
+RBP: 0000000000000508 R08: 0000000000000014 R09: 0000000000000000
+R10: 0000000020868000 R11: 0000000000000212 R12: 00000000006f6960
+R13: 0000000000000014 R14: 00007f5ef91a26d4 R15: ffffffffffffffff
+binder: 6279:6287 ioctl c0046209 20001000 returned -22
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+binder: 6279:6293 ioctl c0046209 20001000 returned -22
+CPU: 1 PID: 6290 Comm: syz-executor4 Not tainted 4.15.0+ #300
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc_node mm/slab.c:3286 [inline]
+ kmem_cache_alloc_node+0x56/0x760 mm/slab.c:3629
+ __alloc_skb+0xf1/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ nlmsg_new include/net/netlink.h:511 [inline]
+ inet6_rt_notify+0xf3/0x290 net/ipv6/route.c:4667
+ fib6_del_route net/ipv6/ip6_fib.c:1723 [inline]
+ fib6_del+0xbde/0x12c0 net/ipv6/ip6_fib.c:1760
+ __ip6_del_rt+0xc7/0x120 net/ipv6/route.c:2888
+ ip6_del_rt+0x132/0x1a0 net/ipv6/route.c:2901
+ __ipv6_dev_ac_dec+0x3b1/0x600 net/ipv6/anycast.c:329
+ ipv6_dev_ac_dec net/ipv6/anycast.c:342 [inline]
+ ipv6_sock_ac_drop+0x3b0/0x590 net/ipv6/anycast.c:167
+ do_ipv6_setsockopt.isra.8+0x279b/0x39d0 net/ipv6/ipv6_sockglue.c:664
+ ipv6_setsockopt+0xd7/0x130 net/ipv6/ipv6_sockglue.c:922
+ tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2905
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+ SYSC_setsockopt net/socket.c:1849 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1828
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f5ef91a1c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 000000000000001c RSI: 0000000000000029 RDI: 0000000000000013
+RBP: 0000000000000508 R08: 0000000000000014 R09: 0000000000000000
+R10: 0000000020868000 R11: 0000000000000212 R12: 00000000006f6960
+R13: 0000000000000014 R14: 00007f5ef91a26d4 R15: ffffffffffffffff
+kauditd_printk_skb: 19 callbacks suppressed
+audit: type=1400 audit(1518003691.276:48): avc:  denied  { create } for  pid=6351 comm="syz-executor6" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_fib_lookup_socket permissive=1
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+audit: type=1400 audit(1518003691.320:49): avc:  denied  { read } for  pid=6351 comm="syz-executor6" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_fib_lookup_socket permissive=1
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device eql entered promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device eql entered promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device eql entered promiscuous mode
+Can not set IPV6_FL_F_REFLECT if flowlabel_consistency sysctl is enable
+device eql entered promiscuous mode
+Can not set IPV6_FL_F_REFLECT if flowlabel_consistency sysctl is enable
+device eql entered promiscuous mode
+device eql entered promiscuous mode
+device eql entered promiscuous mode
+audit: type=1400 audit(1518003693.629:50): avc:  denied  { net_broadcast } for  pid=6756 comm="syz-executor5" capability=11  scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=cap_userns permissive=1
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device eql entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 0 PID: 6983 Comm: syz-executor3 Not tainted 4.15.0+ #300
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc_node mm/slab.c:3286 [inline]
+ kmem_cache_alloc_node+0x56/0x760 mm/slab.c:3629
+ __alloc_skb+0xf1/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ nlmsg_new include/net/netlink.h:511 [inline]
+ rtmsg_ifinfo_build_skb+0x73/0x1a0 net/core/rtnetlink.c:3186
+ rtmsg_ifinfo_event.part.26+0x45/0xe0 net/core/rtnetlink.c:3222
+ rtmsg_ifinfo_event net/core/rtnetlink.c:3233 [inline]
+ rtmsg_ifinfo+0x78/0x90 net/core/rtnetlink.c:3231
+ __dev_notify_flags+0x2c5/0x430 net/core/dev.c:6940
+ __dev_set_promiscuity+0x19e/0x650 net/core/dev.c:6717
+ dev_set_promiscuity+0x51/0xc0 net/core/dev.c:6737
+ packet_dev_mc+0x147/0x280 net/packet/af_packet.c:3476
+ packet_flush_mclist net/packet/af_packet.c:3604 [inline]
+ packet_release+0x574/0xce0 net/packet/af_packet.c:3009
+ sock_release+0x8d/0x1e0 net/socket.c:595
+ sock_close+0x16/0x20 net/socket.c:1149
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x275/0x2f0 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+ do_syscall_64+0x6ed/0x940 arch/x86/entry/common.c:292
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007fd91972ac58 EFLAGS: 00000212 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000013
+RBP: 0000000000000052 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006ef850
+R13: 0000000000000014 R14: 00007fd91972b6d4 R15: ffffffffffffffff
+device eql entered promiscuous mode
+device syz3 entered promiscuous mode
+device eql entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 0 PID: 7077 Comm: syz-executor0 Not tainted 4.15.0+ #300
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc_node mm/slab.c:3286 [inline]
+ kmem_cache_alloc_node+0x56/0x760 mm/slab.c:3629
+ __alloc_skb+0xf1/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1180 [inline]
+ netlink_sendmsg+0xa86/0xe60 net/netlink/af_netlink.c:1872
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ sock_write_iter+0x31a/0x5d0 net/socket.c:909
+ call_write_iter include/linux/fs.h:1781 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f9277373c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 0000000000000022 RSI: 0000000020d29fde RDI: 0000000000000013
+RBP: 0000000000000654 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f8880
+R13: 0000000000000014 R14: 00007f92773746d4 R15: ffffffffffffffff
+FAULT_INJECTION: forcing a failure.
+name fail_page_alloc, interval 1, probability 0, space 0, times 1
+device syz3 entered promiscuous mode
+CPU: 0 PID: 7084 Comm: syz-executor7 Not tainted 4.15.0+ #300
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+device syz3 left promiscuous mode
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_fail_alloc_page mm/page_alloc.c:2955 [inline]
+ prepare_alloc_pages mm/page_alloc.c:4194 [inline]
+ __alloc_pages_nodemask+0x338/0xd80 mm/page_alloc.c:4233
+ alloc_pages_current+0xb6/0x1e0 mm/mempolicy.c:2055
+ alloc_pages include/linux/gfp.h:492 [inline]
+ skb_page_frag_refill+0x358/0x5f0 net/core/sock.c:2208
+ tun_build_skb.isra.50+0x2f0/0x1810 drivers/net/tun.c:1630
+ tun_get_user+0x17d0/0x3940 drivers/net/tun.c:1800
+ tun_chr_write_iter+0xb9/0x160 drivers/net/tun.c:1986
+ call_write_iter include/linux/fs.h:1781 [inline]
+ do_iter_readv_writev+0x55c/0x830 fs/read_write.c:653
+ do_iter_write+0x154/0x540 fs/read_write.c:932
+ vfs_writev+0x18a/0x340 fs/read_write.c:977
+ do_writev+0xfc/0x2a0 fs/read_write.c:1012
+ SYSC_writev fs/read_write.c:1085 [inline]
+ SyS_writev+0x27/0x30 fs/read_write.c:1082
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453171
+RSP: 002b:00007fb7467cfb80 EFLAGS: 00000293 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 000000000000006e RCX: 0000000000453171
+RDX: 0000000000000001 RSI: 00007fb7467cfbd0 RDI: 0000000000000012
+RBP: 0000000020101000 R08: 0000000000000000 R09: 0000000000000000
+R10: 000000000000006e R11: 0000000000000293 R12: 00000000006f81f0
+R13: 0000000000000013 R14: 00007fb7467d06d4 R15: ffffffffffffffff
+device syz3 entered promiscuous mode
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 0 PID: 7103 Comm: syz-executor0 Not tainted 4.15.0+ #300
+device syz3 left promiscuous mode
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc_node mm/slab.c:3286 [inline]
+ kmem_cache_alloc_node_trace+0x5a/0x750 mm/slab.c:3648
+ __do_kmalloc_node mm/slab.c:3668 [inline]
+ __kmalloc_node_track_caller+0x33/0x70 mm/slab.c:3683
+ __kmalloc_reserve.isra.39+0x41/0xd0 net/core/skbuff.c:137
+ __alloc_skb+0x13b/0x780 net/core/skbuff.c:205
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1180 [inline]
+ netlink_sendmsg+0xa86/0xe60 net/netlink/af_netlink.c:1872
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ sock_write_iter+0x31a/0x5d0 net/socket.c:909
+ call_write_iter include/linux/fs.h:1781 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f9277373c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 0000000000000022 RSI: 0000000020d29fde RDI: 0000000000000013
+RBP: 0000000000000654 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f8880
+R13: 0000000000000014 R14: 00007f92773746d4 R15: ffffffffffffffff
+device syz3 entered promiscuous mode
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 0 PID: 7121 Comm: syz-executor0 Not tainted 4.15.0+ #300
+device syz3 left promiscuous mode
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc_node mm/slab.c:3286 [inline]
+ kmem_cache_alloc_node+0x56/0x760 mm/slab.c:3629
+ __alloc_skb+0xf1/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ nlmsg_new include/net/netlink.h:511 [inline]
+ netlink_ack+0x283/0xa10 net/netlink/af_netlink.c:2376
+ netlink_rcv_skb+0x2b4/0x380 net/netlink/af_netlink.c:2448
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4605
+ netlink_unicast_kernel net/netlink/af_netlink.c:1308 [inline]
+ netlink_unicast+0x4c4/0x6b0 net/netlink/af_netlink.c:1334
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1897
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ sock_write_iter+0x31a/0x5d0 net/socket.c:909
+ call_write_iter include/linux/fs.h:1781 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f9277373c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 0000000000000022 RSI: 0000000020d29fde RDI: 0000000000000013
+RBP: 0000000000000654 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f8880
+R13: 0000000000000014 R14: 00007f92773746d4 R15: ffffffffffffffff
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+audit: type=1400 audit(1518003696.753:51): avc:  denied  { set_context_mgr } for  pid=7188 comm="syz-executor5" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=binder permissive=1
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=0 sclass=netlink_route_socket pig=7195 comm=syz-executor0
+audit: type=1400 audit(1518003696.798:52): avc:  denied  { call } for  pid=7188 comm="syz-executor5" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=binder permissive=1
+binder_alloc: binder_alloc_mmap_handler: 7188 20db9000-20dba000 already mapped failed -16
+device syz3 left promiscuous mode
+binder: BINDER_SET_CONTEXT_MGR already set
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=0 sclass=netlink_route_socket pig=7206 comm=syz-executor0
+binder: 7188:7191 ioctl 40046207 0 returned -16
+binder_alloc: 7188: binder_alloc_buf, no vma
+binder: 7188:7204 transaction failed 29189/-3, size 0-0 line 2957
+device eql entered promiscuous mode
+device syz3 entered promiscuous mode
+binder: send failed reply for transaction 2 to 7188:7191
+device syz3 left promiscuous mode
+binder: undelivered TRANSACTION_ERROR: 29189
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device eql entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device eql entered promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+device syz3 left promiscuous mode

@@ -1,0 +1,86 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+8021q: adding VLAN 0 to HW filter on device team0
+==================================================================
+BUG: KASAN: slab-out-of-bounds in skb_at_tc_ingress include/net/sch_generic.h:535 [inline]
+BUG: KASAN: slab-out-of-bounds in bpf_push_mac_rcsum net/core/filter.c:1625 [inline]
+BUG: KASAN: slab-out-of-bounds in ____bpf_skb_vlan_push net/core/filter.c:2446 [inline]
+BUG: KASAN: slab-out-of-bounds in bpf_skb_vlan_push+0x6b7/0x720 net/core/filter.c:2437
+Read of size 5 at addr ffff8801b77347d0 by task syz-executor6/6529
+
+CPU: 1 PID: 6529 Comm: syz-executor6 Not tainted 4.17.0-rc7+ #38
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load_n_noabort+0xf/0x20 mm/kasan/report.c:443
+ skb_at_tc_ingress include/net/sch_generic.h:535 [inline]
+ bpf_push_mac_rcsum net/core/filter.c:1625 [inline]
+ ____bpf_skb_vlan_push net/core/filter.c:2446 [inline]
+ bpf_skb_vlan_push+0x6b7/0x720 net/core/filter.c:2437
+
+Allocated by task 6523:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc_node+0x144/0x780 mm/slab.c:3644
+ __alloc_skb+0x111/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:987 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1182 [inline]
+ netlink_sendmsg+0xb01/0xfa0 net/netlink/af_netlink.c:1876
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:639
+ ___sys_sendmsg+0x805/0x940 net/socket.c:2117
+ __sys_sendmsg+0x115/0x270 net/socket.c:2155
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2162
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 5303:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+ kfree_skbmem+0x13c/0x210 net/core/skbuff.c:582
+ __kfree_skb net/core/skbuff.c:642 [inline]
+ consume_skb+0x193/0x550 net/core/skbuff.c:701
+ netlink_dump+0xafa/0xd20 net/netlink/af_netlink.c:2262
+ netlink_recvmsg+0xe97/0x1450 net/netlink/af_netlink.c:1984
+ sock_recvmsg_nosec net/socket.c:802 [inline]
+ sock_recvmsg+0xd0/0x110 net/socket.c:809
+ ___sys_recvmsg+0x2b6/0x680 net/socket.c:2279
+ __sys_recvmsg+0x112/0x260 net/socket.c:2328
+ __do_sys_recvmsg net/socket.c:2338 [inline]
+ __se_sys_recvmsg net/socket.c:2335 [inline]
+ __x64_sys_recvmsg+0x78/0xb0 net/socket.c:2335
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801b77346c0
+ which belongs to the cache skbuff_head_cache of size 232
+The buggy address is located 40 bytes to the right of
+ 232-byte region [ffff8801b77346c0, ffff8801b77347a8)
+The buggy address belongs to the page:
+page:ffffea0006ddcd00 count:1 mapcount:0 mapping:ffff8801b7734080 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801b7734080 0000000000000000 000000010000000c
+raw: ffffea00073a2da0 ffffea0006ddc060 ffff8801d942b840 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b7734680: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+ ffff8801b7734700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801b7734780: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
+                                                 ^
+ ffff8801b7734800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801b7734880: fb fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc
+==================================================================

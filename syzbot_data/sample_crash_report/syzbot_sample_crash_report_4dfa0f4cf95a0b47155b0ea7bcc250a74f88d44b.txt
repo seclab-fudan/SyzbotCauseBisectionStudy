@@ -1,0 +1,114 @@
+INFO: task kworker/1:2:893 blocked for more than 143 seconds.
+      Not tainted 6.3.0-rc3-syzkaller-00026-gfff5a5e7f528 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:kworker/1:2     state:D stack:27816 pid:893   ppid:2      flags:0x00004000
+Workqueue: events_long flush_mdb
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5304 [inline]
+ __schedule+0xc91/0x5770 kernel/sched/core.c:6622
+ schedule+0xde/0x1a0 kernel/sched/core.c:6698
+ io_schedule+0xbe/0x130 kernel/sched/core.c:8884
+ bit_wait_io+0x16/0xe0 kernel/sched/wait_bit.c:209
+ __wait_on_bit_lock+0x11f/0x1a0 kernel/sched/wait_bit.c:90
+ out_of_line_wait_on_bit_lock+0xd9/0x110 kernel/sched/wait_bit.c:117
+ wait_on_bit_lock_io include/linux/wait_bit.h:208 [inline]
+ __lock_buffer+0x66/0x70 fs/buffer.c:70
+ lock_buffer include/linux/buffer_head.h:400 [inline]
+ hfs_mdb_commit+0x999/0x1280 fs/hfs/mdb.c:325
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/12:
+ #0: ffffffff8c794b70 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+1 lock held by rcu_tasks_trace/13:
+ #0: ffffffff8c794870 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x31/0xd80 kernel/rcu/tasks.h:510
+2 locks held by kworker/0:1/14:
+ #0: ffff888012472538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888012472538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888012472538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888012472538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:639 [inline]
+ #0: ffff888012472538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:666 [inline]
+ #0: ffff888012472538 ((wq_completion)rcu_gp){+.+.}-{0:0}, at: process_one_work+0x87a/0x15c0 kernel/workqueue.c:2361
+ #1: ffffc90000137da8 ((work_completion)(&rew->rew_work)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x15c0 kernel/workqueue.c:2365
+1 lock held by khungtaskd/28:
+ #0: ffffffff8c7956c0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x55/0x340 kernel/locking/lockdep.c:6495
+2 locks held by kworker/1:2/893:
+ #0: ffff888012471538 ((wq_completion)events_long){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff888012471538 ((wq_completion)events_long){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
+ #0: ffff888012471538 ((wq_completion)events_long){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
+ #0: ffff888012471538 ((wq_completion)events_long){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:639 [inline]
+ #0: ffff888012471538 ((wq_completion)events_long){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:666 [inline]
+ #0: ffff888012471538 ((wq_completion)events_long){+.+.}-{0:0}, at: process_one_work+0x87a/0x15c0 kernel/workqueue.c:2361
+ #1: ffffc90004a1fda8 ((work_completion)(&(&sbi->mdb_work)->work)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x15c0 kernel/workqueue.c:2365
+2 locks held by getty/4753:
+ #0: ffff88802798d098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x26/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc900015b02f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xef4/0x13e0 drivers/tty/n_tty.c:2177
+2 locks held by syz-executor319/19211:
+ #0: ffff88801e088fa8 (&type->i_mutex_dir_key#6){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:758 [inline]
+ #0: ffff88801e088fa8 (&type->i_mutex_dir_key#6){+.+.}-{3:3}, at: lock_mount+0x8a/0x2e0 fs/namespace.c:2294
+ #1: ffffffff8c7a09b8 (rcu_state.exp_mutex){+.+.}-{3:3}, at: exp_funnel_lock kernel/rcu/tree_exp.h:293 [inline]
+ #1: ffffffff8c7a09b8 (rcu_state.exp_mutex){+.+.}-{3:3}, at: synchronize_rcu_expedited+0x64a/0x770 kernel/rcu/tree_exp.h:989
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 28 Comm: khungtaskd Not tainted 6.3.0-rc3-syzkaller-00026-gfff5a5e7f528 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ nmi_cpu_backtrace+0x29c/0x350 lib/nmi_backtrace.c:113
+ nmi_trigger_cpumask_backtrace+0x2a4/0x300 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:222 [inline]
+ watchdog+0xe16/0x1090 kernel/hung_task.c:379
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 5071 Comm: strace-static-x Not tainted 6.3.0-rc3-syzkaller-00026-gfff5a5e7f528 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+RIP: 0010:lock_acquire+0x66/0x520 kernel/locking/lockdep.c:5637
+Code: b3 8a b5 41 48 c1 eb 03 48 c7 44 24 18 67 bc ff 8b 48 01 d8 48 c7 44 24 20 e0 b8 64 81 c7 00 f1 f1 f1 f1 c7 40 04 f1 f1 00 00 <c7> 40 08 00 00 00 f3 c7 40 0c f3 f3 f3 f3 65 48 8b 04 25 28 00 00
+RSP: 0018:ffffc90003c1fb40 EFLAGS: 00000086
+RAX: fffff52000783f6a RBX: 1ffff92000783f6a RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff8880b983c298
+RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
+R10: ffffed1003e9e42d R11: 0000000000000001 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff8880b983c298 R15: 0000000000000000
+FS:  0000000000dcf3c0(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f4ac5c312d0 CR3: 000000002936d000 CR4: 0000000000350ef0
+Call Trace:
+ <TASK>
+ _raw_spin_lock_nested+0x34/0x40 kernel/locking/spinlock.c:378
+ raw_spin_rq_lock_nested+0x2f/0x120 kernel/sched/core.c:539
+ raw_spin_rq_lock kernel/sched/sched.h:1366 [inline]
+ rq_lock kernel/sched/sched.h:1653 [inline]
+ ttwu_queue kernel/sched/core.c:3951 [inline]
+ try_to_wake_up+0xc3a/0x1c40 kernel/sched/core.c:4275
+ ptrace_resume kernel/ptrace.c:884 [inline]
+ ptrace_request+0x9ae/0x1240 kernel/ptrace.c:1218
+ arch_ptrace+0x193/0x570 arch/x86/kernel/ptrace.c:847
+ __do_sys_ptrace kernel/ptrace.c:1296 [inline]
+ __se_sys_ptrace kernel/ptrace.c:1269 [inline]
+ __x64_sys_ptrace+0x17c/0x2a0 kernel/ptrace.c:1269
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x4e987a
+Code: 70 41 83 f8 03 c7 44 24 10 08 00 00 00 48 89 44 24 18 48 8d 44 24 30 8b 70 08 4c 0f 43 d1 48 89 44 24 20 b8 65 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 3e 48 85 c0 78 06 41 83 f8 02 76 1b 48 8b 54
+RSP: 002b:00007ffc05a0a040 EFLAGS: 00000206 ORIG_RAX: 0000000000000065
+RAX: ffffffffffffffda RBX: 0000000000dcf368 RCX: 00000000004e987a
+RDX: 0000000000000000 RSI: 00000000000013d2 RDI: 0000000000000018
+RBP: 0000000000000018 R08: 0000000000000017 R09: 00000000000003d2
+R10: 0000000000000000 R11: 0000000000000206 R12: 0000000000dd0b90
+R13: 0000000000000000 R14: 0000000000dd0b90 R15: 000000000063f160
+ </TASK>

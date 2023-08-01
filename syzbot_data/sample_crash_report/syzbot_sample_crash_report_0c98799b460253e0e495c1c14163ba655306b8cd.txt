@@ -1,0 +1,43 @@
+XFS (loop0): unknown mount option [fowner>00000000000000000000].
+netlink: 'syz-executor2': attribute type 1 has an invalid length.
+netlink: 'syz-executor2': attribute type 1 has an invalid length.
+------------[ cut here ]------------
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 0 PID: 552 at lib/refcount.c:187 refcount_sub_and_test_checked+0x2c9/0x310 lib/refcount.c:187
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 0 PID: 552 Comm: kworker/u4:5 Not tainted 4.19.0-rc5-next-20180928+ #84
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d3/0x2c4 lib/dump_stack.c:113
+ panic+0x238/0x4e7 kernel/panic.c:184
+ __warn.cold.8+0x163/0x1ba kernel/panic.c:536
+ report_bug+0x254/0x2d0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:178 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
+ do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:290
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:969
+RIP: 0010:refcount_sub_and_test_checked+0x2c9/0x310 lib/refcount.c:187
+Code: 89 de e8 da c4 f0 fd 84 db 74 07 31 db e9 4d ff ff ff e8 fa c3 f0 fd 48 c7 c7 a0 ce 40 88 c6 05 1a 72 62 06 01 e8 d7 de ba fd <0f> 0b 31 db e9 2c ff ff ff 48 89 cf e8 e6 78 34 fe e9 41 fe ff ff
+RSP: 0018:ffff8801d86cee18 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff8163ea25 RDI: 0000000000000005
+RBP: ffff8801d86cef00 R08: ffff8801d8490140 R09: fffffbfff1271e5c
+R10: fffffbfff1271e5c R11: ffffffff8938f2e3 R12: ffff8801d399cee4
+R13: 00000000ffffffff R14: ffff8801d86ceed8 R15: 0000000000000001
+ refcount_dec_and_test_checked+0x1a/0x20 lib/refcount.c:212
+ qdisc_put+0x5f/0x90 net/sched/sch_generic.c:986
+ dev_shutdown+0x379/0x5da net/sched/sch_generic.c:1310
+ rollback_registered_many+0x916/0x1210 net/core/dev.c:7946
+ unregister_netdevice_many+0xfa/0x4c0 net/core/dev.c:9058
+ ip6gre_exit_batch_net+0x5cd/0x7f0 net/ipv6/ip6_gre.c:1594
+ ops_exit_list.isra.7+0x105/0x160 net/core/net_namespace.c:156
+ cleanup_net+0x555/0xb10 net/core/net_namespace.c:551
+ process_one_work+0xc8b/0x1b80 kernel/workqueue.c:2153
+ worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+ kthread+0x35a/0x440 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

@@ -1,0 +1,171 @@
+==================================================================
+BUG: KASAN: use-after-free in nfc_llcp_find_local+0xcf/0xe0 net/nfc/llcp_core.c:285
+Read of size 8 at addr ffff888077ac7000 by task syz-executor.1/6376
+
+CPU: 0 PID: 6376 Comm: syz-executor.1 Not tainted 6.2.0-rc1-syzkaller-00084-gc8451c141e07 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x15e/0x45d mm/kasan/report.c:417
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:517
+ nfc_llcp_find_local+0xcf/0xe0 net/nfc/llcp_core.c:285
+ nfc_llcp_unregister_device+0x1a/0x260 net/nfc/llcp_core.c:1610
+ nfc_unregister_device+0x196/0x330 net/nfc/core.c:1179
+ virtual_ncidev_close+0x52/0xb0 drivers/nfc/virtual_ncidev.c:163
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x23c/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fb23ac3df5b
+Code: 0f 05 48 3d 00 f0 ff ff 77 45 c3 0f 1f 40 00 48 83 ec 18 89 7c 24 0c e8 63 fc ff ff 8b 7c 24 0c 41 89 c0 b8 03 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 35 44 89 c7 89 44 24 0c e8 a1 fc ff ff 8b 44
+RSP: 002b:00007ffff1aa1e40 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000007 RCX: 00007fb23ac3df5b
+RDX: 0000001b2f820000 RSI: 0000000000000000 RDI: 0000000000000006
+RBP: 00007fb23adad980 R08: 0000000000000000 R09: 00007ffff1b86080
+R10: 00007ffff1b86090 R11: 0000000000000293 R12: 00000000001b0649
+R13: 00007ffff1aa1f40 R14: 00007fb23adac120 R15: 0000000000000032
+ </TASK>
+
+Allocated by task 6392:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:371 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:330 [inline]
+ __kasan_kmalloc+0xa5/0xb0 mm/kasan/common.c:380
+ kmalloc include/linux/slab.h:580 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ nfc_llcp_register_device+0x49/0x9e0 net/nfc/llcp_core.c:1566
+ nfc_register_device+0x70/0x3b0 net/nfc/core.c:1124
+ nci_register_device+0x7cb/0xb50 net/nfc/nci/core.c:1257
+ virtual_ncidev_open+0x14f/0x230 drivers/nfc/virtual_ncidev.c:148
+ misc_open+0x37a/0x4a0 drivers/char/misc.c:165
+ chrdev_open+0x26a/0x770 fs/char_dev.c:414
+ do_dentry_open+0x6cc/0x13f0 fs/open.c:882
+ do_open fs/namei.c:3557 [inline]
+ path_openat+0x1bbc/0x2a50 fs/namei.c:3714
+ do_filp_open+0x1ba/0x410 fs/namei.c:3741
+ do_sys_openat2+0x16d/0x4c0 fs/open.c:1310
+ do_sys_open fs/open.c:1326 [inline]
+ __do_sys_openat fs/open.c:1342 [inline]
+ __se_sys_openat fs/open.c:1337 [inline]
+ __x64_sys_openat+0x143/0x1f0 fs/open.c:1337
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 6375:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2e/0x40 mm/kasan/generic.c:518
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x160/0x1c0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ slab_free_hook mm/slub.c:1781 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1807
+ slab_free mm/slub.c:3787 [inline]
+ __kmem_cache_free+0xaf/0x3b0 mm/slub.c:3800
+ local_release net/nfc/llcp_core.c:173 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ nfc_llcp_local_put net/nfc/llcp_core.c:181 [inline]
+ nfc_llcp_local_put net/nfc/llcp_core.c:176 [inline]
+ nfc_llcp_unregister_device+0x1ba/0x260 net/nfc/llcp_core.c:1619
+ nfc_unregister_device+0x196/0x330 net/nfc/core.c:1179
+ virtual_ncidev_close+0x52/0xb0 drivers/nfc/virtual_ncidev.c:163
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0x23c/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff888077ac7000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 0 bytes inside of
+ 2048-byte region [ffff888077ac7000, ffff888077ac7800)
+
+The buggy address belongs to the physical page:
+page:ffffea0001deb000 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x77ac0
+head:ffffea0001deb000 order:3 compound_mapcount:0 subpages_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffff888012442000 dead000000000100 dead000000000122
+raw: 0000000000000000 0000000080080008 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd2a20(GFP_ATOMIC|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 5189, tgid 5189 (syz-executor.4), ts 1736925107915, free_ts 1730538976962
+ prep_new_page mm/page_alloc.c:2531 [inline]
+ get_page_from_freelist+0x119c/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5549
+ alloc_pages+0x1aa/0x270 mm/mempolicy.c:2286
+ alloc_slab_page mm/slub.c:1851 [inline]
+ allocate_slab+0x25f/0x350 mm/slub.c:1998
+ new_slab mm/slub.c:2051 [inline]
+ ___slab_alloc+0xa91/0x1400 mm/slub.c:3193
+ __slab_alloc.constprop.0+0x56/0xa0 mm/slub.c:3292
+ __slab_alloc_node mm/slub.c:3345 [inline]
+ slab_alloc_node mm/slub.c:3442 [inline]
+ __kmem_cache_alloc_node+0x1a4/0x430 mm/slub.c:3491
+ __do_kmalloc_node mm/slab_common.c:967 [inline]
+ __kmalloc_node_track_caller+0x4b/0xc0 mm/slab_common.c:988
+ kmalloc_reserve net/core/skbuff.c:492 [inline]
+ pskb_expand_head+0x211/0x1110 net/core/skbuff.c:1899
+ netlink_trim+0x1ea/0x240 net/netlink/af_netlink.c:1312
+ netlink_broadcast+0x63/0xd90 net/netlink/af_netlink.c:1508
+ nlmsg_multicast include/net/netlink.h:1082 [inline]
+ nlmsg_notify+0x93/0x280 net/netlink/af_netlink.c:2607
+ rtnl_notify net/core/rtnetlink.c:768 [inline]
+ rtmsg_ifinfo_send net/core/rtnetlink.c:3973 [inline]
+ rtmsg_ifinfo_event net/core/rtnetlink.c:3989 [inline]
+ rtmsg_ifinfo_event net/core/rtnetlink.c:3976 [inline]
+ rtmsg_ifinfo+0x19b/0x280 net/core/rtnetlink.c:3995
+ __dev_notify_flags+0x240/0x2d0 net/core/dev.c:8565
+ dev_change_flags+0x11b/0x170 net/core/dev.c:8607
+ do_setlink+0x9f1/0x3bb0 net/core/rtnetlink.c:2827
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1446 [inline]
+ free_pcp_prepare+0x65c/0xc00 mm/page_alloc.c:1496
+ free_unref_page_prepare mm/page_alloc.c:3369 [inline]
+ free_unref_page+0x1d/0x490 mm/page_alloc.c:3464
+ __unfreeze_partials+0x17c/0x1a0 mm/slub.c:2637
+ qlink_free mm/kasan/quarantine.c:168 [inline]
+ qlist_free_all+0x6a/0x170 mm/kasan/quarantine.c:187
+ kasan_quarantine_reduce+0x192/0x220 mm/kasan/quarantine.c:294
+ __kasan_slab_alloc+0x66/0x90 mm/kasan/common.c:302
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook mm/slab.h:761 [inline]
+ slab_alloc_node mm/slub.c:3452 [inline]
+ __kmem_cache_alloc_node+0x1ea/0x430 mm/slub.c:3491
+ __do_kmalloc_node mm/slab_common.c:967 [inline]
+ __kmalloc+0x4a/0xd0 mm/slab_common.c:981
+ kmalloc include/linux/slab.h:584 [inline]
+ tomoyo_add_entry security/tomoyo/common.c:2022 [inline]
+ tomoyo_supervisor+0xcfc/0xf10 security/tomoyo/common.c:2094
+ tomoyo_audit_path_number_log security/tomoyo/file.c:235 [inline]
+ tomoyo_path_number_perm+0x410/0x570 security/tomoyo/file.c:734
+ security_file_ioctl+0x54/0xb0 security/security.c:1624
+ __do_sys_ioctl fs/ioctl.c:864 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0xb7/0x210 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Memory state around the buggy address:
+ ffff888077ac6f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888077ac6f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888077ac7000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff888077ac7080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888077ac7100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,71 @@
+audit: type=1400 audit(1513519128.045:7): avc:  denied  { map } for  pid=3151 comm="syzkaller521347" path="/root/syzkaller521347901" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: global-out-of-bounds in __le32_to_cpup include/uapi/linux/byteorder/little_endian.h:58 [inline]
+BUG: KASAN: global-out-of-bounds in le32_to_cpuvp crypto/chacha20_generic.c:19 [inline]
+BUG: KASAN: global-out-of-bounds in crypto_chacha20_init crypto/chacha20_generic.c:59 [inline]
+BUG: KASAN: global-out-of-bounds in crypto_chacha20_crypt+0xada/0xbd0 crypto/chacha20_generic.c:91
+Read of size 4 at addr ffffffff8747a184 by task kworker/1:0/17
+
+CPU: 1 PID: 17 Comm: kworker/1:0 Not tainted 4.15.0-rc3+ #225
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: crypto cryptd_queue_worker
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x178/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ __le32_to_cpup include/uapi/linux/byteorder/little_endian.h:58 [inline]
+ le32_to_cpuvp crypto/chacha20_generic.c:19 [inline]
+ crypto_chacha20_init crypto/chacha20_generic.c:59 [inline]
+ crypto_chacha20_crypt+0xada/0xbd0 crypto/chacha20_generic.c:91
+ chacha20_simd+0xe4/0x410 arch/x86/crypto/chacha20_glue.c:78
+ crypto_skcipher_decrypt include/crypto/skcipher.h:463 [inline]
+ cryptd_skcipher_decrypt+0x2de/0x5a0 crypto/cryptd.c:523
+ cryptd_queue_worker+0xff/0x1b0 crypto/cryptd.c:190
+ process_one_work+0xbf3/0x1bc0 kernel/workqueue.c:2112
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2246
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:441
+
+The buggy address belongs to the variable:
+ oops_in_progress+0x4/0x40
+
+Memory state around the buggy address:
+ ffffffff8747a080: 04 fa fa fa fa fa fa fa 04 fa fa fa fa fa fa fa
+ ffffffff8747a100: 04 fa fa fa fa fa fa fa 00 fa fa fa fa fa fa fa
+>ffffffff8747a180: 04 fa fa fa fa fa fa fa 00 fa fa fa fa fa fa fa
+                   ^
+ ffffffff8747a200: 00 fa fa fa fa fa fa fa 00 fa fa fa fa fa fa fa
+ ffffffff8747a280: 00 fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 1 PID: 17 Comm: kworker/1:0 Tainted: G    B            4.15.0-rc3+ #225
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: crypto cryptd_queue_worker
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ panic+0x1e4/0x41c kernel/panic.c:183
+ kasan_end_report+0x50/0x50 mm/kasan/report.c:176
+ kasan_report_error mm/kasan/report.c:356 [inline]
+ kasan_report+0x144/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ __le32_to_cpup include/uapi/linux/byteorder/little_endian.h:58 [inline]
+ le32_to_cpuvp crypto/chacha20_generic.c:19 [inline]
+ crypto_chacha20_init crypto/chacha20_generic.c:59 [inline]
+ crypto_chacha20_crypt+0xada/0xbd0 crypto/chacha20_generic.c:91
+ chacha20_simd+0xe4/0x410 arch/x86/crypto/chacha20_glue.c:78
+ crypto_skcipher_decrypt include/crypto/skcipher.h:463 [inline]
+ cryptd_skcipher_decrypt+0x2de/0x5a0 crypto/cryptd.c:523
+ cryptd_queue_worker+0xff/0x1b0 crypto/cryptd.c:190
+ process_one_work+0xbf3/0x1bc0 kernel/workqueue.c:2112
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2246
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:441
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

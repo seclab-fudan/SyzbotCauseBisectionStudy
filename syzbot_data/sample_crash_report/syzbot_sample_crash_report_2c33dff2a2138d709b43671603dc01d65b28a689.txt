@@ -1,0 +1,43 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+IPVS: ftp: loaded support on port[0] = 21
+==================================================================
+BUG: KASAN: stack-out-of-bounds in timerqueue_add+0x249/0x2b0 lib/timerqueue.c:52
+Read of size 8 at addr ffff8801af537cf8 by task syz-executor591/7178
+
+CPU: 0 PID: 7178 Comm: syz-executor591 Not tainted 4.18.0-rc3+ #130
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ timerqueue_add+0x249/0x2b0 lib/timerqueue.c:52
+ enqueue_hrtimer+0x18e/0x540 kernel/time/hrtimer.c:960
+ __run_hrtimer kernel/time/hrtimer.c:1413 [inline]
+ __hrtimer_run_queues+0xc07/0x10c0 kernel/time/hrtimer.c:1460
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x165/0x730 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+
+The buggy address belongs to the page:
+page:ffffea0006bd4dc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 ffffffff06bd0101 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801af537b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801af537c00: 00 00 00 00 f1 f1 f1 f1 00 f2 f2 f2 f2 f2 f2 f2
+>ffff8801af537c80: 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2
+                                                                ^
+ ffff8801af537d00: f8 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 00 00 00 00
+ ffff8801af537d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

@@ -1,0 +1,46 @@
+================================================================================
+UBSAN: shift-out-of-bounds in kernel/bpf/core.c:1421:2
+shift exponent 248 is too large for 32-bit type 'unsigned int'
+CPU: 1 PID: 8388 Comm: syz-executor895 Not tainted 5.12.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ubsan_epilogue+0xb/0x5a lib/ubsan.c:148
+ __ubsan_handle_shift_out_of_bounds.cold+0xb1/0x181 lib/ubsan.c:327
+ ___bpf_prog_run.cold+0x20f/0x56c kernel/bpf/core.c:1421
+ __bpf_prog_run480+0x99/0xe0 kernel/bpf/core.c:1739
+ bpf_dispatcher_nop_func include/linux/bpf.h:659 [inline]
+ __bpf_trace_run kernel/trace/bpf_trace.c:2091 [inline]
+ bpf_trace_run2+0x12f/0x390 kernel/trace/bpf_trace.c:2128
+ __bpf_trace_tlb_flush+0xbd/0x100 include/trace/events/tlb.h:38
+ trace_tlb_flush+0xe0/0x1c0 include/trace/events/tlb.h:38
+ switch_mm_irqs_off+0x48b/0x970 arch/x86/mm/tlb.c:563
+ unuse_temporary_mm arch/x86/kernel/alternative.c:842 [inline]
+ __text_poke+0x541/0x8c0 arch/x86/kernel/alternative.c:938
+ text_poke_bp_batch+0x187/0x550 arch/x86/kernel/alternative.c:1190
+ text_poke_flush arch/x86/kernel/alternative.c:1347 [inline]
+ text_poke_flush arch/x86/kernel/alternative.c:1344 [inline]
+ text_poke_finish+0x16/0x30 arch/x86/kernel/alternative.c:1354
+ arch_jump_label_transform_apply+0x13/0x20 arch/x86/kernel/jump_label.c:126
+ jump_label_update+0x1da/0x400 kernel/jump_label.c:825
+ static_key_enable_cpuslocked+0x1b1/0x260 kernel/jump_label.c:177
+ static_key_enable+0x16/0x20 kernel/jump_label.c:190
+ tracepoint_add_func+0x707/0xa90 kernel/tracepoint.c:303
+ tracepoint_probe_register_prio kernel/tracepoint.c:369 [inline]
+ tracepoint_probe_register+0x9c/0xe0 kernel/tracepoint.c:389
+ __bpf_probe_register kernel/trace/bpf_trace.c:2154 [inline]
+ bpf_probe_register+0x15a/0x1c0 kernel/trace/bpf_trace.c:2159
+ bpf_raw_tracepoint_open+0x34a/0x720 kernel/bpf/syscall.c:2878
+ __do_sys_bpf+0x2586/0x4f40 kernel/bpf/syscall.c:4435
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x43f009
+Code: Unable to access opcode bytes at RIP 0x43efdf.
+RSP: 002b:00007ffc64740b68 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 000000000043f009
+RDX: 0000000000000010 RSI: 0000000020000080 RDI: 0000000000000011
+RBP: 0000000000402ff0 R08: 0000000000000000 R09: 0000000000400488
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000403080
+R13: 0000000000000000 R14: 00000000004ac018 R15: 0000000000400488
+================================================================================

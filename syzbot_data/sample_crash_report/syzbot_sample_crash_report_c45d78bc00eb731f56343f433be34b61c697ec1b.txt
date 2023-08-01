@@ -1,0 +1,110 @@
+8021q: adding VLAN 0 to HW filter on device team0
+==================================================================
+BUG: KASAN: use-after-free in tcf_block_find+0x9d1/0xb90 net/sched/cls_api.c:646
+Read of size 4 at addr ffff8801ba84cdb8 by task syz-executor970/5595
+
+CPU: 1 PID: 5595 Comm: syz-executor970 Not tainted 4.19.0-rc5+ #237
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+ print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ tcf_block_find+0x9d1/0xb90 net/sched/cls_api.c:646
+ tc_new_tfilter+0x497/0x1d20 net/sched/cls_api.c:1331
+ rtnetlink_rcv_msg+0x46a/0xc20 net/core/rtnetlink.c:4730
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2447
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4748
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441a19
+Code: e8 0c ac 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 04 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffdcea67198 EFLAGS: 00000213 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000441a19
+RDX: 0000000000000000 RSI: 0000000020005000 RDI: 0000000000000003
+RBP: 000000000000de28 R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000023f7880 R11: 0000000000000213 R12: 0000000000000000
+R13: 0000000000402430 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 5414:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc_node mm/slab.c:3682 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3689
+ kmalloc_node include/linux/slab.h:555 [inline]
+ kzalloc_node include/linux/slab.h:718 [inline]
+ qdisc_alloc+0x10f/0xb50 net/sched/sch_generic.c:820
+ qdisc_create_dflt+0x7a/0x1e0 net/sched/sch_generic.c:894
+ attach_one_default_qdisc net/sched/sch_generic.c:1041 [inline]
+ netdev_for_each_tx_queue include/linux/netdevice.h:2114 [inline]
+ attach_default_qdiscs net/sched/sch_generic.c:1060 [inline]
+ dev_activate+0x82f/0xcb0 net/sched/sch_generic.c:1103
+ __dev_open+0x2cb/0x410 net/core/dev.c:1400
+ __dev_change_flags+0x730/0x9b0 net/core/dev.c:7448
+ dev_change_flags+0x89/0x150 net/core/dev.c:7517
+ do_setlink+0xb5f/0x3f20 net/core/rtnetlink.c:2441
+ rtnl_newlink+0x136f/0x1d40 net/core/rtnetlink.c:3054
+ rtnetlink_rcv_msg+0x46a/0xc20 net/core/rtnetlink.c:4730
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2447
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4748
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1336
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1901
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 0:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3813
+ qdisc_free+0x89/0x100 net/sched/sch_generic.c:941
+ qdisc_free_cb+0x19/0x20 net/sched/sch_generic.c:948
+ __rcu_reclaim kernel/rcu/rcu.h:236 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2576 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2880 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2847 [inline]
+ rcu_process_callbacks+0xf23/0x2670 kernel/rcu/tree.c:2864
+ __do_softirq+0x30b/0xad8 kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff8801ba84cd80
+ which belongs to the cache kmalloc-1024 of size 1024
+The buggy address is located 56 bytes inside of
+ 1024-byte region [ffff8801ba84cd80, ffff8801ba84d180)
+The buggy address belongs to the page:
+page:ffffea0006ea1300 count:1 mapcount:0 mapping:ffff8801da800ac0 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffffea00075ee908 ffffea00075df688 ffff8801da800ac0
+raw: 0000000000000000 ffff8801ba84c000 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ba84cc80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ba84cd00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801ba84cd80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                        ^
+ ffff8801ba84ce00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ba84ce80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

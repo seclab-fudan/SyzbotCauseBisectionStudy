@@ -1,0 +1,53 @@
+gfs2: fsid=syz:syz.0:  H: s:SH f:H e:0 p:6113 [syz-executor409] __gfs2_lookup+0xa4/0x270 fs/gfs2/inode.c:888
+==================================================================
+BUG: KASAN: vmalloc-out-of-bounds in gfs2_dump_glock+0x14b3/0x1ad0
+Read of size 8 at addr ffffc90005957720 by task syz-executor409/6095
+
+CPU: 0 PID: 6095 Comm: syz-executor409 Not tainted 6.2.0-syzkaller-13563-gf915322fe014 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:319 [inline]
+ print_report+0x163/0x540 mm/kasan/report.c:430
+ kasan_report+0x176/0x1b0 mm/kasan/report.c:536
+ gfs2_dump_glock+0x14b3/0x1ad0
+ gfs2_consist_inode_i+0xf5/0x110 fs/gfs2/util.c:465
+ gfs2_dirent_scan+0x512/0x640 fs/gfs2/dir.c:602
+ gfs2_dirent_search+0x30e/0x8c0 fs/gfs2/dir.c:850
+ gfs2_dir_search+0xb2/0x2f0 fs/gfs2/dir.c:1650
+ gfs2_lookupi+0x460/0x5d0 fs/gfs2/inode.c:332
+ __gfs2_lookup+0xa4/0x270 fs/gfs2/inode.c:888
+ gfs2_atomic_open+0x9e/0x230 fs/gfs2/inode.c:1292
+ atomic_open fs/namei.c:3279 [inline]
+ lookup_open fs/namei.c:3387 [inline]
+ open_last_lookups fs/namei.c:3484 [inline]
+ path_openat+0x103c/0x3170 fs/namei.c:3712
+ do_filp_open+0x234/0x490 fs/namei.c:3742
+ do_sys_openat2+0x13f/0x500 fs/open.c:1348
+ do_sys_open fs/open.c:1364 [inline]
+ __do_sys_open fs/open.c:1372 [inline]
+ __se_sys_open fs/open.c:1368 [inline]
+ __x64_sys_open+0x225/0x270 fs/open.c:1368
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7ff0f3f00b39
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 91 18 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ff0f3ea4208 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 00007ff0f3f90788 RCX: 00007ff0f3f00b39
+RDX: 0000000000000008 RSI: 0000000000000002 RDI: 0000000020000280
+RBP: 00007ff0f3f90780 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ff0f3f9078c
+R13: 00007fffdfd2a3af R14: 00007ff0f3ea4300 R15: 0000000000022000
+ </TASK>
+
+Memory state around the buggy address:
+ ffffc90005957600: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90005957680: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+>ffffc90005957700: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+                               ^
+ ffffc90005957780: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90005957800: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+==================================================================

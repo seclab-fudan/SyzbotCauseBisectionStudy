@@ -1,0 +1,158 @@
+==================================================================
+BUG: KASAN: use-after-free in nft_commit_release net/netfilter/nf_tables_api.c:8467 [inline]
+BUG: KASAN: use-after-free in nf_tables_trans_destroy_work+0x7f4/0x820 net/netfilter/nf_tables_api.c:8513
+Read of size 1 at addr ffff88801bf29954 by task kworker/1:4/3619
+
+CPU: 1 PID: 3619 Comm: kworker/1:4 Not tainted 6.0.0-syzkaller-09589-g55be6084c8e0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+Workqueue: events nf_tables_trans_destroy_work
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:317 [inline]
+ print_report.cold+0x2ba/0x719 mm/kasan/report.c:433
+ kasan_report+0xb1/0x1e0 mm/kasan/report.c:495
+ nft_commit_release net/netfilter/nf_tables_api.c:8467 [inline]
+ nf_tables_trans_destroy_work+0x7f4/0x820 net/netfilter/nf_tables_api.c:8513
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+
+Allocated by task 3607:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:437 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:516 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:475 [inline]
+ __kasan_kmalloc+0xa9/0xd0 mm/kasan/common.c:525
+ kmalloc include/linux/slab.h:600 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ nf_tables_addchain.constprop.0+0x7ff/0x1830 net/netfilter/nf_tables_api.c:2257
+ nf_tables_newchain+0x16d1/0x1ef0 net/netfilter/nf_tables_api.c:2595
+ nfnetlink_rcv_batch+0x171f/0x2600 net/netfilter/nfnetlink.c:517
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:638 [inline]
+ nfnetlink_rcv+0x3af/0x420 net/netfilter/nfnetlink.c:656
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x543/0x7f0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x917/0xe10 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:734
+ ____sys_sendmsg+0x712/0x8c0 net/socket.c:2482
+ ___sys_sendmsg+0x110/0x1b0 net/socket.c:2536
+ __sys_sendmsg+0xf3/0x1c0 net/socket.c:2565
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 3607:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:367 [inline]
+ ____kasan_slab_free+0x166/0x1c0 mm/kasan/common.c:329
+ kasan_slab_free include/linux/kasan.h:200 [inline]
+ slab_free_hook mm/slub.c:1759 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1785
+ slab_free mm/slub.c:3539 [inline]
+ kfree+0xe2/0x580 mm/slub.c:4567
+ nf_tables_chain_destroy+0x4ec/0x640 net/netfilter/nf_tables_api.c:1889
+ __nft_release_table+0x96c/0xcd0 net/netfilter/nf_tables_api.c:9996
+ nft_rcv_nl_event+0x3f6/0x5b0 net/netfilter/nf_tables_api.c:10047
+ notifier_call_chain+0xb5/0x200 kernel/notifier.c:87
+ blocking_notifier_call_chain kernel/notifier.c:382 [inline]
+ blocking_notifier_call_chain+0x67/0x90 kernel/notifier.c:370
+ netlink_release+0xcad/0x1db0 net/netlink/af_netlink.c:790
+ __sock_release+0xcd/0x280 net/socket.c:650
+ sock_close+0x18/0x20 net/socket.c:1365
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:177
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:169 [inline]
+ exit_to_user_mode_prepare+0x23c/0x250 kernel/entry/common.c:201
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:283 [inline]
+ syscall_exit_to_user_mode+0x19/0x50 kernel/entry/common.c:294
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff88801bf29900
+ which belongs to the cache kmalloc-cg-128 of size 128
+The buggy address is located 84 bytes inside of
+ 128-byte region [ffff88801bf29900, ffff88801bf29980)
+
+The buggy address belongs to the physical page:
+page:ffffea00006fca40 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1bf29
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 0000000000000000 dead000000000122 ffff888011842a00
+raw: 0000000000000000 0000000080100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 3607, tgid 3607 (syz-executor159), ts 40604180427, free_ts 40577443917
+ prep_new_page mm/page_alloc.c:2532 [inline]
+ get_page_from_freelist+0x109b/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages+0x1c7/0x510 mm/page_alloc.c:5549
+ alloc_pages+0x1a6/0x270 mm/mempolicy.c:2270
+ alloc_slab_page mm/slub.c:1829 [inline]
+ allocate_slab+0x27e/0x3d0 mm/slub.c:1974
+ new_slab mm/slub.c:2034 [inline]
+ ___slab_alloc+0x84f/0xe80 mm/slub.c:3036
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3123
+ slab_alloc_node mm/slub.c:3214 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ kmem_cache_alloc_trace+0x323/0x3e0 mm/slub.c:3287
+ kmalloc include/linux/slab.h:600 [inline]
+ kzalloc include/linux/slab.h:733 [inline]
+ inet_alloc_ifa net/ipv4/devinet.c:221 [inline]
+ rtm_to_ifaddr+0x240/0xc40 net/ipv4/devinet.c:854
+ inet_rtm_newaddr+0x126/0x980 net/ipv4/devinet.c:942
+ rtnetlink_rcv_msg+0x43a/0xca0 net/core/rtnetlink.c:6091
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2540
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x543/0x7f0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x917/0xe10 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:734
+ __sys_sendto+0x236/0x340 net/socket.c:2117
+ __do_sys_sendto net/socket.c:2129 [inline]
+ __se_sys_sendto net/socket.c:2125 [inline]
+ __x64_sys_sendto+0xdd/0x1b0 net/socket.c:2125
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1449 [inline]
+ free_pcp_prepare+0x5e4/0xd20 mm/page_alloc.c:1499
+ free_unref_page_prepare mm/page_alloc.c:3380 [inline]
+ free_unref_page+0x19/0x4d0 mm/page_alloc.c:3476
+ qlink_free mm/kasan/quarantine.c:168 [inline]
+ qlist_free_all+0x6a/0x170 mm/kasan/quarantine.c:187
+ kasan_quarantine_reduce+0x180/0x200 mm/kasan/quarantine.c:294
+ __kasan_slab_alloc+0xa2/0xc0 mm/kasan/common.c:447
+ kasan_slab_alloc include/linux/kasan.h:224 [inline]
+ slab_post_alloc_hook mm/slab.h:727 [inline]
+ slab_alloc_node mm/slub.c:3248 [inline]
+ slab_alloc mm/slub.c:3256 [inline]
+ kmem_cache_alloc_trace+0x2c0/0x3e0 mm/slub.c:3287
+ kmalloc include/linux/slab.h:600 [inline]
+ netdevice_queue_work drivers/infiniband/core/roce_gid_mgmt.c:643 [inline]
+ netdevice_event+0x1ad/0x8b0 drivers/infiniband/core/roce_gid_mgmt.c:802
+ notifier_call_chain+0xb5/0x200 kernel/notifier.c:87
+ call_netdevice_notifiers_info+0xb5/0x130 net/core/dev.c:1945
+ call_netdevice_notifiers_extack net/core/dev.c:1983 [inline]
+ call_netdevice_notifiers net/core/dev.c:1997 [inline]
+ __dev_notify_flags+0x110/0x2b0 net/core/dev.c:8577
+ dev_change_flags+0x112/0x170 net/core/dev.c:8615
+ do_setlink+0x9f1/0x3bb0 net/core/rtnetlink.c:2788
+ __rtnl_newlink+0xd6a/0x17e0 net/core/rtnetlink.c:3547
+ rtnl_newlink+0x64/0xa0 net/core/rtnetlink.c:3594
+ rtnetlink_rcv_msg+0x43a/0xca0 net/core/rtnetlink.c:6091
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2540
+
+Memory state around the buggy address:
+ ffff88801bf29800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fc
+ ffff88801bf29880: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88801bf29900: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                 ^
+ ffff88801bf29980: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88801bf29a00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

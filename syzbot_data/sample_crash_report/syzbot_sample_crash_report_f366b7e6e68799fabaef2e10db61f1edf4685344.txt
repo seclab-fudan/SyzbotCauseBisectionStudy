@@ -1,0 +1,44 @@
+audit: type=1804 audit(1539118025.521:29867): pid=31406 uid=0 auid=4294967295 ses=4294967295 subj==unconfined op=invalid_pcr cause=open_writers comm="syz-executor2" name="/root/syzkaller-testdir968705726/syzkaller.1KeZRV/124/file0/bus" dev="sda1" ino=16590 res=1
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
+PGD 1d82fa067 P4D 1d82fa067 PUD 1d937c067 PMD 0 
+Oops: 0002 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 3868 Comm: kworker/1:1 Not tainted 4.19.0-rc7+ #275
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: crypto mcryptd_queue_worker
+RIP: 0010:sha256_mb_mgr_get_comp_job_avx2+0x66/0xe3 arch/x86/crypto/sha256-mb/sha256_mb_mgr_flush_avx2.S:255
+Code: 3b d3 c4 c1 79 7e d0 49 f7 c0 f0 ff ff ff 0f 85 93 00 00 00 49 6b d8 08 48 8d 9c 1f 68 01 00 00 48 8b 03 48 c7 03 00 00 00 00 <c7> 40 40 02 00 00 00 48 8b 9f 60 01 00 00 48 c1 e3 04 4c 09 c3 48
+RSP: 0018:ffff88017c5e7370 EFLAGS: 00010206
+RAX: 0000000000000000 RBX: ffff8801d527f728 RCX: ffffffff8184e1ca
+RDX: 1ffffd1ffffa2534 RSI: ffffffff814593ba RDI: ffff8801d527f5c0
+RBP: ffff88017c5e74d0 R08: 0000000000000000 R09: ffffed0037cd50c7
+R10: ffffed0037cd50c7 R11: ffff8801be6a863b R12: ffff88017c5e74a8
+R13: 0000000000000001 R14: ffff8801be6a86e0 R15: 0000000000000200
+FS:  0000000000000000(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000040 CR3: 00000001d83ec000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ sha256_mb_flusher+0x2f4/0x610 arch/x86/crypto/sha256-mb/sha256_mb.c:919
+ mcryptd_opportunistic_flush crypto/mcryptd.c:142 [inline]
+ mcryptd_queue_worker+0x49c/0x71f crypto/mcryptd.c:172
+ process_one_work+0xc90/0x1b90 kernel/workqueue.c:2153
+ worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+ kthread+0x35a/0x420 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:413
+Modules linked in:
+CR2: 0000000000000040
+---[ end trace 8d1a13a59eafe937 ]---
+RIP: 0010:sha256_mb_mgr_get_comp_job_avx2+0x66/0xe3 arch/x86/crypto/sha256-mb/sha256_mb_mgr_flush_avx2.S:255
+Code: 3b d3 c4 c1 79 7e d0 49 f7 c0 f0 ff ff ff 0f 85 93 00 00 00 49 6b d8 08 48 8d 9c 1f 68 01 00 00 48 8b 03 48 c7 03 00 00 00 00 <c7> 40 40 02 00 00 00 48 8b 9f 60 01 00 00 48 c1 e3 04 4c 09 c3 48
+RSP: 0018:ffff88017c5e7370 EFLAGS: 00010206
+RAX: 0000000000000000 RBX: ffff8801d527f728 RCX: ffffffff8184e1ca
+RDX: 1ffffd1ffffa2534 RSI: ffffffff814593ba RDI: ffff8801d527f5c0
+RBP: ffff88017c5e74d0 R08: 0000000000000000 R09: ffffed0037cd50c7
+R10: ffffed0037cd50c7 R11: ffff8801be6a863b R12: ffff88017c5e74a8
+R13: 0000000000000001 R14: ffff8801be6a86e0 R15: 0000000000000200
+FS:  0000000000000000(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000040 CR3: 00000001d83ec000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

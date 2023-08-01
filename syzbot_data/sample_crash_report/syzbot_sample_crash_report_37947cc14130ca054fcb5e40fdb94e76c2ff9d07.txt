@@ -1,0 +1,56 @@
+R13: 0000000000000005 R14: 0000000000000000 R15: 0000000000000000
+Name sequence creation failed, no memory
+Failed to create subscription for {128,0,4294967295}
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 4387 Comm: syzkaller065542 Not tainted 4.16.0-rc7+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__list_del_entry_valid+0x7e/0x150 lib/list_debug.c:51
+RSP: 0018:ffff8801b6156f48 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff8801d21cb560 RDI: ffff8801d21cb568
+RBP: ffff8801b6156f60 R08: 1ffff10036c2acff R09: ffffffff88e20190
+R10: ffff8801b6156e28 R11: 000000000000165a R12: 000060fe24a247f8
+R13: ffff8801b6157100 R14: ffff8801d21cb560 R15: ffff8801d0050f00
+FS:  0000000001812940(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000004b5a3c CR3: 0000000007a22004 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:117 [inline]
+ list_del_init include/linux/list.h:159 [inline]
+ tipc_nametbl_unsubscribe+0x318/0x990 net/tipc/name_table.c:848
+ tipc_subscrb_subscrp_delete+0x1e9/0x460 net/tipc/subscr.c:212
+ tipc_subscrb_delete net/tipc/subscr.c:242 [inline]
+ tipc_subscrb_release_cb+0x17/0x30 net/tipc/subscr.c:321
+ tipc_topsrv_kern_unsubscr+0x2c3/0x430 net/tipc/server.c:535
+ tipc_group_delete+0x2c0/0x3d0 net/tipc/group.c:231
+ tipc_sk_leave+0x10b/0x200 net/tipc/socket.c:2795
+ tipc_release+0x154/0xff0 net/tipc/socket.c:577
+ sock_release+0x8d/0x1e0 net/socket.c:595
+ sock_close+0x16/0x20 net/socket.c:1149
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x441999
+RSP: 002b:00007fff9fb2e2c8 EFLAGS: 00000202 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000441999
+RDX: 0000000000441999 RSI: 0000000000000087 RDI: 0000000000000001
+RBP: 0000000000000000 R08: 0000000000000036 R09: 0000000000000000
+R10: 00000000000003eb R11: 0000000000000202 R12: 0000000000402ee0
+R13: 0000000000402f70 R14: 0000000000000000 R15: 0000000000000000
+Code: 00 00 00 00 ad de 49 39 c4 74 66 48 b8 00 02 00 00 00 00 ad de 48 89 da 48 39 c3 74 65 48 c1 ea 03 48 b8 00 00 00 00 00 fc ff df <80> 3c 02 00 75 7b 48 8b 13 48 39 f2 75 57 49 8d 7c 24 08 48 b8 
+RIP: __list_del_entry_valid+0x7e/0x150 lib/list_debug.c:51 RSP: ffff8801b6156f48
+---[ end trace 15db7481adb88007 ]---

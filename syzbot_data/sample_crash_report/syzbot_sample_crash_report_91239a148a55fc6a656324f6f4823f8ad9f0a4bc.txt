@@ -1,0 +1,53 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in iov_iter_alignment+0x6a1/0x7b0 lib/iov_iter.c:1225
+Read of size 4 at addr ffff88809ba3a154 by task loop0/8298
+
+CPU: 1 PID: 8298 Comm: loop0 Not tainted 5.4.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1fb/0x318 lib/dump_stack.c:118
+ print_address_description+0x75/0x5c0 mm/kasan/report.c:374
+ __kasan_report+0x14b/0x1c0 mm/kasan/report.c:506
+ kasan_report+0x26/0x50 mm/kasan/common.c:634
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:131
+ iov_iter_alignment+0x6a1/0x7b0 lib/iov_iter.c:1225
+ iomap_dio_bio_actor+0x1a7/0x11e0 fs/iomap/direct-io.c:203
+ iomap_dio_actor+0x2b4/0x4a0 fs/iomap/direct-io.c:375
+ iomap_apply+0x370/0x490 fs/iomap/apply.c:80
+ iomap_dio_rw+0x8ad/0x1010 fs/iomap/direct-io.c:493
+ ext4_dio_read_iter fs/ext4/file.c:77 [inline]
+ ext4_file_read_iter+0x834/0xc20 fs/ext4/file.c:128
+ lo_rw_aio+0xcbb/0xea0 include/linux/fs.h:1889
+ do_req_filebacked drivers/block/loop.c:616 [inline]
+ loop_handle_cmd drivers/block/loop.c:1952 [inline]
+ loop_queue_work+0x13ab/0x2590 drivers/block/loop.c:1966
+ kthread_worker_fn+0x449/0x700 kernel/kthread.c:671
+ loop_kthread_worker_fn+0x40/0x60 drivers/block/loop.c:901
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 0:
+(stack is not available)
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff88809ba3a100
+ which belongs to the cache bio-0 of size 192
+The buggy address is located 84 bytes inside of
+ 192-byte region [ffff88809ba3a100, ffff88809ba3a1c0)
+The buggy address belongs to the page:
+page:ffffea00026e8e80 refcount:1 mapcount:0 mapping:ffff8880a7e34540 index:0x0
+raw: 00fffe0000000200 ffffea0002524348 ffff8880a7441b48 ffff8880a7e34540
+raw: 0000000000000000 ffff88809ba3a000 0000000100000010 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809ba3a000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88809ba3a080: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+>ffff88809ba3a100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                                 ^
+ ffff88809ba3a180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88809ba3a200: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

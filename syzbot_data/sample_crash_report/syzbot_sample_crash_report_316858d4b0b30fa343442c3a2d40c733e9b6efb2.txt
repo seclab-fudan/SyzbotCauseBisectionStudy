@@ -1,0 +1,93 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in memcpy include/linux/string.h:380 [inline]
+BUG: KASAN: slab-out-of-bounds in j1939_session_tx_dat net/can/j1939/transport.c:790 [inline]
+BUG: KASAN: slab-out-of-bounds in j1939_xtp_txnext_transmiter net/can/j1939/transport.c:847 [inline]
+BUG: KASAN: slab-out-of-bounds in j1939_tp_txtimer+0x777/0x1b00 net/can/j1939/transport.c:1095
+Read of size 7 at addr ffff88809bc47a1e by task ksoftirqd/1/16
+
+CPU: 1 PID: 16 Comm: ksoftirqd/1 Not tainted 5.5.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:639
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ memcpy+0x24/0x50 mm/kasan/common.c:125
+ memcpy include/linux/string.h:380 [inline]
+ j1939_session_tx_dat net/can/j1939/transport.c:790 [inline]
+ j1939_xtp_txnext_transmiter net/can/j1939/transport.c:847 [inline]
+ j1939_tp_txtimer+0x777/0x1b00 net/can/j1939/transport.c:1095
+ __run_hrtimer kernel/time/hrtimer.c:1517 [inline]
+ __hrtimer_run_queues+0x364/0xe40 kernel/time/hrtimer.c:1579
+ hrtimer_run_softirq+0x17e/0x270 kernel/time/hrtimer.c:1596
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+ run_ksoftirqd kernel/softirq.c:603 [inline]
+ run_ksoftirqd+0x8e/0x110 kernel/softirq.c:595
+ smpboot_thread_fn+0x6a3/0xa40 kernel/smpboot.c:165
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 16:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:513 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:521
+ slab_post_alloc_hook mm/slab.h:584 [inline]
+ slab_alloc mm/slab.c:3320 [inline]
+ kmem_cache_alloc+0x121/0x710 mm/slab.c:3484
+ skb_clone+0x154/0x3d0 net/core/skbuff.c:1448
+ can_send+0x5e0/0x890 net/can/af_can.c:261
+ j1939_send_one+0x29d/0x360 net/can/j1939/main.c:340
+ j1939_tp_tx_dat net/can/j1939/transport.c:615 [inline]
+ j1939_session_tx_dat net/can/j1939/transport.c:791 [inline]
+ j1939_xtp_txnext_transmiter net/can/j1939/transport.c:847 [inline]
+ j1939_tp_txtimer+0x5a9/0x1b00 net/can/j1939/transport.c:1095
+ __run_hrtimer kernel/time/hrtimer.c:1517 [inline]
+ __hrtimer_run_queues+0x364/0xe40 kernel/time/hrtimer.c:1579
+ hrtimer_run_softirq+0x17e/0x270 kernel/time/hrtimer.c:1596
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+
+Freed by task 16:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:335 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:474
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:483
+ __cache_free mm/slab.c:3426 [inline]
+ kmem_cache_free+0x86/0x320 mm/slab.c:3694
+ kfree_skbmem net/core/skbuff.c:623 [inline]
+ kfree_skbmem+0xfb/0x1c0 net/core/skbuff.c:617
+ __kfree_skb net/core/skbuff.c:680 [inline]
+ consume_skb net/core/skbuff.c:838 [inline]
+ consume_skb+0x103/0x410 net/core/skbuff.c:832
+ can_receive+0x349/0x530 net/can/af_can.c:665
+ can_rcv+0x133/0x1b0 net/can/af_can.c:686
+ __netif_receive_skb_one_core+0x113/0x1a0 net/core/dev.c:5150
+ __netif_receive_skb+0x2c/0x1d0 net/core/dev.c:5264
+ process_backlog+0x206/0x750 net/core/dev.c:6095
+ napi_poll net/core/dev.c:6532 [inline]
+ net_rx_action+0x508/0x1120 net/core/dev.c:6600
+ __do_softirq+0x262/0x98c kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff88809bc47900
+ which belongs to the cache skbuff_head_cache of size 224
+The buggy address is located 62 bytes to the right of
+ 224-byte region [ffff88809bc47900, ffff88809bc479e0)
+The buggy address belongs to the page:
+page:ffffea00026f11c0 refcount:1 mapcount:0 mapping:ffff88821b056000 index:0x0
+raw: 00fffe0000000200 ffffea00026b0408 ffffea00022371c8 ffff88821b056000
+raw: 0000000000000000 ffff88809bc47040 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809bc47900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88809bc47980: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+>ffff88809bc47a00: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                            ^
+ ffff88809bc47a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88809bc47b00: fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

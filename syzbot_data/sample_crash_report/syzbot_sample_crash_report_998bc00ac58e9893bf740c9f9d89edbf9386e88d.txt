@@ -1,0 +1,61 @@
+IP: read_pnet include/net/net_namespace.h:269 [inline]
+IP: sock_net include/net/sock.h:2299 [inline]
+IP: vsock_diag_dump+0x290/0xa80 net/vmw_vsock/diag.c:87
+PGD 21fff4067 P4D 21fff4067 PUD 21fff3067 PMD 21fff2067 PTE 0
+Oops: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 2986 Comm: syzkaller165749 Not tainted 4.14.0-rc3+ #76
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801ceaaa1c0 task.stack: ffff8801ce0e0000
+RIP: 0010:read_pnet include/net/net_namespace.h:269 [inline]
+RIP: 0010:sock_net include/net/sock.h:2299 [inline]
+RIP: 0010:vsock_diag_dump+0x290/0xa80 net/vmw_vsock/diag.c:87
+RSP: 0018:ffff8801ce0e73d0 EFLAGS: 00010a02
+RAX: 1fffffffffffff70 RBX: fffffffffffffb50 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff83f09694 RDI: fffffffffffffb80
+RBP: ffff8801ce0e74e0 R08: ffff8801ce0e6d20 R09: ffff8801ce0e6d18
+R10: ffff8801ce0e6c90 R11: 1ffff10039d556cb R12: dffffc0000000000
+R13: 0000000000000000 R14: ffffffff87962d20 R15: ffff8801ce0e74b8
+FS:  000000000152a880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffbffffffff70 CR3: 00000001ce70f000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ netlink_dump+0x46b/0xb90 net/netlink/af_netlink.c:2186
+ __netlink_dump_start+0x4e9/0x710 net/netlink/af_netlink.c:2278
+ netlink_dump_start include/linux/netlink.h:216 [inline]
+ vsock_diag_handler_dump+0x206/0x2c0 net/vmw_vsock/diag.c:161
+ __sock_diag_cmd net/core/sock_diag.c:231 [inline]
+ sock_diag_rcv_msg+0x204/0x390 net/core/sock_diag.c:263
+ netlink_rcv_skb+0x216/0x440 net/netlink/af_netlink.c:2408
+ sock_diag_rcv+0x2a/0x40 net/core/sock_diag.c:274
+ netlink_unicast_kernel net/netlink/af_netlink.c:1273 [inline]
+ netlink_unicast+0x4e8/0x6f0 net/netlink/af_netlink.c:1299
+ netlink_sendmsg+0xa4a/0xe70 net/netlink/af_netlink.c:1862
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ sock_write_iter+0x320/0x5e0 net/socket.c:912
+ call_write_iter include/linux/fs.h:1770 [inline]
+ do_iter_readv_writev+0x531/0x7f0 fs/read_write.c:673
+ do_iter_write+0x15a/0x540 fs/read_write.c:952
+ vfs_writev+0x18a/0x340 fs/read_write.c:997
+ do_writev+0xfc/0x2a0 fs/read_write.c:1032
+ SYSC_writev fs/read_write.c:1105 [inline]
+ SyS_writev+0x27/0x30 fs/read_write.c:1102
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x43fd69
+RSP: 002b:00007fff5da11d98 EFLAGS: 00000203 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd69
+RDX: 0000000000000001 RSI: 00000000206a3ff0 RDI: 0000000000000003
+RBP: 0000000000000086 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000203 R12: 00000000004016d0
+R13: 0000000000401760 R14: 0000000000000000 R15: 0000000000000000
+Code: 69 07 00 00 48 8b 83 b0 04 00 00 49 39 c6 48 8d 98 50 fb ff ff 0f 84 ce 03 00 00 e8 bb a2 9f fc 48 8d 7b 30 48 89 f8 48 c1 e8 03 <42> 80 3c 20 00 0f 85 2d 07 00 00 48 8b 85 70 ff ff ff 48 3b 43 
+RIP: read_pnet include/net/net_namespace.h:269 [inline] RSP: ffff8801ce0e73d0
+RIP: sock_net include/net/sock.h:2299 [inline] RSP: ffff8801ce0e73d0
+RIP: vsock_diag_dump+0x290/0xa80 net/vmw_vsock/diag.c:87 RSP: ffff8801ce0e73d0
+CR2: fffffbffffffff70
+---[ end trace 9852ce58edddbce7 ]---

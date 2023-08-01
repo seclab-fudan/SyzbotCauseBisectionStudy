@@ -1,0 +1,43 @@
+ptrace attach of "./syz-executor353086472"[10278] was attempted by "./syz-executor353086472"[10279]
+ptrace attach of "./syz-executor353086472"[10280] was attempted by "./syz-executor353086472"[10281]
+ptrace attach of "./syz-executor353086472"[10282] was attempted by "./syz-executor353086472"[10283]
+==================================================================
+BUG: KMSAN: kernel-infoleak in _copy_to_user+0x16b/0x1f0 lib/usercopy.c:32
+CPU: 1 PID: 10284 Comm: syz-executor353 Not tainted 5.1.0-rc7+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x191/0x1f0 lib/dump_stack.c:113
+ kmsan_report+0x130/0x2a0 mm/kmsan/kmsan.c:619
+ kmsan_internal_check_memory+0x974/0xa80 mm/kmsan/kmsan.c:713
+ kmsan_copy_to_user+0xa9/0xb0 mm/kmsan/kmsan_hooks.c:492
+ _copy_to_user+0x16b/0x1f0 lib/usercopy.c:32
+ copy_to_user include/linux/uaccess.h:174 [inline]
+ copy_siginfo_to_user+0x80/0x160 kernel/signal.c:3059
+ ptrace_peek_siginfo kernel/ptrace.c:742 [inline]
+ ptrace_request+0x24bd/0x2950 kernel/ptrace.c:913
+ arch_ptrace+0x9fa/0x1090 arch/x86/kernel/ptrace.c:868
+ __do_sys_ptrace kernel/ptrace.c:1155 [inline]
+ __se_sys_ptrace+0x2b9/0x7b0 kernel/ptrace.c:1120
+ __x64_sys_ptrace+0x56/0x70 kernel/ptrace.c:1120
+ do_syscall_64+0xbc/0xf0 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x441cc9
+Code: e8 bc e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b 08 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00000000007efdd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000065
+RAX: ffffffffffffffda RBX: 0000000000000063 RCX: 0000000000441cc9
+RDX: 00000000200000c0 RSI: 0000000000000007 RDI: 0000000000004209
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000716000 R11: 0000000000000246 R12: 0000000000000002
+R13: 0000000000402a00 R14: 0000000000000000 R15: 0000000000000000
+
+Local variable description: ----info.i@ptrace_request
+Variable was created at:
+ ptrace_peek_siginfo kernel/ptrace.c:714 [inline]
+ ptrace_request+0x2161/0x2950 kernel/ptrace.c:913
+ arch_ptrace+0x9fa/0x1090 arch/x86/kernel/ptrace.c:868
+
+Bytes 0-47 of 48 are uninitialized
+Memory access of size 48 starts at ffff8880a902fd70
+Data copied to user address 0000000000716000
+==================================================================

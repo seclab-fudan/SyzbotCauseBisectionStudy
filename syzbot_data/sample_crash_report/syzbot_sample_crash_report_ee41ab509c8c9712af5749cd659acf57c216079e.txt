@@ -1,0 +1,101 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in strcmp+0x96/0xb0 lib/string.c:328
+Read of size 1 at addr ffff8801d8e19ac1 by task syzkaller027880/3083
+
+CPU: 0 PID: 3083 Comm: syzkaller027880 Not tainted 4.15.0-rc1+ #205
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:427
+ strcmp+0x96/0xb0 lib/string.c:328
+ security_context_to_sid_core+0x437/0x620 security/selinux/ss/services.c:1420
+ security_context_to_sid+0x32/0x40 security/selinux/ss/services.c:1479
+ selinux_setprocattr+0x51c/0xb50 security/selinux/hooks.c:5985
+ security_setprocattr+0x85/0xc0 security/security.c:1264
+ proc_pid_attr_write+0x1e6/0x280 fs/proc/base.c:2545
+ __vfs_write+0xef/0x970 fs/read_write.c:480
+ __kernel_write+0xfe/0x350 fs/read_write.c:501
+ write_pipe_buf+0x175/0x220 fs/splice.c:797
+ splice_from_pipe_feed fs/splice.c:502 [inline]
+ __splice_from_pipe+0x328/0x730 fs/splice.c:626
+ splice_from_pipe+0x1e9/0x330 fs/splice.c:661
+ default_file_splice_write+0x40/0x90 fs/splice.c:809
+ do_splice_from fs/splice.c:851 [inline]
+ direct_splice_actor+0x125/0x180 fs/splice.c:1018
+ splice_direct_to_actor+0x2c1/0x820 fs/splice.c:973
+ do_splice_direct+0x2a7/0x3d0 fs/splice.c:1061
+ do_sendfile+0x5d5/0xe90 fs/read_write.c:1413
+ SYSC_sendfile64 fs/read_write.c:1468 [inline]
+ SyS_sendfile64+0xbd/0x160 fs/read_write.c:1460
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x440189
+RSP: 002b:00007ffc1a9e6a08 EFLAGS: 00000207 ORIG_RAX: 0000000000000028
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440189
+RDX: 0000000020004ff8 RSI: 0000000000000003 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 68742f636f72702f R09: 68742f636f72702f
+R10: 0000000000000001 R11: 0000000000000207 R12: 0000000000401a50
+R13: 0000000000401ae0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3083:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc mm/slab.c:3711 [inline]
+ __kmalloc_track_caller+0x15e/0x760 mm/slab.c:3726
+ memdup_user+0x2c/0x90 mm/util.c:164
+ proc_pid_attr_write+0x115/0x280 fs/proc/base.c:2534
+ __vfs_write+0xef/0x970 fs/read_write.c:480
+ __kernel_write+0xfe/0x350 fs/read_write.c:501
+ write_pipe_buf+0x175/0x220 fs/splice.c:797
+ splice_from_pipe_feed fs/splice.c:502 [inline]
+ __splice_from_pipe+0x328/0x730 fs/splice.c:626
+ splice_from_pipe+0x1e9/0x330 fs/splice.c:661
+ default_file_splice_write+0x40/0x90 fs/splice.c:809
+ do_splice_from fs/splice.c:851 [inline]
+ direct_splice_actor+0x125/0x180 fs/splice.c:1018
+ splice_direct_to_actor+0x2c1/0x820 fs/splice.c:973
+ do_splice_direct+0x2a7/0x3d0 fs/splice.c:1061
+ do_sendfile+0x5d5/0xe90 fs/read_write.c:1413
+ SYSC_sendfile64 fs/read_write.c:1468 [inline]
+ SyS_sendfile64+0xbd/0x160 fs/read_write.c:1460
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 485:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3491 [inline]
+ kfree+0xca/0x250 mm/slab.c:3806
+ selinux_cred_free+0x48/0x70 security/selinux/hooks.c:3814
+ security_cred_free+0x48/0x80 security/security.c:995
+ put_cred_rcu+0x106/0x400 kernel/cred.c:117
+ __rcu_reclaim kernel/rcu/rcu.h:195 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2758 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:3012 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2979 [inline]
+ rcu_process_callbacks+0xd74/0x17d0 kernel/rcu/tree.c:2996
+ __do_softirq+0x29d/0xbb2 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801d8e19ac0
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 1 bytes inside of
+ 32-byte region [ffff8801d8e19ac0, ffff8801d8e19ae0)
+The buggy address belongs to the page:
+page:00000000da19e7a5 count:1 mapcount:0 mapping:000000009b2c396f index:0xffff8801d8e19fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d8e19000 ffff8801d8e19fc1 000000010000003f
+raw: ffffea0007635d60 ffff8801db001250 ffff8801db0001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d8e19980: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801d8e19a00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801d8e19a80: fb fb fb fb fc fc fc fc 01 fc fc fc fc fc fc fc
+                                           ^
+ ffff8801d8e19b00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801d8e19b80: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================

@@ -1,0 +1,127 @@
+==================================================================
+BUG: KASAN: use-after-free in __xfrm_policy_eval_candidates net/xfrm/xfrm_policy.c:2019 [inline]
+BUG: KASAN: use-after-free in xfrm_policy_eval_candidates net/xfrm/xfrm_policy.c:2053 [inline]
+BUG: KASAN: use-after-free in xfrm_policy_lookup_bytype+0xd27/0xdb0 net/xfrm/xfrm_policy.c:2113
+Read of size 4 at addr ffff88809804a9f4 by task syz-executor0/14841
+
+CPU: 0 PID: 14841 Comm: syz-executor0 Not tainted 5.0.0-rc3+ #37
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:134
+ __xfrm_policy_eval_candidates net/xfrm/xfrm_policy.c:2019 [inline]
+ xfrm_policy_eval_candidates net/xfrm/xfrm_policy.c:2053 [inline]
+ xfrm_policy_lookup_bytype+0xd27/0xdb0 net/xfrm/xfrm_policy.c:2113
+ xfrm_policy_lookup+0x7e/0x90 net/xfrm/xfrm_policy.c:2145
+ xfrm_bundle_lookup net/xfrm/xfrm_policy.c:2939 [inline]
+ xfrm_lookup_with_ifid+0x8cf/0x2a90 net/xfrm/xfrm_policy.c:3080
+ xfrm_lookup net/xfrm/xfrm_policy.c:3172 [inline]
+ xfrm_lookup_route+0x3b/0x1f0 net/xfrm/xfrm_policy.c:3183
+ ip_route_output_flow+0xad/0xc0 net/ipv4/route.c:2582
+ ip_route_connect include/net/route.h:309 [inline]
+ __ip4_datagram_connect+0x7ae/0x1330 net/ipv4/datagram.c:51
+ __ip6_datagram_connect+0xf13/0x1440 net/ipv6/datagram.c:191
+ ip6_datagram_connect+0x30/0x50 net/ipv6/datagram.c:273
+ inet_dgram_connect+0x150/0x2e0 net/ipv4/af_inet.c:571
+ __sys_connect+0x357/0x490 net/socket.c:1664
+ __do_sys_connect net/socket.c:1675 [inline]
+ __se_sys_connect net/socket.c:1672 [inline]
+ __x64_sys_connect+0x73/0xb0 net/socket.c:1672
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x458099
+Code: 6d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 3b b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f5d1cf83c78 EFLAGS: 00000246 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000458099
+RDX: 000000000000001c RSI: 0000000020000000 RDI: 0000000000000006
+RBP: 000000000073bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f5d1cf846d4
+R13: 00000000004be4f7 R14: 00000000004ceb30 R15: 00000000ffffffff
+
+Allocated by task 14099:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_kmalloc mm/kasan/common.c:496 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:469
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:504
+ __do_kmalloc_node mm/slab.c:3673 [inline]
+ __kmalloc_node_track_caller+0x4e/0x70 mm/slab.c:3687
+ __kmalloc_reserve.isra.0+0x40/0xe0 net/core/skbuff.c:140
+ __alloc_skb+0x12d/0x730 net/core/skbuff.c:208
+ alloc_skb include/linux/skbuff.h:1011 [inline]
+ alloc_skb_with_frags+0xef/0x720 net/core/skbuff.c:5283
+ sock_alloc_send_pskb+0x8c9/0xad0 net/core/sock.c:2091
+ sock_alloc_send_skb+0x32/0x40 net/core/sock.c:2108
+ __ip_append_data.isra.0+0x1b47/0x3350 net/ipv4/ip_output.c:998
+ ip_make_skb+0x2b8/0x350 net/ipv4/ip_output.c:1531
+ udp_sendmsg+0x28b5/0x3a40 net/ipv4/udp.c:1181
+ inet_sendmsg+0x1af/0x740 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x409/0x910 net/socket.c:2116
+ __sys_sendmmsg+0x246/0x730 net/socket.c:2211
+ __do_sys_sendmmsg net/socket.c:2240 [inline]
+ __se_sys_sendmmsg net/socket.c:2237 [inline]
+ __x64_sys_sendmmsg+0x9d/0x100 net/socket.c:2237
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 14099:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:458
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:466
+ __cache_free mm/slab.c:3487 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3806
+ skb_free_head+0x93/0xb0 net/core/skbuff.c:553
+ skb_release_data+0x6ea/0x970 net/core/skbuff.c:573
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:627
+ __kfree_skb net/core/skbuff.c:641 [inline]
+ kfree_skb net/core/skbuff.c:659 [inline]
+ kfree_skb+0x199/0x580 net/core/skbuff.c:653
+ __udp4_lib_mcast_deliver net/ipv4/udp.c:2177 [inline]
+ __udp4_lib_rcv+0x2772/0x3180 net/ipv4/udp.c:2305
+ udp_rcv+0x22/0x30 net/ipv4/udp.c:2480
+ ip_protocol_deliver_rcu+0xb6/0xa20 net/ipv4/ip_input.c:208
+ ip_local_deliver_finish+0x23b/0x390 net/ipv4/ip_input.c:234
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ip_local_deliver+0x1f0/0x740 net/ipv4/ip_input.c:255
+ dst_input include/net/dst.h:450 [inline]
+ ip_rcv_finish+0x1f4/0x2f0 net/ipv4/ip_input.c:414
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ NF_HOOK include/linux/netfilter.h:283 [inline]
+ ip_rcv+0xed/0x620 net/ipv4/ip_input.c:524
+ __netif_receive_skb_one_core+0x160/0x210 net/core/dev.c:4973
+ __netif_receive_skb+0x2c/0x1c0 net/core/dev.c:5083
+ netif_receive_skb_internal+0x11e/0x690 net/core/dev.c:5186
+ napi_skb_finish net/core/dev.c:5665 [inline]
+ napi_gro_receive+0x79a/0x9b0 net/core/dev.c:5698
+ gro_cell_poll+0x132/0x1f0 net/core/gro_cells.c:46
+ napi_poll net/core/dev.c:6346 [inline]
+ net_rx_action+0x76d/0x1930 net/core/dev.c:6412
+ __do_softirq+0x30b/0xb11 kernel/softirq.c:292
+
+The buggy address belongs to the object at ffff88809804a940
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 180 bytes inside of
+ 1024-byte region [ffff88809804a940, ffff88809804ad40)
+The buggy address belongs to the page:
+page:ffffea0002601280 count:1 mapcount:0 mapping:ffff88812c3f0ac0 index:0xffff88809804b240 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea00017e4488 ffffea0002461c08 ffff88812c3f0ac0
+raw: ffff88809804b240 ffff88809804a040 0000000100000005 0000000000000000
+page dumped because: kasan: bad access detected
+
+kobject: 'loop5' (000000008862a7b9): fill_kobj_path: path = '/devices/virtual/block/loop5'
+Memory state around the buggy address:
+ ffff88809804a880: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff88809804a900: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>ffff88809804a980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff88809804aa00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88809804aa80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

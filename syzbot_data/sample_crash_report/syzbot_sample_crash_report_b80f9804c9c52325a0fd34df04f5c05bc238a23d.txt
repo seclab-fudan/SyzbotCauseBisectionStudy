@@ -1,0 +1,56 @@
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.15.0-rc3+ #219 Not tainted
+------------------------------------------------------
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 9634 Comm: syz-executor6 Not tainted 4.15.0-rc3+ #219
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__le32_to_cpup include/uapi/linux/byteorder/little_endian.h:58 [inline]
+RIP: 0010:le32_to_cpuvp crypto/chacha20_generic.c:19 [inline]
+RIP: 0010:crypto_chacha20_init crypto/chacha20_generic.c:58 [inline]
+RIP: 0010:crypto_chacha20_crypt+0x537/0xbd0 crypto/chacha20_generic.c:91
+RSP: 0018:ffff8801c89e74a0 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: 00000000e6000000 RCX: ffffffff8226b75b
+RDX: 0000000000000000 RSI: ffffc900018b0000 RDI: ffff8801c89e753c
+RBP: ffff8801c89e76c0 R08: ffffed0039e915f4 R09: ffff8801cf48af80
+R10: ffff8801c89e76e0 R11: ffffed0039e915f3 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: dffffc0000000000
+FS:  00007f7a73677700(0000) GS:ffff8801db500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f7a73634000 CR3: 00000001bba41000 CR4: 00000000001426e0
+DR0: 0000000020001020 DR1: 0000000020000000 DR2: 0000000020001020
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+ chacha20_simd+0xe4/0x410 arch/x86/crypto/chacha20_glue.c:78
+ crypto_skcipher_decrypt include/crypto/skcipher.h:463 [inline]
+ _skcipher_recvmsg crypto/algif_skcipher.c:126 [inline]
+ skcipher_recvmsg+0x739/0xf20 crypto/algif_skcipher.c:165
+ sock_recvmsg_nosec net/socket.c:809 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:816
+ sock_read_iter+0x361/0x560 net/socket.c:893
+ call_read_iter include/linux/fs.h:1766 [inline]
+ aio_read+0x2b0/0x3a0 fs/aio.c:1501
+ io_submit_one fs/aio.c:1611 [inline]
+ do_io_submit+0xf99/0x14f0 fs/aio.c:1682
+ SYSC_io_submit fs/aio.c:1707 [inline]
+ SyS_io_submit+0x27/0x30 fs/aio.c:1704
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x452a39
+RSP: 002b:00007f7a73676c58 EFLAGS: 00000212 ORIG_RAX: 00000000000000d1
+RAX: ffffffffffffffda RBX: 0000000000758020 RCX: 0000000000452a39
+RDX: 0000000020738000 RSI: 0000000000000002 RDI: 00007f7a73634000
+RBP: 0000000000000001 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006ee0b8
+R13: 00000000ffffffff R14: 00007f7a736776d4 R15: 0000000000000000
+Code: 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 d6 05 00 00 4c 89 ea 48 b8 00 00 00 00 00 fc ff df 89 9d 7c fe ff ff 48 c1 ea 03 <0f> b6 14 02 4c 89 e8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 
+RIP: __le32_to_cpup include/uapi/linux/byteorder/little_endian.h:58 [inline] RSP: ffff8801c89e74a0
+RIP: le32_to_cpuvp crypto/chacha20_generic.c:19 [inline] RSP: ffff8801c89e74a0
+RIP: crypto_chacha20_init crypto/chacha20_generic.c:58 [inline] RSP: ffff8801c89e74a0
+RIP: crypto_chacha20_crypt+0x537/0xbd0 crypto/chacha20_generic.c:91 RSP: ffff8801c89e74a0
+---[ end trace 24cc5ceef85b0ef4 ]---

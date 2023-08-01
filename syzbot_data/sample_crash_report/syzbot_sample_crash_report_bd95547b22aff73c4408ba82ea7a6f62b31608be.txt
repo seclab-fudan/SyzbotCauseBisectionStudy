@@ -1,0 +1,89 @@
+REISERFS (device loop5): Created .reiserfs_priv - reserved for xattr storage.
+overlayfs: upper fs needs to support d_type.
+overlayfs: upper fs does not support tmpfile.
+overlayfs: upper fs does not support RENAME_WHITEOUT.
+general protection fault, probably for non-canonical address 0xdffffc0000000001: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+CPU: 0 PID: 14704 Comm: syz-executor.5 Not tainted 6.2.0-rc2-syzkaller-00057-g41c03ba9beea #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:reiserfs_get_block+0x1afe/0x5180 fs/reiserfs/inode.c:1052
+Code: 00 00 00 fc ff df 48 8b 44 24 58 42 0f b6 04 38 84 c0 0f 85 74 11 00 00 8b 94 24 20 04 00 00 4b 8d 1c ae 48 89 d8 48 c1 e8 03 <42> 0f b6 04 38 84 c0 0f 85 7d 11 00 00 4c 89 74 24 28 48 89 54 24
+RSP: 0018:ffffc9000a966c20 EFLAGS: 00010203
+RAX: 0000000000000001 RBX: 000000000000000c RCX: ffffc9000a967003
+RDX: 0000000000000217 RSI: 00000000000003f4 RDI: 0000000000000000
+RBP: ffffc9000a967270 R08: ffffffff822832cb R09: ffffed100565982c
+R10: ffffed100565982c R11: 1ffff1100565982b R12: 0000000000000000
+R13: ffffffffffffffff R14: 0000000000000010 R15: dffffc0000000000
+FS:  00007f1f6b9fe700(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c017dafef7 CR3: 000000002bab4000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __block_write_begin_int+0x54c/0x1a80 fs/buffer.c:1991
+ __reiserfs_write_begin+0x21a/0x460 fs/reiserfs/inode.c:2835
+ reiserfs_xattr_set_handle+0x394/0xec0 fs/reiserfs/xattr.c:571
+ reiserfs_xattr_set+0x417/0x530 fs/reiserfs/xattr.c:633
+ __vfs_setxattr+0x485/0x4c0 fs/xattr.c:202
+ __vfs_setxattr_noperm+0x128/0x5d0 fs/xattr.c:236
+ vfs_setxattr+0x228/0x450 fs/xattr.c:323
+ ovl_do_setxattr fs/overlayfs/overlayfs.h:254 [inline]
+ ovl_setxattr fs/overlayfs/overlayfs.h:266 [inline]
+ ovl_verify_set_fh+0x1c7/0x430 fs/overlayfs/namei.c:473
+ ovl_verify_upper fs/overlayfs/overlayfs.h:565 [inline]
+ ovl_get_indexdir+0x519/0x680 fs/overlayfs/super.c:1503
+ ovl_fill_super+0x195b/0x2790 fs/overlayfs/super.c:2025
+ mount_nodev+0x52/0xe0 fs/super.c:1405
+ legacy_get_tree+0xea/0x180 fs/fs_context.c:610
+ vfs_get_tree+0x88/0x270 fs/super.c:1489
+ do_new_mount+0x289/0xad0 fs/namespace.c:3145
+ do_mount fs/namespace.c:3488 [inline]
+ __do_sys_mount fs/namespace.c:3697 [inline]
+ __se_sys_mount+0x2d3/0x3c0 fs/namespace.c:3674
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f1f6ce8c0c9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f1f6b9fe168 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007f1f6cfabf80 RCX: 00007f1f6ce8c0c9
+RDX: 0000000020000080 RSI: 0000000020000040 RDI: 0000000000000000
+RBP: 00007f1f6cee7ae9 R08: 0000000020000280 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffd914fe18f R14: 00007f1f6b9fe300 R15: 0000000000022000
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:reiserfs_get_block+0x1afe/0x5180 fs/reiserfs/inode.c:1052
+Code: 00 00 00 fc ff df 48 8b 44 24 58 42 0f b6 04 38 84 c0 0f 85 74 11 00 00 8b 94 24 20 04 00 00 4b 8d 1c ae 48 89 d8 48 c1 e8 03 <42> 0f b6 04 38 84 c0 0f 85 7d 11 00 00 4c 89 74 24 28 48 89 54 24
+RSP: 0018:ffffc9000a966c20 EFLAGS: 00010203
+RAX: 0000000000000001 RBX: 000000000000000c RCX: ffffc9000a967003
+RDX: 0000000000000217 RSI: 00000000000003f4 RDI: 0000000000000000
+RBP: ffffc9000a967270 R08: ffffffff822832cb R09: ffffed100565982c
+R10: ffffed100565982c R11: 1ffff1100565982b R12: 0000000000000000
+R13: ffffffffffffffff R14: 0000000000000010 R15: dffffc0000000000
+FS:  00007f1f6b9fe700(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c00fba6000 CR3: 000000002bab4000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess), 5 bytes skipped:
+   0:	df 48 8b             	fisttps -0x75(%rax)
+   3:	44 24 58             	rex.R and $0x58,%al
+   6:	42 0f b6 04 38       	movzbl (%rax,%r15,1),%eax
+   b:	84 c0                	test   %al,%al
+   d:	0f 85 74 11 00 00    	jne    0x1187
+  13:	8b 94 24 20 04 00 00 	mov    0x420(%rsp),%edx
+  1a:	4b 8d 1c ae          	lea    (%r14,%r13,4),%rbx
+  1e:	48 89 d8             	mov    %rbx,%rax
+  21:	48 c1 e8 03          	shr    $0x3,%rax
+* 25:	42 0f b6 04 38       	movzbl (%rax,%r15,1),%eax <-- trapping instruction
+  2a:	84 c0                	test   %al,%al
+  2c:	0f 85 7d 11 00 00    	jne    0x11af
+  32:	4c 89 74 24 28       	mov    %r14,0x28(%rsp)
+  37:	48                   	rex.W
+  38:	89                   	.byte 0x89
+  39:	54                   	push   %rsp
+  3a:	24                   	.byte 0x24

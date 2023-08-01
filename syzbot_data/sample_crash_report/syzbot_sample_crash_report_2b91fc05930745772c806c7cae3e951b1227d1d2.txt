@@ -1,0 +1,226 @@
+xpad 6-1:179.65: xpad_irq_in - usb_submit_urb failed with result -19
+xpad 6-1:179.65: xpad_irq_out - usb_submit_urb failed with result -19
+==================================================================
+BUG: KASAN: use-after-free in __wake_up_common+0x609/0x650 kernel/sched/wait.c:95
+Read of size 8 at addr ffff888076ab0898 by task kworker/u4:18/6627
+
+CPU: 1 PID: 6627 Comm: kworker/u4:18 Not tainted 6.1.0-syzkaller-13872-gb6bb9676f216 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: netns cleanup_net
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x15e/0x461 mm/kasan/report.c:417
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:517
+ __wake_up_common+0x609/0x650 kernel/sched/wait.c:95
+ __wake_up_common_lock+0xd4/0x140 kernel/sched/wait.c:138
+ usb_anchor_resume_wakeups drivers/usb/core/urb.c:960 [inline]
+ usb_anchor_resume_wakeups+0xc2/0xe0 drivers/usb/core/urb.c:953
+ __usb_hcd_giveback_urb+0x2e5/0x5c0 drivers/usb/core/hcd.c:1674
+ usb_hcd_giveback_urb+0x384/0x430 drivers/usb/core/hcd.c:1754
+ dummy_timer+0x1203/0x32d0 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x1da/0x7c0 kernel/time/timer.c:1700
+ expire_timers+0x2c6/0x5c0 kernel/time/timer.c:1751
+ __run_timers kernel/time/timer.c:2022 [inline]
+ __run_timers kernel/time/timer.c:1995 [inline]
+ run_timer_softirq+0x326/0x910 kernel/time/timer.c:2035
+ __do_softirq+0x1fb/0xadc kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x9/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x97/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:arch_atomic_read arch/x86/include/asm/atomic.h:29 [inline]
+RIP: 0010:rcu_dynticks_curr_cpu_in_eqs include/linux/context_tracking.h:121 [inline]
+RIP: 0010:rcu_is_watching+0x5c/0xb0 kernel/rcu/tree.c:713
+Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 75 54 48 03 1c ed 00 b9 12 8c 48 b8 00 00 00 00 00 fc ff df 48 89 da 48 c1 ea 03 0f b6 14 02 <48> 89 d8 83 e0 07 83 c0 03 38 d0 7c 04 84 d2 75 1c 8b 03 c1 e8 02
+RSP: 0018:ffffc90003f9fa00 EFLAGS: 00000a06
+RAX: dffffc0000000000 RBX: ffff8880b9936028 RCX: ffffffff816318a0
+RDX: 0000000000000000 RSI: 0000000000000002 RDI: ffffffff8c12b908
+RBP: 0000000000000001 R08: 0000000000000000 R09: ffffffff8e721c97
+R10: fffffbfff1ce4392 R11: 1ffff110076ee8a2 R12: 0000000000000001
+R13: 0000000000000000 R14: ffffffff8c78e800 R15: 0000000000000000
+ rcu_read_lock_held_common kernel/rcu/update.c:108 [inline]
+ rcu_read_lock_sched_held+0x20/0x70 kernel/rcu/update.c:123
+ trace_lock_acquire include/trace/events/lock.h:24 [inline]
+ lock_acquire+0x500/0x630 kernel/locking/lockdep.c:5639
+ rcu_lock_acquire include/linux/rcupdate.h:325 [inline]
+ rcu_read_lock include/linux/rcupdate.h:764 [inline]
+ inet_twsk_purge+0x132/0x8a0 net/ipv4/inet_timewait_sock.c:268
+ ops_exit_list+0x125/0x170 net/core/net_namespace.c:174
+ cleanup_net+0x4ee/0xb10 net/core/net_namespace.c:606
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+
+Allocated by task 5197:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:371 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:330 [inline]
+ __kasan_kmalloc+0xa3/0xb0 mm/kasan/common.c:380
+ kmalloc include/linux/slab.h:580 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ xpad_probe+0x275/0x1ed0 drivers/input/joystick/xpad.c:1954
+ usb_probe_interface+0x30f/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d4/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e8/0x2a0 drivers/base/bus.c:487
+ device_add+0xbd9/0x1e90 drivers/base/core.c:3479
+ usb_set_configuration+0x101d/0x1900 drivers/usb/core/message.c:2171
+ usb_generic_driver_probe+0xbe/0x100 drivers/usb/core/generic.c:238
+ usb_probe_device+0xd8/0x2c0 drivers/usb/core/driver.c:293
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d4/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e8/0x2a0 drivers/base/bus.c:487
+ device_add+0xbd9/0x1e90 drivers/base/core.c:3479
+ usb_new_device.cold+0x685/0x10ad drivers/usb/core/hub.c:2573
+ hub_port_connect drivers/usb/core/hub.c:5405 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5549 [inline]
+ port_event drivers/usb/core/hub.c:5709 [inline]
+ hub_event+0x2d5c/0x4810 drivers/usb/core/hub.c:5791
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+Freed by task 5157:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2b/0x40 mm/kasan/generic.c:518
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x13b/0x1a0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ __cache_free mm/slab.c:3394 [inline]
+ __do_kmem_cache_free mm/slab.c:3580 [inline]
+ __kmem_cache_free+0xcd/0x3b0 mm/slab.c:3587
+ xpad_disconnect+0x1cf/0x540 drivers/input/joystick/xpad.c:2135
+ usb_unbind_interface+0x1dc/0x8e0 drivers/usb/core/driver.c:458
+ device_remove drivers/base/dd.c:550 [inline]
+ device_remove+0x11f/0x170 drivers/base/dd.c:542
+ __device_release_driver drivers/base/dd.c:1253 [inline]
+ device_release_driver_internal+0x4a5/0x700 drivers/base/dd.c:1279
+ bus_remove_device+0x2e7/0x5a0 drivers/base/bus.c:529
+ device_del+0x4f7/0xc80 drivers/base/core.c:3666
+ usb_disable_device+0x35a/0x7b0 drivers/usb/core/message.c:1420
+ usb_disconnect.cold+0x259/0x6ed drivers/usb/core/hub.c:2235
+ hub_port_connect drivers/usb/core/hub.c:5244 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5549 [inline]
+ port_event drivers/usb/core/hub.c:5709 [inline]
+ hub_event+0x1fb5/0x4810 drivers/usb/core/hub.c:5791
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+The buggy address belongs to the object at ffff888076ab0800
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 152 bytes inside of
+ 1024-byte region [ffff888076ab0800, ffff888076ab0c00)
+
+The buggy address belongs to the physical page:
+page:ffffea0001daac00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x76ab0
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffff888012440700 ffffea0001e139d0 ffffea0001f76b50
+raw: 0000000000000000 ffff888076ab0000 0000000100000002 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x3420c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_COMP|__GFP_HARDWALL|__GFP_THISNODE), pid 5197, tgid 5197 (kworker/1:7), ts 437249327072, free_ts 436099698513
+ prep_new_page mm/page_alloc.c:2531 [inline]
+ get_page_from_freelist+0x119c/0x2ce0 mm/page_alloc.c:4283
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5549
+ __alloc_pages_node include/linux/gfp.h:237 [inline]
+ kmem_getpages mm/slab.c:1363 [inline]
+ cache_grow_begin+0x94/0x390 mm/slab.c:2574
+ cache_alloc_refill+0x27f/0x380 mm/slab.c:2947
+ ____cache_alloc mm/slab.c:3023 [inline]
+ ____cache_alloc mm/slab.c:3006 [inline]
+ __do_cache_alloc mm/slab.c:3206 [inline]
+ slab_alloc_node mm/slab.c:3254 [inline]
+ __kmem_cache_alloc_node+0x44f/0x510 mm/slab.c:3544
+ kmalloc_trace+0x26/0x60 mm/slab_common.c:1062
+ kmalloc include/linux/slab.h:580 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ xpad_probe+0x275/0x1ed0 drivers/input/joystick/xpad.c:1954
+ usb_probe_interface+0x30f/0x7f0 drivers/usb/core/driver.c:396
+ call_driver_probe drivers/base/dd.c:560 [inline]
+ really_probe+0x249/0xb90 drivers/base/dd.c:639
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d4/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:427
+ __device_attach+0x1e4/0x530 drivers/base/dd.c:1008
+ bus_probe_device+0x1e8/0x2a0 drivers/base/bus.c:487
+ device_add+0xbd9/0x1e90 drivers/base/core.c:3479
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1446 [inline]
+ free_pcp_prepare+0x65c/0xc00 mm/page_alloc.c:1496
+ free_unref_page_prepare mm/page_alloc.c:3369 [inline]
+ free_unref_page_list+0x176/0xcd0 mm/page_alloc.c:3510
+ release_pages+0xcb1/0x1330 mm/swap.c:1076
+ __pagevec_release+0x77/0xe0 mm/swap.c:1096
+ pagevec_release include/linux/pagevec.h:71 [inline]
+ folio_batch_release include/linux/pagevec.h:135 [inline]
+ truncate_inode_pages_range+0x2ec/0xec0 mm/truncate.c:372
+ evict+0x533/0x6b0 fs/inode.c:666
+ iput_final fs/inode.c:1747 [inline]
+ iput.part.0+0x59b/0x880 fs/inode.c:1773
+ iput+0x5c/0x80 fs/inode.c:1763
+ dentry_unlink_inode+0x2b1/0x460 fs/dcache.c:401
+ __dentry_kill+0x3c0/0x640 fs/dcache.c:607
+ shrink_dentry_list+0x240/0x800 fs/dcache.c:1201
+ shrink_dcache_parent+0x202/0x3c0 fs/dcache.c:1628
+ do_one_tree fs/dcache.c:1682 [inline]
+ shrink_dcache_for_umount+0x75/0x340 fs/dcache.c:1699
+ generic_shutdown_super+0x6c/0x410 fs/super.c:473
+ kill_anon_super fs/super.c:1086 [inline]
+ kill_litter_super+0x72/0xa0 fs/super.c:1095
+ deactivate_locked_super+0x98/0x160 fs/super.c:332
+
+Memory state around the buggy address:
+ ffff888076ab0780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888076ab0800: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888076ab0880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff888076ab0900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888076ab0980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
+----------------
+Code disassembly (best guess):
+   0:	48 89 fa             	mov    %rdi,%rdx
+   3:	48 c1 ea 03          	shr    $0x3,%rdx
+   7:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+   b:	75 54                	jne    0x61
+   d:	48 03 1c ed 00 b9 12 	add    -0x73ed4700(,%rbp,8),%rbx
+  14:	8c
+  15:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  1c:	fc ff df
+  1f:	48 89 da             	mov    %rbx,%rdx
+  22:	48 c1 ea 03          	shr    $0x3,%rdx
+  26:	0f b6 14 02          	movzbl (%rdx,%rax,1),%edx
+* 2a:	48 89 d8             	mov    %rbx,%rax <-- trapping instruction
+  2d:	83 e0 07             	and    $0x7,%eax
+  30:	83 c0 03             	add    $0x3,%eax
+  33:	38 d0                	cmp    %dl,%al
+  35:	7c 04                	jl     0x3b
+  37:	84 d2                	test   %dl,%dl
+  39:	75 1c                	jne    0x57
+  3b:	8b 03                	mov    (%rbx),%eax
+  3d:	c1 e8 02             	shr    $0x2,%eax

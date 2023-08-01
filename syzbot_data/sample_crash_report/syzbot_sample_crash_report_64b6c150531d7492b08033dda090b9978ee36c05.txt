@@ -1,0 +1,105 @@
+BUG: KASAN: use-after-free in __write_once_size include/linux/compiler.h:305 [inline]
+BUG: KASAN: use-after-free in __hlist_del include/linux/list.h:648 [inline]
+BUG: KASAN: use-after-free in detach_timer kernel/time/timer.c:791 [inline]
+BUG: KASAN: use-after-free in detach_if_pending+0x557/0x610 kernel/time/timer.c:808
+Write of size 8 at addr ffff8801d1053678 by task syzkaller063340/2982
+
+CPU: 0 PID: 2982 Comm: syzkaller063340 Not tainted 4.14.0-rc5+ #52
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_store8_noabort+0x17/0x20 mm/kasan/report.c:435
+ __write_once_size include/linux/compiler.h:305 [inline]
+ __hlist_del include/linux/list.h:648 [inline]
+ detach_timer kernel/time/timer.c:791 [inline]
+ detach_if_pending+0x557/0x610 kernel/time/timer.c:808
+ try_to_del_timer_sync+0xa2/0x120 kernel/time/timer.c:1182
+ del_timer_sync+0x18a/0x240 kernel/time/timer.c:1247
+ tun_flow_uninit drivers/net/tun.c:1104 [inline]
+ tun_free_netdev+0x105/0x1b0 drivers/net/tun.c:1778
+ netdev_run_todo+0x870/0xca0 net/core/dev.c:7869
+ rtnl_unlock+0xe/0x10 net/core/rtnetlink.c:106
+ tun_detach drivers/net/tun.c:588 [inline]
+ tun_chr_close+0x49/0x60 drivers/net/tun.c:2611
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:112
+ exit_task_work include/linux/task_work.h:21 [inline]
+ do_exit+0x9b5/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ do_syscall_32_irqs_on arch/x86/entry/common.c:329 [inline]
+ do_fast_syscall_32+0x3f2/0xf05 arch/x86/entry/common.c:391
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:124
+RIP: 0023:0xf7fbcc79
+RSP: 002b:00000000ff8cce8c EFLAGS: 00000292 ORIG_RAX: 00000000000000fc
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000080f1298
+RDX: 0000000000000000 RSI: 00000000080dab38 RDI: 00000000080f12a0
+RBP: 0000000000000001 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 2982:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc_node mm/slab.c:3689 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3696
+ kmalloc_node include/linux/slab.h:535 [inline]
+ kvmalloc_node+0x64/0xd0 mm/util.c:397
+ kvmalloc include/linux/mm.h:529 [inline]
+ kvzalloc include/linux/mm.h:537 [inline]
+ alloc_netdev_mqs+0x16e/0xed0 net/core/dev.c:8023
+ tun_set_iff drivers/net/tun.c:2024 [inline]
+ __tun_chr_ioctl+0x12b2/0x3d20 drivers/net/tun.c:2278
+ tun_chr_compat_ioctl+0x29/0x30 drivers/net/tun.c:2551
+ C_SYSC_ioctl fs/compat_ioctl.c:1593 [inline]
+ compat_SyS_ioctl+0x1d7/0x3290 fs/compat_ioctl.c:1540
+ do_syscall_32_irqs_on arch/x86/entry/common.c:329 [inline]
+ do_fast_syscall_32+0x3f2/0xf05 arch/x86/entry/common.c:391
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:124
+
+Freed by task 2982:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ kvfree+0x36/0x60 mm/util.c:416
+ netdev_freemem net/core/dev.c:7975 [inline]
+ free_netdev+0x2cf/0x360 net/core/dev.c:8137
+ tun_set_iff drivers/net/tun.c:2107 [inline]
+ __tun_chr_ioctl+0x2cea/0x3d20 drivers/net/tun.c:2278
+ tun_chr_compat_ioctl+0x29/0x30 drivers/net/tun.c:2551
+ C_SYSC_ioctl fs/compat_ioctl.c:1593 [inline]
+ compat_SyS_ioctl+0x1d7/0x3290 fs/compat_ioctl.c:1540
+ do_syscall_32_irqs_on arch/x86/entry/common.c:329 [inline]
+ do_fast_syscall_32+0x3f2/0xf05 arch/x86/entry/common.c:391
+ entry_SYSENTER_compat+0x51/0x60 arch/x86/entry/entry_64_compat.S:124
+
+The buggy address belongs to the object at ffff8801d1050340
+ which belongs to the cache kmalloc-16384 of size 16384
+The buggy address is located 13112 bytes inside of
+ 16384-byte region [ffff8801d1050340, ffff8801d1054340)
+The buggy address belongs to the page:
+page:ffffea0007441400 count:1 mapcount:0 mapping:ffff8801d1050340 index:0x0 compound_mapcount: 0
+flags: 0x200000000008100(slab|head)
+raw: 0200000000008100 ffff8801d1050340 0000000000000000 0000000100000001
+raw: ffffea0007468a20 ffff8801dac01c48 ffff8801dac02200 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d1053500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d1053580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801d1053600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                                ^
+ ffff8801d1053680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d1053700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

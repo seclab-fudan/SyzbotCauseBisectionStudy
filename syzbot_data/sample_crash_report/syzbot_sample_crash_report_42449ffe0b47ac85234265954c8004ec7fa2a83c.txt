@@ -1,0 +1,38 @@
+BUG: sleeping function called from invalid context at net/core/sock.c:3161
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 31461, name: syz-executor178
+1 lock held by syz-executor178/31461:
+ #0: ffffffff8d2ed420 (hci_sk_list.lock){++++}-{2:2}, at: hci_sock_dev_event+0x3db/0x660 net/bluetooth/hci_sock.c:763
+Preemption disabled at:
+[<0000000000000000>] 0x0
+CPU: 0 PID: 31461 Comm: syz-executor178 Not tainted 5.14.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ ___might_sleep.cold+0x1f1/0x237 kernel/sched/core.c:9154
+ lock_sock_nested+0x25/0x120 net/core/sock.c:3161
+ lock_sock include/net/sock.h:1613 [inline]
+ hci_sock_dev_event+0x465/0x660 net/bluetooth/hci_sock.c:765
+ hci_unregister_dev+0x2fd/0x1130 net/bluetooth/hci_core.c:4033
+ vhci_release+0x70/0xe0 drivers/bluetooth/hci_vhci.c:340
+ __fput+0x288/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ exit_task_work include/linux/task_work.h:32 [inline]
+ do_exit+0xbd4/0x2a60 kernel/exit.c:825
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ __do_sys_exit_group kernel/exit.c:933 [inline]
+ __se_sys_exit_group kernel/exit.c:931 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:931
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x456039
+Code: Unable to access opcode bytes at RIP 0x45600f.
+RSP: 002b:00007ffef7851478 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00000000004d81d0 RCX: 0000000000456039
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000001
+RBP: 0000000000000001 R08: ffffffffffffffb8 R09: 0000000000000b0b
+R10: 0000000800000015 R11: 0000000000000246 R12: 00000000004d81d0
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+
+======================================================

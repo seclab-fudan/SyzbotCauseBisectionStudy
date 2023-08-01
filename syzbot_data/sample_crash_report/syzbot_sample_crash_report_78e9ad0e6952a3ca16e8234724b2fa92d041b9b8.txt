@@ -1,0 +1,67 @@
+IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+==================================================================
+BUG: KMSAN: kernel-infoleak in copyout lib/iov_iter.c:140 [inline]
+BUG: KMSAN: kernel-infoleak in copy_page_to_iter_iovec lib/iov_iter.c:212 [inline]
+BUG: KMSAN: kernel-infoleak in copy_page_to_iter+0x77a/0x1ac0 lib/iov_iter.c:846
+CPU: 0 PID: 5005 Comm: blkid Not tainted 4.19.0-rc1+ #39
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x14b/0x190 lib/dump_stack.c:113
+ kmsan_report+0x183/0x2b0 mm/kmsan/kmsan.c:956
+ kmsan_internal_check_memory+0x17e/0x1f0 mm/kmsan/kmsan.c:1020
+ kmsan_copy_to_user+0x73/0xb0 mm/kmsan/kmsan_hooks.c:479
+ copyout lib/iov_iter.c:140 [inline]
+ copy_page_to_iter_iovec lib/iov_iter.c:212 [inline]
+ copy_page_to_iter+0x77a/0x1ac0 lib/iov_iter.c:846
+ generic_file_buffered_read mm/filemap.c:2185 [inline]
+ generic_file_read_iter+0x3469/0x4430 mm/filemap.c:2362
+ blkdev_read_iter+0x20d/0x270 fs/block_dev.c:1936
+ call_read_iter include/linux/fs.h:1801 [inline]
+ new_sync_read fs/read_write.c:406 [inline]
+ __vfs_read+0x7bb/0x9f0 fs/read_write.c:418
+ vfs_read+0x36f/0x6a0 fs/read_write.c:452
+ ksys_read fs/read_write.c:578 [inline]
+ __do_sys_read fs/read_write.c:588 [inline]
+ __se_sys_read fs/read_write.c:586 [inline]
+ __x64_sys_read+0x1b7/0x3c0 fs/read_write.c:586
+ do_syscall_64+0x15b/0x220 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x7f6bf4959310
+Code: 73 01 c3 48 8b 0d 28 4b 2b 00 31 d2 48 29 c2 64 89 11 48 83 c8 ff eb ea 90 90 83 3d e5 a2 2b 00 00 75 10 b8 00 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 6e 8a 01 00 48 89 04 24
+RSP: 002b:00007fff70489898 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 0000000000037000 RCX: 00007f6bf4959310
+RDX: 0000000000000029 RSI: 0000000000ddf1c8 RDI: 0000000000000003
+RBP: 0000000000ddf1a0 R08: 0000000000000058 R09: 0101010101010101
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000dd9030
+R13: 0000000000000029 R14: 0000000000dd9080 R15: 0000000000ddf1b8
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:256 [inline]
+ kmsan_internal_alloc_meta_for_pages+0x146/0x700 mm/kmsan/kmsan.c:694
+ kmsan_alloc_page+0x75/0xd0 mm/kmsan/kmsan_hooks.c:250
+ __alloc_pages_nodemask+0xf6b/0x5c80 mm/page_alloc.c:4411
+ alloc_pages_current+0x6b1/0x970 mm/mempolicy.c:2093
+ alloc_pages include/linux/gfp.h:511 [inline]
+ __page_cache_alloc+0x95/0x320 mm/filemap.c:946
+ page_cache_alloc include/linux/pagemap.h:234 [inline]
+ generic_file_buffered_read mm/filemap.c:2273 [inline]
+ generic_file_read_iter+0x27a4/0x4430 mm/filemap.c:2362
+ blkdev_read_iter+0x20d/0x270 fs/block_dev.c:1936
+ call_read_iter include/linux/fs.h:1801 [inline]
+ new_sync_read fs/read_write.c:406 [inline]
+ __vfs_read+0x7bb/0x9f0 fs/read_write.c:418
+ vfs_read+0x36f/0x6a0 fs/read_write.c:452
+ ksys_read fs/read_write.c:578 [inline]
+ __do_sys_read fs/read_write.c:588 [inline]
+ __se_sys_read fs/read_write.c:586 [inline]
+ __x64_sys_read+0x1b7/0x3c0 fs/read_write.c:586
+ do_syscall_64+0x15b/0x220 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+
+Bytes 0-40 of 41 are uninitialized
+Memory access starts at ffff8801b1729000
+==================================================================

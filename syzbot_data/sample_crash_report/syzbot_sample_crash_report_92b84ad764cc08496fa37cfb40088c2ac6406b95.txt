@@ -1,0 +1,152 @@
+sctp: sctp_transport_update_pmtu: Reported pmtu 508 too low, using default minimum of 512
+INFO: task kworker/u4:0:5 blocked for more than 120 seconds.
+      Not tainted 4.15.0-rc2-next-20171205+ #59
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+kworker/u4:0    D15808     5      2 0x80000000
+Workqueue: netns cleanup_net
+Call Trace:
+ context_switch kernel/sched/core.c:2800 [inline]
+ __schedule+0x8eb/0x2060 kernel/sched/core.c:3376
+ schedule+0xf5/0x430 kernel/sched/core.c:3435
+ schedule_preempt_disabled+0x10/0x20 kernel/sched/core.c:3493
+ __mutex_lock_common kernel/locking/mutex.c:833 [inline]
+ __mutex_lock+0xaad/0x1a80 kernel/locking/mutex.c:893
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+ rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+ tc_action_net_exit include/net/act_api.h:125 [inline]
+ bpf_exit_net+0x1a2/0x340 net/sched/act_bpf.c:408
+ ops_exit_list.isra.6+0xae/0x150 net/core/net_namespace.c:142
+ cleanup_net+0x5c7/0xb60 net/core/net_namespace.c:484
+ process_one_work+0xbfd/0x1bc0 kernel/workqueue.c:2113
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+ kthread+0x37a/0x440 kernel/kthread.c:238
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:517
+
+Showing all locks held in the system:
+4 locks held by kworker/u4:0/5:
+ #0:  ((wq_completion)"%s""netns"){+.+.}, at: [<00000000b9f061a2>] __write_once_size include/linux/compiler.h:212 [inline]
+ #0:  ((wq_completion)"%s""netns"){+.+.}, at: [<00000000b9f061a2>] atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0:  ((wq_completion)"%s""netns"){+.+.}, at: [<00000000b9f061a2>] atomic_long_set include/asm-generic/atomic-long.h:57 [inline]
+ #0:  ((wq_completion)"%s""netns"){+.+.}, at: [<00000000b9f061a2>] set_work_data kernel/workqueue.c:619 [inline]
+ #0:  ((wq_completion)"%s""netns"){+.+.}, at: [<00000000b9f061a2>] set_work_pool_and_clear_pending kernel/workqueue.c:646 [inline]
+ #0:  ((wq_completion)"%s""netns"){+.+.}, at: [<00000000b9f061a2>] process_one_work+0xad4/0x1bc0 kernel/workqueue.c:2084
+ #1:  (net_cleanup_work){+.+.}, at: [<000000006c7c48a3>] process_one_work+0xb2f/0x1bc0 kernel/workqueue.c:2088
+ #2:  (net_mutex){+.+.}, at: [<00000000bf4709f3>] cleanup_net+0x247/0xb60 net/core/net_namespace.c:450
+ #3:  (rtnl_mutex){+.+.}, at: [<0000000053390f0b>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+3 locks held by kworker/1:0/17:
+ #0:  ((wq_completion)"%s"("ipv6_addrconf")){+.+.}, at: [<00000000b9f061a2>] __write_once_size include/linux/compiler.h:212 [inline]
+ #0:  ((wq_completion)"%s"("ipv6_addrconf")){+.+.}, at: [<00000000b9f061a2>] atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0:  ((wq_completion)"%s"("ipv6_addrconf")){+.+.}, at: [<00000000b9f061a2>] atomic_long_set include/asm-generic/atomic-long.h:57 [inline]
+ #0:  ((wq_completion)"%s"("ipv6_addrconf")){+.+.}, at: [<00000000b9f061a2>] set_work_data kernel/workqueue.c:619 [inline]
+ #0:  ((wq_completion)"%s"("ipv6_addrconf")){+.+.}, at: [<00000000b9f061a2>] set_work_pool_and_clear_pending kernel/workqueue.c:646 [inline]
+ #0:  ((wq_completion)"%s"("ipv6_addrconf")){+.+.}, at: [<00000000b9f061a2>] process_one_work+0xad4/0x1bc0 kernel/workqueue.c:2084
+ #1:  ((addr_chk_work).work){+.+.}, at: [<000000006c7c48a3>] process_one_work+0xb2f/0x1bc0 kernel/workqueue.c:2088
+ #2:  (rtnl_mutex){+.+.}, at: [<0000000053390f0b>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+2 locks held by khungtaskd/675:
+ #0:  (rcu_read_lock){....}, at: [<00000000587c8471>] check_hung_uninterruptible_tasks kernel/hung_task.c:175 [inline]
+ #0:  (rcu_read_lock){....}, at: [<00000000587c8471>] watchdog+0x1c5/0xd60 kernel/hung_task.c:249
+ #1:  (tasklist_lock){.+.+}, at: [<000000005288685e>] debug_show_all_locks+0xd3/0x400 kernel/locking/lockdep.c:4554
+1 lock held by rsyslogd/2974:
+ #0:  (&f->f_pos_lock){+.+.}, at: [<0000000011e00499>] __fdget_pos+0x131/0x1a0 fs/file.c:770
+2 locks held by getty/3056:
+ #0:  (&tty->ldisc_sem){++++}, at: [<00000000b9fd70a9>] ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000abb3bd08>] n_tty_read+0x2f2/0x1a10 drivers/tty/n_tty.c:2131
+2 locks held by getty/3057:
+ #0:  (&tty->ldisc_sem){++++}, at: [<00000000b9fd70a9>] ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000abb3bd08>] n_tty_read+0x2f2/0x1a10 drivers/tty/n_tty.c:2131
+2 locks held by getty/3058:
+ #0:  (&tty->ldisc_sem){++++}, at: [<00000000b9fd70a9>] ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000abb3bd08>] n_tty_read+0x2f2/0x1a10 drivers/tty/n_tty.c:2131
+2 locks held by getty/3059:
+ #0:  (&tty->ldisc_sem){++++}, at: [<00000000b9fd70a9>] ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000abb3bd08>] n_tty_read+0x2f2/0x1a10 drivers/tty/n_tty.c:2131
+2 locks held by getty/3060:
+ #0:  (&tty->ldisc_sem){++++}, at: [<00000000b9fd70a9>] ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000abb3bd08>] n_tty_read+0x2f2/0x1a10 drivers/tty/n_tty.c:2131
+2 locks held by getty/3061:
+ #0:  (&tty->ldisc_sem){++++}, at: [<00000000b9fd70a9>] ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000abb3bd08>] n_tty_read+0x2f2/0x1a10 drivers/tty/n_tty.c:2131
+2 locks held by getty/3062:
+ #0:  (&tty->ldisc_sem){++++}, at: [<00000000b9fd70a9>] ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000abb3bd08>] n_tty_read+0x2f2/0x1a10 drivers/tty/n_tty.c:2131
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 675 Comm: khungtaskd Not tainted 4.15.0-rc2-next-20171205+ #59
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ nmi_cpu_backtrace+0x1d2/0x210 lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x122/0x180 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:138 [inline]
+ check_hung_task kernel/hung_task.c:132 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:190 [inline]
+ watchdog+0x90c/0xd60 kernel/hung_task.c:249
+ kthread+0x37a/0x440 kernel/kthread.c:238
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:517
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 13156 Comm: syz-executor7 Not tainted 4.15.0-rc2-next-20171205+ #59
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: 000000005209c120 task.stack: 00000000ffaab0e8
+RIP: 0010:inb arch/x86/include/asm/io.h:348 [inline]
+RIP: 0010:io_serial_in+0x6b/0x90 drivers/tty/serial/8250/8250_port.c:434
+RSP: 0018:ffff8801c0a16e70 EFLAGS: 00000002
+RAX: dffffc0000000000 RBX: 00000000000003fd RCX: 0000000000000000
+RDX: 00000000000003fd RSI: ffffc90003745000 RDI: ffffffff87cf1a40
+RBP: ffff8801c0a16e80 R08: 0000000000000005 R09: 000000000000000c
+R10: 0000000000000000 R11: ffffffff8748dd20 R12: ffffffff87cf1a00
+R13: 0000000000000020 R14: fffffbfff0f9e387 R15: fffffbfff0f9e34a
+FS:  00007f6d52e3f700(0000) GS:ffff8801db500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000c42005de80 CR3: 00000001c368a000 CR4: 00000000001406e0
+DR0: 0000000020000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+ serial_in drivers/tty/serial/8250/8250.h:111 [inline]
+ wait_for_xmitr+0x93/0x1e0 drivers/tty/serial/8250/8250_port.c:2033
+ serial8250_console_putchar+0x1f/0x60 drivers/tty/serial/8250/8250_port.c:3170
+ uart_console_write+0xac/0xe0 drivers/tty/serial/serial_core.c:1858
+ serial8250_console_write+0x647/0xa20 drivers/tty/serial/8250/8250_port.c:3236
+ univ8250_console_write+0x5f/0x70 drivers/tty/serial/8250/8250_core.c:590
+ call_console_drivers kernel/printk/printk.c:1574 [inline]
+ console_unlock+0x788/0xd70 kernel/printk/printk.c:2233
+ vprintk_emit+0x4ad/0x590 kernel/printk/printk.c:1757
+ vprintk_default+0x28/0x30 kernel/printk/printk.c:1796
+ vprintk_func+0x57/0xc0 kernel/printk/printk_safe.c:379
+ printk+0xaa/0xca kernel/printk/printk.c:1829
+ nla_parse+0x374/0x3d0 lib/nlattr.c:257
+ nlmsg_parse include/net/netlink.h:398 [inline]
+ nl80211_dump_wiphy_parse.isra.37.constprop.83+0x138/0x5c0 net/wireless/nl80211.c:1920
+ nl80211_dump_interface+0x596/0x820 net/wireless/nl80211.c:2660
+ genl_lock_dumpit+0x68/0x90 net/netlink/genetlink.c:480
+ netlink_dump+0x48c/0xce0 net/netlink/af_netlink.c:2186
+ __netlink_dump_start+0x4f0/0x6d0 net/netlink/af_netlink.c:2283
+ genl_family_rcv_msg+0xd27/0xfc0 net/netlink/genetlink.c:548
+ genl_rcv_msg+0xb2/0x140 net/netlink/genetlink.c:624
+ netlink_rcv_skb+0x216/0x440 net/netlink/af_netlink.c:2405
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:635
+ netlink_unicast_kernel net/netlink/af_netlink.c:1272 [inline]
+ netlink_unicast+0x4e8/0x6f0 net/netlink/af_netlink.c:1298
+ netlink_sendmsg+0xa4a/0xe70 net/netlink/af_netlink.c:1861
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:646
+ sock_write_iter+0x320/0x5e0 net/socket.c:915
+ call_write_iter include/linux/fs.h:1776 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x68a/0x970 fs/read_write.c:482
+ vfs_write+0x18f/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x4529d9
+RSP: 002b:00007f6d52e3ec58 EFLAGS: 00000212 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007f6d52e3f700 RCX: 00000000004529d9
+RDX: 0000000000000024 RSI: 0000000020454000 RDI: 0000000000000016
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 0000000000000000
+R13: 0000000000a6f7ff R14: 00007f6d52e3f9c0 R15: 0000000000000000
+Code: 24 d9 00 00 00 49 8d 7c 24 40 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 d3 e3 80 3c 02 00 75 17 41 03 5c 24 40 89 da ec <5b> 0f b6 c0 41 5c 5d c3 e8 38 b0 18 ff eb c2 e8 91 b0 18 ff eb 

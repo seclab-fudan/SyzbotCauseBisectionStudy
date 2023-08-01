@@ -1,0 +1,66 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc1-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-sched read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+4 locks held by agetty/8138:
+ #0: ffff888028e5e098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:267
+ #1: 
+ffff888028e5e2e8
+ (
+&tty->termios_rwsem
+){++++}-{3:3}
+, at: n_tty_receive_buf_common+0x89/0x2bc0 drivers/tty/n_tty.c:1703
+ #2: 
+ffffc90000fb8378
+ (
+&ldata->output_lock
+){+.+.}-{3:3}
+, at: flush_echoes drivers/tty/n_tty.c:824 [inline]
+, at: __receive_buf drivers/tty/n_tty.c:1645 [inline]
+, at: n_tty_receive_buf_common+0xb49/0x2bc0 drivers/tty/n_tty.c:1740
+ #3: 
+ffffffff8bf68300 (console_lock){+.+.}-{0:0}
+, at: do_con_write+0x10f/0x1e60 drivers/tty/vt/vt.c:2868
+
+stack backtrace:
+CPU: 0 PID: 8138 Comm: agetty Not tainted 5.13.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x266/0x2c0 kernel/sched/core.c:8304
+ console_conditional_schedule+0x37/0x50 kernel/printk/printk.c:2687
+ fbcon_redraw.constprop.0+0x1aa/0x4b0 drivers/video/fbdev/core/fbcon.c:1667
+ fbcon_scroll+0x1d7a/0x3580 drivers/video/fbdev/core/fbcon.c:1782
+ con_scroll+0x5b9/0x6d0 drivers/tty/vt/vt.c:630
+ lf+0x26b/0x2c0 drivers/tty/vt/vt.c:1490
+ do_con_trol+0x20f/0x54c0 drivers/tty/vt/vt.c:2170
+ do_con_write+0xdbd/0x1e60 drivers/tty/vt/vt.c:2911
+ con_write+0x21/0x40 drivers/tty/vt/vt.c:3255
+ do_output_char+0x5de/0x850 drivers/tty/n_tty.c:444
+ __process_echoes+0x38e/0x9f0 drivers/tty/n_tty.c:736
+ flush_echoes drivers/tty/n_tty.c:826 [inline]
+ __receive_buf drivers/tty/n_tty.c:1645 [inline]
+ n_tty_receive_buf_common+0xb88/0x2bc0 drivers/tty/n_tty.c:1740
+ tiocsti drivers/tty/tty_io.c:2315 [inline]
+ tty_ioctl+0x8db/0x1600 drivers/tty/tty_io.c:2721
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:1069 [inline]
+ __se_sys_ioctl fs/ioctl.c:1055 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f1747641017
+Code: 00 00 00 48 8b 05 81 7e 2b 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 51 7e 2b 00 f7 d8 64 89 01 48
+RSP: 002b:00007fffaea23708 EFLAGS: 00000206 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007fffaea23888 RCX: 00007f1747641017
+RDX: 00007fffaea23887 RSI: 0000000000005412 RDI: 0000000000000000
+RBP: 00007fffaea238cf R08: ffffffffffffff98 R09: 00007fffaea23780
+R10: 0000000000000000 R11: 0000000000000206 R12: 00007fffaea23724
+R13: 00007fffaea23880 R14: 00007fffaea23780 R15: 0000000000000000

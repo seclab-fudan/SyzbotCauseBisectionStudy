@@ -1,0 +1,122 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	0-...!: (10500 ticks this GP) idle=e69/1/0x4000000000000000 softirq=9160/9160 fqs=3 
+	(t=10502 jiffies g=11457 q=19)
+rcu: rcu_preempt kthread starved for 10496 jiffies! g11457 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x0 ->cpu=1
+rcu: 	Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+rcu: RCU grace-period kthread stack dump:
+task:rcu_preempt     state:R  running task     stack:27528 pid:   14 ppid:     2 flags:0x00004000
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:4984 [inline]
+ __schedule+0xa9a/0x4940 kernel/sched/core.c:6265
+ schedule+0xd2/0x260 kernel/sched/core.c:6338
+ schedule_timeout+0x14a/0x2a0 kernel/time/timer.c:1881
+ rcu_gp_fqs_loop+0x186/0x810 kernel/rcu/tree.c:1966
+ rcu_gp_kthread+0x1de/0x320 kernel/rcu/tree.c:2139
+ kthread+0x405/0x4f0 kernel/kthread.c:327
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+rcu: Stack dump where RCU GP kthread last ran:
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 6588 Comm: iou-wrk-6583 Not tainted 5.15.0-rc7-next-20211026-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:check_kcov_mode kernel/kcov.c:166 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0xd/0x60 kernel/kcov.c:200
+Code: 00 00 e9 d6 2b 61 02 66 0f 1f 44 00 00 48 8b be b0 01 00 00 e8 b4 ff ff ff 31 c0 c3 90 65 8b 05 89 be 8a 7e 89 c1 48 8b 34 24 <81> e1 00 01 00 00 65 48 8b 14 25 40 70 02 00 a9 00 01 ff 00 74 0e
+RSP: 0018:ffffc900027df590 EFLAGS: 00000206
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff890d8264 RDI: 0000000000000003
+RBP: ffff88806b000000 R08: 0000000000003fff R09: 0000000000000000
+R10: ffffffff890d8256 R11: 0000000000000000 R12: 000000001445b314
+R13: dffffc0000000000 R14: ffff888015e58000 R15: ffff88801c84bde0
+FS:  00005555556bf300(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fe311c06053 CR3: 0000000021ae4000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __io_uring_show_fdinfo fs/io_uring.c:10146 [inline]
+ io_uring_show_fdinfo+0x3a1/0x1372 fs/io_uring.c:10231
+ seq_show+0x58d/0x800 fs/proc/fd.c:68
+ seq_read_iter+0x4f6/0x1240 fs/seq_file.c:230
+ seq_read+0x3e0/0x5b0 fs/seq_file.c:162
+ loop_rw_iter+0x12d/0x530 fs/io_uring.c:3282
+ io_iter_do_read fs/io_uring.c:3465 [inline]
+ io_iter_do_read fs/io_uring.c:3460 [inline]
+ io_read+0xce6/0xff0 fs/io_uring.c:3520
+ io_issue_sqe+0x800/0x7010 fs/io_uring.c:6628
+ io_wq_submit_work+0x1db/0x580 fs/io_uring.c:6793
+ io_worker_handle_work+0x97a/0x16f0 fs/io-wq.c:517
+ io_wqe_worker+0x55e/0xc20 fs/io-wq.c:570
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 1.316 msecs
+NMI backtrace for cpu 0
+CPU: 0 PID: 6581 Comm: iou-wrk-6574 Not tainted 5.15.0-rc7-next-20211026-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x47/0x144 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1ae/0x220 lib/nmi_backtrace.c:62
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x25e/0x3f0 kernel/rcu/tree_stall.h:343
+ print_cpu_stall kernel/rcu/tree_stall.h:604 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:688 [inline]
+ rcu_pending kernel/rcu/tree.c:3922 [inline]
+ rcu_sched_clock_irq.cold+0x9d/0x746 kernel/rcu/tree.c:2620
+ update_process_times+0x16d/0x200 kernel/time/timer.c:1785
+ tick_sched_handle+0x9b/0x180 kernel/time/tick-sched.c:226
+ tick_sched_timer+0x1b0/0x2d0 kernel/time/tick-sched.c:1428
+ __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+ __hrtimer_run_queues+0x1c0/0xe50 kernel/time/hrtimer.c:1749
+ hrtimer_interrupt+0x31c/0x790 kernel/time/hrtimer.c:1811
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1086 [inline]
+ __sysvec_apic_timer_interrupt+0x146/0x530 arch/x86/kernel/apic/apic.c:1103
+ sysvec_apic_timer_interrupt+0x8e/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:__io_uring_show_fdinfo fs/io_uring.c:10148 [inline]
+RIP: 0010:io_uring_show_fdinfo+0x3fb/0x1372 fs/io_uring.c:10231
+Code: fa 48 c1 ea 03 42 80 3c 2a 00 74 05 e8 1b dd b0 f8 48 8d 7d 01 48 8b 45 20 48 89 fa 48 89 f9 48 c1 ea 03 83 e1 07 42 8a 14 2a <48> 89 44 24 30 38 ca 7f 09 84 d2 74 05 e8 c0 dc b0 f8 48 8d 7d 04
+RSP: 0018:ffffc90001f6f598 EFLAGS: 00000202
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000001
+RDX: 1ffff1100d800000 RSI: ffffffff890d8264 RDI: ffff88806c000001
+RBP: ffff88806c000000 R08: 0000000000003fff R09: 0000000000000000
+R10: ffffffff890d8256 R11: 0000000000000000 R12: 000000001426b56e
+R13: dffffc0000000000 R14: ffff888015d0b000 R15: ffff88801afd8cb8
+ seq_show+0x58d/0x800 fs/proc/fd.c:68
+ seq_read_iter+0x4f6/0x1240 fs/seq_file.c:230
+ seq_read+0x3e0/0x5b0 fs/seq_file.c:162
+ loop_rw_iter+0x12d/0x530 fs/io_uring.c:3282
+ io_iter_do_read fs/io_uring.c:3465 [inline]
+ io_iter_do_read fs/io_uring.c:3460 [inline]
+ io_read+0xce6/0xff0 fs/io_uring.c:3520
+ io_issue_sqe+0x800/0x7010 fs/io_uring.c:6628
+ io_wq_submit_work+0x1db/0x580 fs/io_uring.c:6793
+ io_worker_handle_work+0x97a/0x16f0 fs/io-wq.c:517
+ io_wqe_worker+0x55e/0xc20 fs/io-wq.c:570
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	00 00                	add    %al,(%rax)
+   2:	e9 d6 2b 61 02       	jmpq   0x2612bdd
+   7:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+   d:	48 8b be b0 01 00 00 	mov    0x1b0(%rsi),%rdi
+  14:	e8 b4 ff ff ff       	callq  0xffffffcd
+  19:	31 c0                	xor    %eax,%eax
+  1b:	c3                   	retq
+  1c:	90                   	nop
+  1d:	65 8b 05 89 be 8a 7e 	mov    %gs:0x7e8abe89(%rip),%eax        # 0x7e8abead
+  24:	89 c1                	mov    %eax,%ecx
+  26:	48 8b 34 24          	mov    (%rsp),%rsi
+* 2a:	81 e1 00 01 00 00    	and    $0x100,%ecx <-- trapping instruction
+  30:	65 48 8b 14 25 40 70 	mov    %gs:0x27040,%rdx
+  37:	02 00
+  39:	a9 00 01 ff 00       	test   $0xff0100,%eax
+  3e:	74 0e                	je     0x4e

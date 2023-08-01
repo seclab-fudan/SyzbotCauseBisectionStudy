@@ -1,0 +1,76 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in __tlb_remove_page_size+0x448/0x500 mm/memory.c:314
+PANIC: double fault, error_code: 0x0
+Write of size 8 at addr ffff88019ad6c7a8 by task syz-executor1/11392
+CPU: 1 PID: 11378 Comm: syz-executor0 Not tainted 4.18.0-rc3+ #58
+
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__lock_acquire+0x2e/0x5020 kernel/locking/lockdep.c:3294
+CPU: 0 PID: 11392 Comm: syz-executor1 Not tainted 4.18.0-rc3+ #58
+Code: 41 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+57 41 
+Call Trace:
+89 cf 
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+41 56 
+41 55 
+49 89 
+fd 41 
+54 
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+45 89 
+cc 53 
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+65 
+ __asan_report_store8_noabort+0x17/0x20 mm/kasan/report.c:438
+4c 8b 
+ __tlb_remove_page_size+0x448/0x500 mm/memory.c:314
+34 25 
+ __tlb_remove_page include/asm-generic/tlb.h:150 [inline]
+ zap_pte_range mm/memory.c:1336 [inline]
+ zap_pmd_range mm/memory.c:1437 [inline]
+ zap_pud_range mm/memory.c:1466 [inline]
+ zap_p4d_range mm/memory.c:1487 [inline]
+ unmap_page_range+0x1059/0x2220 mm/memory.c:1508
+40 ee 
+01 00 
+48 83 
+e4 f0 
+48 
+81 ec 
+60 03 
+00 00 
+48 8b 
+45 10 
+<89> 94 
+24 80 
+00 00 
+00 48 
+ba 00 
+00 
+00 
+00 00 
+fc ff 
+ unmap_single_vma+0x1a0/0x310 mm/memory.c:1553
+df 48 
+ unmap_vmas+0x120/0x1f0 mm/memory.c:1583
+89 84 
+ exit_mmap+0x2c2/0x5b0 mm/mmap.c:3105
+24 98 
+RSP: 0018:ffff88019a0e2db0 EFLAGS: 00010082
+ __mmput kernel/fork.c:970 [inline]
+ mmput+0x265/0x620 kernel/fork.c:991
+RAX: 0000000000000000 RBX: 1ffff1003341c633 RCX: 0000000000000002
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff88f92620
+RBP: ffff88019a0e3140 R08: 0000000000000000 R09: 0000000000000000
+R10: ffff88019af0fbe0 R11: ffff8801c7200a3b R12: 0000000000000000
+R13: ffffffff88f92620 R14: ffff8801c72002c0 R15: 0000000000000002
+FS:  00000000020ac940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff88019a0e2da8 CR3: 00000001b0815000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:

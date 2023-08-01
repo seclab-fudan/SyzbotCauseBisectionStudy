@@ -1,0 +1,156 @@
+========================================================
+WARNING: possible irq lock inversion dependency detected
+5.9.0-rc6-next-20200922-syzkaller #0 Not tainted
+--------------------------------------------------------
+swapper/1/0 just changed the state of lock:
+ffff888099dbb108 (&group->lock){..-.}-{2:2}, at: _snd_pcm_stream_lock_irqsave+0x9f/0xd0 sound/core/pcm_native.c:170
+but this lock took another, SOFTIRQ-READ-unsafe lock in the past:
+ (&card->ctl_files_rwlock){.+.+}-{2:2}
+
+
+and interrupts could create inverse lock ordering between them.
+
+
+other info that might help us debug this:
+ Possible interrupt unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&card->ctl_files_rwlock);
+                               local_irq_disable();
+                               lock(&group->lock);
+                               lock(&card->ctl_files_rwlock);
+  <Interrupt>
+    lock(&group->lock);
+
+ *** DEADLOCK ***
+
+1 lock held by swapper/1/0:
+ #0: ffffc90000da8d80 ((&dpcm->timer)){+.-.}-{0:0}, at: lockdep_copy_map include/linux/lockdep.h:35 [inline]
+ #0: ffffc90000da8d80 ((&dpcm->timer)){+.-.}-{0:0}, at: call_timer_fn+0xd5/0x6b0 kernel/time/timer.c:1403
+
+the shortest dependencies between 2nd lock and 1st lock:
+ -> (&card->ctl_files_rwlock){.+.+}-{2:2} {
+    HARDIRQ-ON-R at:
+                      lock_acquire+0x1f2/0xaa0 kernel/locking/lockdep.c:5398
+                      __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                      _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+                      snd_ctl_notify.part.0+0x36/0x550 sound/core/control.c:153
+                      snd_ctl_notify+0x8f/0xb0 sound/core/control.c:181
+                      __snd_ctl_add_replace+0x638/0x800 sound/core/control.c:382
+                      snd_ctl_add_replace+0x76/0x130 sound/core/control.c:399
+                      snd_card_dummy_new_mixer sound/drivers/dummy.c:885 [inline]
+                      snd_dummy_probe+0xc22/0x1180 sound/drivers/dummy.c:1080
+                      platform_drv_probe+0x87/0x140 drivers/base/platform.c:761
+                      really_probe+0x282/0x9f0 drivers/base/dd.c:553
+                      driver_probe_device+0xfe/0x1d0 drivers/base/dd.c:737
+                      __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:843
+                      bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:431
+                      __device_attach+0x228/0x470 drivers/base/dd.c:911
+                      bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+                      device_add+0xb17/0x1c40 drivers/base/core.c:2929
+                      platform_device_add+0x34f/0x6d0 drivers/base/platform.c:611
+                      platform_device_register_full+0x38c/0x4e0 drivers/base/platform.c:734
+                      platform_device_register_resndata include/linux/platform_device.h:131 [inline]
+                      platform_device_register_simple include/linux/platform_device.h:160 [inline]
+                      alsa_card_dummy_init+0x1e0/0x309 sound/drivers/dummy.c:1168
+                      do_one_initcall+0x103/0x6f0 init/main.c:1204
+                      do_initcall_level init/main.c:1277 [inline]
+                      do_initcalls init/main.c:1293 [inline]
+                      do_basic_setup init/main.c:1313 [inline]
+                      kernel_init_freeable+0x652/0x6d6 init/main.c:1512
+                      kernel_init+0xd/0x1b8 init/main.c:1402
+                      ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+    SOFTIRQ-ON-R at:
+                      lock_acquire+0x1f2/0xaa0 kernel/locking/lockdep.c:5398
+                      __raw_read_lock include/linux/rwlock_api_smp.h:149 [inline]
+                      _raw_read_lock+0x5b/0x70 kernel/locking/spinlock.c:223
+                      snd_ctl_notify.part.0+0x36/0x550 sound/core/control.c:153
+                      snd_ctl_notify+0x8f/0xb0 sound/core/control.c:181
+                      __snd_ctl_add_replace+0x638/0x800 sound/core/control.c:382
+                      snd_ctl_add_replace+0x76/0x130 sound/core/control.c:399
+                      snd_card_dummy_new_mixer sound/drivers/dummy.c:885 [inline]
+                      snd_dummy_probe+0xc22/0x1180 sound/drivers/dummy.c:1080
+                      platform_drv_probe+0x87/0x140 drivers/base/platform.c:761
+                      really_probe+0x282/0x9f0 drivers/base/dd.c:553
+                      driver_probe_device+0xfe/0x1d0 drivers/base/dd.c:737
+                      __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:843
+                      bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:431
+                      __device_attach+0x228/0x470 drivers/base/dd.c:911
+                      bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+                      device_add+0xb17/0x1c40 drivers/base/core.c:2929
+                      platform_device_add+0x34f/0x6d0 drivers/base/platform.c:611
+                      platform_device_register_full+0x38c/0x4e0 drivers/base/platform.c:734
+                      platform_device_register_resndata include/linux/platform_device.h:131 [inline]
+                      platform_device_register_simple include/linux/platform_device.h:160 [inline]
+                      alsa_card_dummy_init+0x1e0/0x309 sound/drivers/dummy.c:1168
+                      do_one_initcall+0x103/0x6f0 init/main.c:1204
+                      do_initcall_level init/main.c:1277 [inline]
+                      do_initcalls init/main.c:1293 [inline]
+                      do_basic_setup init/main.c:1313 [inline]
+                      kernel_init_freeable+0x652/0x6d6 init/main.c:1512
+                      kernel_init+0xd/0x1b8 init/main.c:1402
+                      ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+    (null) at:
+================================================================================
+UBSAN: array-index-out-of-bounds in kernel/locking/lockdep.c:2240:40
+index 9 is out of range for type 'lock_trace *[9]'
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.9.0-rc6-next-20200922-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fb lib/dump_stack.c:118
+ ubsan_epilogue+0xb/0x5a lib/ubsan.c:148
+ __ubsan_handle_out_of_bounds.cold+0x62/0x6c lib/ubsan.c:356
+ print_lock_class_header kernel/locking/lockdep.c:2240 [inline]
+ print_shortest_lock_dependencies.cold+0x11c/0x2e2 kernel/locking/lockdep.c:2263
+ print_irq_inversion_bug.part.0+0x2c6/0x2ee kernel/locking/lockdep.c:3769
+ print_irq_inversion_bug kernel/locking/lockdep.c:4377 [inline]
+ check_usage_forwards kernel/locking/lockdep.c:3803 [inline]
+ mark_lock_irq kernel/locking/lockdep.c:3935 [inline]
+ mark_lock.cold+0x57/0x74 kernel/locking/lockdep.c:4375
+ mark_usage kernel/locking/lockdep.c:4260 [inline]
+ __lock_acquire+0x118a/0x56d0 kernel/locking/lockdep.c:4750
+ lock_acquire+0x1f2/0xaa0 kernel/locking/lockdep.c:5398
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x94/0xd0 kernel/locking/spinlock.c:159
+ _snd_pcm_stream_lock_irqsave+0x9f/0xd0 sound/core/pcm_native.c:170
+ snd_pcm_period_elapsed+0x24/0x250 sound/core/pcm_lib.c:1799
+ loopback_jiffies_timer_function+0x1a8/0x220 sound/drivers/aloop.c:669
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1413
+ expire_timers kernel/time/timer.c:1458 [inline]
+ __run_timers.part.0+0x67c/0xa50 kernel/time/timer.c:1755
+ __run_timers kernel/time/timer.c:1736 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1768
+ __do_softirq+0x203/0xab6 kernel/softirq.c:298
+ asm_call_on_stack+0xf/0x20 arch/x86/entry/entry_64.S:786
+ </IRQ>
+ __run_on_irqstack arch/x86/include/asm/irq_stack.h:22 [inline]
+ run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:48 [inline]
+ do_softirq_own_stack+0x9d/0xd0 arch/x86/kernel/irq_64.c:77
+ invoke_softirq kernel/softirq.c:393 [inline]
+ __irq_exit_rcu kernel/softirq.c:423 [inline]
+ irq_exit_rcu+0x235/0x280 kernel/softirq.c:435
+ sysvec_apic_timer_interrupt+0x51/0xf0 arch/x86/kernel/apic/apic.c:1091
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:631
+RIP: 0010:native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:61
+Code: 89 ef e8 45 3b 76 f9 e9 86 fe ff ff 48 89 df e8 38 3b 76 f9 e9 7b ff ff ff cc cc cc e9 07 00 00 00 0f 00 2d 84 87 68 00 fb f4 <c3> 90 e9 07 00 00 00 0f 00 2d 74 87 68 00 f4 c3 cc cc 55 53 e8 09
+RSP: 0018:ffffc90000d3fd80 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 1ffffffff175ebe1
+RDX: ffff8880a961a340 RSI: ffffffff88406353 RDI: 0000000000000000
+RBP: ffff8880a67aa064 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000001
+R13: ffff8880a67aa000 R14: ffff8880a67aa064 R15: ffff888218412004
+ arch_safe_halt arch/x86/include/asm/paravirt.h:150 [inline]
+ acpi_safe_halt drivers/acpi/processor_idle.c:111 [inline]
+ acpi_idle_do_entry+0x1e8/0x330 drivers/acpi/processor_idle.c:516
+ acpi_idle_enter+0x35a/0x550 drivers/acpi/processor_idle.c:647
+ cpuidle_enter_state+0x1ab/0xd20 drivers/cpuidle/cpuidle.c:247
+ cpuidle_enter+0x4a/0xa0 drivers/cpuidle/cpuidle.c:360
+ call_cpuidle kernel/sched/idle.c:132 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:213 [inline]
+ do_idle+0x48e/0x730 kernel/sched/idle.c:273
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:369
+ secondary_startup_64_no_verify+0xa6/0xab
+================================================================================

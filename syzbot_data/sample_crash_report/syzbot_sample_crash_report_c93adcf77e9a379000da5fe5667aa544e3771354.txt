@@ -1,0 +1,66 @@
+
+=============================
+WARNING: suspicious RCU usage
+4.15.0+ #290 Not tainted
+-----------------------------
+./include/linux/inetdevice.h:216 suspicious rcu_dereference_check() usage!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+2 locks held by sh/5249:
+ #0:  ((&im->timer)){+.-.}, at: [<00000000ebc8ddeb>] lockdep_copy_map include/linux/lockdep.h:178 [inline]
+ #0:  ((&im->timer)){+.-.}, at: [<00000000ebc8ddeb>] call_timer_fn+0x1c6/0x820 kernel/time/timer.c:1316
+ #1:  (&(&im->lock)->rlock){+.-.}, at: [<000000002a8c7499>] spin_lock_bh include/linux/spinlock.h:315 [inline]
+ #1:  (&(&im->lock)->rlock){+.-.}, at: [<000000002a8c7499>] igmpv3_send_report+0x98/0x5b0 net/ipv4/igmp.c:600
+
+stack backtrace:
+CPU: 0 PID: 5249 Comm: sh Not tainted 4.15.0+ #290
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4592
+ __in_dev_get_rcu include/linux/inetdevice.h:216 [inline]
+ igmpv3_get_srcaddr net/ipv4/igmp.c:329 [inline]
+ igmpv3_newpack+0xeef/0x12e0 net/ipv4/igmp.c:389
+ add_grhead.isra.27+0x235/0x300 net/ipv4/igmp.c:432
+ add_grec+0xbd3/0x1170 net/ipv4/igmp.c:565
+ igmpv3_send_report+0xd5/0x5b0 net/ipv4/igmp.c:605
+ igmp_send_report+0xc43/0x1050 net/ipv4/igmp.c:722
+ igmp_timer_expire+0x322/0x5c0 net/ipv4/igmp.c:831
+ call_timer_fn+0x228/0x820 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0x7ee/0xb70 kernel/time/timer.c:1666
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1cc/0x200 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:541 [inline]
+ smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xa9/0xb0 arch/x86/entry/entry_64.S:938
+ </IRQ>
+RIP: 0010:path_lookupat+0x279/0xba0 fs/namei.c:2300
+RSP: 0018:ffff8801b7847b98 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff11
+RAX: 00000000fffffffe RBX: 1ffff10036f08f7c RCX: ffffffff81b56cb8
+RDX: dffffc0000000000 RSI: 0000000000000001 RDI: 0000000000000282
+RBP: ffff8801b7847bc0 R08: 0000000000000000 R09: 1ffff10036f08f26
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000041
+R13: dffffc0000000000 R14: ffff8801b7847c38 R15: ffff8801b7847c44
+ filename_lookup+0x25f/0x500 fs/namei.c:2314
+ user_path_at_empty+0x40/0x50 fs/namei.c:2568
+ user_path_at include/linux/namei.h:57 [inline]
+ vfs_statx+0xe9/0x190 fs/stat.c:185
+ vfs_stat include/linux/fs.h:3074 [inline]
+ SYSC_newstat+0x87/0xf0 fs/stat.c:337
+ SyS_newstat+0x1d/0x30 fs/stat.c:333
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x7f8b2d9a3c65
+RSP: 002b:00007ffc22d50bc8 EFLAGS: 00000246 ORIG_RAX: 0000000000000004
+RAX: ffffffffffffffda RBX: 0000000000412eee RCX: 00007f8b2d9a3c65
+RDX: 00007ffc22d50bf0 RSI: 00007ffc22d50bf0 RDI: 00000000010fb3b8
+RBP: 00000000010fb1f0 R08: 000000000061c3f0 R09: 00007f8b2d9f7090
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000010fb210
+R13: 0000000000000005 R14: 0000000000000001 R15: 0000000000000003

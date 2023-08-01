@@ -1,0 +1,90 @@
+audit: type=1400 audit(1517473721.224:7): avc:  denied  { map } for  pid=4106 comm="syzkaller760230" path="/root/syzkaller760230170" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x3d4d/0x3e00 kernel/locking/lockdep.c:3310
+Read of size 8 at addr ffff8801bde848f0 by task syzkaller760230/4106
+
+CPU: 1 PID: 4106 Comm: syzkaller760230 Not tainted 4.15.0+ #290
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ __lock_acquire+0x3d4d/0x3e00 kernel/locking/lockdep.c:3310
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+ remove_wait_queue+0x81/0x350 kernel/sched/wait.c:50
+ ep_remove_wait_queue fs/eventpoll.c:595 [inline]
+ ep_unregister_pollwait.isra.7+0x18c/0x590 fs/eventpoll.c:613
+ ep_free+0x13f/0x320 fs/eventpoll.c:830
+ ep_eventpoll_release+0x44/0x60 fs/eventpoll.c:862
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x4429f8
+RSP: 002b:00007fff89cbcc28 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 00000000004429f8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000006ce018 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401a40
+R13: 0000000000401ad0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4106:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3606
+ kmalloc include/linux/slab.h:499 [inline]
+ kzalloc include/linux/slab.h:688 [inline]
+ binder_get_thread+0x1cf/0x870 drivers/android/binder.c:4219
+ binder_poll+0x8c/0x390 drivers/android/binder.c:4321
+ ep_item_poll.isra.10+0xf2/0x320 fs/eventpoll.c:885
+ ep_insert+0x6a2/0x1ac0 fs/eventpoll.c:1457
+ SYSC_epoll_ctl fs/eventpoll.c:2104 [inline]
+ SyS_epoll_ctl+0x12bf/0x1a80 fs/eventpoll.c:1990
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 4106:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3484 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3799
+ binder_free_thread drivers/android/binder.c:4246 [inline]
+ binder_thread_dec_tmpref+0x27f/0x310 drivers/android/binder.c:1821
+ binder_thread_release+0x27d/0x540 drivers/android/binder.c:4310
+ binder_ioctl+0xc02/0x1417 drivers/android/binder.c:4527
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+The buggy address belongs to the object at ffff8801bde84840
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 176 bytes inside of
+ 512-byte region [ffff8801bde84840, ffff8801bde84a40)
+The buggy address belongs to the page:
+page:ffffea0006f7a100 count:1 mapcount:0 mapping:ffff8801bde840c0 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801bde840c0 0000000000000000 0000000100000006
+raw: ffffea0006f7b620 ffff8801db001748 ffff8801db000940 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bde84780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801bde84800: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>ffff8801bde84880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff8801bde84900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801bde84980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

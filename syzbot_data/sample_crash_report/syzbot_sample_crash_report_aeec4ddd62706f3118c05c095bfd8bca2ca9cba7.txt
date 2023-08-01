@@ -1,0 +1,36 @@
+audit: type=1400 audit(1516723187.782:8): avc:  denied  { map_create } for  pid=3657 comm="syzkaller703595" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=bpf permissive=1
+
+=============================
+WARNING: suspicious RCU usage
+4.15.0-rc8+ #1 Not tainted
+-----------------------------
+./include/linux/rcupdate.h:302 Illegal context switch in RCU read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by syzkaller703595/3657:
+ #0:  (rcu_read_lock){....}, at: [<000000009f49ecac>] map_get_next_key kernel/bpf/syscall.c:836 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000009f49ecac>] SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000009f49ecac>] SyS_bpf+0x1105/0x4860 kernel/bpf/syscall.c:1846
+
+stack backtrace:
+CPU: 1 PID: 3657 Comm: syzkaller703595 Not tainted 4.15.0-rc8+ #1
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4585
+ rcu_preempt_sleep_check include/linux/rcupdate.h:301 [inline]
+ ___might_sleep+0x385/0x470 kernel/sched/core.c:6025
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6013
+ slab_pre_alloc_hook mm/slab.h:419 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ __do_kmalloc mm/slab.c:3706 [inline]
+ __kmalloc+0x2c5/0x760 mm/slab.c:3717
+ kmalloc include/linux/slab.h:504 [inline]
+ trie_get_next_key+0x517/0xf10 kernel/bpf/lpm_trie.c:626
+ map_get_next_key kernel/bpf/syscall.c:842 [inline]
+ SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ SyS_bpf+0x11b4/0x4860 kernel/bpf/syscall.c:1846

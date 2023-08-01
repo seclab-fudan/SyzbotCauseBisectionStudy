@@ -1,0 +1,66 @@
+BUG: MAX_LOCKDEP_ENTRIES too low!
+turning off the locking correctness validator.
+CPU: 0 PID: 5778 Comm: syz-executor282 Not tainted 6.1.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ alloc_list_entry.cold+0x11/0x18 kernel/locking/lockdep.c:1402
+ add_lock_to_list kernel/locking/lockdep.c:1423 [inline]
+ check_prev_add kernel/locking/lockdep.c:3167 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain kernel/locking/lockdep.c:3831 [inline]
+ __lock_acquire+0x3626/0x56d0 kernel/locking/lockdep.c:5055
+ lock_acquire kernel/locking/lockdep.c:5668 [inline]
+ lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+ local_lock_acquire include/linux/local_lock_internal.h:29 [inline]
+ ___slab_alloc+0xe1/0x1400 mm/slub.c:3099
+ __slab_alloc.constprop.0+0x56/0xa0 mm/slub.c:3279
+ slab_alloc_node mm/slub.c:3364 [inline]
+ __kmem_cache_alloc_node+0x199/0x3e0 mm/slub.c:3437
+ __do_kmalloc_node mm/slab_common.c:954 [inline]
+ __kmalloc_node+0x4d/0xd0 mm/slab_common.c:962
+ kmalloc_node include/linux/slab.h:579 [inline]
+ kvmalloc_node+0x43/0x1b0 mm/util.c:581
+ kvmalloc include/linux/slab.h:706 [inline]
+ kvzalloc include/linux/slab.h:714 [inline]
+ alloc_netdev_mqs+0x9c/0x1180 net/core/dev.c:10588
+ bpq_new_device drivers/net/hamradio/bpqether.c:485 [inline]
+ bpq_device_event+0x256/0xab0 drivers/net/hamradio/bpqether.c:542
+ notifier_call_chain+0xb5/0x200 kernel/notifier.c:87
+ call_netdevice_notifiers_info+0xb5/0x130 net/core/dev.c:1945
+ call_netdevice_notifiers_extack net/core/dev.c:1983 [inline]
+ call_netdevice_notifiers net/core/dev.c:1997 [inline]
+ dev_open net/core/dev.c:1473 [inline]
+ dev_open+0x136/0x150 net/core/dev.c:1461
+ team_port_add drivers/net/team/team.c:1215 [inline]
+ team_add_slave+0xa03/0x1b90 drivers/net/team/team.c:1984
+ do_set_master+0x1c8/0x220 net/core/rtnetlink.c:2578
+ rtnl_newlink_create net/core/rtnetlink.c:3381 [inline]
+ __rtnl_newlink+0x13ac/0x17e0 net/core/rtnetlink.c:3581
+ rtnl_newlink+0x68/0xa0 net/core/rtnetlink.c:3594
+ rtnetlink_rcv_msg+0x43e/0xca0 net/core/rtnetlink.c:6091
+ netlink_rcv_skb+0x157/0x430 net/netlink/af_netlink.c:2540
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x91b/0xe10 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg+0xd3/0x120 net/socket.c:734
+ ____sys_sendmsg+0x712/0x8c0 net/socket.c:2482
+ ___sys_sendmsg+0x110/0x1b0 net/socket.c:2536
+ __sys_sendmsg+0xf7/0x1c0 net/socket.c:2565
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f4c664bb229
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 b1 14 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fff2ce766a8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000034fdb RCX: 00007f4c664bb229
+RDX: 0000000000000000 RSI: 0000000020000300 RDI: 0000000000000005
+RBP: 0000000000000000 R08: 00007fff2ce76848 R09: 00007fff2ce76848
+R10: 00007fff2ce76848 R11: 0000000000000246 R12: 00007fff2ce766bc
+R13: 431bde82d7b634db R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+8021q: adding VLAN 0 to HW filter on device batadv971
+team971: Port device batadv971 added

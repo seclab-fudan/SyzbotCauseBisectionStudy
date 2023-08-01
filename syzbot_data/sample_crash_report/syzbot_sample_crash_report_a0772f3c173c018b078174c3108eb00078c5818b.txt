@@ -1,0 +1,73 @@
+kernel tried to execute NX-protected page - exploit attempt? (uid: 0)
+BUG: unable to handle page fault for address: ffff88808eb889e0
+#PF: supervisor instruction fetch in kernel mode
+#PF: error_code(0x0011) - permissions violation
+PGD b401067 P4D b401067 PUD 21ffff067 PMD 800000008ea001e3 
+Oops: 0011 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 9056 Comm: udevd Not tainted 5.2.0-rc5+ #36
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:0xffff88808eb889e0
+Code: 00 00 15 b8 0d 86 ff ff ff ff 00 b5 0d 86 ff ff ff ff 80 20 a8 94 80 88 ff ff 00 00 00 00 00 00 00 00 a0 a9 1d 8b ff ff ff ff <10> 8a b8 8e 80 88 ff ff 15 b8 0d 86 ff ff ff ff 00 b5 0d 86 ff ff
+RSP: 0018:ffff8880ae809e00 EFLAGS: 00010246
+RAX: 1ffff11011d71136 RBX: ffff88808eb889b0 RCX: dffffc0000000000
+RDX: dffffc0000000000 RSI: dffffc0000000000 RDI: ffff88808eb889a8
+RBP: ffff8880ae809f00 R08: 000000001dda059f R09: ffff888098310d88
+R10: ffff888098310d68 R11: ffff8880983104c0 R12: ffff8880ae809ed8
+R13: ffff88808eb889a8 R14: ffff88808eb889e0 R15: ffff8880ae809e78
+FS:  00007fa9e44d17a0(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff88808eb889e0 CR3: 0000000093130000 CR4: 00000000001406f0
+Call Trace:
+ <IRQ>
+ __do_softirq+0x25c/0x94c kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x180/0x1d0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x13b/0x550 arch/x86/kernel/apic/apic.c:1068
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:806
+ </IRQ>
+RIP: 0010:tomoyo_domain_quota_is_ok+0x460/0x540 security/tomoyo/util.c:1039
+Code: 48 b9 00 00 00 00 00 fc ff df 48 89 f8 48 89 fa 48 c1 e8 03 83 e2 07 0f b6 04 08 38 d0 7f 98 84 c0 74 94 e8 42 ca ab fe eb 8d <e8> 0b 1e 73 fe 49 8d 7c 24 1a 48 b9 00 00 00 00 00 fc ff df 48 89
+RSP: 0018:ffff88807a8f77e0 EFLAGS: 00000293 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff82fda05c
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: 0000000000000001
+RBP: ffff88807a8f7820 R08: ffff8880983104c0 R09: ffffed100f51ef11
+R10: ffffed100f51ef10 R11: 0000000000000000 R12: ffff8880a9a0d580
+R13: 0000000000000000 R14: 0000000000000185 R15: 0000000000000000
+ tomoyo_supervisor+0x2e8/0xef0 security/tomoyo/common.c:2087
+ tomoyo_audit_path_log security/tomoyo/file.c:168 [inline]
+ tomoyo_path_permission security/tomoyo/file.c:587 [inline]
+ tomoyo_path_permission+0x263/0x360 security/tomoyo/file.c:573
+ tomoyo_path_perm+0x31d/0x430 security/tomoyo/file.c:838
+ tomoyo_inode_getattr+0x1d/0x30 security/tomoyo/tomoyo.c:129
+ security_inode_getattr+0xf2/0x150 security/security.c:1179
+ vfs_getattr+0x25/0x70 fs/stat.c:115
+ vfs_statx+0x157/0x200 fs/stat.c:191
+ vfs_stat include/linux/fs.h:3193 [inline]
+ __do_sys_newstat+0xa4/0x130 fs/stat.c:341
+ __se_sys_newstat fs/stat.c:337 [inline]
+ __x64_sys_newstat+0x54/0x80 fs/stat.c:337
+ do_syscall_64+0xfd/0x680 arch/x86/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x7fa9e3bd8c65
+Code: 00 00 00 e8 5d 01 00 00 48 83 c4 18 c3 90 90 90 90 90 90 90 90 83 ff 01 48 89 f0 77 18 48 89 c7 48 89 d6 b8 04 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 17 f3 c3 90 48 8b 05 a1 51 2b 00 64 c7 00 16
+RSP: 002b:00007ffd19df2268 EFLAGS: 00000246 ORIG_RAX: 0000000000000004
+RAX: ffffffffffffffda RBX: 00007ffd19df2300 RCX: 00007fa9e3bd8c65
+RDX: 00007ffd19df2270 RSI: 00007ffd19df2270 RDI: 00007ffd19df2300
+RBP: 000000000165cf70 R08: 00007ffd19df2310 R09: 00007fa9e3c2efc0
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000165b250
+R13: 0000000000000000 R14: 000000000165b250 R15: 000000000000000b
+Modules linked in:
+CR2: ffff88808eb889e0
+---[ end trace 9983c7ba6b20cddb ]---
+RIP: 0010:0xffff88808eb889e0
+Code: 00 00 15 b8 0d 86 ff ff ff ff 00 b5 0d 86 ff ff ff ff 80 20 a8 94 80 88 ff ff 00 00 00 00 00 00 00 00 a0 a9 1d 8b ff ff ff ff <10> 8a b8 8e 80 88 ff ff 15 b8 0d 86 ff ff ff ff 00 b5 0d 86 ff ff
+RSP: 0018:ffff8880ae809e00 EFLAGS: 00010246
+RAX: 1ffff11011d71136 RBX: ffff88808eb889b0 RCX: dffffc0000000000
+RDX: dffffc0000000000 RSI: dffffc0000000000 RDI: ffff88808eb889a8
+RBP: ffff8880ae809f00 R08: 000000001dda059f R09: ffff888098310d88
+R10: ffff888098310d68 R11: ffff8880983104c0 R12: ffff8880ae809ed8
+R13: ffff88808eb889a8 R14: ffff88808eb889e0 R15: ffff8880ae809e78
+FS:  00007fa9e44d17a0(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff88808eb889e0 CR3: 0000000093130000 CR4: 00000000001406f0

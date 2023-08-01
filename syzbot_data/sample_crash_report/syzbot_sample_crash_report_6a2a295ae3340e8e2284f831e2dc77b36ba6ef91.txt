@@ -1,0 +1,38 @@
+==================================================================
+BUG: KCSAN: data-race in tcp_sendmsg_locked / tcp_stream_memory_free
+
+read to 0xffff8880ad623bfc of 4 bytes by task 16016 on cpu 1:
+ tcp_stream_memory_free+0x29/0xc0 include/net/tcp.h:1919
+ __sk_stream_memory_free include/net/sock.h:1214 [inline]
+ __sk_stream_memory_free include/net/sock.h:1208 [inline]
+ __sk_stream_is_writeable include/net/sock.h:1225 [inline]
+ sk_stream_is_writeable include/net/sock.h:1230 [inline]
+ tcp_poll+0x49a/0x6b0 net/ipv4/tcp.c:558
+ sock_poll+0xed/0x250 net/socket.c:1256
+ vfs_poll include/linux/poll.h:90 [inline]
+ do_select+0x7d0/0x1020 fs/select.c:534
+ core_sys_select+0x381/0x550 fs/select.c:677
+ do_pselect.constprop.0+0x11d/0x160 fs/select.c:759
+ __do_sys_pselect6 fs/select.c:784 [inline]
+ __se_sys_pselect6 fs/select.c:769 [inline]
+ __x64_sys_pselect6+0x12e/0x170 fs/select.c:769
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+write to 0xffff8880ad623bfc of 4 bytes by task 16011 on cpu 0:
+ tcp_sendmsg_locked+0xd51/0x1f30 net/ipv4/tcp.c:1365
+ tcp_sendmsg+0x39/0x60 net/ipv4/tcp.c:1434
+ inet_sendmsg+0x6d/0x90 net/ipv4/af_inet.c:807
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg+0x9f/0xc0 net/socket.c:657
+ __sys_sendto+0x21f/0x320 net/socket.c:1952
+ __do_sys_sendto net/socket.c:1964 [inline]
+ __se_sys_sendto net/socket.c:1960 [inline]
+ __x64_sys_sendto+0x89/0xb0 net/socket.c:1960
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 16011 Comm: syz-executor.0 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

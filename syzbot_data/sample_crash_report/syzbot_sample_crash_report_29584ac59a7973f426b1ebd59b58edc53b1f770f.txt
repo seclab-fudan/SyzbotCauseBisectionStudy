@@ -1,0 +1,269 @@
+Swap cache stats: add 0, delete 0, find 0/0
+Free swap  = 0kB
+Total swap = 0kB
+2097051 pages RAM
+0 pages HighMem/MovableOnly
+387047 pages reserved
+0 pages cma reserved
+==================================================================
+BUG: KASAN: use-after-free in rxe_queue_cleanup+0x34/0xf0 drivers/infiniband/sw/rxe/rxe_queue.c:193
+Read of size 8 at addr ffff888075977710 by task syz-executor.1/8016
+
+CPU: 0 PID: 8016 Comm: syz-executor.1 Not tainted 5.16.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1dc/0x2d8 lib/dump_stack.c:106
+ print_address_description+0x65/0x380 mm/kasan/report.c:247
+ __kasan_report mm/kasan/report.c:433 [inline]
+ kasan_report+0x19a/0x1f0 mm/kasan/report.c:450
+ rxe_queue_cleanup+0x34/0xf0 drivers/infiniband/sw/rxe/rxe_queue.c:193
+ rxe_qp_do_cleanup+0x60/0x8d0 drivers/infiniband/sw/rxe/rxe_qp.c:804
+ execute_in_process_context+0x116/0x120 kernel/workqueue.c:3359
+ rxe_elem_release+0x9c/0x180 drivers/infiniband/sw/rxe/rxe_pool.c:407
+ kref_put include/linux/kref.h:65 [inline]
+ rxe_create_qp+0x296/0x310 drivers/infiniband/sw/rxe/rxe_verbs.c:450
+ create_qp+0x556/0x760 drivers/infiniband/core/verbs.c:1241
+ ib_create_qp_kernel+0xb7/0x350 drivers/infiniband/core/verbs.c:1352
+ ib_create_qp include/rdma/ib_verbs.h:3722 [inline]
+ create_mad_qp drivers/infiniband/core/mad.c:2910 [inline]
+ ib_mad_port_open drivers/infiniband/core/mad.c:2991 [inline]
+ ib_mad_init_device+0xf38/0x2ed0 drivers/infiniband/core/mad.c:3082
+ add_client_context+0x4f6/0x830 drivers/infiniband/core/device.c:720
+ enable_device_and_get+0x1eb/0x480 drivers/infiniband/core/device.c:1331
+ ib_register_device+0x1178/0x1540 drivers/infiniband/core/device.c:1419
+ rxe_register_device+0x25d/0x360 drivers/infiniband/sw/rxe/rxe_verbs.c:1146
+ rxe_net_add+0x73/0xd0 drivers/infiniband/sw/rxe/rxe_net.c:543
+ rxe_newlink+0x65/0x100 drivers/infiniband/sw/rxe/rxe.c:270
+ nldev_newlink+0x5b4/0x660 drivers/infiniband/core/nldev.c:1717
+ rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
+ rdma_nl_rcv+0x6f1/0xa30 drivers/infiniband/core/netlink.c:259
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x814/0x9f0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0xaea/0xe60 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg net/socket.c:724 [inline]
+ ____sys_sendmsg+0x5b9/0x910 net/socket.c:2409
+ ___sys_sendmsg net/socket.c:2463 [inline]
+ __sys_sendmsg+0x280/0x370 net/socket.c:2492
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f258a994ae9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f2587f0a188 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f258aaa7f60 RCX: 00007f258a994ae9
+RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000008
+RBP: 00007f258a9eef6d R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffca109a0ff R14: 00007f2587f0a300 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 8016:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc+0xdc/0x110 mm/kasan/common.c:513
+ kasan_kmalloc include/linux/kasan.h:269 [inline]
+ kmem_cache_alloc_trace+0x9d/0x330 mm/slub.c:3261
+ kmalloc include/linux/slab.h:590 [inline]
+ kzalloc include/linux/slab.h:724 [inline]
+ rxe_queue_init+0x90/0x540 drivers/infiniband/sw/rxe/rxe_queue.c:66
+ rxe_qp_init_req drivers/infiniband/sw/rxe/rxe_qp.c:233 [inline]
+ rxe_qp_from_init+0x844/0x12b0 drivers/infiniband/sw/rxe/rxe_qp.c:347
+ rxe_create_qp+0x235/0x310 drivers/infiniband/sw/rxe/rxe_verbs.c:442
+ create_qp+0x556/0x760 drivers/infiniband/core/verbs.c:1241
+ ib_create_qp_kernel+0xb7/0x350 drivers/infiniband/core/verbs.c:1352
+ ib_create_qp include/rdma/ib_verbs.h:3722 [inline]
+ create_mad_qp drivers/infiniband/core/mad.c:2910 [inline]
+ ib_mad_port_open drivers/infiniband/core/mad.c:2991 [inline]
+ ib_mad_init_device+0xf38/0x2ed0 drivers/infiniband/core/mad.c:3082
+ add_client_context+0x4f6/0x830 drivers/infiniband/core/device.c:720
+ enable_device_and_get+0x1eb/0x480 drivers/infiniband/core/device.c:1331
+ ib_register_device+0x1178/0x1540 drivers/infiniband/core/device.c:1419
+ rxe_register_device+0x25d/0x360 drivers/infiniband/sw/rxe/rxe_verbs.c:1146
+ rxe_net_add+0x73/0xd0 drivers/infiniband/sw/rxe/rxe_net.c:543
+ rxe_newlink+0x65/0x100 drivers/infiniband/sw/rxe/rxe.c:270
+ nldev_newlink+0x5b4/0x660 drivers/infiniband/core/nldev.c:1717
+ rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
+ rdma_nl_rcv+0x6f1/0xa30 drivers/infiniband/core/netlink.c:259
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x814/0x9f0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0xaea/0xe60 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg net/socket.c:724 [inline]
+ ____sys_sendmsg+0x5b9/0x910 net/socket.c:2409
+ ___sys_sendmsg net/socket.c:2463 [inline]
+ __sys_sendmsg+0x280/0x370 net/socket.c:2492
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 8016:
+ kasan_save_stack mm/kasan/common.c:38 [inline]
+ kasan_set_track+0x4c/0x80 mm/kasan/common.c:46
+ kasan_set_free_info+0x1f/0x40 mm/kasan/generic.c:370
+ ____kasan_slab_free+0x10d/0x150 mm/kasan/common.c:366
+ kasan_slab_free include/linux/kasan.h:235 [inline]
+ slab_free_hook mm/slub.c:1723 [inline]
+ slab_free_freelist_hook+0x12e/0x1a0 mm/slub.c:1749
+ slab_free mm/slub.c:3513 [inline]
+ kfree+0xe1/0x330 mm/slub.c:4561
+ rxe_qp_from_init+0xc50/0x12b0 drivers/infiniband/sw/rxe/rxe_qp.c:361
+ rxe_create_qp+0x235/0x310 drivers/infiniband/sw/rxe/rxe_verbs.c:442
+ create_qp+0x556/0x760 drivers/infiniband/core/verbs.c:1241
+ ib_create_qp_kernel+0xb7/0x350 drivers/infiniband/core/verbs.c:1352
+ ib_create_qp include/rdma/ib_verbs.h:3722 [inline]
+ create_mad_qp drivers/infiniband/core/mad.c:2910 [inline]
+ ib_mad_port_open drivers/infiniband/core/mad.c:2991 [inline]
+ ib_mad_init_device+0xf38/0x2ed0 drivers/infiniband/core/mad.c:3082
+ add_client_context+0x4f6/0x830 drivers/infiniband/core/device.c:720
+ enable_device_and_get+0x1eb/0x480 drivers/infiniband/core/device.c:1331
+ ib_register_device+0x1178/0x1540 drivers/infiniband/core/device.c:1419
+ rxe_register_device+0x25d/0x360 drivers/infiniband/sw/rxe/rxe_verbs.c:1146
+ rxe_net_add+0x73/0xd0 drivers/infiniband/sw/rxe/rxe_net.c:543
+ rxe_newlink+0x65/0x100 drivers/infiniband/sw/rxe/rxe.c:270
+ nldev_newlink+0x5b4/0x660 drivers/infiniband/core/nldev.c:1717
+ rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
+ rdma_nl_rcv+0x6f1/0xa30 drivers/infiniband/core/netlink.c:259
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x814/0x9f0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0xaea/0xe60 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg net/socket.c:724 [inline]
+ ____sys_sendmsg+0x5b9/0x910 net/socket.c:2409
+ ___sys_sendmsg net/socket.c:2463 [inline]
+ __sys_sendmsg+0x280/0x370 net/socket.c:2492
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Last potentially related work creation:
+ kasan_save_stack+0x3b/0x60 mm/kasan/common.c:38
+ __kasan_record_aux_stack+0xfa/0x130 mm/kasan/generic.c:348
+ kvfree_call_rcu+0x119/0x880 kernel/rcu/tree.c:3550
+ dropmon_net_event+0x3d0/0x3f0 net/core/drop_monitor.c:1578
+ notifier_call_chain kernel/notifier.c:83 [inline]
+ raw_notifier_call_chain+0xe7/0x170 kernel/notifier.c:391
+ call_netdevice_notifiers_info net/core/dev.c:2002 [inline]
+ call_netdevice_notifiers_extack net/core/dev.c:2014 [inline]
+ call_netdevice_notifiers net/core/dev.c:2028 [inline]
+ unregister_netdevice_many+0xfae/0x19e0 net/core/dev.c:11080
+ unregister_netdevice_queue+0x2e6/0x350 net/core/dev.c:11014
+ unregister_netdevice include/linux/netdevice.h:2989 [inline]
+ veth_newlink+0xc47/0xf80 drivers/net/veth.c:1756
+ __rtnl_newlink net/core/rtnetlink.c:3458 [inline]
+ rtnl_newlink+0x14b3/0x1d10 net/core/rtnetlink.c:3506
+ rtnetlink_rcv_msg+0x934/0xe60 net/core/rtnetlink.c:5571
+ netlink_rcv_skb+0x200/0x470 net/netlink/af_netlink.c:2496
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x814/0x9f0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0xaea/0xe60 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg net/socket.c:724 [inline]
+ ____sys_sendmsg+0x5b9/0x910 net/socket.c:2409
+ ___sys_sendmsg net/socket.c:2463 [inline]
+ __sys_sendmsg+0x280/0x370 net/socket.c:2492
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x3b/0x60 mm/kasan/common.c:38
+ __kasan_record_aux_stack+0xfa/0x130 mm/kasan/generic.c:348
+ __call_rcu kernel/rcu/tree.c:2985 [inline]
+ call_rcu+0x1c4/0xa70 kernel/rcu/tree.c:3065
+ mpls_dev_notify+0x74c/0x860 net/mpls/af_mpls.c:1656
+ notifier_call_chain kernel/notifier.c:83 [inline]
+ raw_notifier_call_chain+0xe7/0x170 kernel/notifier.c:391
+ call_netdevice_notifiers_info net/core/dev.c:2002 [inline]
+ call_netdevice_notifiers_extack net/core/dev.c:2014 [inline]
+ call_netdevice_notifiers net/core/dev.c:2028 [inline]
+ unregister_netdevice_many+0xfae/0x19e0 net/core/dev.c:11080
+ unregister_netdevice_queue+0x2e6/0x350 net/core/dev.c:11014
+ unregister_netdevice include/linux/netdevice.h:2989 [inline]
+ veth_newlink+0xc47/0xf80 drivers/net/veth.c:1756
+ __rtnl_newlink net/core/rtnetlink.c:3458 [inline]
+ rtnl_newlink+0x14b3/0x1d10 net/core/rtnetlink.c:3506
+ rtnetlink_rcv_msg+0x934/0xe60 net/core/rtnetlink.c:5571
+ netlink_rcv_skb+0x200/0x470 net/netlink/af_netlink.c:2496
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x814/0x9f0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0xaea/0xe60 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg net/socket.c:724 [inline]
+ ____sys_sendmsg+0x5b9/0x910 net/socket.c:2409
+ ___sys_sendmsg net/socket.c:2463 [inline]
+ __sys_sendmsg+0x280/0x370 net/socket.c:2492
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff888075977700
+ which belongs to the cache kmalloc-64 of size 64
+The buggy address is located 16 bytes inside of
+ 64-byte region [ffff888075977700, ffff888075977740)
+The buggy address belongs to the page:
+page:ffffea0001d65dc0 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x75977
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea00006898c0 dead000000000003 ffff888011441640
+raw: 0000000000000000 0000000000200020 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12a20(GFP_ATOMIC|__GFP_NOWARN|__GFP_NORETRY), pid 9918, ts 244817109622, free_ts 244805921815
+ prep_new_page mm/page_alloc.c:2418 [inline]
+ get_page_from_freelist+0x729/0x9e0 mm/page_alloc.c:4149
+ __alloc_pages+0x255/0x580 mm/page_alloc.c:5369
+ alloc_slab_page mm/slub.c:1793 [inline]
+ allocate_slab+0xcc/0x4d0 mm/slub.c:1930
+ new_slab mm/slub.c:1993 [inline]
+ ___slab_alloc+0x41e/0xc40 mm/slub.c:3022
+ __slab_alloc mm/slub.c:3109 [inline]
+ slab_alloc_node mm/slub.c:3200 [inline]
+ slab_alloc mm/slub.c:3242 [inline]
+ kmem_cache_alloc_trace+0x28c/0x330 mm/slub.c:3259
+ kmalloc include/linux/slab.h:590 [inline]
+ kzalloc include/linux/slab.h:724 [inline]
+ sctp_add_bind_addr+0x85/0x360 net/sctp/bind_addr.c:144
+ sctp_copy_local_addr_list+0x2e1/0x4b0 net/sctp/protocol.c:165
+ sctp_bind_addr_copy+0xad/0x3c0 net/sctp/bind_addr.c:56
+ sctp_connect_new_asoc+0x2dd/0x6a0 net/sctp/socket.c:1092
+ __sctp_connect+0x67b/0x1370 net/sctp/socket.c:1194
+ sctp_connect+0xab/0x130 net/sctp/socket.c:4808
+ __sys_connect_file net/socket.c:1896 [inline]
+ __sys_connect+0x29b/0x2d0 net/socket.c:1913
+ __do_sys_connect net/socket.c:1923 [inline]
+ __se_sys_connect net/socket.c:1920 [inline]
+ __x64_sys_connect+0x76/0x80 net/socket.c:1920
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1338 [inline]
+ free_pcp_prepare+0xd1c/0xe00 mm/page_alloc.c:1389
+ free_unref_page_prepare mm/page_alloc.c:3309 [inline]
+ free_unref_page+0x7d/0x580 mm/page_alloc.c:3388
+ tlb_batch_list_free mm/mmu_gather.c:61 [inline]
+ tlb_finish_mmu+0x124/0x200 mm/mmu_gather.c:343
+ exit_mmap+0x3dd/0x6f0 mm/mmap.c:3172
+ __mmput+0x111/0x3a0 kernel/fork.c:1113
+ exit_mm+0x211/0x2f0 kernel/exit.c:507
+ do_exit+0x688/0x24f0 kernel/exit.c:819
+ do_group_exit+0x168/0x2d0 kernel/exit.c:929
+ __do_sys_exit_group+0x13/0x20 kernel/exit.c:940
+ __ia32_sys_exit_group+0x0/0x40 kernel/exit.c:938
+ __x64_sys_exit_group+0x37/0x40 kernel/exit.c:938
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xd0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Memory state around the buggy address:
+ ffff888075977600: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+ ffff888075977680: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+>ffff888075977700: fa fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                         ^
+ ffff888075977780: 00 00 00 00 00 00 00 03 fc fc fc fc fc fc fc fc
+ ffff888075977800: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+==================================================================

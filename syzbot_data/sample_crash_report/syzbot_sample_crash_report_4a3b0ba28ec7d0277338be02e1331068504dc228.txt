@@ -1,0 +1,151 @@
+INFO: task kworker/u4:0:7 blocked for more than 143 seconds.
+      Not tainted 5.4.0-rc5-next-20191031 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+kworker/u4:0    D24344     7      2 0x80004000
+Workqueue: writeback wb_workfn (flush-8:0)
+Call Trace:
+ context_switch kernel/sched/core.c:3385 [inline]
+ __schedule+0x94a/0x1e70 kernel/sched/core.c:4070
+ schedule+0xdc/0x2b0 kernel/sched/core.c:4144
+ io_schedule+0x1c/0x70 kernel/sched/core.c:5788
+ wait_on_page_bit_common mm/filemap.c:1175 [inline]
+ __lock_page+0x422/0xab0 mm/filemap.c:1383
+ lock_page include/linux/pagemap.h:480 [inline]
+ mpage_prepare_extent_to_map+0xb3f/0xf90 fs/ext4/inode.c:2668
+ ext4_writepages+0x954/0x2e70 fs/ext4/inode.c:2822
+ do_writepages+0xfa/0x2a0 mm/page-writeback.c:2344
+ __writeback_single_inode+0x136/0x1400 fs/fs-writeback.c:1449
+ writeback_sb_inodes+0x596/0xf20 fs/fs-writeback.c:1713
+ __writeback_inodes_wb+0xc3/0x260 fs/fs-writeback.c:1782
+ wb_writeback+0x910/0xd90 fs/fs-writeback.c:1891
+ wb_check_old_data_flush fs/fs-writeback.c:1993 [inline]
+ wb_do_writeback fs/fs-writeback.c:2046 [inline]
+ wb_workfn+0xba5/0x1220 fs/fs-writeback.c:2075
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2263
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2409
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+INFO: task khugepaged:1084 blocked for more than 143 seconds.
+      Not tainted 5.4.0-rc5-next-20191031 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+khugepaged      D27840  1084      2 0x80004000
+Call Trace:
+ context_switch kernel/sched/core.c:3385 [inline]
+ __schedule+0x94a/0x1e70 kernel/sched/core.c:4070
+ schedule+0xdc/0x2b0 kernel/sched/core.c:4144
+ io_schedule+0x1c/0x70 kernel/sched/core.c:5788
+ wait_on_page_bit_common mm/filemap.c:1175 [inline]
+ __lock_page+0x422/0xab0 mm/filemap.c:1383
+ lock_page include/linux/pagemap.h:480 [inline]
+ mpage_prepare_extent_to_map+0xb3f/0xf90 fs/ext4/inode.c:2668
+ ext4_writepages+0xb6a/0x2e70 fs/ext4/inode.c:2866
+ ? 0xffffffff81000000
+ do_writepages+0xfa/0x2a0 mm/page-writeback.c:2344
+ __filemap_fdatawrite_range+0x2bc/0x3b0 mm/filemap.c:421
+ __filemap_fdatawrite mm/filemap.c:429 [inline]
+ filemap_flush+0x24/0x30 mm/filemap.c:456
+ collapse_file+0x36b1/0x41a0 mm/khugepaged.c:1652
+ khugepaged_scan_file mm/khugepaged.c:1890 [inline]
+ khugepaged_scan_mm_slot mm/khugepaged.c:1988 [inline]
+ khugepaged_do_scan mm/khugepaged.c:2072 [inline]
+ khugepaged+0x2da9/0x4360 mm/khugepaged.c:2117
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Showing all locks held in the system:
+4 locks held by kworker/u4:0/7:
+ #0: ffff8880a8735128 ((wq_completion)writeback){+.+.}, at: __write_once_size include/linux/compiler.h:226 [inline]
+ #0: ffff8880a8735128 ((wq_completion)writeback){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8880a8735128 ((wq_completion)writeback){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:855 [inline]
+ #0: ffff8880a8735128 ((wq_completion)writeback){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:40 [inline]
+ #0: ffff8880a8735128 ((wq_completion)writeback){+.+.}, at: set_work_data kernel/workqueue.c:614 [inline]
+ #0: ffff8880a8735128 ((wq_completion)writeback){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:641 [inline]
+ #0: ffff8880a8735128 ((wq_completion)writeback){+.+.}, at: process_one_work+0x88b/0x1740 kernel/workqueue.c:2234
+ #1: ffff8880a988fdc0 ((work_completion)(&(&wb->dwork)->work)){+.+.}, at: process_one_work+0x8c1/0x1740 kernel/workqueue.c:2238
+ #2: ffff88821588e0d8 (&type->s_umount_key#32){++++}, at: trylock_super+0x22/0x110 fs/super.c:418
+ #3: ffff888215890990 (&sbi->s_journal_flag_rwsem){.+.+}, at: do_writepages+0xfa/0x2a0 mm/page-writeback.c:2344
+1 lock held by khungtaskd/1077:
+ #0: ffffffff88faba40 (rcu_read_lock){....}, at: debug_show_all_locks+0x5f/0x279 kernel/locking/lockdep.c:5336
+1 lock held by khugepaged/1084:
+ #0: ffff888215890990 (&sbi->s_journal_flag_rwsem){.+.+}, at: do_writepages+0xfa/0x2a0 mm/page-writeback.c:2344
+1 lock held by rsyslogd/8593:
+ #0: ffff888098e6b8e0 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0xee/0x110 fs/file.c:801
+2 locks held by getty/8683:
+ #0: ffff888091425090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f252e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8684:
+ #0: ffff888099aa6090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f292e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8685:
+ #0: ffff88809a4b9090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f452e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8686:
+ #0: ffff88809daef090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f3d2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8687:
+ #0: ffff8880933ca090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f412e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8688:
+ #0: ffff8880962f9090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f492e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+2 locks held by getty/8689:
+ #0: ffff8880a7d30090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f192e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x220/0x1bf0 drivers/tty/n_tty.c:2156
+1 lock held by syz-execprog/8705:
+ #0: ffff8880a66e33a8 (&ei->i_mmap_sem){++++}, at: ext4_filemap_fault+0x7e/0xb2 fs/ext4/inode.c:6291
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 1077 Comm: khungtaskd Not tainted 5.4.0-rc5-next-20191031 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold+0x70/0xb2 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x23b/0x28b lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:269 [inline]
+ watchdog+0xc8f/0x1350 kernel/hung_task.c:353
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 8710 Comm: syz-execprog Not tainted 5.4.0-rc5-next-20191031 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__lock_acquire+0x1291/0x4a00 kernel/locking/lockdep.c:3832
+Code: 5f ee ff ff 83 fe 01 0f 87 62 ee ff ff 48 b8 00 00 00 00 00 fc ff df 41 89 f4 4b 8d 7c e6 08 48 89 fa 48 c1 ea 03 80 3c 02 00 <0f> 85 eb 26 00 00 4f 8b 64 e6 08 4d 85 e4 0f 85 6f ee ff ff e9 2c
+RSP: 0018:ffff888097f97810 EFLAGS: 00000046
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 1ffffffff15a1215 RSI: 0000000000000000 RDI: ffffffff8ad090a8
+RBP: ffff888097f97928 R08: 0000000000000001 R09: 0000000000000001
+R10: fffffbfff1390778 R11: ffff8880a13ac000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffffffff8ad090a0 R15: 0000000000000001
+FS:  000000c420028ae8(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000a96000 CR3: 0000000094d4e000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ lock_acquire+0x190/0x410 kernel/locking/lockdep.c:4487
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x95/0xcd kernel/locking/spinlock.c:159
+ debug_object_free lib/debugobjects.c:808 [inline]
+ debug_object_free+0x59/0x390 lib/debugobjects.c:796
+ destroy_hrtimer_on_stack+0x1d/0x30 kernel/time/hrtimer.c:453
+ futex_wait+0x4ec/0x5d0 kernel/futex.c:2768
+ do_futex+0x175/0x1de0 kernel/futex.c:3644
+ __do_sys_futex kernel/futex.c:3705 [inline]
+ __se_sys_futex kernel/futex.c:3673 [inline]
+ __x64_sys_futex+0x3f7/0x590 kernel/futex.c:3673
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x459043
+Code: cc cc cc cc cc cc cc 48 8b 7c 24 08 8b 74 24 10 8b 54 24 14 4c 8b 54 24 18 4c 8b 44 24 20 44 8b 4c 24 28 b8 ca 00 00 00 0f 05 <89> 44 24 30 c3 cc cc cc cc cc cc cc cc 8b 7c 24 08 48 8b 74 24 10
+RSP: 002b:000000c4200c7ea8 EFLAGS: 00000206 ORIG_RAX: 00000000000000ca
+RAX: ffffffffffffffda RBX: 00000000000186a0 RCX: 0000000000459043
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00000000014f3528
+RBP: 000000c4200c7ef0 R08: 0000000000000000 R09: 0000000000000000
+R10: 000000c4200c7ee0 R11: 0000000000000206 R12: 00000000000000a0
+R13: 00000000000000ff R14: 00007febb23e66c8 R15: 0000000000000004

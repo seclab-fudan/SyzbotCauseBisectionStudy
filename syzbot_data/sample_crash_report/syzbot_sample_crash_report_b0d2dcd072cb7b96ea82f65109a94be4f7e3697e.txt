@@ -1,0 +1,108 @@
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(current->hardirq_context)
+------------[ cut here ]------------
+==================================================================
+Bad or missing usercopy whitelist? Kernel memory overwrite attempt detected to SLAB object 'task_struct' (offset 912, size 2)!
+BUG: KASAN: stack-out-of-bounds in debug_spin_lock_before kernel/locking/spinlock_debug.c:83 [inline]
+BUG: KASAN: stack-out-of-bounds in do_raw_spin_lock+0x303/0x360 kernel/locking/spinlock_debug.c:112
+WARNING: CPU: 0 PID: -1455078848 at mm/usercopy.c:78 usercopy_warn+0xeb/0x110 mm/usercopy.c:78
+Read of size 4 at addr ffff8880a9456a44 by task syz-executor608/10167
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 0 PID: -1455078848 Comm:  Not tainted 4.20.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+CPU: 1 PID: 10167 Comm: syz-executor608 Not tainted 4.20.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:134
+ debug_spin_lock_before kernel/locking/spinlock_debug.c:83 [inline]
+ do_raw_spin_lock+0x303/0x360 kernel/locking/spinlock_debug.c:112
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:117 [inline]
+ _raw_spin_lock_irqsave+0x9d/0xcd kernel/locking/spinlock.c:152
+ try_to_wake_up+0xb9/0x1480 kernel/sched/core.c:1965
+ wake_up_process+0x10/0x20 kernel/sched/core.c:2129
+ process_timeout+0x31/0x40 kernel/time/timer.c:1732
+ call_timer_fn+0x254/0x900 kernel/time/timer.c:1325
+ expire_timers kernel/time/timer.c:1362 [inline]
+ __run_timers+0x6fc/0xd50 kernel/time/timer.c:1681
+ run_timer_softirq+0x52/0xb0 kernel/time/timer.c:1694
+ __do_softirq+0x30b/0xb11 kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x180/0x1d0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x1b7/0x760 arch/x86/kernel/apic/apic.c:1062
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+RIP: 0010:update_stack_state+0x25/0x680 arch/x86/kernel/unwind_frame.c:208
+Code: 00 00 00 00 00 48 b9 00 00 00 00 00 fc ff df 55 48 89 e5 41 57 49 89 ff 48 8d 85 58 ff ff ff 41 56 48 c1 e8 03 41 55 41 54 53 <48> 81 ec c0 00 00 00 48 89 85 38 ff ff ff 48 01 c8 48 c7 85 58 ff
+RSP: 0018:ffff8880820768f0 EFLAGS: 00000a02 ORIG_RAX: ffffffffffffff13
+RAX: 1ffff1101040ed0e RBX: ffff888082076a20 RCX: dffffc0000000000
+RDX: 1ffff1101040ed2e RSI: ffff888082077398 RDI: ffff888082076a20
+RBP: ffff888082076918 R08: 0000000000000001 R09: ffff888082076a70
+R10: ffff888082076a48 R11: ffff888082076a58 R12: 1ffff1101040ed2a
+R13: ffff888082077398 R14: 1ffff1101040ed2e R15: ffff888082076a20
+ unwind_next_frame.part.0+0x1ae/0xa90 arch/x86/kernel/unwind_frame.c:329
+ unwind_next_frame+0x3b/0x50 arch/x86/kernel/unwind_frame.c:287
+ __save_stack_trace+0x7a/0xf0 arch/x86/kernel/stacktrace.c:44
+ save_stack_trace+0x1a/0x20 arch/x86/kernel/stacktrace.c:60
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ kasan_kmalloc mm/kasan/common.c:482 [inline]
+ kasan_kmalloc+0xcf/0xe0 mm/kasan/common.c:455
+ __do_kmalloc_node mm/slab.c:3671 [inline]
+ __kmalloc_node_track_caller+0x4e/0x70 mm/slab.c:3685
+ __kmalloc_reserve.isra.0+0x40/0xe0 net/core/skbuff.c:140
+ __alloc_skb+0x12d/0x730 net/core/skbuff.c:208
+ alloc_skb include/linux/skbuff.h:1011 [inline]
+ alloc_skb_with_frags+0x13a/0x770 net/core/skbuff.c:5288
+ sock_alloc_send_pskb+0x8c9/0xad0 net/core/sock.c:2091
+ sock_alloc_send_skb+0x32/0x40 net/core/sock.c:2108
+ __ip6_append_data.isra.0+0x2556/0x3f20 net/ipv6/ip6_output.c:1443
+ ip6_make_skb+0x391/0x5f0 net/ipv6/ip6_output.c:1806
+ udpv6_sendmsg+0x2b58/0x3550 net/ipv6/udp.c:1460
+ inet_sendmsg+0x1af/0x740 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xdd/0x130 net/socket.c:631
+ ___sys_sendmsg+0x409/0x910 net/socket.c:2116
+ __sys_sendmmsg+0x246/0x730 net/socket.c:2211
+ __do_sys_sendmmsg net/socket.c:2240 [inline]
+ __se_sys_sendmmsg net/socket.c:2237 [inline]
+ __x64_sys_sendmmsg+0x9d/0x100 net/socket.c:2237
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x44a759
+Code: e8 7c e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 1b 05 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f8c14a32ce8 EFLAGS: 00000206 ORIG_RAX: 0000000000000133
+RAX: ffffffffffffffda RBX: 00000000006e6a08 RCX: 000000000044a759
+RDX: 08000000000000fc RSI: 0000000020005fc0 RDI: 0000000000000003
+RBP: 00000000006e6a00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000008000000 R11: 0000000000000206 R12: 00000000006e6a0c
+R13: 00007ffc046afa4f R14: 00007f8c14a339c0 R15: 00000000006e6a00
+
+Allocated by task 2839903008:
+BUG: unable to handle kernel paging request at ffffffff8cf14780
+#PF error: [normal kernel read fault]
+PGD 9874067 P4D 9874067 PUD 9875063 PMD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 10167 Comm: syz-executor608 Not tainted 4.20.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:depot_fetch_stack+0x10/0x30 lib/stackdepot.c:202
+Code: e6 72 22 fe e9 20 fe ff ff 48 89 df e8 d9 72 22 fe e9 f1 fd ff ff 90 90 90 90 89 f8 c1 ef 11 25 ff ff 1f 00 81 e7 f0 3f 00 00 <48> 03 3c c5 80 03 f5 8b 8b 47 0c 48 83 c7 18 c7 46 10 00 00 00 00
+RSP: 0018:ffff8880ae707640 EFLAGS: 00010006
+RAX: 00000000001f8880 RBX: ffff8880a9457a44 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff8880ae707648 RDI: 0000000000003ff0
+RBP: ffff8880ae707670 R08: 000000000000001d R09: ffffed1015ce3ef9
+R10: ffffed1015ce3ef8 R11: ffff8880ae71f7c7 R12: ffffea0002a51580
+R13: ffff8880a9456a44 R14: ffff8880aa13d900 R15: ffff8880a9457a40
+FS:  00007f8c14a33700(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffff8cf14780 CR3: 0000000086c13000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Shutting down cpus with NMI

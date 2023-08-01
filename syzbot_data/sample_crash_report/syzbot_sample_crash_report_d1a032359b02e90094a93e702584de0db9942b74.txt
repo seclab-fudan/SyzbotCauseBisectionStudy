@@ -1,0 +1,142 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in copy_page_range+0x2051/0x24d0 mm/memory.c:1229
+Read of size 8 at addr ffff8801979e4b68 by task syz-executor7/4478
+
+CPU: 0 PID: 4478 Comm: syz-executor7 Not tainted 4.18.0-rc3+ #58
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ copy_page_range+0x2051/0x24d0 mm/memory.c:1229
+ dup_mmap kernel/fork.c:520 [inline]
+ dup_mm kernel/fork.c:1243 [inline]
+ copy_mm kernel/fork.c:1297 [inline]
+ copy_process.part.40+0x4e69/0x7220 kernel/fork.c:1803
+ copy_process kernel/fork.c:1616 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2099
+ __do_sys_clone kernel/fork.c:2206 [inline]
+ __se_sys_clone kernel/fork.c:2200 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2200
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x45416a
+Code: f7 d8 64 89 04 25 d4 02 00 00 64 4c 8b 0c 25 10 00 00 00 31 d2 4d 8d 91 d0 02 00 00 31 f6 bf 11 00 20 01 b8 38 00 00 00 0f 05 <48> 3d 00 f0 ff ff 0f 87 f5 00 00 00 85 c0 41 89 c5 0f 85 fc 00 00 
+RSP: 002b:00007ffc6f154dc0 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 00007ffc6f154dc0 RCX: 000000000045416a
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000001200011
+RBP: 00007ffc6f154e00 R08: 0000000000000001 R09: 0000000000b11940
+R10: 0000000000b11c10 R11: 0000000000000246 R12: 0000000000000001
+R13: 0000000000000000 R14: 0000000000000000 R15: 00000000007034c0
+
+The buggy address belongs to the page:
+page:ffffea00065e7900 count:1 mapcount:-512 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 dead000000000100 0000000000000000 0000000000000000
+raw: 0000000000000000 ffff8801cbb7fe18 00000001fffffdff ffff8801b0f2c3c0
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff8801b0f2c3c0
+
+Memory state around the buggy address:
+ ffff8801979e4a00: f2 f2 00 f2 f2 f2 f2 f2 f2 f2 f8 f2 f2 f2 f2 f2
+ ffff8801979e4a80: f2 f2 00 f2 f2 f2 00 00 00 00 00 00 00 00 00 00
+>ffff8801979e4b00: 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 00
+                                                          ^
+ ffff8801979e4b80: f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2 00
+ ffff8801979e4c00: f2 f2 f2 f2 f2 f2 f2 f8 f2 f2 f2 f2 f2 f2 f2 00
+==================================================================
+list_del corruption. prev->next should be ffff8801aff806b0, but was ffffffff88bd6cd7
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:53!
+invalid opcode: 0000 [#1] SMP KASAN
+CPU: 0 PID: 4478 Comm: syz-executor7 Tainted: G    B             4.18.0-rc3+ #58
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__list_del_entry_valid.cold.1+0x48/0x58 lib/list_debug.c:51
+Code: 63 1a 88 e8 66 32 02 fe 0f 0b 48 89 de 48 c7 c7 40 64 1a 88 e8 55 32 02 fe 0f 0b 48 89 de 48 c7 c7 e0 63 1a 88 e8 44 32 02 fe <0f> 0b 90 90 90 90 90 90 90 90 90 90 90 90 90 90 55 48 89 e5 41 57 
+RSP: 0018:ffff8801dae07068 EFLAGS: 00010086
+RAX: 0000000000000054 RBX: ffff8801aff806b0 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81631851 RDI: ffff8801dae06d60
+RBP: ffff8801dae07080 R08: ffff8801c897c4c0 R09: fffffbfff11f1220
+R10: fffffbfff11f1220 R11: ffffffff88f89103 R12: ffff8801986283b0
+R13: ffff8801daf2d490 R14: ffff8801aff806b0 R15: ffff8801daf2c9c0
+FS:  0000000000b11940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffc96d6caa8 CR3: 00000001a020e000 CR4: 00000000001406f0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+ <IRQ>
+ __list_del_entry include/linux/list.h:117 [inline]
+ list_del_init include/linux/list.h:159 [inline]
+ account_entity_dequeue+0x3c3/0x800 kernel/sched/fair.c:2708
+ dequeue_entity+0x3a1/0x15e0 kernel/sched/fair.c:4308
+ dequeue_task_fair+0xf2/0x9e0 kernel/sched/fair.c:5455
+ dequeue_task kernel/sched/core.c:762 [inline]
+ deactivate_task+0xf3/0x330 kernel/sched/core.c:778
+ detach_task.isra.89+0xa9/0x150 kernel/sched/fair.c:7437
+ detach_tasks kernel/sched/fair.c:7525 [inline]
+ load_balance+0xf0b/0x3640 kernel/sched/fair.c:8884
+ rebalance_domains+0x82a/0xd90 kernel/sched/fair.c:9262
+ run_rebalance_domains+0x365/0x4c0 kernel/sched/fair.c:9884
+ __do_softirq+0x2e8/0xb17 kernel/softirq.c:288
+ invoke_softirq kernel/softirq.c:368 [inline]
+ irq_exit+0x1d1/0x200 kernel/softirq.c:408
+ exiting_irq arch/x86/include/asm/apic.h:527 [inline]
+ smp_apic_timer_interrupt+0x186/0x730 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+Code: 68 b0 f1 88 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 21 48 83 3d 9e 94 5a 01 00 74 0e 48 89 df 57 9d <0f> 1f 44 00 00 eb bb 0f 0b 0f 0b e8 9f 19 23 fa eb 97 e8 98 19 23 
+RSP: 0018:ffff8801a0256c88 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: 0000000000000282 RCX: ffffffff81601b77
+RDX: 1ffffffff11e360d RSI: 0000000000000004 RDI: 0000000000000282
+RBP: ffff8801a0256c98 R08: fffffbfff12053b1 R09: fffffbfff12053b0
+R10: fffffbfff12053b0 R11: ffffffff89029d83 R12: ffffffff89029d80
+R13: 0000000000000000 R14: ffffffff81ac22a1 R15: ffff8801979e4b68
+ spin_unlock_irqrestore include/linux/spinlock.h:365 [inline]
+ kasan_end_report+0x32/0x4f mm/kasan/report.c:178
+ kasan_report_error mm/kasan/report.c:359 [inline]
+ kasan_report.cold.7+0x76/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ copy_page_range+0x2051/0x24d0 mm/memory.c:1229
+ dup_mmap kernel/fork.c:520 [inline]
+ dup_mm kernel/fork.c:1243 [inline]
+ copy_mm kernel/fork.c:1297 [inline]
+ copy_process.part.40+0x4e69/0x7220 kernel/fork.c:1803
+ copy_process kernel/fork.c:1616 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2099
+ __do_sys_clone kernel/fork.c:2206 [inline]
+ __se_sys_clone kernel/fork.c:2200 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2200
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x45416a
+Code: f7 d8 64 89 04 25 d4 02 00 00 64 4c 8b 0c 25 10 00 00 00 31 d2 4d 8d 91 d0 02 00 00 31 f6 bf 11 00 20 01 b8 38 00 00 00 0f 05 <48> 3d 00 f0 ff ff 0f 87 f5 00 00 00 85 c0 41 89 c5 0f 85 fc 00 00 
+RSP: 002b:00007ffc6f154dc0 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 00007ffc6f154dc0 RCX: 000000000045416a
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000001200011
+RBP: 00007ffc6f154e00 R08: 0000000000000001 R09: 0000000000b11940
+R10: 0000000000b11c10 R11: 0000000000000246 R12: 0000000000000001
+R13: 0000000000000000 R14: 0000000000000000 R15: 00000000007034c0
+Modules linked in:
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+---[ end trace d267981ebfe7b95a ]---
+RIP: 0010:__list_del_entry_valid.cold.1+0x48/0x58 lib/list_debug.c:51
+Code: 63 1a 88 e8 66 32 02 fe 0f 0b 48 89 de 48 c7 c7 40 64 1a 88 e8 55 32 02 fe 0f 0b 48 89 de 48 c7 c7 e0 63 1a 88 e8 44 32 02 fe <0f> 0b 90 90 90 90 90 90 90 90 90 90 90 90 90 90 55 48 89 e5 41 57 
+RSP: 0018:ffff8801dae07068 EFLAGS: 00010086
+RAX: 0000000000000054 RBX: ffff8801aff806b0 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81631851 RDI: ffff8801dae06d60
+RBP: ffff8801dae07080 R08: ffff8801c897c4c0 R09: fffffbfff11f1220
+R10: fffffbfff11f1220 R11: ffffffff88f89103 R12: ffff8801986283b0
+R13: ffff8801daf2d490 R14: ffff8801aff806b0 R15: ffff8801daf2c9c0
+FS:  0000000000b11940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffc96d6caa8 CR3: 00000001a020e000 CR4: 00000000001406f0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600

@@ -1,0 +1,53 @@
+BTRFS error (device loop0): bad tree block start, want 30490624 have 0
+==================================================================
+BUG: KASAN: use-after-free in copy_page_from_iter_atomic+0xef6/0x1b30 lib/iov_iter.c:969
+Read of size 4096 at addr ffff888170801000 by task kworker/u4:0/8
+
+CPU: 0 PID: 8 Comm: kworker/u4:0 Not tainted 5.19.0-rc1-next-20220609-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: loop0 loop_rootcg_workfn
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0xeb/0x495 mm/kasan/report.c:313
+ print_report mm/kasan/report.c:429 [inline]
+ kasan_report.cold+0xf4/0x1c6 mm/kasan/report.c:491
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ memcpy+0x20/0x60 mm/kasan/shadow.c:65
+ copy_page_from_iter_atomic+0xef6/0x1b30 lib/iov_iter.c:969
+ generic_perform_write+0x2b8/0x560 mm/filemap.c:3735
+ __generic_file_write_iter+0x2aa/0x4d0 mm/filemap.c:3855
+ generic_file_write_iter+0xd7/0x220 mm/filemap.c:3887
+ call_write_iter include/linux/fs.h:2057 [inline]
+ do_iter_readv_writev+0x3d1/0x640 fs/read_write.c:742
+ do_iter_write+0x182/0x700 fs/read_write.c:868
+ vfs_iter_write+0x70/0xa0 fs/read_write.c:909
+ lo_write_bvec drivers/block/loop.c:249 [inline]
+ lo_write_simple drivers/block/loop.c:271 [inline]
+ do_req_filebacked drivers/block/loop.c:495 [inline]
+ loop_handle_cmd drivers/block/loop.c:1859 [inline]
+ loop_process_work+0xd83/0x2050 drivers/block/loop.c:1894
+ process_one_work+0x996/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e9/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:302
+ </TASK>
+
+The buggy address belongs to the physical page:
+page:ffffea0005c20040 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x170801
+flags: 0x57ff00000000000(node=1|zone=2|lastcpupid=0x7ff)
+raw: 057ff00000000000 ffffea0005c20048 ffffea0005c20048 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner info is not present (never set?)
+
+Memory state around the buggy address:
+ ffff888170800f00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888170800f80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff888170801000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                   ^
+ ffff888170801080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888170801100: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

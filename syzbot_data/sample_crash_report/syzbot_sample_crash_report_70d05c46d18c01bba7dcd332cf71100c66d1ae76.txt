@@ -1,0 +1,110 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr_slave_1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr0: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): team0: link becomes ready
+==================================================================
+BUG: KASAN: use-after-free in cbq_activate_class net/sched/sch_cbq.c:297 [inline]
+BUG: KASAN: use-after-free in cbq_enqueue+0xecd/0xef0 net/sched/sch_cbq.c:381
+Read of size 8 at addr ffff88808c8bf670 by task kworker/0:2/3008
+
+CPU: 0 PID: 3008 Comm: kworker/0:2 Not tainted 5.4.0-rc1+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: ipv6_addrconf addrconf_dad_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:634
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ cbq_activate_class net/sched/sch_cbq.c:297 [inline]
+ cbq_enqueue+0xecd/0xef0 net/sched/sch_cbq.c:381
+ __dev_xmit_skb net/core/dev.c:3531 [inline]
+ __dev_queue_xmit+0x157e/0x3720 net/core/dev.c:3842
+ dev_queue_xmit+0x18/0x20 net/core/dev.c:3906
+ neigh_resolve_output net/core/neighbour.c:1490 [inline]
+ neigh_resolve_output+0x5a5/0x970 net/core/neighbour.c:1470
+ neigh_output include/net/neighbour.h:511 [inline]
+ ip6_finish_output2+0x1034/0x2550 net/ipv6/ip6_output.c:116
+ __ip6_finish_output+0x444/0xaa0 net/ipv6/ip6_output.c:142
+ ip6_finish_output+0x38/0x1f0 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0x235/0x7f0 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ndisc_send_skb+0xf29/0x14a0 net/ipv6/ndisc.c:505
+ ndisc_send_ns+0x3a9/0x850 net/ipv6/ndisc.c:647
+ addrconf_dad_work+0xb88/0x1150 net/ipv6/addrconf.c:4120
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 8568:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:510 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:483
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:524
+ __do_kmalloc_node mm/slab.c:3615 [inline]
+ __kmalloc_node_track_caller+0x4e/0x70 mm/slab.c:3629
+ __kmalloc_reserve.isra.0+0x40/0xf0 net/core/skbuff.c:141
+ __alloc_skb+0x10b/0x5e0 net/core/skbuff.c:209
+ alloc_skb include/linux/skbuff.h:1049 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1174 [inline]
+ netlink_sendmsg+0x972/0xd60 net/netlink/af_netlink.c:1892
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:657
+ ___sys_sendmsg+0x803/0x920 net/socket.c:2311
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2356
+ __do_sys_sendmsg net/socket.c:2365 [inline]
+ __se_sys_sendmsg net/socket.c:2363 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2363
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 8568:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ kasan_set_free_info mm/kasan/common.c:332 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:471
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:480
+ __cache_free mm/slab.c:3425 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3756
+ skb_free_head+0x93/0xb0 net/core/skbuff.c:591
+ skb_release_data+0x42d/0x7c0 net/core/skbuff.c:611
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:665
+ __kfree_skb net/core/skbuff.c:679 [inline]
+ consume_skb net/core/skbuff.c:838 [inline]
+ consume_skb+0xfb/0x3b0 net/core/skbuff.c:832
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0x539/0x710 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x8a5/0xd60 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:657
+ ___sys_sendmsg+0x803/0x920 net/socket.c:2311
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2356
+ __do_sys_sendmsg net/socket.c:2365 [inline]
+ __se_sys_sendmsg net/socket.c:2363 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2363
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88808c8bf600
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 112 bytes inside of
+ 2048-byte region [ffff88808c8bf600, ffff88808c8bfe00)
+The buggy address belongs to the page:
+page:ffffea0002322f80 refcount:1 mapcount:0 mapping:ffff8880aa400e00 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea0002322f08 ffffea0002325588 ffff8880aa400e00
+raw: 0000000000000000 ffff88808c8be500 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808c8bf500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88808c8bf580: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88808c8bf600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff88808c8bf680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88808c8bf700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

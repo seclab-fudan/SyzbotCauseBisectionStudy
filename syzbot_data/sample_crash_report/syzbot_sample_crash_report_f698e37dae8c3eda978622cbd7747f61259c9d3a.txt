@@ -1,0 +1,54 @@
+audit: type=1400 audit(1515803258.227:9): avc:  denied  { prog_run } for  pid=3501 comm="syzkaller889957" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=bpf permissive=1
+divide error: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 3501 Comm: syzkaller889957 Not tainted 4.15.0-rc7+ #259
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:___bpf_prog_run+0x3b6a/0x5ec0 kernel/bpf/core.c:962
+RSP: 0018:ffff8801c70fef68 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: dffffc0000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffc90000002030 RDI: ffffc90000002049
+RBP: ffff8801c70ff068 R08: 1ffff10038e1fd85 R09: 0000000000000002
+R10: ffff8801c70ff0e8 R11: 0000000000000000 R12: ffff8801c70ff0a0
+R13: ffffc90000002048 R14: ffff8801c70ff0a0 R15: 00000000fffffffc
+FS:  0000000001094880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020fd3000 CR3: 00000001bfc9c001 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __bpf_prog_run160+0xde/0x150 kernel/bpf/core.c:1308
+ bpf_prog_run_save_cb include/linux/filter.h:546 [inline]
+ sk_filter_trim_cap+0x33c/0x9c0 net/core/filter.c:103
+ sk_filter include/linux/filter.h:675 [inline]
+ netlink_unicast+0x1b9/0x700 net/netlink/af_netlink.c:1303
+ nlmsg_unicast include/net/netlink.h:608 [inline]
+ rtnl_unicast net/core/rtnetlink.c:636 [inline]
+ rtnl_stats_get+0x7bb/0xa10 net/core/rtnetlink.c:4245
+ rtnetlink_rcv_msg+0x733/0x1020 net/core/rtnetlink.c:4411
+ netlink_rcv_skb+0x224/0x470 net/netlink/af_netlink.c:2408
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4423
+ netlink_unicast_kernel net/netlink/af_netlink.c:1275 [inline]
+ netlink_unicast+0x4ee/0x700 net/netlink/af_netlink.c:1301
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1864
+ sock_sendmsg_nosec net/socket.c:638 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:648
+ sock_write_iter+0x31a/0x5d0 net/socket.c:917
+ call_write_iter include/linux/fs.h:1772 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x43ffc9
+RSP: 002b:00007ffe33bdef98 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 000000000043ffc9
+RDX: 0000000000000026 RSI: 0000000020fd3000 RDI: 0000000000000004
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000004 R11: 0000000000000217 R12: 0000000000401930
+R13: 00000000004019c0 R14: 0000000000000000 R15: 0000000000000000
+Code: 89 85 58 ff ff ff 41 0f b6 55 01 c0 ea 04 0f b6 d2 4d 8d 34 d4 4c 89 f2 48 c1 ea 03 80 3c 1a 00 0f 85 8a 1c 00 00 41 8b 0e 31 d2 <48> f7 f1 48 89 85 58 ff ff ff 41 0f b6 45 01 83 e0 0f 4d 8d 34 
+RIP: ___bpf_prog_run+0x3b6a/0x5ec0 kernel/bpf/core.c:962 RSP: ffff8801c70fef68
+---[ end trace 0990308e5da64aa8 ]---

@@ -1,0 +1,38 @@
+=============================
+WARNING: suspicious RCU usage
+5.12.0-rc5-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8294 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+1 lock held by syz-executor.3/31952:
+ #0: ffff88802dc90370 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:961
+
+stack backtrace:
+CPU: 1 PID: 31952 Comm: syz-executor.3 Not tainted 5.12.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8294
+ __mutex_lock_common kernel/locking/mutex.c:928 [inline]
+ __mutex_lock+0xa9/0x1120 kernel/locking/mutex.c:1096
+ kernfs_file_read_iter fs/kernfs/file.c:203 [inline]
+ kernfs_fop_read_iter+0x185/0x5f0 fs/kernfs/file.c:242
+ call_read_iter include/linux/fs.h:1971 [inline]
+ new_sync_read+0x41e/0x6e0 fs/read_write.c:415
+ vfs_read+0x35c/0x570 fs/read_write.c:496
+ ksys_read+0x12d/0x250 fs/read_write.c:634
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4191dc
+Code: ec 28 48 89 54 24 18 48 89 74 24 10 89 7c 24 08 e8 f9 fc ff ff 48 8b 54 24 18 48 8b 74 24 10 41 89 c0 8b 7c 24 08 31 c0 0f 05 <48> 3d 00 f0 ff ff 77 34 44 89 c7 48 89 44 24 08 e8 2f fd ff ff 48
+RSP: 002b:00007f95083c50e0 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00000000004191dc
+RDX: 00000000006ff000 RSI: 0000000000da42a0 RDI: 0000000000000003
+RBP: 0000000000a00000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000aa32a0
+R13: 0000000000301000 R14: 00007f95083c5300 R15: 0000000000022000

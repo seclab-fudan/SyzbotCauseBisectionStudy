@@ -1,0 +1,93 @@
+
+=============================
+WARNING: suspicious RCU usage
+BUG: sleeping function called from invalid context at mm/slab.h:419
+in_atomic(): 1, irqs_disabled(): 0, pid: 6813, name: syz-executor7
+1 lock held by syz-executor7/6813:
+ #0:  (rcu_read_lock){....}, at: [<000000001587b614>] map_get_next_key kernel/bpf/syscall.c:836 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000001587b614>] SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000001587b614>] SyS_bpf+0x1105/0x4860 kernel/bpf/syscall.c:1846
+CPU: 0 PID: 6813 Comm: syz-executor7 Not tainted 4.15.0-rc8+ #1
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ ___might_sleep+0x2b2/0x470 kernel/sched/core.c:6060
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6013
+ slab_pre_alloc_hook mm/slab.h:419 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ __do_kmalloc mm/slab.c:3706 [inline]
+ __kmalloc+0x2c5/0x760 mm/slab.c:3717
+ kmalloc include/linux/slab.h:504 [inline]
+ trie_get_next_key+0x517/0xf10 kernel/bpf/lpm_trie.c:626
+ map_get_next_key kernel/bpf/syscall.c:842 [inline]
+ SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ SyS_bpf+0x11b4/0x4860 kernel/bpf/syscall.c:1846
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x452ef9
+RSP: 002b:00007f68c270dc58 EFLAGS: 00000212 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000452ef9
+RDX: 0000000000000018 RSI: 0000000020013fe8 RDI: 0000000000000004
+RBP: 0000000000000040 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006ef6a0
+R13: 00000000ffffffff R14: 00007f68c270e6d4 R15: 0000000000000000
+4.15.0-rc8+ #1 Tainted: G        W       
+-----------------------------
+./include/linux/rcupdate.h:302 Illegal context switch in RCU read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by syz-executor4/6811:
+ #0:  (rcu_read_lock){....}, at: [<000000001587b614>] map_get_next_key kernel/bpf/syscall.c:836 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000001587b614>] SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000001587b614>] SyS_bpf+0x1105/0x4860 kernel/bpf/syscall.c:1846
+
+stack backtrace:
+CPU: 1 PID: 6811 Comm: syz-executor4 Tainted: G        W        4.15.0-rc8+ #1
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4585
+ rcu_preempt_sleep_check include/linux/rcupdate.h:301 [inline]
+ ___might_sleep+0x385/0x470 kernel/sched/core.c:6025
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6013
+ slab_pre_alloc_hook mm/slab.h:419 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ __do_kmalloc mm/slab.c:3706 [inline]
+ __kmalloc+0x2c5/0x760 mm/slab.c:3717
+ kmalloc include/linux/slab.h:504 [inline]
+ trie_get_next_key+0x517/0xf10 kernel/bpf/lpm_trie.c:626
+ map_get_next_key kernel/bpf/syscall.c:842 [inline]
+ SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ SyS_bpf+0x11b4/0x4860 kernel/bpf/syscall.c:1846
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x452ef9
+RSP: 002b:00007f0ae32edc58 EFLAGS: 00000212 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00007f0ae32ee700 RCX: 0000000000452ef9
+RDX: 0000000000000018 RSI: 0000000020013fe8 RDI: 0000000000000004
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 0000000000000000
+R13: 00007ffe44e8553f R14: 00007f0ae32ee9c0 R15: 0000000000000000
+overlayfs: missing 'lowerdir'
+overlayfs: missing 'lowerdir'
+9pnet_virtio: no channels available for device ./file0
+proc: unrecognized mount option "
+" or missing value
+proc: unrecognized mount option "
+" or missing value
+audit: type=1400 audit(1516689101.460:20): avc:  denied  { setopt } for  pid=7649 comm="syz-executor1" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:unlabeled_t:s0 tclass=socket permissive=1
+audit: type=1400 audit(1516689101.493:21): avc:  denied  { ioctl } for  pid=7649 comm="syz-executor1" path="socket:[19402]" dev="sockfs" ino=19402 ioctlcmd=0x89e2 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=sock_file permissive=1
+overlayfs: missing 'lowerdir'
+overlayfs: missing 'lowerdir'
+EXT4-fs (sda1): re-mounted. Opts: 
+EXT4-fs (sda1): re-mounted. Opts: 
+devpts: called with bogus options
+devpts: called with bogus options
+hrtimer: interrupt took 36277 ns
+overlayfs: missing 'lowerdir'
+overlayfs: missing 'lowerdir'
+tmpfs: Bad mount option �'0���?CDy�(bD�(g崺
+tmpfs: Bad mount option �'0���?CDy�(bD�(g崺

@@ -1,0 +1,1102 @@
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.19.0-rc6+ #263 Not tainted
+------------------------------------------------------
+syz-executor020/10024 is trying to acquire lock:
+00000000e3e9e517 ((wq_completion)bond_dev->name){+.+.}, at: flush_workqueue+0x2db/0x1e10 kernel/workqueue.c:2652
+
+but task is already holding lock:
+00000000acaef1da (rtnl_mutex){+.+.}, at: rtnl_lock net/core/rtnetlink.c:77 [inline]
+00000000acaef1da (rtnl_mutex){+.+.}, at: rtnetlink_rcv_msg+0x40e/0xc20 net/core/rtnetlink.c:4712
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (rtnl_mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+       __mutex_lock+0x166/0x1700 kernel/locking/mutex.c:1072
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+       rtnl_lock+0x17/0x20 net/core/rtnetlink.c:77
+       bond_netdev_notify drivers/net/bonding/bond_main.c:1303 [inline]
+       bond_netdev_notify_work+0x44/0xd0 drivers/net/bonding/bond_main.c:1313
+       process_one_work+0xc90/0x1b90 kernel/workqueue.c:2153
+       worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+       kthread+0x35a/0x420 kernel/kthread.c:246
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:413
+
+-> #1 ((work_completion)(&(&nnw->work)->work)){+.+.}:
+       process_one_work+0xc0a/0x1b90 kernel/workqueue.c:2129
+       worker_thread+0x17f/0x1390 kernel/workqueue.c:2296
+       kthread+0x35a/0x420 kernel/kthread.c:246
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:413
+
+-> #0 ((wq_completion)bond_dev->name){+.+.}:
+       lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3900
+       flush_workqueue+0x30a/0x1e10 kernel/workqueue.c:2655
+       drain_workqueue+0x2a9/0x640 kernel/workqueue.c:2820
+       destroy_workqueue+0xc6/0x9c0 kernel/workqueue.c:4155
+       __alloc_workqueue_key+0xed8/0x1170 kernel/workqueue.c:4138
+       bond_init+0x265/0x940 drivers/net/bonding/bond_main.c:4727
+       register_netdevice+0x332/0x10f0 net/core/dev.c:8409
+       bond_newlink+0x49/0xa0 drivers/net/bonding/bond_netlink.c:453
+       rtnl_newlink+0xec6/0x1d40 net/core/rtnetlink.c:3103
+       rtnetlink_rcv_msg+0x46a/0xc20 net/core/rtnetlink.c:4715
+       netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2454
+       rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4733
+       netlink_unicast_kernel net/netlink/af_netlink.c:1317 [inline]
+       netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1343
+       netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1908
+       sock_sendmsg_nosec net/socket.c:621 [inline]
+       sock_sendmsg+0xd5/0x120 net/socket.c:631
+       ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
+       __sys_sendmsg+0x11d/0x280 net/socket.c:2154
+       __do_sys_sendmsg net/socket.c:2163 [inline]
+       __se_sys_sendmsg net/socket.c:2161 [inline]
+       __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+       do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+  (wq_completion)bond_dev->name --> (work_completion)(&(&nnw->work)->work) --> rtnl_mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(rtnl_mutex);
+                               lock((work_completion)(&(&nnw->work)->work));
+                               lock(rtnl_mutex);
+  lock((wq_completion)bond_dev->name);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor020/10024:
+ #0: 00000000acaef1da (rtnl_mutex){+.+.}, at: rtnl_lock net/core/rtnetlink.c:77 [inline]
+ #0: 00000000acaef1da (rtnl_mutex){+.+.}, at: rtnetlink_rcv_msg+0x40e/0xc20 net/core/rtnetlink.c:4712
+
+stack backtrace:
+CPU: 1 PID: 10024 Comm: syz-executor020 Not tainted 4.19.0-rc6+ #263
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+ print_circular_bug.isra.33.cold.54+0x1bd/0x27d kernel/locking/lockdep.c:1221
+ check_prev_add kernel/locking/lockdep.c:1861 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1974 [inline]
+ validate_chain kernel/locking/lockdep.c:2415 [inline]
+ __lock_acquire+0x33e4/0x4ec0 kernel/locking/lockdep.c:3411
+ lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3900
+ flush_workqueue+0x30a/0x1e10 kernel/workqueue.c:2655
+ drain_workqueue+0x2a9/0x640 kernel/workqueue.c:2820
+ destroy_workqueue+0xc6/0x9c0 kernel/workqueue.c:4155
+ __alloc_workqueue_key+0xed8/0x1170 kernel/workqueue.c:4138
+ bond_init+0x265/0x940 drivers/net/bonding/bond_main.c:4727
+ register_netdevice+0x332/0x10f0 net/core/dev.c:8409
+ bond_newlink+0x49/0xa0 drivers/net/bonding/bond_netlink.c:453
+ rtnl_newlink+0xec6/0x1d40 net/core/rtnetlink.c:3103
+ rtnetlink_rcv_msg+0x46a/0xc20 net/core/rtnetlink.c:4715
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2454
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4733
+ netlink_unicast_kernel net/netlink/af_netlink.c:1317 [inline]
+ netlink_unicast+0x5a5/0x760 net/netlink/af_netlink.c:1343
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1908
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2116
+ __sys_sendmsg+0x11d/0x280 net/socket.c:2154
+ __do_sys_sendmsg net/socket.c:2163 [inline]
+ __se_sys_sendmsg net/socket.c:2161 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2161
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x447bf9
+Code: e8 1c e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 2b 01 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fb362495db8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000006ddc38 RCX: 0000000000447bf9
+RDX: 0000000000000000 RSI: 0000000020000180 RDI: 0000000000000004
+RBP: 00000000006ddc30 R08: 00007fb362496700 R09: 0000000000000000
+R10: 00007fb362496700 R11: 0000000000000246 R12: 00000000006ddc3c
+R13: 00007ffd0e057c4f R14: 00007fb3624969c0 R15: 000000000000002d
+kobject: 'bond210' (000000002246a0d9): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond210' (000000002246a0d9): kobject_uevent_env
+kobject: 'bond210' (000000002246a0d9): fill_kobj_path: path = '/devices/virtual/net/bond210'
+kobject: 'queues' (00000000ea053d52): kobject_add_internal: parent: 'bond210', set: '<NULL>'
+kobject: 'queues' (00000000ea053d52): kobject_uevent_env
+kobject: 'queues' (00000000ea053d52): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (000000008d82187c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (000000008d82187c): kobject_uevent_env
+kobject: 'rx-0' (000000008d82187c): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-0'
+kobject: 'rx-1' (0000000061754f5e): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (0000000061754f5e): kobject_uevent_env
+kobject: 'rx-1' (0000000061754f5e): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-1'
+kobject: 'rx-2' (00000000a9ef242a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (00000000a9ef242a): kobject_uevent_env
+kobject: 'rx-2' (00000000a9ef242a): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-2'
+kobject: 'rx-3' (000000003c1cc070): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (000000003c1cc070): kobject_uevent_env
+kobject: 'rx-3' (000000003c1cc070): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-3'
+kobject: 'rx-4' (0000000019dabf93): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (0000000019dabf93): kobject_uevent_env
+kobject: 'rx-4' (0000000019dabf93): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-4'
+kobject: 'rx-5' (00000000bd4409e2): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (00000000bd4409e2): kobject_uevent_env
+kobject: 'rx-5' (00000000bd4409e2): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-5'
+kobject: 'rx-6' (0000000012e1c98e): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (0000000012e1c98e): kobject_uevent_env
+kobject: 'rx-6' (0000000012e1c98e): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-6'
+kobject: 'rx-7' (000000002e05c82c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (000000002e05c82c): kobject_uevent_env
+kobject: 'rx-7' (000000002e05c82c): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-7'
+kobject: 'rx-8' (000000004eb896eb): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (000000004eb896eb): kobject_uevent_env
+kobject: 'rx-8' (000000004eb896eb): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-8'
+kobject: 'rx-9' (000000006d2642c1): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (000000006d2642c1): kobject_uevent_env
+kobject: 'rx-9' (000000006d2642c1): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-9'
+kobject: 'rx-10' (00000000899f68bc): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (00000000899f68bc): kobject_uevent_env
+kobject: 'rx-10' (00000000899f68bc): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-10'
+kobject: 'rx-11' (000000001d40234c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (000000001d40234c): kobject_uevent_env
+kobject: 'rx-11' (000000001d40234c): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-11'
+kobject: 'rx-12' (0000000069d42a0c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (0000000069d42a0c): kobject_uevent_env
+kobject: 'rx-12' (0000000069d42a0c): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-12'
+kobject: 'rx-13' (00000000904e261b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (00000000904e261b): kobject_uevent_env
+kobject: 'rx-13' (00000000904e261b): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-13'
+kobject: 'rx-14' (00000000f4992163): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (00000000f4992163): kobject_uevent_env
+kobject: 'rx-14' (00000000f4992163): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-14'
+kobject: 'rx-15' (000000000ab1bd30): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (000000000ab1bd30): kobject_uevent_env
+kobject: 'rx-15' (000000000ab1bd30): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/rx-15'
+kobject: 'tx-0' (00000000c6c09b9b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (00000000c6c09b9b): kobject_uevent_env
+kobject: 'tx-0' (00000000c6c09b9b): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-0'
+kobject: 'tx-1' (00000000c2fb2737): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (00000000c2fb2737): kobject_uevent_env
+kobject: 'tx-1' (00000000c2fb2737): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-1'
+kobject: 'tx-2' (000000005e29f712): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-2' (000000005e29f712): kobject_uevent_env
+kobject: 'tx-2' (000000005e29f712): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-2'
+kobject: 'tx-3' (00000000eba22c2b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-3' (00000000eba22c2b): kobject_uevent_env
+kobject: 'tx-3' (00000000eba22c2b): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-3'
+kobject: 'tx-4' (00000000eca128d4): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-4' (00000000eca128d4): kobject_uevent_env
+kobject: 'tx-4' (00000000eca128d4): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-4'
+kobject: 'tx-5' (00000000519e512d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-5' (00000000519e512d): kobject_uevent_env
+kobject: 'tx-5' (00000000519e512d): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-5'
+kobject: 'tx-6' (00000000cc4f2461): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-6' (00000000cc4f2461): kobject_uevent_env
+kobject: 'tx-6' (00000000cc4f2461): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-6'
+kobject: 'tx-7' (000000002342b899): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-7' (000000002342b899): kobject_uevent_env
+kobject: 'tx-7' (000000002342b899): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-7'
+kobject: 'tx-8' (0000000033551608): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-8' (0000000033551608): kobject_uevent_env
+kobject: 'tx-8' (0000000033551608): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-8'
+kobject: 'tx-9' (00000000b550f922): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-9' (00000000b550f922): kobject_uevent_env
+kobject: 'tx-9' (00000000b550f922): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-9'
+kobject: 'tx-10' (00000000470d70a9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-10' (00000000470d70a9): kobject_uevent_env
+kobject: 'tx-10' (00000000470d70a9): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-10'
+kobject: 'tx-11' (0000000007f938de): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-11' (0000000007f938de): kobject_uevent_env
+kobject: 'tx-11' (0000000007f938de): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-11'
+kobject: 'tx-12' (0000000051657996): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-12' (0000000051657996): kobject_uevent_env
+kobject: 'tx-12' (0000000051657996): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-12'
+kobject: 'tx-13' (00000000544f8c9b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-13' (00000000544f8c9b): kobject_uevent_env
+kobject: 'tx-13' (00000000544f8c9b): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-13'
+kobject: 'tx-14' (00000000dccc6b1d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-14' (00000000dccc6b1d): kobject_uevent_env
+kobject: 'tx-14' (00000000dccc6b1d): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-14'
+kobject: 'tx-15' (00000000d1c6a557): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-15' (00000000d1c6a557): kobject_uevent_env
+kobject: 'tx-15' (00000000d1c6a557): fill_kobj_path: path = '/devices/virtual/net/bond210/queues/tx-15'
+kobject: 'bond221' (00000000fff0e54a): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond221' (00000000fff0e54a): kobject_uevent_env
+kobject: 'bond221' (00000000fff0e54a): fill_kobj_path: path = '/devices/virtual/net/bond221'
+kobject: 'queues' (000000005299f556): kobject_add_internal: parent: 'bond221', set: '<NULL>'
+kobject: 'queues' (000000005299f556): kobject_uevent_env
+kobject: 'queues' (000000005299f556): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (00000000df898255): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (00000000df898255): kobject_uevent_env
+kobject: 'rx-0' (00000000df898255): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-0'
+kobject: 'rx-1' (0000000096743118): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (0000000096743118): kobject_uevent_env
+kobject: 'rx-1' (0000000096743118): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-1'
+kobject: 'rx-2' (0000000031edb011): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (0000000031edb011): kobject_uevent_env
+kobject: 'rx-2' (0000000031edb011): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-2'
+kobject: 'rx-3' (00000000eaf7637a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (00000000eaf7637a): kobject_uevent_env
+kobject: 'rx-3' (00000000eaf7637a): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-3'
+kobject: 'rx-4' (000000001fe46c85): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (000000001fe46c85): kobject_uevent_env
+kobject: 'rx-4' (000000001fe46c85): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-4'
+kobject: 'rx-5' (00000000143ccf59): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (00000000143ccf59): kobject_uevent_env
+kobject: 'rx-5' (00000000143ccf59): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-5'
+kobject: 'rx-6' (000000000188e99b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (000000000188e99b): kobject_uevent_env
+kobject: 'rx-6' (000000000188e99b): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-6'
+kobject: 'rx-7' (00000000f5193416): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (00000000f5193416): kobject_uevent_env
+kobject: 'rx-7' (00000000f5193416): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-7'
+kobject: 'rx-8' (0000000061e8d4fb): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (0000000061e8d4fb): kobject_uevent_env
+kobject: 'rx-8' (0000000061e8d4fb): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-8'
+kobject: 'rx-9' (0000000080c34ba8): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (0000000080c34ba8): kobject_uevent_env
+kobject: 'rx-9' (0000000080c34ba8): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-9'
+kobject: 'rx-10' (00000000bb6321b1): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (00000000bb6321b1): kobject_uevent_env
+kobject: 'rx-10' (00000000bb6321b1): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-10'
+kobject: 'rx-11' (0000000047735a73): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (0000000047735a73): kobject_uevent_env
+kobject: 'rx-11' (0000000047735a73): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-11'
+kobject: 'rx-12' (00000000fbb6c61a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (00000000fbb6c61a): kobject_uevent_env
+kobject: 'rx-12' (00000000fbb6c61a): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-12'
+kobject: 'rx-13' (000000003b52072d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (000000003b52072d): kobject_uevent_env
+kobject: 'rx-13' (000000003b52072d): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-13'
+kobject: 'rx-14' (00000000bc532d86): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (00000000bc532d86): kobject_uevent_env
+kobject: 'rx-14' (00000000bc532d86): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-14'
+kobject: 'rx-15' (000000000e25ab6b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (000000000e25ab6b): kobject_uevent_env
+kobject: 'rx-15' (000000000e25ab6b): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/rx-15'
+kobject: 'tx-0' (0000000081592f02): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (0000000081592f02): kobject_uevent_env
+kobject: 'tx-0' (0000000081592f02): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-0'
+kobject: 'tx-1' (000000004650a96d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (000000004650a96d): kobject_uevent_env
+kobject: 'tx-1' (000000004650a96d): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-1'
+kobject: 'tx-2' (00000000ebab0311): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-2' (00000000ebab0311): kobject_uevent_env
+kobject: 'tx-2' (00000000ebab0311): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-2'
+kobject: 'tx-3' (000000003b9a2cda): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-3' (000000003b9a2cda): kobject_uevent_env
+kobject: 'tx-3' (000000003b9a2cda): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-3'
+kobject: 'tx-4' (0000000046c85db0): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-4' (0000000046c85db0): kobject_uevent_env
+kobject: 'tx-4' (0000000046c85db0): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-4'
+kobject: 'tx-5' (0000000066420930): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-5' (0000000066420930): kobject_uevent_env
+kobject: 'tx-5' (0000000066420930): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-5'
+kobject: 'tx-6' (0000000007429b1a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-6' (0000000007429b1a): kobject_uevent_env
+kobject: 'tx-6' (0000000007429b1a): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-6'
+kobject: 'tx-7' (00000000c032f48c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-7' (00000000c032f48c): kobject_uevent_env
+kobject: 'tx-7' (00000000c032f48c): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-7'
+kobject: 'tx-8' (000000003c9d6bc4): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-8' (000000003c9d6bc4): kobject_uevent_env
+kobject: 'tx-8' (000000003c9d6bc4): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-8'
+kobject: 'tx-9' (0000000017168657): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-9' (0000000017168657): kobject_uevent_env
+kobject: 'tx-9' (0000000017168657): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-9'
+kobject: 'tx-10' (000000005da714b1): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-10' (000000005da714b1): kobject_uevent_env
+kobject: 'tx-10' (000000005da714b1): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-10'
+kobject: 'tx-11' (0000000024f1d28a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-11' (0000000024f1d28a): kobject_uevent_env
+kobject: 'tx-11' (0000000024f1d28a): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-11'
+kobject: 'tx-12' (0000000070c6c549): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-12' (0000000070c6c549): kobject_uevent_env
+kobject: 'tx-12' (0000000070c6c549): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-12'
+kobject: 'tx-13' (00000000b73a7e42): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-13' (00000000b73a7e42): kobject_uevent_env
+kobject: 'tx-13' (00000000b73a7e42): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-13'
+kobject: 'tx-14' (00000000ac7a701b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-14' (00000000ac7a701b): kobject_uevent_env
+kobject: 'tx-14' (00000000ac7a701b): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-14'
+kobject: 'tx-15' (00000000ecd261c4): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-15' (00000000ecd261c4): kobject_uevent_env
+kobject: 'tx-15' (00000000ecd261c4): fill_kobj_path: path = '/devices/virtual/net/bond221/queues/tx-15'
+kobject: 'bond211' (00000000b4a33101): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond211' (00000000b4a33101): kobject_uevent_env
+kobject: 'bond211' (00000000b4a33101): fill_kobj_path: path = '/devices/virtual/net/bond211'
+kobject: 'queues' (00000000e5165ea8): kobject_add_internal: parent: 'bond211', set: '<NULL>'
+kobject: 'queues' (00000000e5165ea8): kobject_uevent_env
+kobject: 'queues' (00000000e5165ea8): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (00000000c4b4938d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (00000000c4b4938d): kobject_uevent_env
+kobject: 'rx-0' (00000000c4b4938d): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-0'
+kobject: 'rx-1' (000000006fd08a49): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (000000006fd08a49): kobject_uevent_env
+kobject: 'rx-1' (000000006fd08a49): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-1'
+kobject: 'rx-2' (000000000203c9ce): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (000000000203c9ce): kobject_uevent_env
+kobject: 'rx-2' (000000000203c9ce): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-2'
+kobject: 'rx-3' (00000000d8e788b2): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (00000000d8e788b2): kobject_uevent_env
+kobject: 'rx-3' (00000000d8e788b2): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-3'
+kobject: 'rx-4' (000000009326da92): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (000000009326da92): kobject_uevent_env
+kobject: 'rx-4' (000000009326da92): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-4'
+kobject: 'rx-5' (00000000dc344814): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (00000000dc344814): kobject_uevent_env
+kobject: 'rx-5' (00000000dc344814): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-5'
+kobject: 'rx-6' (000000006a883e4d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (000000006a883e4d): kobject_uevent_env
+kobject: 'rx-6' (000000006a883e4d): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-6'
+kobject: 'rx-7' (000000009fd5ef60): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (000000009fd5ef60): kobject_uevent_env
+kobject: 'rx-7' (000000009fd5ef60): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-7'
+kobject: 'rx-8' (000000003ac49df6): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (000000003ac49df6): kobject_uevent_env
+kobject: 'rx-8' (000000003ac49df6): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-8'
+kobject: 'rx-9' (000000004e7c7620): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (000000004e7c7620): kobject_uevent_env
+kobject: 'rx-9' (000000004e7c7620): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-9'
+kobject: 'rx-10' (00000000aed8568d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (00000000aed8568d): kobject_uevent_env
+kobject: 'rx-10' (00000000aed8568d): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-10'
+kobject: 'rx-11' (0000000043ae7506): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (0000000043ae7506): kobject_uevent_env
+kobject: 'rx-11' (0000000043ae7506): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-11'
+kobject: 'rx-12' (00000000cb9625fd): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (00000000cb9625fd): kobject_uevent_env
+kobject: 'rx-12' (00000000cb9625fd): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-12'
+kobject: 'rx-13' (00000000e41c0eab): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (00000000e41c0eab): kobject_uevent_env
+kobject: 'rx-13' (00000000e41c0eab): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-13'
+kobject: 'rx-14' (00000000e3a1c952): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (00000000e3a1c952): kobject_uevent_env
+kobject: 'rx-14' (00000000e3a1c952): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-14'
+kobject: 'rx-15' (000000009b429c0c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (000000009b429c0c): kobject_uevent_env
+kobject: 'rx-15' (000000009b429c0c): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/rx-15'
+kobject: 'tx-0' (00000000d31511fc): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (00000000d31511fc): kobject_uevent_env
+kobject: 'tx-0' (00000000d31511fc): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-0'
+kobject: 'tx-1' (00000000428d1e97): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (00000000428d1e97): kobject_uevent_env
+kobject: 'tx-1' (00000000428d1e97): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-1'
+kobject: 'tx-2' (00000000f4de8b64): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-2' (00000000f4de8b64): kobject_uevent_env
+kobject: 'tx-2' (00000000f4de8b64): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-2'
+kobject: 'tx-3' (000000002b6ab71f): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-3' (000000002b6ab71f): kobject_uevent_env
+kobject: 'tx-3' (000000002b6ab71f): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-3'
+kobject: 'tx-4' (00000000a2395cfe): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-4' (00000000a2395cfe): kobject_uevent_env
+kobject: 'tx-4' (00000000a2395cfe): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-4'
+kobject: 'tx-5' (000000009eca0792): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-5' (000000009eca0792): kobject_uevent_env
+kobject: 'tx-5' (000000009eca0792): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-5'
+kobject: 'tx-6' (00000000d5428298): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-6' (00000000d5428298): kobject_uevent_env
+kobject: 'tx-6' (00000000d5428298): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-6'
+kobject: 'tx-7' (00000000c25c08bb): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-7' (00000000c25c08bb): kobject_uevent_env
+kobject: 'tx-7' (00000000c25c08bb): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-7'
+kobject: 'tx-8' (000000006f471dee): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-8' (000000006f471dee): kobject_uevent_env
+kobject: 'tx-8' (000000006f471dee): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-8'
+kobject: 'tx-9' (00000000b8f02869): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-9' (00000000b8f02869): kobject_uevent_env
+kobject: 'tx-9' (00000000b8f02869): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-9'
+kobject: 'tx-10' (00000000f5577c2d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-10' (00000000f5577c2d): kobject_uevent_env
+kobject: 'tx-10' (00000000f5577c2d): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-10'
+kobject: 'tx-11' (0000000028f466de): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-11' (0000000028f466de): kobject_uevent_env
+kobject: 'tx-11' (0000000028f466de): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-11'
+kobject: 'tx-12' (00000000366aedcb): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-12' (00000000366aedcb): kobject_uevent_env
+kobject: 'tx-12' (00000000366aedcb): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-12'
+kobject: 'tx-13' (00000000cd613fa7): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-13' (00000000cd613fa7): kobject_uevent_env
+kobject: 'tx-13' (00000000cd613fa7): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-13'
+kobject: 'tx-14' (0000000006aca5dd): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-14' (0000000006aca5dd): kobject_uevent_env
+kobject: 'tx-14' (0000000006aca5dd): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-14'
+kobject: 'tx-15' (000000002f45be1f): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-15' (000000002f45be1f): kobject_uevent_env
+kobject: 'tx-15' (000000002f45be1f): fill_kobj_path: path = '/devices/virtual/net/bond211/queues/tx-15'
+kobject: 'bond213' (0000000069100e41): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond213' (0000000069100e41): kobject_uevent_env
+kobject: 'bond213' (0000000069100e41): fill_kobj_path: path = '/devices/virtual/net/bond213'
+kobject: 'queues' (00000000d31aad6a): kobject_add_internal: parent: 'bond213', set: '<NULL>'
+kobject: 'queues' (00000000d31aad6a): kobject_uevent_env
+kobject: 'queues' (00000000d31aad6a): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (000000009a930849): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (000000009a930849): kobject_uevent_env
+kobject: 'rx-0' (000000009a930849): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-0'
+kobject: 'rx-1' (0000000003c77dfb): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (0000000003c77dfb): kobject_uevent_env
+kobject: 'rx-1' (0000000003c77dfb): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-1'
+kobject: 'rx-2' (00000000089c545b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (00000000089c545b): kobject_uevent_env
+kobject: 'rx-2' (00000000089c545b): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-2'
+kobject: 'rx-3' (000000000b33ddef): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (000000000b33ddef): kobject_uevent_env
+kobject: 'rx-3' (000000000b33ddef): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-3'
+kobject: 'rx-4' (00000000f97eacc9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (00000000f97eacc9): kobject_uevent_env
+kobject: 'rx-4' (00000000f97eacc9): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-4'
+kobject: 'rx-5' (000000004439adb6): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (000000004439adb6): kobject_uevent_env
+kobject: 'rx-5' (000000004439adb6): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-5'
+kobject: 'rx-6' (000000008c46f002): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (000000008c46f002): kobject_uevent_env
+kobject: 'rx-6' (000000008c46f002): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-6'
+kobject: 'rx-7' (000000007377f4dc): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (000000007377f4dc): kobject_uevent_env
+kobject: 'rx-7' (000000007377f4dc): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-7'
+kobject: 'rx-8' (00000000a843864b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (00000000a843864b): kobject_uevent_env
+kobject: 'rx-8' (00000000a843864b): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-8'
+kobject: 'rx-9' (0000000018d2a076): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (0000000018d2a076): kobject_uevent_env
+kobject: 'rx-9' (0000000018d2a076): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-9'
+kobject: 'rx-10' (000000002df31ee8): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (000000002df31ee8): kobject_uevent_env
+kobject: 'rx-10' (000000002df31ee8): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-10'
+kobject: 'rx-11' (00000000ff285a2c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (00000000ff285a2c): kobject_uevent_env
+kobject: 'rx-11' (00000000ff285a2c): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-11'
+kobject: 'rx-12' (00000000e0f775e0): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (00000000e0f775e0): kobject_uevent_env
+kobject: 'rx-12' (00000000e0f775e0): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-12'
+kobject: 'rx-13' (0000000057d71981): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (0000000057d71981): kobject_uevent_env
+kobject: 'rx-13' (0000000057d71981): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-13'
+kobject: 'rx-14' (00000000aa282e3b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (00000000aa282e3b): kobject_uevent_env
+kobject: 'rx-14' (00000000aa282e3b): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-14'
+kobject: 'rx-15' (00000000f4ebe370): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (00000000f4ebe370): kobject_uevent_env
+kobject: 'rx-15' (00000000f4ebe370): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-15'
+kobject: 'tx-0' (0000000024d2d23b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (0000000024d2d23b): kobject_uevent_env
+kobject: 'tx-0' (0000000024d2d23b): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-0'
+kobject: 'tx-1' (0000000039c65d45): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (0000000039c65d45): kobject_uevent_env
+kobject: 'tx-1' (0000000039c65d45): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-1'
+kobject: 'tx-2' (00000000462d3fc7): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-2' (00000000462d3fc7): kobject_uevent_env
+kobject: 'tx-2' (00000000462d3fc7): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-2'
+kobject: 'tx-3' (000000009799c4dd): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-3' (000000009799c4dd): kobject_uevent_env
+kobject: 'tx-3' (000000009799c4dd): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-3'
+kobject: 'tx-4' (000000006e51ce85): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-4' (000000006e51ce85): kobject_uevent_env
+kobject: 'tx-4' (000000006e51ce85): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-4'
+kobject: 'tx-5' (000000004daf664d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-5' (000000004daf664d): kobject_uevent_env
+kobject: 'tx-5' (000000004daf664d): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-5'
+kobject: 'tx-6' (00000000b497c7eb): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-6' (00000000b497c7eb): kobject_uevent_env
+kobject: 'tx-6' (00000000b497c7eb): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-6'
+kobject: 'tx-7' (000000005ee36325): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-7' (000000005ee36325): kobject_uevent_env
+kobject: 'tx-7' (000000005ee36325): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-7'
+kobject: 'tx-8' (00000000ae500481): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-8' (00000000ae500481): kobject_uevent_env
+kobject: 'tx-8' (00000000ae500481): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-8'
+kobject: 'tx-9' (00000000d0d347b9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-9' (00000000d0d347b9): kobject_uevent_env
+kobject: 'tx-9' (00000000d0d347b9): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-9'
+kobject: 'tx-10' (000000008c2dff7b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-10' (000000008c2dff7b): kobject_uevent_env
+kobject: 'tx-10' (000000008c2dff7b): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-10'
+kobject: 'tx-11' (00000000f24472fa): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-11' (00000000f24472fa): kobject_uevent_env
+kobject: 'tx-11' (00000000f24472fa): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-11'
+kobject: 'tx-12' (0000000031eca674): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-12' (0000000031eca674): kobject_uevent_env
+kobject: 'tx-12' (0000000031eca674): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-12'
+kobject: 'tx-13' (00000000262b2103): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-13' (00000000262b2103): kobject_uevent_env
+kobject: 'tx-13' (00000000262b2103): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-13'
+kobject: 'tx-14' (00000000d97a8cbf): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-14' (00000000d97a8cbf): kobject_uevent_env
+kobject: 'tx-14' (00000000d97a8cbf): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-14'
+kobject: 'tx-15' (00000000b20a8398): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-15' (00000000b20a8398): kobject_uevent_env
+kobject: 'tx-15' (00000000b20a8398): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-15'
+kobject: 'bond213' (00000000dfaa7281): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond213' (00000000dfaa7281): kobject_uevent_env
+kobject: 'bond213' (00000000dfaa7281): fill_kobj_path: path = '/devices/virtual/net/bond213'
+kobject: 'queues' (00000000395200a3): kobject_add_internal: parent: 'bond213', set: '<NULL>'
+kobject: 'queues' (00000000395200a3): kobject_uevent_env
+kobject: 'queues' (00000000395200a3): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (000000008e15e8ae): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (000000008e15e8ae): kobject_uevent_env
+kobject: 'rx-0' (000000008e15e8ae): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-0'
+kobject: 'rx-1' (00000000a66aa42b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (00000000a66aa42b): kobject_uevent_env
+kobject: 'rx-1' (00000000a66aa42b): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-1'
+kobject: 'rx-2' (0000000059eef44e): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (0000000059eef44e): kobject_uevent_env
+kobject: 'rx-2' (0000000059eef44e): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-2'
+kobject: 'rx-3' (000000000b3d6571): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (000000000b3d6571): kobject_uevent_env
+kobject: 'rx-3' (000000000b3d6571): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-3'
+kobject: 'rx-4' (00000000857f3176): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (00000000857f3176): kobject_uevent_env
+kobject: 'rx-4' (00000000857f3176): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-4'
+kobject: 'rx-5' (000000001697f0ef): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (000000001697f0ef): kobject_uevent_env
+kobject: 'rx-5' (000000001697f0ef): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-5'
+kobject: 'rx-6' (00000000be79a079): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (00000000be79a079): kobject_uevent_env
+kobject: 'rx-6' (00000000be79a079): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-6'
+kobject: 'rx-7' (000000004a3a0d8e): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (000000004a3a0d8e): kobject_uevent_env
+kobject: 'rx-7' (000000004a3a0d8e): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-7'
+kobject: 'rx-8' (00000000c5bf2e28): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (00000000c5bf2e28): kobject_uevent_env
+kobject: 'rx-8' (00000000c5bf2e28): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-8'
+kobject: 'rx-9' (00000000b6315325): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (00000000b6315325): kobject_uevent_env
+kobject: 'rx-9' (00000000b6315325): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-9'
+kobject: 'rx-10' (000000009af219d1): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (000000009af219d1): kobject_uevent_env
+kobject: 'rx-10' (000000009af219d1): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-10'
+kobject: 'rx-11' (00000000b98f4d28): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (00000000b98f4d28): kobject_uevent_env
+kobject: 'rx-11' (00000000b98f4d28): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-11'
+kobject: 'rx-12' (00000000da37c605): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (00000000da37c605): kobject_uevent_env
+kobject: 'rx-12' (00000000da37c605): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-12'
+kobject: 'rx-13' (00000000676b33da): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (00000000676b33da): kobject_uevent_env
+kobject: 'rx-13' (00000000676b33da): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-13'
+kobject: 'rx-14' (0000000085db84d1): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (0000000085db84d1): kobject_uevent_env
+kobject: 'rx-14' (0000000085db84d1): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-14'
+kobject: 'rx-15' (00000000ec194a28): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (00000000ec194a28): kobject_uevent_env
+kobject: 'rx-15' (00000000ec194a28): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/rx-15'
+kobject: 'tx-0' (00000000a6dc7a26): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (00000000a6dc7a26): kobject_uevent_env
+kobject: 'tx-0' (00000000a6dc7a26): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-0'
+kobject: 'tx-1' (0000000051051987): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (0000000051051987): kobject_uevent_env
+kobject: 'tx-1' (0000000051051987): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-1'
+kobject: 'tx-2' (0000000019afc89f): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-2' (0000000019afc89f): kobject_uevent_env
+kobject: 'tx-2' (0000000019afc89f): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-2'
+kobject: 'tx-3' (000000001ad97f41): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-3' (000000001ad97f41): kobject_uevent_env
+kobject: 'tx-3' (000000001ad97f41): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-3'
+kobject: 'tx-4' (00000000ce3cc382): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-4' (00000000ce3cc382): kobject_uevent_env
+kobject: 'tx-4' (00000000ce3cc382): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-4'
+kobject: 'tx-5' (0000000091035bde): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-5' (0000000091035bde): kobject_uevent_env
+kobject: 'tx-5' (0000000091035bde): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-5'
+kobject: 'tx-6' (000000009f807961): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-6' (000000009f807961): kobject_uevent_env
+kobject: 'tx-6' (000000009f807961): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-6'
+kobject: 'tx-7' (00000000cdff9c11): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-7' (00000000cdff9c11): kobject_uevent_env
+kobject: 'tx-7' (00000000cdff9c11): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-7'
+kobject: 'tx-8' (00000000a679c665): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-8' (00000000a679c665): kobject_uevent_env
+kobject: 'tx-8' (00000000a679c665): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-8'
+kobject: 'tx-9' (00000000de985d45): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-9' (00000000de985d45): kobject_uevent_env
+kobject: 'tx-9' (00000000de985d45): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-9'
+kobject: 'tx-10' (0000000090a24a8e): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-10' (0000000090a24a8e): kobject_uevent_env
+kobject: 'tx-10' (0000000090a24a8e): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-10'
+kobject: 'tx-11' (00000000f168ba8a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-11' (00000000f168ba8a): kobject_uevent_env
+kobject: 'tx-11' (00000000f168ba8a): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-11'
+kobject: 'tx-12' (00000000c6ece654): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-12' (00000000c6ece654): kobject_uevent_env
+kobject: 'tx-12' (00000000c6ece654): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-12'
+kobject: 'tx-13' (0000000065a31ba4): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-13' (0000000065a31ba4): kobject_uevent_env
+kobject: 'tx-13' (0000000065a31ba4): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-13'
+kobject: 'tx-14' (000000007ca15a1c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-14' (000000007ca15a1c): kobject_uevent_env
+kobject: 'tx-14' (000000007ca15a1c): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-14'
+kobject: 'tx-15' (00000000752375ba): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-15' (00000000752375ba): kobject_uevent_env
+kobject: 'tx-15' (00000000752375ba): fill_kobj_path: path = '/devices/virtual/net/bond213/queues/tx-15'
+kobject: 'bond214' (0000000076b87575): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond214' (0000000076b87575): kobject_uevent_env
+kobject: 'bond214' (0000000076b87575): fill_kobj_path: path = '/devices/virtual/net/bond214'
+kobject: 'queues' (0000000051f19729): kobject_add_internal: parent: 'bond214', set: '<NULL>'
+kobject: 'queues' (0000000051f19729): kobject_uevent_env
+kobject: 'queues' (0000000051f19729): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (00000000ef950b9e): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (00000000ef950b9e): kobject_uevent_env
+kobject: 'rx-0' (00000000ef950b9e): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-0'
+kobject: 'rx-1' (00000000da86fd09): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (00000000da86fd09): kobject_uevent_env
+kobject: 'rx-1' (00000000da86fd09): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-1'
+kobject: 'rx-2' (00000000b2278b21): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (00000000b2278b21): kobject_uevent_env
+kobject: 'rx-2' (00000000b2278b21): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-2'
+kobject: 'rx-3' (00000000bf51b5ae): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (00000000bf51b5ae): kobject_uevent_env
+kobject: 'rx-3' (00000000bf51b5ae): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-3'
+kobject: 'rx-4' (0000000041a13942): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (0000000041a13942): kobject_uevent_env
+kobject: 'rx-4' (0000000041a13942): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-4'
+kobject: 'rx-5' (00000000a0c96fa2): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (00000000a0c96fa2): kobject_uevent_env
+kobject: 'rx-5' (00000000a0c96fa2): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-5'
+kobject: 'rx-6' (00000000679ba247): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (00000000679ba247): kobject_uevent_env
+kobject: 'rx-6' (00000000679ba247): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-6'
+kobject: 'rx-7' (0000000058fa7f90): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (0000000058fa7f90): kobject_uevent_env
+kobject: 'rx-7' (0000000058fa7f90): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-7'
+kobject: 'rx-8' (000000004cb5c6a5): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (000000004cb5c6a5): kobject_uevent_env
+kobject: 'rx-8' (000000004cb5c6a5): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-8'
+kobject: 'rx-9' (000000009dd9f294): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (000000009dd9f294): kobject_uevent_env
+kobject: 'rx-9' (000000009dd9f294): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-9'
+kobject: 'rx-10' (00000000ee8a33ac): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (00000000ee8a33ac): kobject_uevent_env
+kobject: 'rx-10' (00000000ee8a33ac): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-10'
+kobject: 'rx-11' (0000000022d9cece): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (0000000022d9cece): kobject_uevent_env
+kobject: 'rx-11' (0000000022d9cece): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-11'
+kobject: 'rx-12' (00000000892e2a6a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (00000000892e2a6a): kobject_uevent_env
+kobject: 'rx-12' (00000000892e2a6a): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-12'
+kobject: 'rx-13' (000000004b277696): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (000000004b277696): kobject_uevent_env
+kobject: 'rx-13' (000000004b277696): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-13'
+kobject: 'rx-14' (000000001ece86cd): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (000000001ece86cd): kobject_uevent_env
+kobject: 'rx-14' (000000001ece86cd): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-14'
+kobject: 'rx-15' (0000000023ae8bb7): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (0000000023ae8bb7): kobject_uevent_env
+kobject: 'rx-15' (0000000023ae8bb7): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-15'
+kobject: 'tx-0' (00000000f079f8c0): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (00000000f079f8c0): kobject_uevent_env
+kobject: 'tx-0' (00000000f079f8c0): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-0'
+kobject: 'tx-1' (00000000e333a342): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (00000000e333a342): kobject_uevent_env
+kobject: 'tx-1' (00000000e333a342): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-1'
+kobject: 'tx-2' (00000000f8c0a467): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-2' (00000000f8c0a467): kobject_uevent_env
+kobject: 'tx-2' (00000000f8c0a467): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-2'
+kobject: 'tx-3' (00000000ca4465f1): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-3' (00000000ca4465f1): kobject_uevent_env
+kobject: 'tx-3' (00000000ca4465f1): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-3'
+kobject: 'tx-4' (000000008e944227): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-4' (000000008e944227): kobject_uevent_env
+kobject: 'tx-4' (000000008e944227): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-4'
+kobject: 'tx-5' (00000000ef1f9db7): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-5' (00000000ef1f9db7): kobject_uevent_env
+kobject: 'tx-5' (00000000ef1f9db7): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-5'
+kobject: 'tx-6' (00000000c36ae506): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-6' (00000000c36ae506): kobject_uevent_env
+kobject: 'tx-6' (00000000c36ae506): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-6'
+kobject: 'tx-7' (0000000016c495a9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-7' (0000000016c495a9): kobject_uevent_env
+kobject: 'tx-7' (0000000016c495a9): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-7'
+kobject: 'tx-8' (00000000a110bea3): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-8' (00000000a110bea3): kobject_uevent_env
+kobject: 'tx-8' (00000000a110bea3): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-8'
+kobject: 'tx-9' (00000000908b060d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-9' (00000000908b060d): kobject_uevent_env
+kobject: 'tx-9' (00000000908b060d): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-9'
+kobject: 'tx-10' (00000000c965e71c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-10' (00000000c965e71c): kobject_uevent_env
+kobject: 'tx-10' (00000000c965e71c): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-10'
+kobject: 'tx-11' (00000000681bc026): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-11' (00000000681bc026): kobject_uevent_env
+kobject: 'tx-11' (00000000681bc026): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-11'
+kobject: 'tx-12' (00000000923014e5): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-12' (00000000923014e5): kobject_uevent_env
+kobject: 'tx-12' (00000000923014e5): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-12'
+kobject: 'tx-13' (000000009c1d03af): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-13' (000000009c1d03af): kobject_uevent_env
+kobject: 'tx-13' (000000009c1d03af): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-13'
+kobject: 'tx-14' (000000000a13cf90): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-14' (000000000a13cf90): kobject_uevent_env
+kobject: 'tx-14' (000000000a13cf90): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-14'
+kobject: 'tx-15' (0000000011f652bf): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-15' (0000000011f652bf): kobject_uevent_env
+kobject: 'tx-15' (0000000011f652bf): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-15'
+kobject: 'bond223' (00000000fc75dc6b): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond223' (00000000fc75dc6b): kobject_uevent_env
+kobject: 'bond223' (00000000fc75dc6b): fill_kobj_path: path = '/devices/virtual/net/bond223'
+kobject: 'queues' (000000007414e1ba): kobject_add_internal: parent: 'bond223', set: '<NULL>'
+kobject: 'queues' (000000007414e1ba): kobject_uevent_env
+kobject: 'queues' (000000007414e1ba): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (00000000f9e956dc): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (00000000f9e956dc): kobject_uevent_env
+kobject: 'rx-0' (00000000f9e956dc): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-0'
+kobject: 'rx-1' (0000000090c74d10): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (0000000090c74d10): kobject_uevent_env
+kobject: 'rx-1' (0000000090c74d10): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-1'
+kobject: 'rx-2' (0000000040b017b5): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (0000000040b017b5): kobject_uevent_env
+kobject: 'rx-2' (0000000040b017b5): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-2'
+kobject: 'rx-3' (000000002e7c5fb3): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (000000002e7c5fb3): kobject_uevent_env
+kobject: 'rx-3' (000000002e7c5fb3): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-3'
+kobject: 'rx-4' (0000000020818068): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (0000000020818068): kobject_uevent_env
+kobject: 'rx-4' (0000000020818068): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-4'
+kobject: 'rx-5' (0000000052aea90d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (0000000052aea90d): kobject_uevent_env
+kobject: 'rx-5' (0000000052aea90d): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-5'
+kobject: 'rx-6' (0000000017418bf5): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (0000000017418bf5): kobject_uevent_env
+kobject: 'rx-6' (0000000017418bf5): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-6'
+kobject: 'rx-7' (00000000116852d0): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (00000000116852d0): kobject_uevent_env
+kobject: 'rx-7' (00000000116852d0): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-7'
+kobject: 'rx-8' (000000006a7b7aa1): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (000000006a7b7aa1): kobject_uevent_env
+kobject: 'rx-8' (000000006a7b7aa1): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-8'
+kobject: 'rx-9' (000000002f63d3ab): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (000000002f63d3ab): kobject_uevent_env
+kobject: 'rx-9' (000000002f63d3ab): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-9'
+kobject: 'rx-10' (000000003bab9aed): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (000000003bab9aed): kobject_uevent_env
+kobject: 'rx-10' (000000003bab9aed): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-10'
+kobject: 'rx-11' (00000000028dc14f): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (00000000028dc14f): kobject_uevent_env
+kobject: 'rx-11' (00000000028dc14f): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-11'
+kobject: 'rx-12' (00000000ed637a1d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (00000000ed637a1d): kobject_uevent_env
+kobject: 'rx-12' (00000000ed637a1d): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-12'
+kobject: 'rx-13' (0000000002551ebd): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (0000000002551ebd): kobject_uevent_env
+kobject: 'rx-13' (0000000002551ebd): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-13'
+kobject: 'rx-14' (0000000094eab14a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (0000000094eab14a): kobject_uevent_env
+kobject: 'rx-14' (0000000094eab14a): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-14'
+kobject: 'rx-15' (00000000dc76638c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (00000000dc76638c): kobject_uevent_env
+kobject: 'rx-15' (00000000dc76638c): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/rx-15'
+kobject: 'tx-0' (000000003db18579): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (000000003db18579): kobject_uevent_env
+kobject: 'tx-0' (000000003db18579): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-0'
+kobject: 'tx-1' (00000000d908f1d3): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (00000000d908f1d3): kobject_uevent_env
+kobject: 'tx-1' (00000000d908f1d3): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-1'
+kobject: 'tx-2' (000000005b99ca7f): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-2' (000000005b99ca7f): kobject_uevent_env
+kobject: 'tx-2' (000000005b99ca7f): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-2'
+kobject: 'tx-3' (00000000566ae2b4): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-3' (00000000566ae2b4): kobject_uevent_env
+kobject: 'tx-3' (00000000566ae2b4): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-3'
+kobject: 'tx-4' (000000000958cf11): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-4' (000000000958cf11): kobject_uevent_env
+kobject: 'tx-4' (000000000958cf11): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-4'
+kobject: 'tx-5' (00000000d7708f63): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-5' (00000000d7708f63): kobject_uevent_env
+kobject: 'tx-5' (00000000d7708f63): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-5'
+kobject: 'tx-6' (000000004a3e9d92): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-6' (000000004a3e9d92): kobject_uevent_env
+kobject: 'tx-6' (000000004a3e9d92): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-6'
+kobject: 'tx-7' (0000000070f837e6): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-7' (0000000070f837e6): kobject_uevent_env
+kobject: 'tx-7' (0000000070f837e6): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-7'
+kobject: 'tx-8' (0000000087d9537a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-8' (0000000087d9537a): kobject_uevent_env
+kobject: 'tx-8' (0000000087d9537a): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-8'
+kobject: 'tx-9' (000000002e6752ec): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-9' (000000002e6752ec): kobject_uevent_env
+kobject: 'tx-9' (000000002e6752ec): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-9'
+kobject: 'tx-10' (00000000675c813f): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-10' (00000000675c813f): kobject_uevent_env
+kobject: 'tx-10' (00000000675c813f): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-10'
+kobject: 'tx-11' (00000000b4edb168): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-11' (00000000b4edb168): kobject_uevent_env
+kobject: 'tx-11' (00000000b4edb168): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-11'
+kobject: 'tx-12' (000000007d6d7c25): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-12' (000000007d6d7c25): kobject_uevent_env
+kobject: 'tx-12' (000000007d6d7c25): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-12'
+kobject: 'tx-13' (00000000976af378): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-13' (00000000976af378): kobject_uevent_env
+kobject: 'tx-13' (00000000976af378): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-13'
+kobject: 'tx-14' (000000002f83371a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-14' (000000002f83371a): kobject_uevent_env
+kobject: 'tx-14' (000000002f83371a): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-14'
+kobject: 'tx-15' (00000000c56a6746): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-15' (00000000c56a6746): kobject_uevent_env
+kobject: 'tx-15' (00000000c56a6746): fill_kobj_path: path = '/devices/virtual/net/bond223/queues/tx-15'
+kobject: 'bond215' (000000009701a181): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond215' (000000009701a181): kobject_uevent_env
+kobject: 'bond215' (000000009701a181): fill_kobj_path: path = '/devices/virtual/net/bond215'
+kobject: 'queues' (00000000b4d02b37): kobject_add_internal: parent: 'bond215', set: '<NULL>'
+kobject: 'queues' (00000000b4d02b37): kobject_uevent_env
+kobject: 'queues' (00000000b4d02b37): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (00000000e9dbb643): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (00000000e9dbb643): kobject_uevent_env
+kobject: 'rx-0' (00000000e9dbb643): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-0'
+kobject: 'rx-1' (000000001c7e2652): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (000000001c7e2652): kobject_uevent_env
+kobject: 'rx-1' (000000001c7e2652): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-1'
+kobject: 'rx-2' (00000000270275f8): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (00000000270275f8): kobject_uevent_env
+kobject: 'rx-2' (00000000270275f8): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-2'
+kobject: 'rx-3' (00000000179fca33): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (00000000179fca33): kobject_uevent_env
+kobject: 'rx-3' (00000000179fca33): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-3'
+kobject: 'rx-4' (000000004e53fc2c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (000000004e53fc2c): kobject_uevent_env
+kobject: 'rx-4' (000000004e53fc2c): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-4'
+kobject: 'rx-5' (0000000039011446): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (0000000039011446): kobject_uevent_env
+kobject: 'rx-5' (0000000039011446): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-5'
+kobject: 'rx-6' (00000000c0a417ca): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (00000000c0a417ca): kobject_uevent_env
+kobject: 'rx-6' (00000000c0a417ca): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-6'
+kobject: 'rx-7' (00000000e8a04b04): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (00000000e8a04b04): kobject_uevent_env
+kobject: 'rx-7' (00000000e8a04b04): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-7'
+kobject: 'rx-8' (000000009cc5bf6b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (000000009cc5bf6b): kobject_uevent_env
+kobject: 'rx-8' (000000009cc5bf6b): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-8'
+kobject: 'rx-9' (00000000e5bc7178): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (00000000e5bc7178): kobject_uevent_env
+kobject: 'rx-9' (00000000e5bc7178): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-9'
+kobject: 'rx-10' (00000000b7fabc54): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (00000000b7fabc54): kobject_uevent_env
+kobject: 'rx-10' (00000000b7fabc54): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-10'
+kobject: 'rx-11' (00000000e0515ac3): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (00000000e0515ac3): kobject_uevent_env
+kobject: 'rx-11' (00000000e0515ac3): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-11'
+kobject: 'rx-12' (00000000fd0a0860): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (00000000fd0a0860): kobject_uevent_env
+kobject: 'rx-12' (00000000fd0a0860): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-12'
+kobject: 'rx-13' (0000000062716b67): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (0000000062716b67): kobject_uevent_env
+kobject: 'rx-13' (0000000062716b67): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-13'
+kobject: 'rx-14' (00000000aba586ec): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (00000000aba586ec): kobject_uevent_env
+kobject: 'rx-14' (00000000aba586ec): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-14'
+kobject: 'rx-15' (00000000d1d64ccf): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (00000000d1d64ccf): kobject_uevent_env
+kobject: 'rx-15' (00000000d1d64ccf): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/rx-15'
+kobject: 'tx-0' (00000000c0bb6c30): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (00000000c0bb6c30): kobject_uevent_env
+kobject: 'tx-0' (00000000c0bb6c30): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-0'
+kobject: 'tx-1' (00000000f7a692e9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (00000000f7a692e9): kobject_uevent_env
+kobject: 'tx-1' (00000000f7a692e9): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-1'
+kobject: 'tx-2' (0000000029f265ee): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-2' (0000000029f265ee): kobject_uevent_env
+kobject: 'tx-2' (0000000029f265ee): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-2'
+kobject: 'tx-3' (00000000fae54e74): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-3' (00000000fae54e74): kobject_uevent_env
+kobject: 'tx-3' (00000000fae54e74): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-3'
+kobject: 'tx-4' (000000007052081a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-4' (000000007052081a): kobject_uevent_env
+kobject: 'tx-4' (000000007052081a): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-4'
+kobject: 'tx-5' (00000000daf4a811): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-5' (00000000daf4a811): kobject_uevent_env
+kobject: 'tx-5' (00000000daf4a811): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-5'
+kobject: 'tx-6' (00000000657ef9f8): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-6' (00000000657ef9f8): kobject_uevent_env
+kobject: 'tx-6' (00000000657ef9f8): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-6'
+kobject: 'tx-7' (0000000097dc8868): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-7' (0000000097dc8868): kobject_uevent_env
+kobject: 'tx-7' (0000000097dc8868): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-7'
+kobject: 'tx-8' (00000000acfff836): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-8' (00000000acfff836): kobject_uevent_env
+kobject: 'tx-8' (00000000acfff836): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-8'
+kobject: 'tx-9' (000000008d849d8c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-9' (000000008d849d8c): kobject_uevent_env
+kobject: 'tx-9' (000000008d849d8c): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-9'
+kobject: 'tx-10' (000000009c47131c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-10' (000000009c47131c): kobject_uevent_env
+kobject: 'tx-10' (000000009c47131c): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-10'
+kobject: 'tx-11' (00000000300cc82b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-11' (00000000300cc82b): kobject_uevent_env
+kobject: 'tx-11' (00000000300cc82b): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-11'
+kobject: 'tx-12' (00000000d4af76b6): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-12' (00000000d4af76b6): kobject_uevent_env
+kobject: 'tx-12' (00000000d4af76b6): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-12'
+kobject: 'tx-13' (0000000053dfb803): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-13' (0000000053dfb803): kobject_uevent_env
+kobject: 'tx-13' (0000000053dfb803): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-13'
+kobject: 'tx-14' (0000000045745b11): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-14' (0000000045745b11): kobject_uevent_env
+kobject: 'tx-14' (0000000045745b11): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-14'
+kobject: 'tx-15' (000000005d15d5d9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-15' (000000005d15d5d9): kobject_uevent_env
+kobject: 'tx-15' (000000005d15d5d9): fill_kobj_path: path = '/devices/virtual/net/bond215/queues/tx-15'
+kobject: 'bond214' (000000007858d653): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond214' (000000007858d653): kobject_uevent_env
+kobject: 'bond214' (000000007858d653): fill_kobj_path: path = '/devices/virtual/net/bond214'
+kobject: 'queues' (000000006e1aae18): kobject_add_internal: parent: 'bond214', set: '<NULL>'
+kobject: 'queues' (000000006e1aae18): kobject_uevent_env
+kobject: 'queues' (000000006e1aae18): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (00000000030f1434): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (00000000030f1434): kobject_uevent_env
+kobject: 'rx-0' (00000000030f1434): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-0'
+kobject: 'rx-1' (00000000ed38a607): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (00000000ed38a607): kobject_uevent_env
+kobject: 'rx-1' (00000000ed38a607): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-1'
+kobject: 'rx-2' (0000000009495597): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (0000000009495597): kobject_uevent_env
+kobject: 'rx-2' (0000000009495597): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-2'
+kobject: 'rx-3' (0000000077faa8b6): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (0000000077faa8b6): kobject_uevent_env
+kobject: 'rx-3' (0000000077faa8b6): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-3'
+kobject: 'rx-4' (00000000604dfbe9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (00000000604dfbe9): kobject_uevent_env
+kobject: 'rx-4' (00000000604dfbe9): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-4'
+kobject: 'rx-5' (00000000eb8f435d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (00000000eb8f435d): kobject_uevent_env
+kobject: 'rx-5' (00000000eb8f435d): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-5'
+kobject: 'rx-6' (0000000004b99fff): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (0000000004b99fff): kobject_uevent_env
+kobject: 'rx-6' (0000000004b99fff): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-6'
+kobject: 'rx-7' (000000001f033ccd): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (000000001f033ccd): kobject_uevent_env
+kobject: 'rx-7' (000000001f033ccd): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-7'
+kobject: 'rx-8' (00000000dbd35f9a): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (00000000dbd35f9a): kobject_uevent_env
+kobject: 'rx-8' (00000000dbd35f9a): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-8'
+kobject: 'rx-9' (00000000c256b186): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (00000000c256b186): kobject_uevent_env
+kobject: 'rx-9' (00000000c256b186): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-9'
+kobject: 'rx-10' (0000000058e73894): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (0000000058e73894): kobject_uevent_env
+kobject: 'rx-10' (0000000058e73894): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-10'
+kobject: 'rx-11' (0000000028557d02): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (0000000028557d02): kobject_uevent_env
+kobject: 'rx-11' (0000000028557d02): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-11'
+kobject: 'rx-12' (00000000f81faa74): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (00000000f81faa74): kobject_uevent_env
+kobject: 'rx-12' (00000000f81faa74): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-12'
+kobject: 'rx-13' (00000000eca4167f): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (00000000eca4167f): kobject_uevent_env
+kobject: 'rx-13' (00000000eca4167f): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-13'
+kobject: 'rx-14' (0000000087a656e0): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (0000000087a656e0): kobject_uevent_env
+kobject: 'rx-14' (0000000087a656e0): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-14'
+kobject: 'rx-15' (0000000016f4e26f): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (0000000016f4e26f): kobject_uevent_env
+kobject: 'rx-15' (0000000016f4e26f): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/rx-15'
+kobject: 'tx-0' (00000000dafef1f9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (00000000dafef1f9): kobject_uevent_env
+kobject: 'tx-0' (00000000dafef1f9): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-0'
+kobject: 'tx-1' (00000000ce804a4c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (00000000ce804a4c): kobject_uevent_env
+kobject: 'tx-1' (00000000ce804a4c): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-1'
+kobject: 'tx-2' (000000009d525ff3): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-2' (000000009d525ff3): kobject_uevent_env
+kobject: 'tx-2' (000000009d525ff3): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-2'
+kobject: 'tx-3' (00000000ad885537): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-3' (00000000ad885537): kobject_uevent_env
+kobject: 'tx-3' (00000000ad885537): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-3'
+kobject: 'tx-4' (000000005d1c36d7): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-4' (000000005d1c36d7): kobject_uevent_env
+kobject: 'tx-4' (000000005d1c36d7): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-4'
+kobject: 'tx-5' (00000000fde15590): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-5' (00000000fde15590): kobject_uevent_env
+kobject: 'tx-5' (00000000fde15590): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-5'
+kobject: 'tx-6' (000000005b48c1af): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-6' (000000005b48c1af): kobject_uevent_env
+kobject: 'tx-6' (000000005b48c1af): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-6'
+kobject: 'tx-7' (00000000c80de165): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-7' (00000000c80de165): kobject_uevent_env
+kobject: 'tx-7' (00000000c80de165): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-7'
+kobject: 'tx-8' (000000007061b057): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-8' (000000007061b057): kobject_uevent_env
+kobject: 'tx-8' (000000007061b057): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-8'
+kobject: 'tx-9' (000000006bfcad32): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-9' (000000006bfcad32): kobject_uevent_env
+kobject: 'tx-9' (000000006bfcad32): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-9'
+kobject: 'tx-10' (0000000058deb870): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-10' (0000000058deb870): kobject_uevent_env
+kobject: 'tx-10' (0000000058deb870): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-10'
+kobject: 'tx-11' (0000000076209da4): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-11' (0000000076209da4): kobject_uevent_env
+kobject: 'tx-11' (0000000076209da4): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-11'
+kobject: 'tx-12' (00000000eeb67ba9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-12' (00000000eeb67ba9): kobject_uevent_env
+kobject: 'tx-12' (00000000eeb67ba9): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-12'
+kobject: 'tx-13' (0000000024c24099): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-13' (0000000024c24099): kobject_uevent_env
+kobject: 'tx-13' (0000000024c24099): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-13'
+kobject: 'tx-14' (00000000eec7c2df): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-14' (00000000eec7c2df): kobject_uevent_env
+kobject: 'tx-14' (00000000eec7c2df): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-14'
+kobject: 'tx-15' (00000000a477d8cd): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-15' (00000000a477d8cd): kobject_uevent_env
+kobject: 'tx-15' (00000000a477d8cd): fill_kobj_path: path = '/devices/virtual/net/bond214/queues/tx-15'
+kobject: 'bond212' (000000004bb1cf16): kobject_add_internal: parent: 'net', set: 'devices'
+kobject: 'bond212' (000000004bb1cf16): kobject_uevent_env
+kobject: 'bond212' (000000004bb1cf16): fill_kobj_path: path = '/devices/virtual/net/bond212'
+kobject: 'queues' (00000000b8ba1201): kobject_add_internal: parent: 'bond212', set: '<NULL>'
+kobject: 'queues' (00000000b8ba1201): kobject_uevent_env
+kobject: 'queues' (00000000b8ba1201): kobject_uevent_env: filter function caused the event to drop!
+kobject: 'rx-0' (000000004bd9ce5d): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-0' (000000004bd9ce5d): kobject_uevent_env
+kobject: 'rx-0' (000000004bd9ce5d): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-0'
+kobject: 'rx-1' (000000008a807965): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-1' (000000008a807965): kobject_uevent_env
+kobject: 'rx-1' (000000008a807965): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-1'
+kobject: 'rx-2' (0000000078bcee7e): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-2' (0000000078bcee7e): kobject_uevent_env
+kobject: 'rx-2' (0000000078bcee7e): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-2'
+kobject: 'rx-3' (000000009af1e749): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-3' (000000009af1e749): kobject_uevent_env
+kobject: 'rx-3' (000000009af1e749): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-3'
+kobject: 'rx-4' (0000000018c42c22): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-4' (0000000018c42c22): kobject_uevent_env
+kobject: 'rx-4' (0000000018c42c22): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-4'
+kobject: 'rx-5' (00000000e9644b46): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-5' (00000000e9644b46): kobject_uevent_env
+kobject: 'rx-5' (00000000e9644b46): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-5'
+kobject: 'rx-6' (0000000036172fda): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-6' (0000000036172fda): kobject_uevent_env
+kobject: 'rx-6' (0000000036172fda): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-6'
+kobject: 'rx-7' (00000000b592f68b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-7' (00000000b592f68b): kobject_uevent_env
+kobject: 'rx-7' (00000000b592f68b): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-7'
+kobject: 'rx-8' (00000000c1846a4b): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-8' (00000000c1846a4b): kobject_uevent_env
+kobject: 'rx-8' (00000000c1846a4b): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-8'
+kobject: 'rx-9' (000000004a767c39): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-9' (000000004a767c39): kobject_uevent_env
+kobject: 'rx-9' (000000004a767c39): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-9'
+kobject: 'rx-10' (00000000db567d5c): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-10' (00000000db567d5c): kobject_uevent_env
+kobject: 'rx-10' (00000000db567d5c): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-10'
+kobject: 'rx-11' (000000004bc31a88): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-11' (000000004bc31a88): kobject_uevent_env
+kobject: 'rx-11' (000000004bc31a88): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-11'
+kobject: 'rx-12' (00000000cb82602f): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-12' (00000000cb82602f): kobject_uevent_env
+kobject: 'rx-12' (00000000cb82602f): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-12'
+kobject: 'rx-13' (000000002b6bd036): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-13' (000000002b6bd036): kobject_uevent_env
+kobject: 'rx-13' (000000002b6bd036): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-13'
+kobject: 'rx-14' (0000000002c3d225): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-14' (0000000002c3d225): kobject_uevent_env
+kobject: 'rx-14' (0000000002c3d225): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-14'
+kobject: 'rx-15' (00000000da7f6fa9): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'rx-15' (00000000da7f6fa9): kobject_uevent_env
+kobject: 'rx-15' (00000000da7f6fa9): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/rx-15'
+kobject: 'tx-0' (00000000130d4289): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-0' (00000000130d4289): kobject_uevent_env
+kobject: 'tx-0' (00000000130d4289): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/tx-0'
+kobject: 'tx-1' (000000002e3956af): kobject_add_internal: parent: 'queues', set: 'queues'
+kobject: 'tx-1' (000000002e3956af): kobject_uevent_env
+kobject: 'tx-1' (000000002e3956af): fill_kobj_path: path = '/devices/virtual/net/bond212/queues/tx-1'

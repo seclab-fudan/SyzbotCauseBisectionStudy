@@ -1,0 +1,59 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	0-....: (10524 ticks this GP) idle=0da/1/0x4000000000000002 softirq=8929/8931 fqs=5169 
+	(t=10500 jiffies g=8737 q=703)
+NMI backtrace for cpu 0
+CPU: 0 PID: 8641 Comm: syz-executor.4 Not tainted 5.7.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1e9/0x30e lib/dump_stack.c:118
+ nmi_cpu_backtrace+0x9f/0x180 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x16a/0x280 lib/nmi_backtrace.c:62
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x199/0x2a0 kernel/rcu/tree_stall.h:254
+ print_cpu_stall kernel/rcu/tree_stall.h:475 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:549 [inline]
+ rcu_pending kernel/rcu/tree.c:3225 [inline]
+ rcu_sched_clock_irq+0x186a/0x1ac0 kernel/rcu/tree.c:2296
+ update_process_times+0x12c/0x180 kernel/time/timer.c:1727
+ tick_sched_handle kernel/time/tick-sched.c:176 [inline]
+ tick_sched_timer+0x254/0x410 kernel/time/tick-sched.c:1320
+ __run_hrtimer kernel/time/hrtimer.c:1520 [inline]
+ __hrtimer_run_queues+0x42d/0x930 kernel/time/hrtimer.c:1584
+ hrtimer_interrupt+0x373/0xd60 kernel/time/hrtimer.c:1646
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1113 [inline]
+ smp_apic_timer_interrupt+0x109/0x280 arch/x86/kernel/apic/apic.c:1138
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:759 [inline]
+RIP: 0010:lock_is_held_type+0x25b/0x2e0 kernel/locking/lockdep.c:4973
+Code: 48 c1 e8 03 42 80 3c 38 00 74 0c 48 c7 c7 30 b9 2b 89 e8 68 8a 58 00 48 83 3d 80 e9 d2 07 00 0f 84 82 00 00 00 4c 89 f7 57 9d <0f> 1f 44 00 00 89 e8 48 83 c4 20 5b 41 5c 41 5d 41 5e 41 5f 5d c3
+RSP: 0018:ffffc900063e79b0 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff1257726 RBX: 1ffff11013b62d90 RCX: ffff88809db163c0
+RDX: 0000000000000000 RSI: 00000000ffffffff RDI: 0000000000000286
+RBP: 0000000000000000 R08: dffffc0000000000 R09: ffffed101100ce61
+R10: ffffed101100ce61 R11: 0000000000000000 R12: ffff88809db16c84
+R13: ffffffff892e8520 R14: 0000000000000286 R15: dffffc0000000000
+ lock_is_held include/linux/lockdep.h:406 [inline]
+ ___might_sleep+0x83/0x570 kernel/sched/core.c:6766
+ io_ring_ctx_wait_and_kill+0xbe/0x820 fs/io_uring.c:7316
+ io_uring_release+0x59/0x70 fs/io_uring.c:7338
+ __fput+0x2ed/0x750 fs/file_table.c:280
+ task_work_run+0x147/0x1d0 kernel/task_work.c:123
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x5ef/0x1f80 kernel/exit.c:796
+ do_group_exit+0x15e/0x2c0 kernel/exit.c:894
+ get_signal+0x13cf/0x1d60 kernel/signal.c:2739
+ do_signal+0x33/0x610 arch/x86/kernel/signal.c:784
+ exit_to_usermode_loop arch/x86/entry/common.c:161 [inline]
+ prepare_exit_to_usermode+0x32a/0x600 arch/x86/entry/common.c:196
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x45c829
+Code: Bad RIP value.
+RSP: 002b:00007f53ad17bc78 EFLAGS: 00000246 ORIG_RAX: 00000000000001a9
+RAX: 0000000000000003 RBX: 00000000004e0ce0 RCX: 000000000045c829
+RDX: 0000000000000000 RSI: 0000000020000580 RDI: 00000000000000f1
+RBP: 000000000078bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000000204 R14: 00000000004c425f R15: 00007f53ad17c6d4

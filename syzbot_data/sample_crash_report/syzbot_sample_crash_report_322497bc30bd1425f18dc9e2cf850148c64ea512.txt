@@ -1,0 +1,192 @@
+rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+rcu: 	1-...!: (1 ticks this GP) idle=581/1/0x4000000000000000 softirq=77539/77539 fqs=0 
+	(detected by 0, t=10502 jiffies, g=120493, q=127)
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 14948 Comm: syz-executor.2 Not tainted 5.17.0-rc5-syzkaller-00021-g23d04328444a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:should_change_schedules net/sched/sch_taprio.c:677 [inline]
+RIP: 0010:advance_sched+0x272/0x9a0 net/sched/sch_taprio.c:750
+Code: ea 03 0f b6 14 02 48 89 c8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 fc 05 00 00 41 8b 44 24 2c 49 01 c6 4d 39 fe 4d 0f 4e fe <4c> 8b 34 24 4d 85 f6 0f 84 78 05 00 00 e8 fc be 13 fa 49 8d 7e 40
+RSP: 0018:ffffc90000dc0dd0 EFLAGS: 00000046
+RAX: 0000000080000001 RBX: ffff888018e1bb40 RCX: ffff88802374372c
+RDX: 0000000000000000 RSI: ffffffff87652c6f RDI: ffff888072aecc30
+RBP: ffff888072aecc00 R08: 17b0bc8e2f61791c R09: 0000000000000003
+R10: ffffffff87652c61 R11: 0000000000000001 R12: ffff888023743700
+R13: ffff888023743700 R14: 17b0bc8eaf61791d R15: 17b0bc8eaf61791d
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9da3f5d090 CR3: 000000000b88e000 CR4: 0000000000350ee0
+Call Trace:
+ <IRQ>
+ __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+ __hrtimer_run_queues+0x609/0xe50 kernel/time/hrtimer.c:1749
+ hrtimer_interrupt+0x31c/0x790 kernel/time/hrtimer.c:1811
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1086 [inline]
+ __sysvec_apic_timer_interrupt+0x146/0x530 arch/x86/kernel/apic/apic.c:1103
+ sysvec_apic_timer_interrupt+0x8e/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:lock_acquire+0x1ef/0x510 kernel/locking/lockdep.c:5607
+Code: c0 a4 7e 83 f8 01 0f 85 b4 02 00 00 9c 58 f6 c4 02 0f 85 9f 02 00 00 48 83 7c 24 08 00 74 01 fb 48 b8 00 00 00 00 00 fc ff df <48> 01 c3 48 c7 03 00 00 00 00 48 c7 43 08 00 00 00 00 48 8b 84 24
+RSP: 0018:ffffc90002b7f5c0 EFLAGS: 00000206
+RAX: dffffc0000000000 RBX: 1ffff9200056feba RCX: d58cc61d2054002b
+RDX: 1ffff11003d7414b RSI: 0000000000000001 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: ffffffff8ffc2947
+R10: fffffbfff1ff8528 R11: 0000000000000001 R12: 0000000000000002
+R13: 0000000000000000 R14: ffffffff8bb845e0 R15: 0000000000000000
+ rcu_lock_acquire include/linux/rcupdate.h:268 [inline]
+ rcu_read_lock include/linux/rcupdate.h:694 [inline]
+ folio_memcg_lock+0x3a/0x590 mm/memcontrol.c:2017
+ page_remove_rmap+0x25/0x1480 mm/rmap.c:1377
+ zap_pte_range mm/memory.c:1380 [inline]
+ zap_pmd_range mm/memory.c:1490 [inline]
+ zap_pud_range mm/memory.c:1519 [inline]
+ zap_p4d_range mm/memory.c:1540 [inline]
+ unmap_page_range+0xf7f/0x2a30 mm/memory.c:1561
+ unmap_single_vma+0x198/0x310 mm/memory.c:1606
+ unmap_vmas+0x16b/0x2f0 mm/memory.c:1638
+ exit_mmap+0x201/0x670 mm/mmap.c:3178
+ __mmput+0x122/0x4b0 kernel/fork.c:1114
+ mmput+0x56/0x60 kernel/fork.c:1135
+ exit_mm kernel/exit.c:507 [inline]
+ do_exit+0xa3c/0x2a30 kernel/exit.c:793
+ do_group_exit+0xd2/0x2f0 kernel/exit.c:935
+ get_signal+0x45a/0x2490 kernel/signal.c:2863
+ arch_do_signal_or_restart+0x2a9/0x1c40 arch/x86/kernel/signal.c:868
+ handle_signal_work kernel/entry/common.c:148 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x17d/0x290 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:300
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f9da3e49059
+Code: Unable to access opcode bytes at RIP 0x7f9da3e4902f.
+RSP: 002b:00007f9da27be218 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000001 RBX: 00007f9da3f5bf68 RCX: 00007f9da3e49059
+RDX: 00000000000f4240 RSI: 0000000000000081 RDI: 00007f9da3f5bf6c
+RBP: 00007f9da3f5bf60 R08: 00007ffe7a5c3080 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f9da3f5bf6c
+R13: 00007ffe7a52f1ff R14: 00007f9da27be300 R15: 0000000000022000
+ </TASK>
+rcu: rcu_preempt kthread timer wakeup didn't happen for 10501 jiffies! g120493 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402
+rcu: 	Possible timer handling issue on cpu=1 timer-softirq=77705
+rcu: rcu_preempt kthread starved for 10502 jiffies! g120493 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402 ->cpu=1
+rcu: 	Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+rcu: RCU grace-period kthread stack dump:
+task:rcu_preempt     state:I stack:27448 pid:   14 ppid:     2 flags:0x00004000
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:4995 [inline]
+ __schedule+0xa94/0x4910 kernel/sched/core.c:6304
+ schedule+0xd2/0x260 kernel/sched/core.c:6377
+ schedule_timeout+0x14a/0x2a0 kernel/time/timer.c:1881
+ rcu_gp_fqs_loop+0x186/0x810 kernel/rcu/tree.c:1963
+ rcu_gp_kthread+0x1de/0x320 kernel/rcu/tree.c:2136
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+rcu: Stack dump where RCU GP kthread last ran:
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 14948 Comm: syz-executor.2 Not tainted 5.17.0-rc5-syzkaller-00021-g23d04328444a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:match_held_lock+0xc/0xc0 kernel/locking/lockdep.c:5086
+Code: bc ff 48 c7 c7 80 5f ac 89 e8 1b ae bc ff e8 57 6c cc ff 31 c0 5d c3 0f 1f 80 00 00 00 00 53 48 89 fb 48 83 ec 08 48 39 77 10 <74> 6a 66 f7 47 22 f0 ff 74 5a 48 8b 46 08 48 89 f7 48 85 c0 74 42
+RSP: 0018:ffffc90000dc0bb8 EFLAGS: 00000006
+RAX: 000000000000000a RBX: ffff88801eba0ab0 RCX: 0000000000000001
+RDX: 0000000000000000 RSI: ffffffff8bb84520 RDI: ffff88801eba0ab0
+RBP: ffffffff8bb84520 R08: 0000000000000000 R09: ffffffff8d9410d7
+R10: fffffbfff1b2821a R11: 0000000000000000 R12: ffff88801eba0000
+R13: ffff88801eba0a60 R14: 00000000ffffffff R15: ffff88801eba0ab0
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f9da3f5d090 CR3: 000000000b88e000 CR4: 0000000000350ee0
+Call Trace:
+ <IRQ>
+ __lock_is_held kernel/locking/lockdep.c:5380 [inline]
+ lock_is_held_type+0xa7/0x140 kernel/locking/lockdep.c:5682
+ lock_is_held include/linux/lockdep.h:283 [inline]
+ rcu_read_lock_sched_held+0x3a/0x70 kernel/rcu/update.c:125
+ trace_lock_acquire include/trace/events/lock.h:13 [inline]
+ lock_acquire+0x442/0x510 kernel/locking/lockdep.c:5610
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x39/0x50 kernel/locking/spinlock.c:162
+ debug_object_activate+0x12e/0x3e0 lib/debugobjects.c:661
+ debug_hrtimer_activate kernel/time/hrtimer.c:420 [inline]
+ debug_activate kernel/time/hrtimer.c:475 [inline]
+ enqueue_hrtimer+0x27/0x3e0 kernel/time/hrtimer.c:1084
+ __run_hrtimer kernel/time/hrtimer.c:1702 [inline]
+ __hrtimer_run_queues+0xb02/0xe50 kernel/time/hrtimer.c:1749
+ hrtimer_interrupt+0x31c/0x790 kernel/time/hrtimer.c:1811
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1086 [inline]
+ __sysvec_apic_timer_interrupt+0x146/0x530 arch/x86/kernel/apic/apic.c:1103
+ sysvec_apic_timer_interrupt+0x8e/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:lock_acquire+0x1ef/0x510 kernel/locking/lockdep.c:5607
+Code: c0 a4 7e 83 f8 01 0f 85 b4 02 00 00 9c 58 f6 c4 02 0f 85 9f 02 00 00 48 83 7c 24 08 00 74 01 fb 48 b8 00 00 00 00 00 fc ff df <48> 01 c3 48 c7 03 00 00 00 00 48 c7 43 08 00 00 00 00 48 8b 84 24
+RSP: 0018:ffffc90002b7f5c0 EFLAGS: 00000206
+RAX: dffffc0000000000 RBX: 1ffff9200056feba RCX: d58cc61d2054002b
+RDX: 1ffff11003d7414b RSI: 0000000000000001 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: ffffffff8ffc2947
+R10: fffffbfff1ff8528 R11: 0000000000000001 R12: 0000000000000002
+R13: 0000000000000000 R14: ffffffff8bb845e0 R15: 0000000000000000
+ rcu_lock_acquire include/linux/rcupdate.h:268 [inline]
+ rcu_read_lock include/linux/rcupdate.h:694 [inline]
+ folio_memcg_lock+0x3a/0x590 mm/memcontrol.c:2017
+ page_remove_rmap+0x25/0x1480 mm/rmap.c:1377
+ zap_pte_range mm/memory.c:1380 [inline]
+ zap_pmd_range mm/memory.c:1490 [inline]
+ zap_pud_range mm/memory.c:1519 [inline]
+ zap_p4d_range mm/memory.c:1540 [inline]
+ unmap_page_range+0xf7f/0x2a30 mm/memory.c:1561
+ unmap_single_vma+0x198/0x310 mm/memory.c:1606
+ unmap_vmas+0x16b/0x2f0 mm/memory.c:1638
+ exit_mmap+0x201/0x670 mm/mmap.c:3178
+ __mmput+0x122/0x4b0 kernel/fork.c:1114
+ mmput+0x56/0x60 kernel/fork.c:1135
+ exit_mm kernel/exit.c:507 [inline]
+ do_exit+0xa3c/0x2a30 kernel/exit.c:793
+ do_group_exit+0xd2/0x2f0 kernel/exit.c:935
+ get_signal+0x45a/0x2490 kernel/signal.c:2863
+ arch_do_signal_or_restart+0x2a9/0x1c40 arch/x86/kernel/signal.c:868
+ handle_signal_work kernel/entry/common.c:148 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x17d/0x290 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:300
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f9da3e49059
+Code: Unable to access opcode bytes at RIP 0x7f9da3e4902f.
+RSP: 002b:00007f9da27be218 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000001 RBX: 00007f9da3f5bf68 RCX: 00007f9da3e49059
+RDX: 00000000000f4240 RSI: 0000000000000081 RDI: 00007f9da3f5bf6c
+RBP: 00007f9da3f5bf60 R08: 00007ffe7a5c3080 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f9da3f5bf6c
+R13: 00007ffe7a52f1ff R14: 00007f9da27be300 R15: 0000000000022000
+ </TASK>
+----------------
+Code disassembly (best guess), 1 bytes skipped:
+   0:	03 0f                	add    (%rdi),%ecx
+   2:	b6 14                	mov    $0x14,%dh
+   4:	02 48 89             	add    -0x77(%rax),%cl
+   7:	c8 83 e0 07          	enterq $0xe083,$0x7
+   b:	83 c0 03             	add    $0x3,%eax
+   e:	38 d0                	cmp    %dl,%al
+  10:	7c 08                	jl     0x1a
+  12:	84 d2                	test   %dl,%dl
+  14:	0f 85 fc 05 00 00    	jne    0x616
+  1a:	41 8b 44 24 2c       	mov    0x2c(%r12),%eax
+  1f:	49 01 c6             	add    %rax,%r14
+  22:	4d 39 fe             	cmp    %r15,%r14
+  25:	4d 0f 4e fe          	cmovle %r14,%r15
+* 29:	4c 8b 34 24          	mov    (%rsp),%r14 <-- trapping instruction
+  2d:	4d 85 f6             	test   %r14,%r14
+  30:	0f 84 78 05 00 00    	je     0x5ae
+  36:	e8 fc be 13 fa       	callq  0xfa13bf37
+  3b:	49 8d 7e 40          	lea    0x40(%r14),%rdi

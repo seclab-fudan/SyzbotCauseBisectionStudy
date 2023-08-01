@@ -1,0 +1,36 @@
+==================================================================
+BUG: KASAN: user-memory-access in memset include/linux/string.h:411 [inline]
+BUG: KASAN: user-memory-access in video_get_user+0x67f/0x890 drivers/media/v4l2-core/v4l2-ioctl.c:3053
+Write of size 32 at addr 0000000020000280 by task syz-executor.2/3469
+
+CPU: 1 PID: 3469 Comm: syz-executor.2 Not tainted 5.5.0-rc5-next-20200108-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ __kasan_report.cold+0x5/0x32 mm/kasan/report.c:510
+ kasan_report+0x12/0x20 mm/kasan/common.c:641
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ memset+0x24/0x40 mm/kasan/common.c:108
+ memset include/linux/string.h:411 [inline]
+ video_get_user+0x67f/0x890 drivers/media/v4l2-core/v4l2-ioctl.c:3053
+ video_usercopy+0x21f/0x10b0 drivers/media/v4l2-core/v4l2-ioctl.c:3210
+ video_ioctl2+0x2d/0x35 drivers/media/v4l2-core/v4l2-ioctl.c:3274
+ v4l2_ioctl+0x1ac/0x230 drivers/media/v4l2-core/v4l2-dev.c:360
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl+0x123/0x180 fs/ioctl.c:747
+ __do_sys_ioctl fs/ioctl.c:756 [inline]
+ __se_sys_ioctl fs/ioctl.c:754 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:754
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x45af49
+Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f99a0144c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 000000000045af49
+RDX: 0000000020000280 RSI: 0000001000208912 RDI: 0000000000000004
+RBP: 000000000075bf20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f99a01456d4
+R13: 00000000004c2837 R14: 00000000004d8b30 R15: 00000000ffffffff
+==================================================================

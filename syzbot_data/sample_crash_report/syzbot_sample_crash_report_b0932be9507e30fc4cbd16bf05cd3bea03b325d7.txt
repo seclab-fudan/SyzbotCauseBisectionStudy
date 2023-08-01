@@ -1,0 +1,203 @@
+RBP: 00007fea03eac012 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffe8991f3df R14: 00007fea035a6300 R15: 0000000000022000
+ </TASK>
+kobject_add_internal failed for md1 with -EEXIST, don't try to register things with the same name in the same directory.
+==================================================================
+BUG: KASAN: use-after-free in disk_release_events+0xbc/0xe0 block/disk-events.c:502
+Read of size 4 at addr ffff88801bb56ce8 by task syz-executor.2/9293
+
+CPU: 1 PID: 9293 Comm: syz-executor.2 Not tainted 5.16.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0x8d/0x320 mm/kasan/report.c:247
+ __kasan_report mm/kasan/report.c:433 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:450
+ disk_release_events+0xbc/0xe0 block/disk-events.c:502
+ disk_release+0x106/0x260 block/genhd.c:1116
+ device_release+0x9f/0x240 drivers/base/core.c:2230
+ kobject_cleanup lib/kobject.c:705 [inline]
+ kobject_release lib/kobject.c:736 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ kobject_put+0x1c8/0x540 lib/kobject.c:753
+ put_device+0x1b/0x30 drivers/base/core.c:3501
+ put_disk block/genhd.c:1372 [inline]
+ blk_cleanup_disk+0x6b/0x80 block/genhd.c:1388
+ md_alloc+0x96f/0x1080 drivers/md/md.c:5733
+ md_probe+0x69/0x70 drivers/md/md.c:5745
+ blk_request_module+0x111/0x1d0 block/genhd.c:690
+ blkdev_get_no_open+0xf4/0x160 block/bdev.c:742
+ blkdev_get_by_dev.part.0+0x22/0xc70 block/bdev.c:804
+ blkdev_get_by_dev+0x6b/0x80 block/bdev.c:860
+ blkdev_open+0x154/0x2e0 block/fops.c:502
+ do_dentry_open+0x4c8/0x1250 fs/open.c:822
+ do_open fs/namei.c:3426 [inline]
+ path_openat+0x1cad/0x2750 fs/namei.c:3559
+ do_filp_open+0x1aa/0x400 fs/namei.c:3586
+ do_sys_openat2+0x16d/0x4d0 fs/open.c:1212
+ do_sys_open fs/open.c:1228 [inline]
+ __do_sys_openat fs/open.c:1244 [inline]
+ __se_sys_openat fs/open.c:1239 [inline]
+ __x64_sys_openat+0x13f/0x1f0 fs/open.c:1239
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7fea03e51b49
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fea035a6188 EFLAGS: 00000246 ORIG_RAX: 0000000000000101
+RAX: ffffffffffffffda RBX: 00007fea03f65028 RCX: 00007fea03e51b49
+RDX: 0000000000000000 RSI: 00000000200020c0 RDI: ffffffffffffff9c
+RBP: 00007fea03eac012 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffe8991f3df R14: 00007fea035a6300 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 9293:
+ kasan_save_stack+0x1e/0x50 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:513 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:472 [inline]
+ __kasan_kmalloc+0xa9/0xd0 mm/kasan/common.c:522
+ kmalloc include/linux/slab.h:590 [inline]
+ kzalloc include/linux/slab.h:724 [inline]
+ disk_alloc_events+0xea/0x3d0 block/disk-events.c:454
+ device_add_disk+0x11b/0xef0 block/genhd.c:440
+ add_disk include/linux/genhd.h:212 [inline]
+ md_alloc+0x83c/0x1080 drivers/md/md.c:5717
+ md_probe+0x69/0x70 drivers/md/md.c:5745
+ blk_request_module+0x111/0x1d0 block/genhd.c:690
+ blkdev_get_no_open+0xf4/0x160 block/bdev.c:742
+ blkdev_get_by_dev.part.0+0x22/0xc70 block/bdev.c:804
+ blkdev_get_by_dev+0x6b/0x80 block/bdev.c:860
+ blkdev_open+0x154/0x2e0 block/fops.c:502
+ do_dentry_open+0x4c8/0x1250 fs/open.c:822
+ do_open fs/namei.c:3426 [inline]
+ path_openat+0x1cad/0x2750 fs/namei.c:3559
+ do_filp_open+0x1aa/0x400 fs/namei.c:3586
+ do_sys_openat2+0x16d/0x4d0 fs/open.c:1212
+ do_sys_open fs/open.c:1228 [inline]
+ __do_sys_openat fs/open.c:1244 [inline]
+ __se_sys_openat fs/open.c:1239 [inline]
+ __x64_sys_openat+0x13f/0x1f0 fs/open.c:1239
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 9293:
+ kasan_save_stack+0x1e/0x50 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free mm/kasan/common.c:328 [inline]
+ __kasan_slab_free+0xff/0x130 mm/kasan/common.c:374
+ kasan_slab_free include/linux/kasan.h:235 [inline]
+ slab_free_hook mm/slub.c:1723 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1749
+ slab_free mm/slub.c:3513 [inline]
+ kfree+0xf6/0x560 mm/slub.c:4561
+ device_add_disk+0x2f2/0xef0 block/genhd.c:543
+ add_disk include/linux/genhd.h:212 [inline]
+ md_alloc+0x83c/0x1080 drivers/md/md.c:5717
+ md_probe+0x69/0x70 drivers/md/md.c:5745
+ blk_request_module+0x111/0x1d0 block/genhd.c:690
+ blkdev_get_no_open+0xf4/0x160 block/bdev.c:742
+ blkdev_get_by_dev.part.0+0x22/0xc70 block/bdev.c:804
+ blkdev_get_by_dev+0x6b/0x80 block/bdev.c:860
+ blkdev_open+0x154/0x2e0 block/fops.c:502
+ do_dentry_open+0x4c8/0x1250 fs/open.c:822
+ do_open fs/namei.c:3426 [inline]
+ path_openat+0x1cad/0x2750 fs/namei.c:3559
+ do_filp_open+0x1aa/0x400 fs/namei.c:3586
+ do_sys_openat2+0x16d/0x4d0 fs/open.c:1212
+ do_sys_open fs/open.c:1228 [inline]
+ __do_sys_openat fs/open.c:1244 [inline]
+ __se_sys_openat fs/open.c:1239 [inline]
+ __x64_sys_openat+0x13f/0x1f0 fs/open.c:1239
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff88801bb56c00
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 232 bytes inside of
+ 512-byte region [ffff88801bb56c00, ffff88801bb56e00)
+The buggy address belongs to the page:
+page:ffffea00006ed500 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1bb54
+head:ffffea00006ed500 order:2 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 0000000000000000 dead000000000001 ffff888010c41c80
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 2, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 3696, ts 1609592763682, free_ts 19592757874
+ prep_new_page mm/page_alloc.c:2418 [inline]
+ get_page_from_freelist+0xa72/0x2f50 mm/page_alloc.c:4149
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5369
+ alloc_pages+0x1a7/0x300 mm/mempolicy.c:2191
+ alloc_slab_page mm/slub.c:1793 [inline]
+ allocate_slab mm/slub.c:1930 [inline]
+ new_slab+0x32d/0x4a0 mm/slub.c:1993
+ ___slab_alloc+0x918/0xfe0 mm/slub.c:3022
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3109
+ slab_alloc_node mm/slub.c:3200 [inline]
+ __kmalloc_node_track_caller+0x2cb/0x360 mm/slub.c:4956
+ kmalloc_reserve net/core/skbuff.c:354 [inline]
+ __alloc_skb+0xde/0x340 net/core/skbuff.c:426
+ alloc_skb include/linux/skbuff.h:1126 [inline]
+ nlmsg_new include/net/netlink.h:953 [inline]
+ netlink_ack+0x1f0/0xa60 net/netlink/af_netlink.c:2431
+ netlink_rcv_skb+0x33d/0x420 net/netlink/af_netlink.c:2502
+ netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1345
+ netlink_sendmsg+0x904/0xdf0 net/netlink/af_netlink.c:1921
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:724
+ __sys_sendto+0x21c/0x320 net/socket.c:2036
+ __do_sys_sendto net/socket.c:2048 [inline]
+ __se_sys_sendto net/socket.c:2044 [inline]
+ __x64_sys_sendto+0xdd/0x1b0 net/socket.c:2044
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1338 [inline]
+ free_pcp_prepare+0x374/0x870 mm/page_alloc.c:1389
+ free_unref_page_prepare mm/page_alloc.c:3309 [inline]
+ free_unref_page+0x19/0x690 mm/page_alloc.c:3388
+ qlink_free mm/kasan/quarantine.c:146 [inline]
+ qlist_free_all+0x5a/0xc0 mm/kasan/quarantine.c:165
+ kasan_quarantine_reduce+0x180/0x200 mm/kasan/quarantine.c:272
+ __kasan_slab_alloc+0xa2/0xc0 mm/kasan/common.c:444
+ kasan_slab_alloc include/linux/kasan.h:259 [inline]
+ slab_post_alloc_hook mm/slab.h:519 [inline]
+ slab_alloc_node mm/slub.c:3234 [inline]
+ slab_alloc mm/slub.c:3242 [inline]
+ kmem_cache_alloc_trace+0x1e9/0x2c0 mm/slub.c:3259
+ kmalloc include/linux/slab.h:590 [inline]
+ kzalloc include/linux/slab.h:724 [inline]
+ kernfs_fop_open+0x2b9/0xd30 fs/kernfs/file.c:628
+ do_dentry_open+0x4c8/0x1250 fs/open.c:822
+ do_open fs/namei.c:3426 [inline]
+ path_openat+0x1cad/0x2750 fs/namei.c:3559
+ do_filp_open+0x1aa/0x400 fs/namei.c:3586
+ do_sys_openat2+0x16d/0x4d0 fs/open.c:1212
+ do_sys_open fs/open.c:1228 [inline]
+ __do_sys_openat fs/open.c:1244 [inline]
+ __se_sys_openat fs/open.c:1239 [inline]
+ __x64_sys_openat+0x13f/0x1f0 fs/open.c:1239
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Memory state around the buggy address:
+ ffff88801bb56b80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88801bb56c00: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88801bb56c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                          ^
+ ffff88801bb56d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88801bb56d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,52 @@
+=====================================================
+BUG: KMSAN: uninit-value in map_id_up_base kernel/user_namespace.c:335 [inline]
+BUG: KMSAN: uninit-value in map_id_up kernel/user_namespace.c:365 [inline]
+BUG: KMSAN: uninit-value in from_kuid+0x51d/0xbd0 kernel/user_namespace.c:413
+ map_id_up_base kernel/user_namespace.c:335 [inline]
+ map_id_up kernel/user_namespace.c:365 [inline]
+ from_kuid+0x51d/0xbd0 kernel/user_namespace.c:413
+ p9pdu_vwritef+0x15aa/0x5100 net/9p/protocol.c:398
+ p9pdu_writef+0x240/0x290 net/9p/protocol.c:539
+ p9pdu_vwritef+0x21ed/0x5100 net/9p/protocol.c:490
+ p9_client_prepare_req+0xe64/0x16d0 net/9p/client.c:703
+ p9_client_rpc+0x28b/0x1460 net/9p/client.c:734
+ p9_client_setattr+0x113/0x2c0 net/9p/client.c:1894
+ v9fs_vfs_setattr_dotl+0x7e2/0xd70 fs/9p/vfs_inode_dotl.c:588
+ notify_change+0x1fde/0x2180 fs/attr.c:410
+ vfs_utimes+0x8a0/0xc50 fs/utimes.c:65
+ do_utimes_path fs/utimes.c:98 [inline]
+ do_utimes fs/utimes.c:144 [inline]
+ __do_sys_utime32 fs/utimes.c:247 [inline]
+ __se_sys_utime32+0x37c/0x510 fs/utimes.c:235
+ __ia32_sys_utime32+0x91/0xc0 fs/utimes.c:235
+ do_syscall_32_irqs_on arch/x86/entry/common.c:114 [inline]
+ __do_fast_syscall_32+0x96/0xf0 arch/x86/entry/common.c:180
+ do_fast_syscall_32+0x34/0x70 arch/x86/entry/common.c:205
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:248
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+
+Uninit was stored to memory at:
+ v9fs_vfs_setattr_dotl+0x58a/0xd70 fs/9p/vfs_inode_dotl.c:565
+ notify_change+0x1fde/0x2180 fs/attr.c:410
+ vfs_utimes+0x8a0/0xc50 fs/utimes.c:65
+ do_utimes_path fs/utimes.c:98 [inline]
+ do_utimes fs/utimes.c:144 [inline]
+ __do_sys_utime32 fs/utimes.c:247 [inline]
+ __se_sys_utime32+0x37c/0x510 fs/utimes.c:235
+ __ia32_sys_utime32+0x91/0xc0 fs/utimes.c:235
+ do_syscall_32_irqs_on arch/x86/entry/common.c:114 [inline]
+ __do_fast_syscall_32+0x96/0xf0 arch/x86/entry/common.c:180
+ do_fast_syscall_32+0x34/0x70 arch/x86/entry/common.c:205
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:248
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+
+Local variable newattrs created at:
+ vfs_utimes+0x69/0xc50 fs/utimes.c:22
+ do_utimes_path fs/utimes.c:98 [inline]
+ do_utimes fs/utimes.c:144 [inline]
+ __do_sys_utime32 fs/utimes.c:247 [inline]
+ __se_sys_utime32+0x37c/0x510 fs/utimes.c:235
+
+CPU: 0 PID: 16553 Comm: syz-executor.2 Not tainted 5.16.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=====================================================

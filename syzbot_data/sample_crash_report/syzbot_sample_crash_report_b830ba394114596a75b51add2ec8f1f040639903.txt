@@ -1,0 +1,107 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: use-after-free in memcpy include/linux/string.h:345 [inline]
+BUG: KASAN: use-after-free in _copy_from_iter+0x9ea/0x1090 lib/iov_iter.c:701
+Read of size 21 at addr ffff8801abd90360 by task kworker/0:2/2142
+
+CPU: 0 PID: 2142 Comm: kworker/0:2 Not tainted 4.18.0-rc5-next-20180719+ #11
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events p9_write_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x30d mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ memcpy+0x23/0x50 mm/kasan/kasan.c:302
+ memcpy include/linux/string.h:345 [inline]
+ _copy_from_iter+0x9ea/0x1090 lib/iov_iter.c:701
+ copy_page_from_iter+0x576/0x890 lib/iov_iter.c:857
+ pipe_write+0x235/0xeb0 fs/pipe.c:429
+ call_write_iter include/linux/fs.h:1826 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x6af/0x9d0 fs/read_write.c:487
+ vfs_write+0x1fc/0x560 fs/read_write.c:549
+ kernel_write+0xab/0x120 fs/read_write.c:526
+ p9_fd_write net/9p/trans_fd.c:427 [inline]
+ p9_write_work+0x6f1/0xd50 net/9p/trans_fd.c:476
+ process_one_work+0xc73/0x1ba0 kernel/workqueue.c:2153
+ worker_thread+0x189/0x13c0 kernel/workqueue.c:2296
+ kthread+0x345/0x410 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:415
+
+Allocated by task 4465:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc mm/slab.c:3718 [inline]
+ __kmalloc+0x14e/0x760 mm/slab.c:3727
+ kmalloc include/linux/slab.h:518 [inline]
+ p9_fcall_alloc+0x1e/0x90 net/9p/client.c:237
+ p9_tag_alloc net/9p/client.c:266 [inline]
+ p9_client_prepare_req.part.8+0x107/0xa00 net/9p/client.c:640
+ p9_client_prepare_req net/9p/client.c:675 [inline]
+ p9_client_rpc+0x242/0x1330 net/9p/client.c:675
+ p9_client_version net/9p/client.c:890 [inline]
+ p9_client_create+0xca4/0x1537 net/9p/client.c:974
+ v9fs_session_init+0x21a/0x1a80 fs/9p/v9fs.c:400
+ v9fs_mount+0x7c/0x900 fs/9p/vfs_super.c:135
+ legacy_get_tree+0x131/0x460 fs/fs_context.c:674
+ vfs_get_tree+0x1cb/0x5c0 fs/super.c:1743
+ do_new_mount fs/namespace.c:2603 [inline]
+ do_mount+0x6f2/0x1e20 fs/namespace.c:2927
+ ksys_mount+0x12d/0x140 fs/namespace.c:3143
+ __do_sys_mount fs/namespace.c:3157 [inline]
+ __se_sys_mount fs/namespace.c:3154 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3154
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 4465:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ p9_free_req+0xb5/0x120 net/9p/client.c:338
+ p9_client_rpc+0xa8e/0x1330 net/9p/client.c:739
+ p9_client_version net/9p/client.c:890 [inline]
+ p9_client_create+0xca4/0x1537 net/9p/client.c:974
+ v9fs_session_init+0x21a/0x1a80 fs/9p/v9fs.c:400
+ v9fs_mount+0x7c/0x900 fs/9p/vfs_super.c:135
+ legacy_get_tree+0x131/0x460 fs/fs_context.c:674
+ vfs_get_tree+0x1cb/0x5c0 fs/super.c:1743
+ do_new_mount fs/namespace.c:2603 [inline]
+ do_mount+0x6f2/0x1e20 fs/namespace.c:2927
+ ksys_mount+0x12d/0x140 fs/namespace.c:3143
+ __do_sys_mount fs/namespace.c:3157 [inline]
+ __se_sys_mount fs/namespace.c:3154 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3154
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801abd90340
+ which belongs to the cache kmalloc-16384 of size 16384
+The buggy address is located 32 bytes inside of
+ 16384-byte region [ffff8801abd90340, ffff8801abd94340)
+The buggy address belongs to the page:
+page:ffffea0006af6400 count:1 mapcount:0 mapping:ffff8801da802200 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000010200(slab|head)
+raw: 02fffc0000010200 ffffea0006c75e08 ffffea0006afaa08 ffff8801da802200
+raw: 0000000000000000 ffff8801abd90340 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801abd90200: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801abd90280: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801abd90300: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                       ^
+ ffff8801abd90380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801abd90400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

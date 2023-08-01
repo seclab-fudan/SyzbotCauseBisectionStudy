@@ -1,0 +1,70 @@
+BUG: KASAN: use-after-free in worker_thread+0x15bb/0x1990 kernel/workqueue.c:2244
+Read of size 8 at addr ffff88002d0e3de0 by task kworker/u8:1/1209
+
+CPU: 0 PID: 1209 Comm: kworker/u8:1 Not tainted 4.14.0-rc8-next-20171110+ #12
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ worker_thread+0x15bb/0x1990 kernel/workqueue.c:2244
+ kthread+0x37a/0x440 kernel/kthread.c:238
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:437
+
+Allocated by task 11866:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3548
+ kmem_cache_zalloc include/linux/slab.h:693 [inline]
+ kcm_attach net/kcm/kcmsock.c:1394 [inline]
+ kcm_attach_ioctl net/kcm/kcmsock.c:1460 [inline]
+ kcm_ioctl+0x2d1/0x1610 net/kcm/kcmsock.c:1695
+ sock_do_ioctl+0x65/0xb0 net/socket.c:960
+ sock_ioctl+0x2c2/0x440 net/socket.c:1057
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1530 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 11867:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3492 [inline]
+ kmem_cache_free+0x77/0x280 mm/slab.c:3750
+ kcm_unattach+0xe50/0x1510 net/kcm/kcmsock.c:1563
+ kcm_unattach_ioctl net/kcm/kcmsock.c:1608 [inline]
+ kcm_ioctl+0xdf0/0x1610 net/kcm/kcmsock.c:1705
+ sock_do_ioctl+0x65/0xb0 net/socket.c:960
+ sock_ioctl+0x2c2/0x440 net/socket.c:1057
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1530 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+The buggy address belongs to the object at ffff88002d0e3d00
+ which belongs to the cache kcm_psock_cache of size 576
+The buggy address is located 224 bytes inside of
+ 576-byte region [ffff88002d0e3d00, ffff88002d0e3f40)
+The buggy address belongs to the page:
+page:ffffea0000b43880 count:1 mapcount:0 mapping:ffff88002d0e2180 index:0x0 compound_mapcount: 0
+flags: 0x100000000008100(slab|head)
+raw: 0100000000008100 ffff88002d0e2180 0000000000000000 000000010000000b
+raw: ffffea0000b14920 ffffea0000b27e20 ffff88002b0089c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88002d0e3c80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88002d0e3d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88002d0e3d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                       ^
+ ffff88002d0e3e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88002d0e3e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

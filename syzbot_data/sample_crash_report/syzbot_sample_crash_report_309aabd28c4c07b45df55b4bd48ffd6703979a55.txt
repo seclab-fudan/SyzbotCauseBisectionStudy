@@ -1,0 +1,101 @@
+==================================================================
+BUG: KASAN: use-after-free in strnlen+0x63/0x80 lib/string.c:561
+Read of size 1 at addr ffff88809e252018 by task syz-executor417/6859
+
+CPU: 1 PID: 6859 Comm: syz-executor417 Not tainted 5.8.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1f0/0x31e lib/dump_stack.c:118
+ print_address_description+0x66/0x5a0 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report+0x132/0x1d0 mm/kasan/report.c:530
+ strnlen+0x63/0x80 lib/string.c:561
+ dev_name_hash net/core/dev.c:208 [inline]
+ netdev_name_node_lookup_rcu net/core/dev.c:290 [inline]
+ dev_get_by_name_rcu net/core/dev.c:883 [inline]
+ dev_get_by_name+0x9b/0x2a0 net/core/dev.c:905
+ lookup_interface drivers/net/wireguard/netlink.c:63 [inline]
+ wg_get_device_start+0x1fb/0x2d0 drivers/net/wireguard/netlink.c:203
+ genl_start+0x390/0x570 net/netlink/genetlink.c:556
+ __netlink_dump_start+0x3d2/0x700 net/netlink/af_netlink.c:2343
+ genl_family_rcv_msg_dumpit net/netlink/genetlink.c:638 [inline]
+ genl_family_rcv_msg net/netlink/genetlink.c:733 [inline]
+ genl_rcv_msg+0xb03/0xe00 net/netlink/genetlink.c:753
+ netlink_rcv_skb+0x190/0x3a0 net/netlink/af_netlink.c:2469
+ genl_rcv+0x24/0x40 net/netlink/genetlink.c:764
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0x786/0x940 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0xa57/0xd70 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x519/0x800 net/socket.c:2352
+ ___sys_sendmsg net/socket.c:2406 [inline]
+ __sys_sendmsg+0x2b1/0x360 net/socket.c:2439
+ do_syscall_64+0x73/0xe0 arch/x86/entry/common.c:359
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x445299
+Code: Bad RIP value.
+RSP: 002b:00007ffd20eefea8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000445299
+RDX: 0000000000000000 RSI: 0000000020000200 RDI: 0000000000000003
+RBP: 000000000000d570 R08: 0000000000000000 R09: 00000000004002e0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000402430
+R13: 00000000004024c0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 6861:
+ save_stack mm/kasan/common.c:48 [inline]
+ set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc+0x103/0x140 mm/kasan/common.c:494
+ __kmalloc_reserve net/core/skbuff.c:142 [inline]
+ __alloc_skb+0xde/0x4f0 net/core/skbuff.c:210
+ alloc_skb include/linux/skbuff.h:1083 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1175 [inline]
+ netlink_sendmsg+0x7b2/0xd70 net/netlink/af_netlink.c:1893
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x519/0x800 net/socket.c:2352
+ ___sys_sendmsg net/socket.c:2406 [inline]
+ __sys_sendmsg+0x2b1/0x360 net/socket.c:2439
+ do_syscall_64+0x73/0xe0 arch/x86/entry/common.c:359
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 6861:
+ save_stack mm/kasan/common.c:48 [inline]
+ set_track mm/kasan/common.c:56 [inline]
+ kasan_set_free_info mm/kasan/common.c:316 [inline]
+ __kasan_slab_free+0x114/0x170 mm/kasan/common.c:455
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x220 mm/slab.c:3757
+ skb_release_all net/core/skbuff.c:664 [inline]
+ __kfree_skb+0x56/0x1c0 net/core/skbuff.c:678
+ netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
+ netlink_unicast+0x78e/0x940 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0xa57/0xd70 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0x519/0x800 net/socket.c:2352
+ ___sys_sendmsg net/socket.c:2406 [inline]
+ __sys_sendmsg+0x2b1/0x360 net/socket.c:2439
+ do_syscall_64+0x73/0xe0 arch/x86/entry/common.c:359
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The buggy address belongs to the object at ffff88809e252000
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 24 bytes inside of
+ 512-byte region [ffff88809e252000, ffff88809e252200)
+The buggy address belongs to the page:
+page:ffffea0002789480 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff88809e252400
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea00027829c8 ffff8880aa401740 ffff8880aa400a80
+raw: ffff88809e252400 ffff88809e252000 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809e251f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88809e251f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88809e252000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff88809e252080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88809e252100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

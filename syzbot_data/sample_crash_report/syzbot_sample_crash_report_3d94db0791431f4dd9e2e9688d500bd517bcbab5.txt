@@ -1,0 +1,48 @@
+------------[ cut here ]------------
+refcount_t: addition on 0; use-after-free.
+WARNING: CPU: 1 PID: 9 at lib/refcount.c:25 refcount_warn_saturate+0x1a8/0x20c lib/refcount.c:25
+Modules linked in:
+CPU: 1 PID: 9 Comm: kworker/u4:0 Not tainted 6.3.0-rc1-syzkaller-gfe15c26ee26e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Workqueue: qrtr_ns_handler qrtr_ns_worker
+pstate: 604000c5 (nZCv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : refcount_warn_saturate+0x1a8/0x20c lib/refcount.c:25
+lr : refcount_warn_saturate+0x1a8/0x20c lib/refcount.c:25
+sp : ffff80001a3a6da0
+x29: ffff80001a3a6da0 x28: dfff800000000000 x27: ffff700003474dc8
+x26: ffff80001a3a6e60 x25: 0000000000000000 x24: 00000000003a6056
+x23: ffff0000d22173f0 x22: 0000000000000000 x21: 0000000000000002
+x20: ffff0000d751c098 x19: ffff8000186ee000 x18: ffff80001a3a62a0
+x17: 0000000000000000 x16: ffff80001246250c x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000001 x12: 0000000000000001
+x11: ff808000081bd230 x10: 0000000000000000 x9 : 04bb8433d1680a00
+x8 : 04bb8433d1680a00 x7 : 0000000000000001 x6 : 0000000000000001
+x5 : ffff80001a3a6698 x4 : ffff800015dc52c0 x3 : ffff80000859c514
+x2 : 0000000000000001 x1 : 0000000100000001 x0 : 0000000000000000
+Call trace:
+ refcount_warn_saturate+0x1a8/0x20c lib/refcount.c:25
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ kref_get include/linux/kref.h:45 [inline]
+ qrtr_node_acquire net/qrtr/af_qrtr.c:202 [inline]
+ qrtr_node_lookup+0xdc/0x100 net/qrtr/af_qrtr.c:398
+ qrtr_send_resume_tx net/qrtr/af_qrtr.c:1003 [inline]
+ qrtr_recvmsg+0x3dc/0x954 net/qrtr/af_qrtr.c:1070
+ sock_recvmsg_nosec net/socket.c:1015 [inline]
+ sock_recvmsg net/socket.c:1036 [inline]
+ kernel_recvmsg+0x124/0x18c net/socket.c:1061
+ qrtr_ns_worker+0x294/0x513c net/qrtr/ns.c:688
+ process_one_work+0x868/0x16f4 kernel/workqueue.c:2390
+ worker_thread+0x8e0/0xfe8 kernel/workqueue.c:2537
+ kthread+0x24c/0x2d4 kernel/kthread.c:376
+ ret_from_fork+0x10/0x20 arch/arm64/kernel/entry.S:870
+irq event stamp: 766220
+hardirqs last  enabled at (766219): [<ffff800012543b48>] __raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:151 [inline]
+hardirqs last  enabled at (766219): [<ffff800012543b48>] _raw_spin_unlock_irqrestore+0x44/0xa4 kernel/locking/spinlock.c:194
+hardirqs last disabled at (766220): [<ffff80001254393c>] __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:108 [inline]
+hardirqs last disabled at (766220): [<ffff80001254393c>] _raw_spin_lock_irqsave+0x2c/0x88 kernel/locking/spinlock.c:162
+softirqs last  enabled at (766216): [<ffff80001066ca80>] spin_unlock_bh include/linux/spinlock.h:395 [inline]
+softirqs last  enabled at (766216): [<ffff80001066ca80>] lock_sock_nested+0xe8/0x138 net/core/sock.c:3480
+softirqs last disabled at (766214): [<ffff80001066ca28>] spin_lock_bh include/linux/spinlock.h:355 [inline]
+softirqs last disabled at (766214): [<ffff80001066ca28>] lock_sock_nested+0x90/0x138 net/core/sock.c:3476
+---[ end trace 0000000000000000 ]---

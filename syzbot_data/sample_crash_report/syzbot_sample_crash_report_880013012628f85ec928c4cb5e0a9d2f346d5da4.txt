@@ -1,0 +1,39 @@
+=============================
+WARNING: suspicious RCU usage
+5.12.0-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-sched read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+no locks held by syz-executor.4/8785.
+
+stack backtrace:
+CPU: 1 PID: 8785 Comm: syz-executor.4 Not tainted 5.12.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x266/0x2c0 kernel/sched/core.c:8304
+ try_to_freeze_unsafe include/linux/freezer.h:57 [inline]
+ try_to_freeze include/linux/freezer.h:67 [inline]
+ freezer_count include/linux/freezer.h:128 [inline]
+ freezable_schedule include/linux/freezer.h:173 [inline]
+ do_nanosleep+0x2ff/0x6a0 kernel/time/hrtimer.c:1896
+ hrtimer_nanosleep+0x1f9/0x4a0 kernel/time/hrtimer.c:1949
+ common_nsleep+0xa2/0xc0 kernel/time/posix-timers.c:1227
+ __do_sys_clock_nanosleep kernel/time/posix-timers.c:1267 [inline]
+ __se_sys_clock_nanosleep kernel/time/posix-timers.c:1245 [inline]
+ __x64_sys_clock_nanosleep+0x2f4/0x430 kernel/time/posix-timers.c:1245
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x48a7c1
+Code: 24 0c 89 3c 24 48 89 4c 24 18 e8 aa e7 ff ff 4c 8b 54 24 18 48 8b 54 24 10 41 89 c0 8b 74 24 0c 8b 3c 24 b8 e6 00 00 00 0f 05 <44> 89 c7 48 89 04 24 e8 e3 e7 ff ff 48 8b 04 24 eb 97 66 2e 0f 1f
+RSP: 002b:0000000000a9fd00 EFLAGS: 00000293 ORIG_RAX: 00000000000000e6
+RAX: ffffffffffffffda RBX: 000000000000000a RCX: 000000000048a7c1
+RDX: 0000000000a9fd40 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000a9fddc R08: 0000000000000000 R09: 00007ffc2b198090
+R10: 0000000000000000 R11: 0000000000000293 R12: 0000000000000032
+R13: 0000000000023d1c R14: 000000000000000f R15: 0000000000a9fe40

@@ -1,0 +1,61 @@
+NILFS (loop0): broken superblock, retrying with spare superblock (blocksize = 1024)
+NILFS (loop0): broken superblock, retrying with spare superblock (blocksize = 2048)
+NILFS (loop0): mounting unchecked fs
+NILFS (loop0): recovery complete
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 8518 at include/linux/backing-dev.h:283 inode_to_wb include/linux/backing-dev.h:283 [inline]
+WARNING: CPU: 1 PID: 8518 at include/linux/backing-dev.h:283 account_page_dirtied+0x787/0xa20 mm/page-writeback.c:2430
+Modules linked in:
+CPU: 1 PID: 8518 Comm: syz-executor204 Not tainted 5.10.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:inode_to_wb include/linux/backing-dev.h:283 [inline]
+RIP: 0010:account_page_dirtied+0x787/0xa20 mm/page-writeback.c:2430
+Code: a8 01 00 00 be ff ff ff ff 48 8d 78 70 e8 f1 4c 81 07 31 ff 89 c3 89 c6 e8 b6 cf d9 ff 85 db 0f 85 9c fa ff ff e8 89 c9 d9 ff <0f> 0b e9 90 fa ff ff e8 7d c9 d9 ff 48 89 ee 4c 89 ef e8 52 06 34
+RSP: 0018:ffffc90001b573d8 EFLAGS: 00010093
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff8880284de040 RSI: ffffffff81997c67 RDI: 0000000000000003
+RBP: ffffea000071e100 R08: 0000000000000000 R09: ffff888037fcdc3f
+R10: ffffffff81997c5a R11: 0000000000000000 R12: ffff888037fcdc38
+R13: ffff888037fcda90 R14: ffff888037fcd8e0 R15: ffffea000071e108
+FS:  00007ff46ac10700(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000056404ff9d720 CR3: 0000000013907000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __set_page_dirty+0x7f/0x400 fs/buffer.c:608
+ mark_buffer_dirty+0x466/0x5f0 fs/buffer.c:1137
+ nilfs_btree_commit_convert_and_insert fs/nilfs2/btree.c:1812 [inline]
+ nilfs_btree_convert_and_insert+0xdaf/0x1170 fs/nilfs2/btree.c:1877
+ nilfs_bmap_do_insert fs/nilfs2/bmap.c:111 [inline]
+ nilfs_bmap_insert+0x2a1/0x3f0 fs/nilfs2/bmap.c:147
+ nilfs_mdt_insert_new_block fs/nilfs2/mdt.c:44 [inline]
+ nilfs_mdt_create_block fs/nilfs2/mdt.c:93 [inline]
+ nilfs_mdt_get_block+0x5bf/0xdb0 fs/nilfs2/mdt.c:254
+ nilfs_palloc_get_block+0xc4/0x2b0 fs/nilfs2/alloc.c:216
+ nilfs_palloc_get_entry_block+0x167/0x1d0 fs/nilfs2/alloc.c:318
+ nilfs_dat_prepare_entry fs/nilfs2/dat.c:43 [inline]
+ nilfs_dat_prepare_alloc fs/nilfs2/dat.c:69 [inline]
+ nilfs_dat_prepare_alloc+0x61/0xb0 fs/nilfs2/dat.c:61
+ nilfs_bmap_prepare_alloc_ptr fs/nilfs2/bmap.h:183 [inline]
+ nilfs_direct_insert+0x3f2/0x530 fs/nilfs2/direct.c:122
+ nilfs_bmap_do_insert fs/nilfs2/bmap.c:121 [inline]
+ nilfs_bmap_insert+0x27a/0x3f0 fs/nilfs2/bmap.c:147
+ nilfs_get_block+0x562/0xa50 fs/nilfs2/inode.c:97
+ __block_write_begin_int+0x424/0x1770 fs/buffer.c:2011
+ nilfs_prepare_chunk fs/nilfs2/dir.c:92 [inline]
+ nilfs_make_empty+0x10a/0x820 fs/nilfs2/dir.c:591
+ nilfs_mkdir fs/nilfs2/namei.c:227 [inline]
+ nilfs_mkdir+0x1e8/0x360 fs/nilfs2/namei.c:204
+ vfs_mkdir+0x1b7/0x340 fs/namei.c:3650
+ do_mkdirat+0x262/0x2d0 fs/namei.c:3673
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x44b259
+Code: 7d cb fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 4b cb fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ff46ac0fd88 EFLAGS: 00000246 ORIG_RAX: 0000000000000102
+RAX: ffffffffffffffda RBX: 00000000006ddc28 RCX: 000000000044b259
+RDX: 0000000000000000 RSI: 0000000020000180 RDI: 00000000ffffff9c
+RBP: 00000000006ddc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000005f671b56
+R13: 000000005f671b56 R14: 0000000000000000 R15: 0000000000000000

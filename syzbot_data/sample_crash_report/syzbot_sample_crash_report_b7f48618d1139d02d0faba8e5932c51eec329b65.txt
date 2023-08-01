@@ -1,0 +1,97 @@
+netdevsim netdevsim3 netdevsim0 (unregistering): unset [1, 0] type 2 family 0 port 6081 - 0
+==================================================================
+BUG: KASAN: use-after-free in devlink_health_reporter_destroy+0x184/0x1d0 net/core/devlink.c:5476
+Read of size 8 at addr ffff88808ca11c20 by task kworker/u4:1/21
+
+CPU: 1 PID: 21 Comm: kworker/u4:1 Not tainted 5.8.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xae/0x436 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ devlink_health_reporter_destroy+0x184/0x1d0 net/core/devlink.c:5476
+ nsim_dev_health_exit+0x8b/0xe0 drivers/net/netdevsim/health.c:317
+ nsim_dev_reload_destroy+0x132/0x1e0 drivers/net/netdevsim/dev.c:1134
+ nsim_dev_reload_down+0x6e/0xd0 drivers/net/netdevsim/dev.c:712
+ devlink_reload+0xc1/0x3a0 net/core/devlink.c:2952
+ devlink_pernet_pre_exit+0xfb/0x190 net/core/devlink.c:9622
+ ops_pre_exit_list net/core/net_namespace.c:176 [inline]
+ cleanup_net+0x451/0xa00 net/core/net_namespace.c:591
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:291
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+Allocated by task 6819:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc.constprop.0+0xc2/0xd0 mm/kasan/common.c:494
+ kmem_cache_alloc_trace+0x14f/0x2d0 mm/slab.c:3551
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ __devlink_health_reporter_create+0x91/0x2f0 net/core/devlink.c:5359
+ devlink_health_reporter_create+0xa1/0x1d0 net/core/devlink.c:5431
+ nsim_dev_health_init+0x95/0x3a0 drivers/net/netdevsim/health.c:279
+ nsim_dev_probe+0xada/0xf80 drivers/net/netdevsim/dev.c:1086
+ really_probe+0x282/0x8a0 drivers/base/dd.c:525
+ driver_probe_device+0xfe/0x1d0 drivers/base/dd.c:701
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:807
+ bus_for_each_drv+0x15f/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x28d/0x3f0 drivers/base/dd.c:873
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0xacf/0x1b00 drivers/base/core.c:2680
+ nsim_bus_dev_new drivers/net/netdevsim/bus.c:336 [inline]
+ new_device_store+0x374/0x5c0 drivers/net/netdevsim/bus.c:215
+ bus_attr_store+0x72/0xa0 drivers/base/bus.c:122
+ sysfs_kf_write+0x110/0x160 fs/sysfs/file.c:138
+ kernfs_fop_write+0x268/0x490 fs/kernfs/file.c:315
+ vfs_write+0x2b0/0x6b0 fs/read_write.c:576
+ ksys_write+0x12d/0x250 fs/read_write.c:631
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 21:
+ save_stack+0x1b/0x40 mm/kasan/common.c:48
+ set_track mm/kasan/common.c:56 [inline]
+ kasan_set_free_info mm/kasan/common.c:316 [inline]
+ __kasan_slab_free+0xf5/0x140 mm/kasan/common.c:455
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x103/0x2c0 mm/slab.c:3757
+ devlink_health_reporter_free net/core/devlink.c:5449 [inline]
+ devlink_health_reporter_put+0xb7/0xf0 net/core/devlink.c:5456
+ __devlink_health_reporter_destroy net/core/devlink.c:5463 [inline]
+ devlink_health_reporter_destroy+0x143/0x1d0 net/core/devlink.c:5475
+ nsim_dev_health_exit+0x8b/0xe0 drivers/net/netdevsim/health.c:317
+ nsim_dev_reload_destroy+0x132/0x1e0 drivers/net/netdevsim/dev.c:1134
+ nsim_dev_reload_down+0x6e/0xd0 drivers/net/netdevsim/dev.c:712
+ devlink_reload+0xc1/0x3a0 net/core/devlink.c:2952
+ devlink_pernet_pre_exit+0xfb/0x190 net/core/devlink.c:9622
+ ops_pre_exit_list net/core/net_namespace.c:176 [inline]
+ cleanup_net+0x451/0xa00 net/core/net_namespace.c:591
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:291
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+The buggy address belongs to the object at ffff88808ca11c00
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 32 bytes inside of
+ 512-byte region [ffff88808ca11c00, ffff88808ca11e00)
+The buggy address belongs to the page:
+page:ffffea0002328440 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff88808ca11000
+flags: 0xfffe0000000200(slab)
+raw: 00fffe0000000200 ffffea00024ba648 ffffea0002a32788 ffff8880aa000a80
+raw: ffff88808ca11000 ffff88808ca11000 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808ca11b00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88808ca11b80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88808ca11c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                               ^
+ ffff88808ca11c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88808ca11d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

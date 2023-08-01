@@ -1,0 +1,96 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in memcpy include/linux/string.h:344 [inline]
+BUG: KASAN: null-ptr-deref in do_convert sound/core/oss/linear.c:52 [inline]
+BUG: KASAN: null-ptr-deref in convert sound/core/oss/linear.c:81 [inline]
+BUG: KASAN: null-ptr-deref in linear_transfer+0x634/0x900 sound/core/oss/linear.c:110
+Write of size 2 at addr           (null) by task syzkaller360172/7860
+
+CPU: 0 PID: 7860 Comm: syzkaller360172 Not tainted 4.15.0-rc6+ #155
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ kasan_report_error mm/kasan/report.c:349 [inline]
+ kasan_report+0x13b/0x340 mm/kasan/report.c:409
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x37/0x50 mm/kasan/kasan.c:303
+ memcpy include/linux/string.h:344 [inline]
+ do_convert sound/core/oss/linear.c:52 [inline]
+ convert sound/core/oss/linear.c:81 [inline]
+ linear_transfer+0x634/0x900 sound/core/oss/linear.c:110
+ snd_pcm_plug_write_transfer+0x22d/0x420 sound/core/oss/pcm_plugin.c:611
+ snd_pcm_oss_write2+0x260/0x420 sound/core/oss/pcm_oss.c:1311
+ snd_pcm_oss_sync1+0x1cc/0x550 sound/core/oss/pcm_oss.c:1530
+ snd_pcm_oss_sync+0x5b6/0x830 sound/core/oss/pcm_oss.c:1604
+ snd_pcm_oss_release+0x20b/0x280 sound/core/oss/pcm_oss.c:2431
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x73f/0x16c0 kernel/signal.c:2335
+ do_signal+0x90/0x1eb0 arch/x86/kernel/signal.c:809
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:264 [inline]
+ do_syscall_32_irqs_on arch/x86/entry/common.c:333 [inline]
+ do_fast_syscall_32+0xbfd/0xf9d arch/x86/entry/common.c:389
+ entry_SYSENTER_compat+0x54/0x63 arch/x86/entry/entry_64_compat.S:129
+RIP: 0023:0xf7fcac79
+RSP: 002b:00000000f7f8412c EFLAGS: 00000292 ORIG_RAX: 00000000000000f0
+RAX: fffffffffffffe00 RBX: 00000000080fd024 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00000000080fd024
+RBP: 0000000000000001 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 0 PID: 7860 Comm: syzkaller360172 Tainted: G    B            4.15.0-rc6+ #155
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ panic+0x1e4/0x41c kernel/panic.c:183
+ kasan_end_report+0x50/0x50 mm/kasan/report.c:176
+ kasan_report_error mm/kasan/report.c:356 [inline]
+ kasan_report+0x144/0x340 mm/kasan/report.c:409
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x37/0x50 mm/kasan/kasan.c:303
+ memcpy include/linux/string.h:344 [inline]
+ do_convert sound/core/oss/linear.c:52 [inline]
+ convert sound/core/oss/linear.c:81 [inline]
+ linear_transfer+0x634/0x900 sound/core/oss/linear.c:110
+ snd_pcm_plug_write_transfer+0x22d/0x420 sound/core/oss/pcm_plugin.c:611
+ snd_pcm_oss_write2+0x260/0x420 sound/core/oss/pcm_oss.c:1311
+ snd_pcm_oss_sync1+0x1cc/0x550 sound/core/oss/pcm_oss.c:1530
+ snd_pcm_oss_sync+0x5b6/0x830 sound/core/oss/pcm_oss.c:1604
+ snd_pcm_oss_release+0x20b/0x280 sound/core/oss/pcm_oss.c:2431
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x73f/0x16c0 kernel/signal.c:2335
+ do_signal+0x90/0x1eb0 arch/x86/kernel/signal.c:809
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:264 [inline]
+ do_syscall_32_irqs_on arch/x86/entry/common.c:333 [inline]
+ do_fast_syscall_32+0xbfd/0xf9d arch/x86/entry/common.c:389
+ entry_SYSENTER_compat+0x54/0x63 arch/x86/entry/entry_64_compat.S:129
+RIP: 0023:0xf7fcac79
+RSP: 002b:00000000f7f8412c EFLAGS: 00000292 ORIG_RAX: 00000000000000f0
+RAX: fffffffffffffe00 RBX: 00000000080fd024 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00000000080fd024
+RBP: 0000000000000001 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

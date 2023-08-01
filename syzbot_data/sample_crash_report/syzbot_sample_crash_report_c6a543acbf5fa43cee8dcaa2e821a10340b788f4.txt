@@ -1,0 +1,111 @@
+INFO: task syz-executor.4:13809 blocked for more than 143 seconds.
+      Not tainted 5.4.0-rc7+ #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor.4  D28056 13809   9620 0x00004004
+Call Trace:
+ context_switch kernel/sched/core.c:3384 [inline]
+ __schedule+0x909/0x1ee0 kernel/sched/core.c:4078
+ schedule+0xd9/0x260 kernel/sched/core.c:4145
+ schedule_timeout+0x717/0xc50 kernel/time/timer.c:1871
+ do_wait_for_common kernel/sched/completion.c:83 [inline]
+ __wait_for_common kernel/sched/completion.c:104 [inline]
+ wait_for_common kernel/sched/completion.c:115 [inline]
+ wait_for_completion+0x29c/0x440 kernel/sched/completion.c:136
+ __synchronize_srcu+0x197/0x250 kernel/rcu/srcutree.c:921
+ synchronize_srcu+0x2dc/0x3e8 kernel/rcu/srcutree.c:999
+ kvm_page_track_unregister_notifier+0xe7/0x130 arch/x86/kvm/page_track.c:212
+ kvm_mmu_uninit_vm+0x1e/0x30 arch/x86/kvm/mmu.c:5828
+ kvm_arch_destroy_vm+0x4a2/0x5f0 arch/x86/kvm/x86.c:9579
+ kvm_create_vm arch/x86/kvm/../../../virt/kvm/kvm_main.c:702 [inline]
+ kvm_dev_ioctl_create_vm arch/x86/kvm/../../../virt/kvm/kvm_main.c:3444 [inline]
+ kvm_dev_ioctl+0x11e6/0x1610 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3496
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xdb6/0x13e0 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x45a219
+Code: 24 48 89 44 24 08 48 c7 44 24 10 08 00 00 00 e8 7d d0 fa ff 48 8b 44 24 18 48 89 44 24 40 48 8b 6c 24 20 48 83 c4 28 c3 e8 84 <af> ff ff eb 82 cc cc 48 8b 44 24 08 48 8b 08 48 8b 54 24 10 48 8b
+RSP: 002b:00007f752bac8c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 000000000045a219
+RDX: 0000000000000000 RSI: 000000000000ae01 RDI: 0000000000000003
+RBP: 000000000075bf20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f752bac96d4
+R13: 00000000004c348b R14: 00000000004d7708 R15: 00000000ffffffff
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1070:
+ #0: ffffffff88fab340 (rcu_read_lock){....}, at: debug_show_all_locks+0x5f/0x27e kernel/locking/lockdep.c:5337
+2 locks held by rsyslogd/9443:
+ #0: ffff88809ed15e20 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0xee/0x110 fs/file.c:801
+ #1: ffffffff88fab340 (rcu_read_lock){....}, at: syslog_print kernel/printk/printk.c:1364 [inline]
+ #1: ffffffff88fab340 (rcu_read_lock){....}, at: do_syslog kernel/printk/printk.c:1529 [inline]
+ #1: ffffffff88fab340 (rcu_read_lock){....}, at: do_syslog+0x68e/0x1820 kernel/printk/printk.c:1503
+2 locks held by getty/9565:
+ #0: ffff88809c048090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f2d2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/9566:
+ #0: ffff888085df9090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f312e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/9567:
+ #0: ffff88809cd46090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f292e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/9568:
+ #0: ffff8880a39f5090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f352e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/9569:
+ #0: ffff88809c53e090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f192e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/9570:
+ #0: ffff8880a9741090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f152e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/9571:
+ #0: ffff888086492090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f052e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 1070 Comm: khungtaskd Not tainted 5.4.0-rc7+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x70/0xb2 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x23b/0x28b lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:205 [inline]
+ watchdog+0x9d0/0xef0 kernel/hung_task.c:289
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 7 Comm: kworker/u4:0 Not tainted 5.4.0-rc7+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: bat_events batadv_nc_worker
+RIP: 0010:__rcu_read_lock+0x2a/0x90 kernel/rcu/tree_plugin.h:358
+Code: 48 b8 00 00 00 00 00 fc ff df 55 48 89 e5 53 65 48 8b 1c 25 40 fe 01 00 48 8d bb 78 03 00 00 48 89 fa 48 c1 ea 03 0f b6 04 02 <84> c0 74 04 3c 03 7e 4f 83 83 78 03 00 00 01 48 b8 00 00 00 00 00
+RSP: 0018:ffff8880a9897cc8 EFLAGS: 00000a02
+RAX: 0000000000000000 RBX: ffff8880a987e1c0 RCX: ffffffff8733c697
+RDX: 1ffff1101530fca7 RSI: ffffffff8733c526 RDI: ffff8880a987e538
+RBP: ffff8880a9897cd0 R08: ffff8880a987e1c0 R09: ffff8880a987ea50
+R10: fffffbfff138cdf0 R11: ffffffff89c66f87 R12: 0000000000000001
+R13: 0000000000000023 R14: ffff8880938dc118 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffffff600400 CR3: 00000000a3f2d000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ rcu_read_lock include/linux/rcupdate.h:597 [inline]
+ batadv_nc_purge_orig_hash net/batman-adv/network-coding.c:407 [inline]
+ batadv_nc_worker+0xf2/0x760 net/batman-adv/network-coding.c:718
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352

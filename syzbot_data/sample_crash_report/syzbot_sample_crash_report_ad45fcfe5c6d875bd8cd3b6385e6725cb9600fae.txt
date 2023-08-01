@@ -1,0 +1,49 @@
+list_add corruption. prev->next should be next (ffff88813fe2a380), but was ffff000000000000. (prev=ffff88801fda8610).
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:30!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 1089 Comm: kworker/u4:5 Not tainted 5.19.0-syzkaller-14276-gaea23e7c464b #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Workqueue: events_unbound call_usermodehelper_exec_work
+RIP: 0010:__list_add_valid.cold+0x56/0x58 lib/list_debug.c:30
+Code: 0b 48 89 f2 4c 89 e1 48 89 ee 48 c7 c7 a0 f3 48 8a e8 62 f2 f0 ff 0f 0b 48 89 f1 48 c7 c7 20 f3 48 8a 4c 89 e6 e8 4e f2 f0 ff <0f> 0b 4c 89 e1 48 89 ee 48 c7 c7 80 f5 48 8a e8 3a f2 f0 ff 0f 0b
+RSP: 0000:ffffc90004b5f918 EFLAGS: 00010082
+RAX: 0000000000000075 RBX: ffff88801fda8610 RCX: 0000000000000000
+RDX: ffff88801fd81d80 RSI: ffffffff8161f148 RDI: fffff5200096bf15
+RBP: ffff88801fdaa390 R08: 0000000000000075 R09: 0000000000000000
+R10: 0000000080000002 R11: 00000000000000a3 R12: ffff88813fe2a380
+R13: ffff88801fda9d80 R14: ffffc90004b5fc10 R15: 0000000000808100
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff88823ffff000 CR3: 000000000bc8e000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __list_add include/linux/list.h:69 [inline]
+ list_add_tail include/linux/list.h:102 [inline]
+ copy_process+0x5115/0x7090 kernel/fork.c:2457
+ kernel_clone+0xe7/0xab0 kernel/fork.c:2673
+ user_mode_thread+0xad/0xe0 kernel/fork.c:2742
+ call_usermodehelper_exec_work kernel/umh.c:174 [inline]
+ call_usermodehelper_exec_work+0xcc/0x180 kernel/umh.c:160
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__list_add_valid.cold+0x56/0x58 lib/list_debug.c:30
+Code: 0b 48 89 f2 4c 89 e1 48 89 ee 48 c7 c7 a0 f3 48 8a e8 62 f2 f0 ff 0f 0b 48 89 f1 48 c7 c7 20 f3 48 8a 4c 89 e6 e8 4e f2 f0 ff <0f> 0b 4c 89 e1 48 89 ee 48 c7 c7 80 f5 48 8a e8 3a f2 f0 ff 0f 0b
+RSP: 0000:ffffc90004b5f918 EFLAGS: 00010082
+RAX: 0000000000000075 RBX: ffff88801fda8610 RCX: 0000000000000000
+RDX: ffff88801fd81d80 RSI: ffffffff8161f148 RDI: fffff5200096bf15
+RBP: ffff88801fdaa390 R08: 0000000000000075 R09: 0000000000000000
+R10: 0000000080000002 R11: 00000000000000a3 R12: ffff88813fe2a380
+R13: ffff88801fda9d80 R14: ffffc90004b5fc10 R15: 0000000000808100
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff88823ffff000 CR3: 000000000bc8e000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

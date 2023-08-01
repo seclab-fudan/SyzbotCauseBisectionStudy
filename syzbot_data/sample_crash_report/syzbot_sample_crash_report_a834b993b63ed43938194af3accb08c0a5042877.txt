@@ -1,0 +1,35 @@
+==================================================================
+BUG: KCSAN: data-race in netlink_getname / netlink_insert
+
+write to 0xffff88813f176310 of 4 bytes by task 8357 on cpu 1:
+ netlink_insert+0xf1/0x9a0 net/netlink/af_netlink.c:583
+ netlink_autobind+0xae/0x180 net/netlink/af_netlink.c:856
+ netlink_sendmsg+0x444/0x760 net/netlink/af_netlink.c:1895
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0x38f/0x500 net/socket.c:2476
+ ___sys_sendmsg net/socket.c:2530 [inline]
+ __sys_sendmsg+0x19a/0x230 net/socket.c:2559
+ __do_sys_sendmsg net/socket.c:2568 [inline]
+ __se_sys_sendmsg net/socket.c:2566 [inline]
+ __x64_sys_sendmsg+0x42/0x50 net/socket.c:2566
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+read to 0xffff88813f176310 of 4 bytes by task 8364 on cpu 0:
+ netlink_getname+0xcd/0x1a0 net/netlink/af_netlink.c:1144
+ __sys_getsockname+0x11d/0x1b0 net/socket.c:2026
+ __do_sys_getsockname net/socket.c:2041 [inline]
+ __se_sys_getsockname net/socket.c:2038 [inline]
+ __x64_sys_getsockname+0x3e/0x50 net/socket.c:2038
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+value changed: 0x00000000 -> 0x000017fb
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 8364 Comm: syz-executor.0 Not tainted 6.2.0-rc5-syzkaller-00020-g7bf70dbb1882-dirty #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+==================================================================

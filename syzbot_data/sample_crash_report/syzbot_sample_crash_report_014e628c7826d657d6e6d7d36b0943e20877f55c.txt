@@ -1,0 +1,69 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): batadv_slave_1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1_to_batadv: link becomes ready
+general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 1 PID: 20 Comm: kworker/1:0 Not tainted 5.16.0-rc4-next-20211210-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events linkwatch_event
+RIP: 0010:__list_del_entry_valid+0x81/0xf0 lib/list_debug.c:51
+Code: 0f 84 c5 cd 33 05 48 b8 22 01 00 00 00 00 ad de 49 39 c4 0f 84 c6 cd 33 05 48 b8 00 00 00 00 00 fc ff df 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 75 51 49 8b 14 24 48 39 ea 0f 85 7d cd 33 05 49 8d 7d
+RSP: 0018:ffffc90000da7af8 EFLAGS: 00010046
+RAX: dffffc0000000000 RBX: ffff888019541940 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff840a0d1f RDI: ffff888019541948
+RBP: ffff888019541940 R08: 0000000000000001 R09: 0000000000000000
+R10: ffffffff840a0d11 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff88801e2cc610 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000558d58597a08 CR3: 000000007f4a5000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __list_del_entry include/linux/list.h:134 [inline]
+ list_move_tail include/linux/list.h:229 [inline]
+ ref_tracker_free+0x148/0x610 lib/ref_tracker.c:127
+ netdev_tracker_free include/linux/netdevice.h:3868 [inline]
+ dev_put_track include/linux/netdevice.h:3885 [inline]
+ linkwatch_do_dev+0x96/0x160 net/core/link_watch.c:169
+ __linkwatch_run_queue+0x233/0x6a0 net/core/link_watch.c:213
+ linkwatch_event+0x4a/0x60 net/core/link_watch.c:252
+ process_one_work+0x9ac/0x1680 kernel/workqueue.c:2307
+ worker_thread+0x652/0x11c0 kernel/workqueue.c:2454
+ kthread+0x405/0x4f0 kernel/kthread.c:345
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+Modules linked in:
+---[ end trace 7d24111b5c1b9b46 ]---
+RIP: 0010:__list_del_entry_valid+0x81/0xf0 lib/list_debug.c:51
+Code: 0f 84 c5 cd 33 05 48 b8 22 01 00 00 00 00 ad de 49 39 c4 0f 84 c6 cd 33 05 48 b8 00 00 00 00 00 fc ff df 4c 89 e2 48 c1 ea 03 <80> 3c 02 00 75 51 49 8b 14 24 48 39 ea 0f 85 7d cd 33 05 49 8d 7d
+RSP: 0018:ffffc90000da7af8 EFLAGS: 00010046
+RAX: dffffc0000000000 RBX: ffff888019541940 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff840a0d1f RDI: ffff888019541948
+RBP: ffff888019541940 R08: 0000000000000001 R09: 0000000000000000
+R10: ffffffff840a0d11 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff88801e2cc610 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000558d58597a08 CR3: 000000007f4a5000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	0f 84 c5 cd 33 05    	je     0x533cdcb
+   6:	48 b8 22 01 00 00 00 	movabs $0xdead000000000122,%rax
+   d:	00 ad de
+  10:	49 39 c4             	cmp    %rax,%r12
+  13:	0f 84 c6 cd 33 05    	je     0x533cddf
+  19:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  20:	fc ff df
+  23:	4c 89 e2             	mov    %r12,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	75 51                	jne    0x81
+  30:	49 8b 14 24          	mov    (%r12),%rdx
+  34:	48 39 ea             	cmp    %rbp,%rdx
+  37:	0f 85 7d cd 33 05    	jne    0x533cdba
+  3d:	49                   	rex.WB
+  3e:	8d                   	.byte 0x8d
+  3f:	7d                   	.byte 0x7d

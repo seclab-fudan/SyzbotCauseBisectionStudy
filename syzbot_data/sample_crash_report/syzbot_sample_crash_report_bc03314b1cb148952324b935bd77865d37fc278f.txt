@@ -1,0 +1,75 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in unmap_page_range+0x1f21/0x2220 mm/memory.c:1503
+PANIC: double fault, error_code: 0x0
+Read of size 8 at addr ffff8801bf5307f8 by task syz-executor4/24200
+CPU: 1 PID: 24194 Comm: syz-executor7 Not tainted 4.18.0-rc3+ #58
+
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__lock_acquire+0x2e/0x5020 kernel/locking/lockdep.c:3294
+CPU: 0 PID: 24200 Comm: syz-executor4 Not tainted 4.18.0-rc3+ #58
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ unmap_page_range+0x1f21/0x2220 mm/memory.c:1503
+ unmap_single_vma+0x1a0/0x310 mm/memory.c:1553
+ unmap_vmas+0x120/0x1f0 mm/memory.c:1583
+ exit_mmap+0x2c2/0x5b0 mm/mmap.c:3105
+ __mmput kernel/fork.c:970 [inline]
+ mmput+0x265/0x620 kernel/fork.c:991
+ exit_mm kernel/exit.c:544 [inline]
+ do_exit+0xea9/0x2750 kernel/exit.c:852
+Code: 41 
+57 41 89 
+cf 41 
+56 41 
+55 49 
+89 fd 
+41 54 
+45 89 
+cc 53 
+65 4c 
+8b 34 
+25 
+40 ee 
+01 00 
+48 
+83 e4 
+f0 48 
+81 ec 
+60 03 
+00 00 
+48 8b 
+45 10 
+<89> 94 
+24 80 
+ do_group_exit+0x177/0x440 kernel/exit.c:968
+00 00 
+00 
+48 ba 
+00 00 
+00 
+ get_signal+0x88e/0x1970 kernel/signal.c:2468
+00 
+00 fc 
+ff 
+df 48 
+89 84 
+24 98 
+RSP: 0018:ffff8801be5feec0 EFLAGS: 00010086
+RAX: 0000000000000000 RBX: 1ffff10037cbfe54 RCX: 0000000000000002
+ do_signal+0x9c/0x21c0 arch/x86/kernel/signal.c:816
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff88f92620
+RBP: ffff8801be5ff248 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: dffffc0000000000 R12: 0000000000000000
+R13: ffffffff88f92620 R14: ffff8801a93be640 R15: 0000000000000002
+FS:  0000000001de6940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff8801be5feeb8 CR3: 000000019e719000 CR4: 00000000001406e0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:

@@ -1,0 +1,92 @@
+BUG: KASAN: use-after-free in free_ldt_struct.part.2+0x10a/0x150 arch/x86/kernel/ldt.c:95
+Read of size 4 at addr ffff8801dadd3848 by task syzkaller975859/17168
+
+CPU: 0 PID: 17168 Comm: syzkaller975859 Not tainted 4.13.0-rc6+ #44
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x24e/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ free_ldt_struct.part.2+0x10a/0x150 arch/x86/kernel/ldt.c:95
+ free_ldt_struct arch/x86/kernel/ldt.c:152 [inline]
+ destroy_context_ldt+0x60/0x80 arch/x86/kernel/ldt.c:150
+ destroy_context arch/x86/include/asm/mmu_context.h:149 [inline]
+ __mmdrop+0xe9/0x530 kernel/fork.c:887
+ mmdrop include/linux/sched/mm.h:42 [inline]
+ __mmput kernel/fork.c:914 [inline]
+ mmput+0x541/0x6e0 kernel/fork.c:925
+ exit_mm kernel/exit.c:544 [inline]
+ do_exit+0x989/0x1b10 kernel/exit.c:852
+ do_group_exit+0x149/0x400 kernel/exit.c:969
+ get_signal+0x7e8/0x17e0 kernel/signal.c:2334
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:808
+ exit_to_usermode_loop+0x224/0x300 arch/x86/entry/common.c:157
+ prepare_exit_to_usermode arch/x86/entry/common.c:194 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:263 [inline]
+ do_syscall_64+0x5d4/0x800 arch/x86/entry/common.c:289
+ entry_SYSCALL64_slow_path+0x25/0x25
+RIP: 0033:0x44b549
+RSP: 002b:00007f184677bd08 EFLAGS: 00000246 ORIG_RAX: 0000000000000038
+RAX: fffffffffffffdff RBX: 0000000000000000 RCX: 000000000044b549
+RDX: 0000000020001000 RSI: 0000000020001000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000020000000 R09: 00007f184677c700
+R10: 0000000020001000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffcff58edaf R14: 00007f184677c9c0 R15: 0000000000000000
+
+Allocated by task 17156:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x12f/0x740 mm/slab.c:3627
+ kmalloc include/linux/slab.h:493 [inline]
+ alloc_ldt_struct+0x52/0x140 arch/x86/kernel/ldt.c:46
+ write_ldt+0x3e9/0xac0 arch/x86/kernel/ldt.c:256
+ sys_modify_ldt+0x1ef/0x240 arch/x86/kernel/ldt.c:286
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 17168:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ free_ldt_struct.part.2+0xdd/0x150 arch/x86/kernel/ldt.c:100
+ free_ldt_struct arch/x86/kernel/ldt.c:152 [inline]
+ destroy_context_ldt+0x60/0x80 arch/x86/kernel/ldt.c:150
+ destroy_context arch/x86/include/asm/mmu_context.h:149 [inline]
+ __mmdrop+0xe9/0x530 kernel/fork.c:887
+ mmdrop include/linux/sched/mm.h:42 [inline]
+ __mmput kernel/fork.c:914 [inline]
+ mmput+0x541/0x6e0 kernel/fork.c:925
+ copy_process.part.34+0x2315/0x4bd0 kernel/fork.c:1933
+ copy_process kernel/fork.c:1545 [inline]
+ _do_fork+0x1ef/0xfb0 kernel/fork.c:2026
+ SYSC_clone kernel/fork.c:2136 [inline]
+ SyS_clone+0x37/0x50 kernel/fork.c:2130
+ do_syscall_64+0x26c/0x800 arch/x86/entry/common.c:284
+ return_from_SYSCALL_64+0x0/0x7a
+
+The buggy address belongs to the object at ffff8801dadd3840
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 8 bytes inside of
+ 32-byte region [ffff8801dadd3840, ffff8801dadd3860)
+The buggy address belongs to the page:
+page:ffffea00076b74c0 count:1 mapcount:0 mapping:ffff8801dadd3000 index:0xffff8801dadd3fc1
+flags: 0x200000000000100(slab)
+raw: 0200000000000100 ffff8801dadd3000 ffff8801dadd3fc1 000000010000003f
+raw: ffffea00076b7520 ffffea00076b7420 ffff8801dac001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801dadd3700: fb fb fb fb fc fc fc fc 00 00 00 00 fc fc fc fc
+ ffff8801dadd3780: 00 00 00 fc fc fc fc fc fb fb fb fb fc fc fc fc
+>ffff8801dadd3800: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+                                              ^
+ ffff8801dadd3880: fb fb fb fb fc fc fc fc 00 00 fc fc fc fc fc fc
+ ffff8801dadd3900: 00 00 00 00 fc fc fc fc 00 00 00 fc fc fc fc fc
+==================================================================

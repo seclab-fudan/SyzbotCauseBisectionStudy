@@ -1,0 +1,93 @@
+==================================================================
+BUG: KASAN: use-after-free in d_inode include/linux/dcache.h:515 [inline]
+BUG: KASAN: use-after-free in relay_switch_subbuf+0x27a/0x630 kernel/relay.c:755
+Read of size 8 at addr ffff8880aa0ce4f8 by task kworker/0:2/2908
+
+CPU: 0 PID: 2908 Comm: kworker/0:2 Not tainted 5.4.0-rc6+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events __blk_release_queue
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1fb/0x318 lib/dump_stack.c:118
+ print_address_description+0x75/0x5c0 mm/kasan/report.c:374
+ __kasan_report+0x14b/0x1c0 mm/kasan/report.c:506
+ kasan_report+0x26/0x50 mm/kasan/common.c:634
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ d_inode include/linux/dcache.h:515 [inline]
+ relay_switch_subbuf+0x27a/0x630 kernel/relay.c:755
+ relay_flush+0x1ff/0x2e0 kernel/relay.c:883
+ __blk_trace_startstop kernel/trace/blktrace.c:662 [inline]
+ blk_trace_shutdown+0x203/0x260 kernel/trace/blktrace.c:746
+ __blk_release_queue+0x244/0x2e0 block/blk-sysfs.c:904
+ process_one_work+0x7ef/0x10e0 kernel/workqueue.c:2269
+ worker_thread+0xc01/0x1630 kernel/workqueue.c:2415
+ kthread+0x332/0x350 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 7879:
+ save_stack mm/kasan/common.c:69 [inline]
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc+0x11c/0x1b0 mm/kasan/common.c:510
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:518
+ slab_post_alloc_hook mm/slab.h:584 [inline]
+ slab_alloc mm/slab.c:3319 [inline]
+ kmem_cache_alloc+0x1f5/0x2e0 mm/slab.c:3483
+ __d_alloc+0x2d/0x6e0 fs/dcache.c:1688
+ d_alloc fs/dcache.c:1767 [inline]
+ d_alloc_parallel+0x7f/0x1430 fs/dcache.c:2519
+ __lookup_slow+0xa7/0x380 fs/namei.c:1646
+ lookup_one_len+0x123/0x220 fs/namei.c:2533
+ start_creating+0xd3/0x270 fs/debugfs/inode.c:339
+ __debugfs_create_file+0x75/0x470 fs/debugfs/inode.c:384
+ debugfs_create_file+0x4a/0x60 fs/debugfs/inode.c:441
+ blk_create_buf_file_callback+0x34/0x40 kernel/trace/blktrace.c:444
+ relay_create_buf_file kernel/relay.c:428 [inline]
+ relay_open_buf+0x5cb/0xd60 kernel/relay.c:457
+ relay_open+0x491/0x970 kernel/relay.c:599
+ do_blk_trace_setup+0x4b9/0xaa0 kernel/trace/blktrace.c:526
+ __blk_trace_setup kernel/trace/blktrace.c:571 [inline]
+ blk_trace_ioctl+0x24c/0x7d0 kernel/trace/blktrace.c:710
+ blkdev_ioctl+0x134a/0x2980 block/ioctl.c:592
+ block_ioctl+0xbd/0x100 fs/block_dev.c:1954
+ do_vfs_ioctl+0x744/0x1730 fs/ioctl.c:46
+ ksys_ioctl fs/ioctl.c:713 [inline]
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0xe3/0x120 fs/ioctl.c:718
+ do_syscall_64+0xf7/0x1c0 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 0:
+ save_stack mm/kasan/common.c:69 [inline]
+ set_track mm/kasan/common.c:77 [inline]
+ kasan_set_free_info mm/kasan/common.c:332 [inline]
+ __kasan_slab_free+0x12a/0x1e0 mm/kasan/common.c:471
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:480
+ __cache_free mm/slab.c:3425 [inline]
+ kmem_cache_free+0x81/0xf0 mm/slab.c:3693
+ __d_free+0x20/0x30 fs/dcache.c:271
+ __rcu_reclaim kernel/rcu/rcu.h:222 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2157 [inline]
+ rcu_core+0x843/0x1050 kernel/rcu/tree.c:2377
+ rcu_core_si+0x9/0x10 kernel/rcu/tree.c:2386
+ __do_softirq+0x333/0x7c4 arch/x86/include/asm/paravirt.h:766
+
+The buggy address belongs to the object at ffff8880aa0ce4a0
+ which belongs to the cache dentry(17:syz0) of size 288
+The buggy address is located 88 bytes inside of
+ 288-byte region [ffff8880aa0ce4a0, ffff8880aa0ce5c0)
+The buggy address belongs to the page:
+page:ffffea0002a83380 refcount:1 mapcount:0 mapping:ffff8880910e3e00 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea0002a82188 ffffea0002a81cc8 ffff8880910e3e00
+raw: 0000000000000000 ffff8880aa0ce080 000000010000000b 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880aa0ce380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880aa0ce400: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+>ffff8880aa0ce480: fc fc fc fc fb fb fb fb fb fb fb fb fb fb fb fb
+                                                                ^
+ ffff8880aa0ce500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880aa0ce580: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================

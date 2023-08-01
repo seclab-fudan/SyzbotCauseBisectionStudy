@@ -1,0 +1,331 @@
+binder: undelivered TRANSACTION_ERROR: 29201
+binder: send failed reply for transaction 10, target dead
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.15.0+ #301 Not tainted
+------------------------------------------------------
+syz-executor2/6218 is trying to acquire lock:
+ (&xt[i].mutex){+.+.}, at: [<00000000366acd16>] xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1041
+
+but task is already holding lock:
+ (sk_lock-AF_INET6){+.+.}, at: [<000000009e4030ab>] lock_sock include/net/sock.h:1463 [inline]
+ (sk_lock-AF_INET6){+.+.}, at: [<000000009e4030ab>] ipv6_getsockopt+0x1c5/0x2e0 net/ipv6/ipv6_sockglue.c:1370
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (sk_lock-AF_INET6){+.+.}:
+       lock_sock_nested+0xc2/0x110 net/core/sock.c:2777
+       lock_sock include/net/sock.h:1463 [inline]
+       do_ipv6_setsockopt.isra.8+0x3c5/0x39d0 net/ipv6/ipv6_sockglue.c:167
+       ipv6_setsockopt+0xd7/0x130 net/ipv6/ipv6_sockglue.c:922
+       udpv6_setsockopt+0x45/0x80 net/ipv6/udp.c:1422
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+       SYSC_setsockopt net/socket.c:1849 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1828
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+-> #1 (rtnl_mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
+       unregister_netdevice_notifier+0x91/0x4e0 net/core/dev.c:1673
+       clusterip_config_entry_put net/ipv4/netfilter/ipt_CLUSTERIP.c:114 [inline]
+       clusterip_tg_destroy+0x389/0x6e0 net/ipv4/netfilter/ipt_CLUSTERIP.c:518
+       cleanup_entry+0x218/0x350 net/ipv4/netfilter/ip_tables.c:654
+       __do_replace+0x79d/0xa50 net/ipv4/netfilter/ip_tables.c:1089
+       do_replace net/ipv4/netfilter/ip_tables.c:1145 [inline]
+       do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1675
+       nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+       nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+       ip_setsockopt+0x97/0xa0 net/ipv4/ip_sockglue.c:1259
+       tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2905
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+       SYSC_setsockopt net/socket.c:1849 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1828
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+-> #0 (&xt[i].mutex){+.+.}:
+       lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1041
+       xt_request_find_table_lock+0x28/0xc0 net/netfilter/x_tables.c:1088
+       get_info+0x154/0x690 net/ipv6/netfilter/ip6_tables.c:989
+       do_ip6t_get_ctl+0x159/0xaf0 net/ipv6/netfilter/ip6_tables.c:1710
+       nf_sockopt net/netfilter/nf_sockopt.c:104 [inline]
+       nf_getsockopt+0x6a/0xc0 net/netfilter/nf_sockopt.c:122
+       ipv6_getsockopt+0x1df/0x2e0 net/ipv6/ipv6_sockglue.c:1371
+       tcp_getsockopt+0x82/0xd0 net/ipv4/tcp.c:3359
+       sock_common_getsockopt+0x95/0xd0 net/core/sock.c:2934
+       SYSC_getsockopt net/socket.c:1880 [inline]
+       SyS_getsockopt+0x178/0x340 net/socket.c:1862
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+other info that might help us debug this:
+
+Chain exists of:
+  &xt[i].mutex --> rtnl_mutex --> sk_lock-AF_INET6
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(sk_lock-AF_INET6);
+                               lock(rtnl_mutex);
+                               lock(sk_lock-AF_INET6);
+  lock(&xt[i].mutex);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor2/6218:
+ #0:  (sk_lock-AF_INET6){+.+.}, at: [<000000009e4030ab>] lock_sock include/net/sock.h:1463 [inline]
+ #0:  (sk_lock-AF_INET6){+.+.}, at: [<000000009e4030ab>] ipv6_getsockopt+0x1c5/0x2e0 net/ipv6/ipv6_sockglue.c:1370
+
+stack backtrace:
+CPU: 0 PID: 6218 Comm: syz-executor2 Not tainted 4.15.0+ #301
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_circular_bug.isra.38+0x2cd/0x2dc kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x30a8/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+ __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+ xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1041
+ xt_request_find_table_lock+0x28/0xc0 net/netfilter/x_tables.c:1088
+ get_info+0x154/0x690 net/ipv6/netfilter/ip6_tables.c:989
+ do_ip6t_get_ctl+0x159/0xaf0 net/ipv6/netfilter/ip6_tables.c:1710
+ nf_sockopt net/netfilter/nf_sockopt.c:104 [inline]
+ nf_getsockopt+0x6a/0xc0 net/netfilter/nf_sockopt.c:122
+ ipv6_getsockopt+0x1df/0x2e0 net/ipv6/ipv6_sockglue.c:1371
+ tcp_getsockopt+0x82/0xd0 net/ipv4/tcp.c:3359
+ sock_common_getsockopt+0x95/0xd0 net/core/sock.c:2934
+ SYSC_getsockopt net/socket.c:1880 [inline]
+ SyS_getsockopt+0x178/0x340 net/socket.c:1862
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f4f29fbdc58 EFLAGS: 00000212 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 0000000000000040 RSI: 0000000000000029 RDI: 0000000000000014
+RBP: 00000000000000e5 R08: 000000002000cffc R09: 0000000000000000
+R10: 000000002000e000 R11: 0000000000000212 R12: 00000000006f0618
+R13: 00000000ffffffff R14: 00007f4f29fbe6d4 R15: 0000000000000000
+audit: type=1326 audit(1518042698.532:41): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=6257 comm="syz-executor2" exe="/root/syz-executor2" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1518042698.543:42): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=6257 comm="syz-executor2" exe="/root/syz-executor2" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1518042698.548:43): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=6257 comm="syz-executor2" exe="/root/syz-executor2" sig=0 arch=c000003e syscall=55 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1518042698.548:44): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=6257 comm="syz-executor2" exe="/root/syz-executor2" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1518042698.548:45): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=6257 comm="syz-executor2" exe="/root/syz-executor2" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1518042698.557:46): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=6257 comm="syz-executor2" exe="/root/syz-executor2" sig=0 arch=c000003e syscall=54 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1326 audit(1518042698.560:47): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=6257 comm="syz-executor2" exe="/root/syz-executor2" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+device lo entered promiscuous mode
+device lo left promiscuous mode
+sctp: [Deprecated]: syz-executor0 (pid 6441) Use of int in maxseg socket option.
+Use struct sctp_assoc_value instead
+sctp: [Deprecated]: syz-executor0 (pid 6454) Use of int in maxseg socket option.
+Use struct sctp_assoc_value instead
+Protocol error: SET target dimension is over the limit!
+Protocol error: SET target dimension is over the limit!
+syz-executor1 (6496): /proc/6496/oom_adj is deprecated, please use /proc/6496/oom_score_adj instead.
+QAT: Invalid ioctl
+QAT: Invalid ioctl
+TCP: request_sock_TCPv6: Possible SYN flooding on port 20026. Sending cookies.  Check SNMP counters.
+netlink: 'syz-executor2': attribute type 1 has an invalid length.
+netlink: 'syz-executor2': attribute type 1 has an invalid length.
+xt_l2tp: missing protocol rule (udp|l2tpip)
+netlink: 'syz-executor0': attribute type 1 has an invalid length.
+xt_l2tp: missing protocol rule (udp|l2tpip)
+netlink: 'syz-executor0': attribute type 1 has an invalid length.
+device eql entered promiscuous mode
+Protocol error: SET target dimension is over the limit!
+Protocol error: SET target dimension is over the limit!
+xprt_adjust_timeout: rq_timeout = 0!
+xprt_adjust_timeout: rq_timeout = 0!
+binder: 7072:7076 transaction failed 29189/-22, size 40-0 line 2842
+binder: 7072:7076 transaction failed 29189/-22, size 40-0 line 2842
+binder: 7072:7079 got reply transaction with no transaction stack
+binder: 7072:7079 transaction failed 29201/-71, size 0-0 line 2757
+binder: undelivered TRANSACTION_ERROR: 29189
+xt_cgroup: no path or classid specified
+xt_cgroup: no path or classid specified
+kauditd_printk_skb: 49 callbacks suppressed
+audit: type=1400 audit(1518042702.002:97): avc:  denied  { setfcap } for  pid=7147 comm="syz-executor6" capability=31  scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=cap_userns permissive=1
+binder: 7161 RLIMIT_NICE not set
+netlink: 'syz-executor7': attribute type 1 has an invalid length.
+netlink: 'syz-executor7': attribute type 1 has an invalid length.
+binder: 7159:7180 BC_REQUEST_DEATH_NOTIFICATION invalid ref 0
+PPPIOCDETACH file->f_count=2
+binder: 7159:7161 BC_CLEAR_DEATH_NOTIFICATION invalid ref 0
+binder: 7161 RLIMIT_NICE not set
+binder: 7159:7161 BC_DEAD_BINDER_DONE 0000000000000000 not found
+binder: undelivered death notification, 0000000000000000
+audit: type=1400 audit(1518042702.169:98): avc:  denied  { map } for  pid=7189 comm="syz-executor5" path=2F6D656D66643A49202864656C6574656429 dev="tmpfs" ino=18817 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:tmpfs_t:s0 tclass=file permissive=1
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 1
+CPU: 1 PID: 7212 Comm: syz-executor3 Not tainted 4.15.0+ #301
+binder: BINDER_SET_CONTEXT_MGR already set
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+device eql entered promiscuous mode
+binder: 7190:7216 ioctl 40046207 0 returned -16
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc_node mm/slab.c:3286 [inline]
+ kmem_cache_alloc_node+0x56/0x760 mm/slab.c:3629
+ __alloc_skb+0xf1/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1180 [inline]
+ netlink_sendmsg+0xa86/0xe60 net/netlink/af_netlink.c:1872
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f27f304cc58 EFLAGS: 00000212 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 0000000000000000 RSI: 0000000020008000 RDI: 0000000000000013
+RBP: 00000000000004b1 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f6138
+R13: 0000000000000014 R14: 00007f27f304d6d4 R15: ffffffffffffffff
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 1 PID: 7243 Comm: syz-executor3 Not tainted 4.15.0+ #301
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc_node mm/slab.c:3286 [inline]
+ kmem_cache_alloc_node_trace+0x5a/0x760 mm/slab.c:3648
+ __do_kmalloc_node mm/slab.c:3668 [inline]
+ __kmalloc_node_track_caller+0x33/0x70 mm/slab.c:3683
+ __kmalloc_reserve.isra.39+0x41/0xd0 net/core/skbuff.c:137
+ __alloc_skb+0x13b/0x780 net/core/skbuff.c:205
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ netlink_alloc_large_skb net/netlink/af_netlink.c:1180 [inline]
+ netlink_sendmsg+0xa86/0xe60 net/netlink/af_netlink.c:1872
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f27f304cc58 EFLAGS: 00000212 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 0000000000000000 RSI: 0000000020008000 RDI: 0000000000000013
+RBP: 00000000000004b1 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f6138
+R13: 0000000000000014 R14: 00007f27f304d6d4 R15: ffffffffffffffff
+FAULT_INJECTION: forcing a failure.
+name failslab, interval 1, probability 0, space 0, times 0
+CPU: 1 PID: 7267 Comm: syz-executor3 Not tainted 4.15.0+ #301
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail+0x8c0/0xa40 lib/fault-inject.c:149
+ should_failslab+0xec/0x120 mm/failslab.c:32
+ slab_pre_alloc_hook mm/slab.h:422 [inline]
+ slab_alloc_node mm/slab.c:3286 [inline]
+ kmem_cache_alloc_node+0x56/0x760 mm/slab.c:3629
+ __alloc_skb+0xf1/0x780 net/core/skbuff.c:193
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ netlink_dump+0x545/0xcf0 net/netlink/af_netlink.c:2203
+ __netlink_dump_start+0x4f0/0x6d0 net/netlink/af_netlink.c:2319
+ genl_family_rcv_msg+0xd21/0xfb0 net/netlink/genetlink.c:548
+ genl_rcv_msg+0xb2/0x140 net/netlink/genetlink.c:624
+ netlink_rcv_skb+0x14b/0x380 net/netlink/af_netlink.c:2442
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:635
+ netlink_unicast_kernel net/netlink/af_netlink.c:1308 [inline]
+ netlink_unicast+0x4c4/0x6b0 net/netlink/af_netlink.c:1334
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1897
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2046
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2080
+ SYSC_sendmsg net/socket.c:2091 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2087
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x453299
+RSP: 002b:00007f27f304cc58 EFLAGS: 00000212 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000453299
+RDX: 0000000000000000 RSI: 0000000020008000 RDI: 0000000000000013
+RBP: 00000000000004b1 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f6138
+R13: 0000000000000014 R14: 00007f27f304d6d4 R15: ffffffffffffffff
+audit: type=1326 audit(1518042703.921:99): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7362 comm="syz-executor2" exe="/root/syz-executor2" sig=0 arch=c000003e syscall=202 compat=0 ip=0x453299 code=0x7ffc0000
+SELinux: unrecognized netlink message: protocol=0 nlmsg_type=0 sclass=netlink_route_socket pig=7373 comm=syz-executor7
+audit: type=1326 audit(1518042703.946:100): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 pid=7362 comm="syz-executor2" exe="/root/syz-executor2" sig=0 arch=c000003e syscall=41 compat=0 ip=0x453299 code=0x7ffc0000
+audit: type=1400 audit(1518042704.039:101): avc:  denied  { ioctl } for  pid=7407 comm="syz-executor3" path="socket:[19088]" dev="sockfs" ino=19088 ioctlcmd=0x8933 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+sctp: [Deprecated]: syz-executor1 (pid 7417) Use of struct sctp_assoc_value in delayed_ack socket option.
+Use struct sctp_sack_info instead
+audit: type=1400 audit(1518042704.561:102): avc:  denied  { getattr } for  pid=7547 comm="syz-executor2" path="socket:[19283]" dev="sockfs" ino=19283 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_netfilter_socket permissive=1
+rfkill: input handler disabled
+rfkill: input handler enabled
+binder: BINDER_SET_CONTEXT_MGR already set
+binder: 7599:7607 ioctl 40046207 0 returned -16
+rfkill: input handler disabled
+rfkill: input handler enabled
+binder: 7685 RLIMIT_NICE not set
+binder: 7681 RLIMIT_NICE not set
+binder: BINDER_SET_CONTEXT_MGR already set
+binder: 7680:7685 ioctl 40046207 0 returned -16
+QAT: Invalid ioctl
+binder: 7680:7695 BC_FREE_BUFFER u000000002000c000 no match
+binder_alloc: 7680: binder_alloc_buf, no vma
+binder: 7680:7685 transaction failed 29189/-3, size 0-0 line 2957
+QAT: Invalid ioctl
+binder: 7677:7707 tried to acquire reference to desc 0, got 1 instead
+binder: undelivered TRANSACTION_ERROR: 29189
+binder: 7677:7707 BC_REQUEST_DEATH_NOTIFICATION invalid ref 0
+binder: undelivered TRANSACTION_COMPLETE
+binder: 7677:7701 BC_CLEAR_DEATH_NOTIFICATION invalid ref 0
+binder: 7701 RLIMIT_NICE not set
+device eql entered promiscuous mode
+binder: 7677:7721 BC_DEAD_BINDER_DONE 0000000000000000 not found
+binder: undelivered death notification, 0000000000000000
+audit: type=1400 audit(1518042706.568:103): avc:  denied  { connect } for  pid=7890 comm="syz-executor3" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+atomic_op 00000000a9a93d9d conn xmit_atomic           (null)
+atomic_op 000000007a28a612 conn xmit_atomic           (null)
+netlink: 5 bytes leftover after parsing attributes in process `syz-executor7'.
+netlink: 5 bytes leftover after parsing attributes in process `syz-executor7'.
+audit: type=1400 audit(1518042706.913:104): avc:  denied  { lock } for  pid=7956 comm="syz-executor3" path="socket:[20985]" dev="sockfs" ino=20985 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=netlink_generic_socket permissive=1
+syz-executor4 uses obsolete (PF_INET,SOCK_PACKET)
+device eql entered promiscuous mode
+binder: 8054:8058 Acquire 1 refcount change on invalid ref 0 ret -22
+binder: 8054:8058 Release 1 refcount change on invalid ref 0 ret -22
+binder: 8054:8061 Acquire 1 refcount change on invalid ref 0 ret -22
+device lo entered promiscuous mode
+device lo left promiscuous mode
+netlink: 'syz-executor2': attribute type 1 has an invalid length.
+netlink: 'syz-executor2': attribute type 1 has an invalid length.

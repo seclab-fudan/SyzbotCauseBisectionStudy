@@ -1,0 +1,101 @@
+==================================================================
+BUG: KCSAN: data-race in find_match / find_match
+
+write to 0xffff8880aec588e8 of 8 bytes by interrupt on cpu 1:
+ rt6_probe net/ipv6/route.c:663 [inline]
+ find_match net/ipv6/route.c:757 [inline]
+ find_match+0x5bd/0x790 net/ipv6/route.c:733
+ __find_rr_leaf+0xe3/0x780 net/ipv6/route.c:831
+ find_rr_leaf net/ipv6/route.c:852 [inline]
+ rt6_select net/ipv6/route.c:896 [inline]
+ fib6_table_lookup+0x383/0x650 net/ipv6/route.c:2164
+ ip6_pol_route+0xee/0x5c0 net/ipv6/route.c:2200
+ ip6_pol_route_output+0x48/0x60 net/ipv6/route.c:2452
+ fib6_rule_lookup+0x95/0x470 net/ipv6/fib6_rules.c:113
+ ip6_route_output_flags_noref+0x16b/0x230 net/ipv6/route.c:2484
+ ip6_route_output_flags+0x50/0x1a0 net/ipv6/route.c:2497
+ ip6_dst_lookup_tail+0x25d/0xc30 net/ipv6/ip6_output.c:1052
+ ip6_dst_lookup_flow+0x68/0x120 net/ipv6/ip6_output.c:1153
+ inet6_csk_route_socket+0x2f7/0x420 net/ipv6/inet6_connection_sock.c:106
+ inet6_csk_xmit+0x91/0x1f0 net/ipv6/inet6_connection_sock.c:121
+ __tcp_transmit_skb+0xe81/0x1d60 net/ipv4/tcp_output.c:1169
+ tcp_transmit_skb net/ipv4/tcp_output.c:1185 [inline]
+ tcp_xmit_probe_skb+0x19b/0x1d0 net/ipv4/tcp_output.c:3735
+ tcp_write_wakeup+0x12e/0x3b0 net/ipv4/tcp_output.c:3788
+ tcp_send_probe0+0x3a/0x286 net/ipv4/tcp_output.c:3803
+ tcp_probe_timer net/ipv4/tcp_timer.c:381 [inline]
+ tcp_write_timer_handler+0x48e/0x510 net/ipv4/tcp_timer.c:603
+ tcp_write_timer+0xd1/0xf0 net/ipv4/tcp_timer.c:619
+ call_timer_fn+0x5f/0x2f0 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0xc0c/0xcd0 kernel/time/timer.c:1786
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0xbb/0xe0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0xe6/0x280 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+ native_safe_halt+0xe/0x10 arch/x86/kernel/paravirt.c:71
+ arch_cpu_idle+0x1f/0x30 arch/x86/kernel/process.c:571
+ default_idle_call+0x1e/0x40 kernel/sched/idle.c:94
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x1af/0x280 kernel/sched/idle.c:263
+ cpu_startup_entry+0x1b/0x20 kernel/sched/idle.c:355
+ start_secondary+0x208/0x260 arch/x86/kernel/smpboot.c:264
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:241
+
+read to 0xffff8880aec588e8 of 8 bytes by interrupt on cpu 0:
+ rt6_probe net/ipv6/route.c:657 [inline]
+ find_match net/ipv6/route.c:757 [inline]
+ find_match+0x521/0x790 net/ipv6/route.c:733
+ __find_rr_leaf+0xe3/0x780 net/ipv6/route.c:831
+ find_rr_leaf net/ipv6/route.c:852 [inline]
+ rt6_select net/ipv6/route.c:896 [inline]
+ fib6_table_lookup+0x383/0x650 net/ipv6/route.c:2164
+ ip6_pol_route+0xee/0x5c0 net/ipv6/route.c:2200
+ ip6_pol_route_output+0x48/0x60 net/ipv6/route.c:2452
+ fib6_rule_lookup+0x95/0x470 net/ipv6/fib6_rules.c:113
+ ip6_route_output_flags_noref+0x16b/0x230 net/ipv6/route.c:2484
+ ip6_route_output_flags+0x50/0x1a0 net/ipv6/route.c:2497
+ ip6_dst_lookup_tail+0x25d/0xc30 net/ipv6/ip6_output.c:1052
+ ip6_dst_lookup_flow+0x68/0x120 net/ipv6/ip6_output.c:1153
+ inet6_csk_route_socket+0x2f7/0x420 net/ipv6/inet6_connection_sock.c:106
+ inet6_csk_xmit+0x91/0x1f0 net/ipv6/inet6_connection_sock.c:121
+ __tcp_transmit_skb+0xe81/0x1d60 net/ipv4/tcp_output.c:1169
+ tcp_transmit_skb net/ipv4/tcp_output.c:1185 [inline]
+ tcp_xmit_probe_skb+0x19b/0x1d0 net/ipv4/tcp_output.c:3735
+ tcp_write_wakeup+0x12e/0x3b0 net/ipv4/tcp_output.c:3788
+ tcp_send_probe0+0x3a/0x286 net/ipv4/tcp_output.c:3803
+ tcp_probe_timer net/ipv4/tcp_timer.c:381 [inline]
+ tcp_write_timer_handler+0x48e/0x510 net/ipv4/tcp_timer.c:603
+ tcp_write_timer+0xd1/0xf0 net/ipv4/tcp_timer.c:619
+ call_timer_fn+0x5f/0x2f0 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0xc0c/0xcd0 kernel/time/timer.c:1786
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0xbb/0xe0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0xe6/0x280 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+ native_safe_halt+0xe/0x10 arch/x86/kernel/paravirt.c:71
+ arch_cpu_idle+0x1f/0x30 arch/x86/kernel/process.c:571
+ default_idle_call+0x1e/0x40 kernel/sched/idle.c:94
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x1af/0x280 kernel/sched/idle.c:263
+ cpu_startup_entry+0x1b/0x20 kernel/sched/idle.c:355
+ rest_init+0xec/0xf6 init/main.c:452
+ arch_call_rest_init+0x17/0x37
+ start_kernel+0x838/0x85e init/main.c:786
+ x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:490
+ x86_64_start_kernel+0x72/0x76 arch/x86/kernel/head64.c:471
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:241
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.4.0-rc6+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

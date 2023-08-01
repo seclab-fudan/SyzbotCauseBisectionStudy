@@ -1,0 +1,53 @@
+==================================================================
+BUG: KASAN: global-out-of-bounds in vga_8planes_imageblit drivers/video/fbdev/vga16fb.c:1140 [inline]
+BUG: KASAN: global-out-of-bounds in vga_imageblit_expand drivers/video/fbdev/vga16fb.c:1203 [inline]
+BUG: KASAN: global-out-of-bounds in vga16fb_imageblit+0x1c36/0x2210 drivers/video/fbdev/vga16fb.c:1260
+Read of size 2 at addr ffffffff8899f6be by task syz-executor740/6849
+
+CPU: 1 PID: 6849 Comm: syz-executor740 Not tainted 5.9.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x198/0x1fd lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0x5/0x497 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ vga_8planes_imageblit drivers/video/fbdev/vga16fb.c:1140 [inline]
+ vga_imageblit_expand drivers/video/fbdev/vga16fb.c:1203 [inline]
+ vga16fb_imageblit+0x1c36/0x2210 drivers/video/fbdev/vga16fb.c:1260
+ soft_cursor+0x514/0xa30 drivers/video/fbdev/core/softcursor.c:74
+ bit_cursor+0x1166/0x17d0 drivers/video/fbdev/core/bitblit.c:386
+ fbcon_cursor+0x537/0x660 drivers/video/fbdev/core/fbcon.c:1411
+ set_cursor drivers/tty/vt/vt.c:919 [inline]
+ set_cursor+0x1d2/0x240 drivers/tty/vt/vt.c:910
+ redraw_screen+0x4b9/0x770 drivers/tty/vt/vt.c:1036
+ fbcon_modechanged+0x575/0x710 drivers/video/fbdev/core/fbcon.c:3022
+ fbcon_update_vcs+0x3a/0x50 drivers/video/fbdev/core/fbcon.c:3069
+ do_fb_ioctl+0x62e/0x690 drivers/video/fbdev/core/fbmem.c:1106
+ fb_ioctl+0xdd/0x130 drivers/video/fbdev/core/fbmem.c:1181
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ __do_sys_ioctl fs/ioctl.c:753 [inline]
+ __se_sys_ioctl fs/ioctl.c:739 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:739
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x4403d9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffc862886c8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004403d9
+RDX: 00000000200001c0 RSI: 0000000000004601 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401be0
+R13: 0000000000401c70 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the variable:
+ transl_h+0x3e/0x40
+
+Memory state around the buggy address:
+ ffffffff8899f580: f9 f9 f9 f9 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffffff8899f600: 00 00 00 00 00 00 00 00 00 00 00 f9 f9 f9 f9 f9
+>ffffffff8899f680: 00 00 00 00 f9 f9 f9 f9 00 00 00 00 f9 f9 f9 f9
+                                        ^
+ ffffffff8899f700: 00 01 f9 f9 f9 f9 f9 f9 00 00 00 04 f9 f9 f9 f9
+ ffffffff8899f780: 00 00 04 f9 f9 f9 f9 f9 00 00 00 00 00 00 02 f9
+==================================================================

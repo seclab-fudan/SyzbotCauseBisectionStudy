@@ -1,0 +1,197 @@
+8021q: adding VLAN 0 to HW filter on device batadv0
+------------[ cut here ]------------
+==================================================================
+DEBUG_LOCKS_WARN_ON(current->hardirq_context)
+------------[ cut here ]------------
+BUG: KASAN: out-of-bounds in calc_delta_fair kernel/sched/fair.c:629 [inline]
+BUG: KASAN: out-of-bounds in update_curr+0x99d/0xbc0 kernel/sched/fair.c:823
+Bad or missing usercopy whitelist? Kernel memory overwrite attempt detected to SLAB object 'task_struct' (offset 912, size 2)!
+Read of size 8 at addr ffff8880a94642c0 by task syz-executor5/8124
+WARNING: CPU: 0 PID: -1455013312 at mm/usercopy.c:78 usercopy_warn+0xeb/0x110 mm/usercopy.c:78
+
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 8124 Comm: syz-executor5 Not tainted 4.20.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ calc_delta_fair kernel/sched/fair.c:629 [inline]
+ update_curr+0x99d/0xbc0 kernel/sched/fair.c:823
+ enqueue_entity+0x3e5/0x20b0 kernel/sched/fair.c:3880
+ enqueue_task_fair+0x237/0x10c0 kernel/sched/fair.c:5133
+ enqueue_task kernel/sched/core.c:730 [inline]
+ activate_task+0x11d/0x470 kernel/sched/core.c:751
+ ttwu_activate kernel/sched/core.c:1643 [inline]
+ ttwu_do_activate+0xd4/0x1f0 kernel/sched/core.c:1702
+ ttwu_queue kernel/sched/core.c:1847 [inline]
+ try_to_wake_up+0x997/0x1480 kernel/sched/core.c:2057
+ default_wake_function+0x30/0x50 kernel/sched/core.c:3710
+ __wake_up_common+0x1d3/0x7d0 kernel/sched/wait.c:92
+ __wake_up_locked+0x11/0x20 kernel/sched/wait.c:154
+ ep_poll_callback+0x3c5/0x10a0 fs/eventpoll.c:1200
+ __wake_up_common+0x1d3/0x7d0 kernel/sched/wait.c:92
+ __wake_up_common_lock+0x1c6/0x390 kernel/sched/wait.c:121
+ __wake_up_sync_key+0x19/0x20 kernel/sched/wait.c:199
+ pipe_write+0x960/0xfb0 fs/pipe.c:477
+ call_write_iter include/linux/fs.h:1862 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x764/0xb40 fs/read_write.c:487
+ vfs_write+0x20c/0x580 fs/read_write.c:549
+ ksys_write+0x105/0x260 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x411bb0
+Code: b0 89 c8 f7 d8 eb ed b8 6e 00 00 00 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 83 3d dd 46 64 00 00 75 14 b8 01 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 54 1a 00 00 c3 48 83 ec 08 e8 ca fc ff ff
+RSP: 002b:00007fff30c9a788 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 000000000001b1d4 RCX: 0000000000411bb0
+RDX: 000000000000000c RSI: 00007fff30c9a790 RDI: 00000000000000f8
+RBP: 0000000000000070 R08: 0000000000000001 R09: 0000000002829940
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000008
+R13: 000000000001b111 R14: 000000000000001d R15: 0000000000000005
+
+CPU: 0 PID: -1455013312 Comm:  Not tainted 4.20.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Allocated by task 2679210176:
+Call Trace:
+BUG: unable to handle kernel paging request at ffffffff8cf14780
+#PF error: [normal kernel read fault]
+PGD 9874067 P4D 9874067 PUD 9875063 PMD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 8124 Comm: syz-executor5 Not tainted 4.20.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:depot_fetch_stack+0x10/0x30 lib/stackdepot.c:202
+Code: e6 72 22 fe e9 20 fe ff ff 48 89 df e8 d9 72 22 fe e9 f1 fd ff ff 90 90 90 90 89 f8 c1 ef 11 25 ff ff 1f 00 81 e7 f0 3f 00 00 <48> 03 3c c5 80 03 f5 8b 8b 47 0c 48 83 c7 18 c7 46 10 00 00 00 00
+RSP: 0018:ffff8880a57f6ed8 EFLAGS: 00010006
+RAX: 00000000001f8880 RBX: ffff8880a9465a04 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff8880a57f6ee0 RDI: 0000000000003ff0
+RBP: ffff8880a57f6f08 R08: 000000000000001d R09: ffffed1015ce3ef9
+R10: ffffed1015ce3ef8 R11: ffff8880ae71f7c7 R12: ffffea0002a51900
+R13: ffff8880a94642c0 R14: ffff8880aa13d900 R15: ffff8880a9465a00
+FS:  0000000002829940(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffff8cf14780 CR3: 00000000929d3000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ describe_object mm/kasan/report.c:158 [inline]
+ print_address_description.cold+0x16a/0x20d mm/kasan/report.c:194
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ calc_delta_fair kernel/sched/fair.c:629 [inline]
+ update_curr+0x99d/0xbc0 kernel/sched/fair.c:823
+ enqueue_entity+0x3e5/0x20b0 kernel/sched/fair.c:3880
+ enqueue_task_fair+0x237/0x10c0 kernel/sched/fair.c:5133
+ enqueue_task kernel/sched/core.c:730 [inline]
+ activate_task+0x11d/0x470 kernel/sched/core.c:751
+ ttwu_activate kernel/sched/core.c:1643 [inline]
+ ttwu_do_activate+0xd4/0x1f0 kernel/sched/core.c:1702
+ ttwu_queue kernel/sched/core.c:1847 [inline]
+ try_to_wake_up+0x997/0x1480 kernel/sched/core.c:2057
+ default_wake_function+0x30/0x50 kernel/sched/core.c:3710
+ __wake_up_common+0x1d3/0x7d0 kernel/sched/wait.c:92
+ __wake_up_locked+0x11/0x20 kernel/sched/wait.c:154
+ ep_poll_callback+0x3c5/0x10a0 fs/eventpoll.c:1200
+ __wake_up_common+0x1d3/0x7d0 kernel/sched/wait.c:92
+ __wake_up_common_lock+0x1c6/0x390 kernel/sched/wait.c:121
+ __wake_up_sync_key+0x19/0x20 kernel/sched/wait.c:199
+ pipe_write+0x960/0xfb0 fs/pipe.c:477
+ call_write_iter include/linux/fs.h:1862 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x764/0xb40 fs/read_write.c:487
+ vfs_write+0x20c/0x580 fs/read_write.c:549
+ ksys_write+0x105/0x260 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x411bb0
+Code: b0 89 c8 f7 d8 eb ed b8 6e 00 00 00 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 83 3d dd 46 64 00 00 75 14 b8 01 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 54 1a 00 00 c3 48 83 ec 08 e8 ca fc ff ff
+RSP: 002b:00007fff30c9a788 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 000000000001b1d4 RCX: 0000000000411bb0
+RDX: 000000000000000c RSI: 00007fff30c9a790 RDI: 00000000000000f8
+RBP: 0000000000000070 R08: 0000000000000001 R09: 0000000002829940
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000008
+R13: 000000000001b111 R14: 000000000000001d R15: 0000000000000005
+Modules linked in:
+CR2: ffffffff8cf14780
+---[ end trace 638f4f89086ae982 ]---
+RIP: 0010:depot_fetch_stack+0x10/0x30 lib/stackdepot.c:202
+Code: e6 72 22 fe e9 20 fe ff ff 48 89 df e8 d9 72 22 fe e9 f1 fd ff ff 90 90 90 90 89 f8 c1 ef 11 25 ff ff 1f 00 81 e7 f0 3f 00 00 <48> 03 3c c5 80 03 f5 8b 8b 47 0c 48 83 c7 18 c7 46 10 00 00 00 00
+RSP: 0018:ffff8880a57f6ed8 EFLAGS: 00010006
+RAX: 00000000001f8880 RBX: ffff8880a9465a04 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff8880a57f6ee0 RDI: 0000000000003ff0
+RBP: ffff8880a57f6f08 R08: 000000000000001d R09: ffffed1015ce3ef9
+R10: ffffed1015ce3ef8 R11: ffff8880ae71f7c7 R12: ffffea0002a51900
+R13: ffff8880a94642c0 R14: ffff8880aa13d900 R15: ffff8880a9465a00
+FS:  0000000002829940(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffffff8cf14780 CR3: 00000000929d3000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Shutting down cpus with NMI
+usercopy: Kernel memory overwrite attempt detected to SLAB object 'sighand_cache' (offset 2320, size 2)!
+------------[ cut here ]------------
+kernel BUG at mm/usercopy.c:102!
+WARNING: CPU: 0 PID: -1455013312 at kernel/rcu/tree_plugin.h:414 __rcu_read_lock+0x75/0x90 kernel/rcu/tree_plugin.h:416
+Modules linked in:
+CPU: 0 PID: -1455013312 Comm:  Tainted: G      D           4.20.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__rcu_read_lock+0x75/0x90 kernel/rcu/tree_plugin.h:414
+Code: 00 48 8d bb 70 03 00 00 48 89 fa 48 c1 ea 03 0f b6 04 02 84 c0 74 04 3c 03 7e 14 81 bb 70 03 00 00 ff ff ff 3f 7f 03 5b 5d c3 <0f> 0b 5b 5d c3 e8 c1 1c 5a 00 eb e5 e8 ba 1c 5a 00 eb aa 0f 1f 84
+RSP: 0018:ffff8880a9463850 EFLAGS: 00010012
+RAX: 0000000000000000 RBX: ffff8880a9464240 RCX: ffffffff816bca0f
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: ffff8880a94645b0
+RBP: ffff8880a9463858 R08: ffff8880a9464240 R09: 0000000000000004
+R10: ffffed1015cc3ef8 R11: ffff8880ae61f7c7 R12: 0000000000000000
+R13: 0000000000000008 R14: ffff8880a94638d0 R15: ffff8880a94639d8
+FS:  0000000000000000(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 00000000a808b000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+irq event stamp: 2321362889
+hardirqs last  enabled at (2170845055): [<ffffed101528c974>] 0xffffed101528c974
+hardirqs last disabled at (2321362889): [<ffffffff81681cd9>] vprintk_emit+0x169/0x960 kernel/printk/printk.c:1911
+softirqs last  enabled at (0): [<ffffffff86eb00a0>] gue6_err+0x0/0x6b0 net/ipv6/fou6.c:86
+softirqs last disabled at (1): [<0000000000000001>] 0x1
+---[ end trace 638f4f89086ae983 ]---
+invalid opcode: 0000 [#2] PREEMPT SMP KASAN
+CPU: 0 PID: -1455013312 Comm:  Tainted: G      D W         4.20.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:usercopy_abort+0xbd/0xbf mm/usercopy.c:102
+Code: c0 e8 0d ca b1 ff 48 8b 55 c0 49 89 d9 4d 89 f0 ff 75 c8 4c 89 e1 4c 89 ee 48 c7 c7 40 37 55 88 ff 75 d0 41 57 e8 fd 09 98 ff <0f> 0b e8 e2 c9 b1 ff e8 dd af f5 ff 8b 95 20 ff ff ff 4c 89 e1 31
+RSP: 0018:ffff8880a9463a80 EFLAGS: 00010086
+RAX: 0000000000000068 RBX: ffffffff88494fa0 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81684c16 RDI: ffffed101528c742
+RBP: ffff8880a9463ad8 R08: 0000000000000068 R09: ffffed1015cc3ef9
+R10: ffffed1015cc3ef8 R11: ffff8880ae61f7c7 R12: ffffffff893c9f1d
+R13: ffffffff885535a0 R14: ffffffff885534e0 R15: ffffffff885534a0
+FS:  0000000000000000(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 00000000a808b000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+Modules linked in:
+---[ end trace 638f4f89086ae984 ]---
+RIP: 0010:depot_fetch_stack+0x10/0x30 lib/stackdepot.c:202
+Code: e6 72 22 fe e9 20 fe ff ff 48 89 df e8 d9 72 22 fe e9 f1 fd ff ff 90 90 90 90 89 f8 c1 ef 11 25 ff ff 1f 00 81 e7 f0 3f 00 00 <48> 03 3c c5 80 03 f5 8b 8b 47 0c 48 83 c7 18 c7 46 10 00 00 00 00
+RSP: 0018:ffff8880a57f6ed8 EFLAGS: 00010006
+RAX: 00000000001f8880 RBX: ffff8880a9465a04 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffff8880a57f6ee0 RDI: 0000000000003ff0
+RBP: ffff8880a57f6f08 R08: 000000000000001d R09: ffffed1015ce3ef9
+R10: ffffed1015ce3ef8 R11: ffff8880ae71f7c7 R12: ffffea0002a51900
+R13: ffff8880a94642c0 R14: ffff8880aa13d900 R15: ffff8880a9465a00
+FS:  0000000000000000(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 00000000a808b000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

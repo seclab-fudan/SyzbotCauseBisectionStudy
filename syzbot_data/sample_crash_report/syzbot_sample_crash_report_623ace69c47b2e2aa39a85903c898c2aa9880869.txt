@@ -1,0 +1,40 @@
+==================================================================
+BUG: KCSAN: data-race in vm_area_dup / vma_interval_tree_remove
+
+write to 0xffff8880829a2da0 of 8 bytes by task 13763 on cpu 0:
+ rb_set_parent include/linux/rbtree_augmented.h:159 [inline]
+ __rb_erase_augmented include/linux/rbtree_augmented.h:279 [inline]
+ rb_erase_augmented include/linux/rbtree_augmented.h:303 [inline]
+ rb_erase_augmented_cached include/linux/rbtree_augmented.h:314 [inline]
+ vma_interval_tree_remove+0x315/0x8e0 mm/interval_tree.c:23
+ __remove_shared_vm_struct+0xa4/0xc0 mm/mmap.c:151
+ unlink_file_vma+0x65/0x80 mm/mmap.c:166
+ free_pgtables+0xb8/0x1f0 mm/memory.c:400
+ unmap_region+0x1d9/0x230 mm/mmap.c:2614
+ __do_munmap+0x62e/0xb20 mm/mmap.c:2833
+ do_munmap mm/mmap.c:2844 [inline]
+ mmap_region+0x16b/0xdd0 mm/mmap.c:1715
+ do_mmap+0x717/0xc20 mm/mmap.c:1545
+ do_mmap_pgoff include/linux/mm.h:2553 [inline]
+ vm_mmap_pgoff+0x12f/0x190 mm/util.c:506
+ ksys_mmap_pgoff+0x2db/0x420 mm/mmap.c:1595
+ do_syscall_64+0xc7/0x3b0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffff8880829a2d48 of 200 bytes by task 13764 on cpu 1:
+ vm_area_dup+0x71/0x110 kernel/fork.c:362
+ __split_vma+0x83/0x340 mm/mmap.c:2666
+ __do_munmap+0xabb/0xb20 mm/mmap.c:2791
+ do_munmap mm/mmap.c:2844 [inline]
+ mmap_region+0x16b/0xdd0 mm/mmap.c:1715
+ do_mmap+0x717/0xc20 mm/mmap.c:1545
+ do_mmap_pgoff include/linux/mm.h:2553 [inline]
+ vm_mmap_pgoff+0x12f/0x190 mm/util.c:506
+ ksys_mmap_pgoff+0x2db/0x420 mm/mmap.c:1595
+ do_syscall_64+0xc7/0x3b0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 13764 Comm: modprobe Not tainted 5.7.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

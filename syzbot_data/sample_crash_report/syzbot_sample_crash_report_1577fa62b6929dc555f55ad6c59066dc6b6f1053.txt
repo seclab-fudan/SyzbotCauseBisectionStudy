@@ -1,0 +1,52 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_write include/linux/instrumented.h:86 [inline]
+BUG: KASAN: null-ptr-deref in set_bit include/asm-generic/bitops/instrumented-atomic.h:28 [inline]
+BUG: KASAN: null-ptr-deref in amp_read_loc_assoc_final_data+0x117/0x1f0 net/bluetooth/amp.c:304
+Write of size 8 at addr 0000000000000030 by task kworker/u5:1/8474
+
+CPU: 0 PID: 8474 Comm: kworker/u5:1 Not tainted 5.11.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: hci0 hci_rx_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ __kasan_report mm/kasan/report.c:400 [inline]
+ kasan_report.cold+0x5f/0xd5 mm/kasan/report.c:413
+ check_memory_region_inline mm/kasan/generic.c:179 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:185
+ instrument_atomic_write include/linux/instrumented.h:86 [inline]
+ set_bit include/asm-generic/bitops/instrumented-atomic.h:28 [inline]
+ amp_read_loc_assoc_final_data+0x117/0x1f0 net/bluetooth/amp.c:304
+ hci_chan_selected_evt net/bluetooth/hci_event.c:4943 [inline]
+ hci_event_packet+0xed9/0x7d60 net/bluetooth/hci_event.c:6296
+ hci_rx_work+0x511/0xd30 net/bluetooth/hci_core.c:4971
+ process_one_work+0x98d/0x15f0 kernel/workqueue.c:2275
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
+ kthread+0x3b1/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 8474 Comm: kworker/u5:1 Tainted: G    B             5.11.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: hci0 hci_rx_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ panic+0x306/0x73d kernel/panic.c:231
+ end_report+0x58/0x5e mm/kasan/report.c:100
+ __kasan_report mm/kasan/report.c:403 [inline]
+ kasan_report.cold+0x67/0xd5 mm/kasan/report.c:413
+ check_memory_region_inline mm/kasan/generic.c:179 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:185
+ instrument_atomic_write include/linux/instrumented.h:86 [inline]
+ set_bit include/asm-generic/bitops/instrumented-atomic.h:28 [inline]
+ amp_read_loc_assoc_final_data+0x117/0x1f0 net/bluetooth/amp.c:304
+ hci_chan_selected_evt net/bluetooth/hci_event.c:4943 [inline]
+ hci_event_packet+0xed9/0x7d60 net/bluetooth/hci_event.c:6296
+ hci_rx_work+0x511/0xd30 net/bluetooth/hci_core.c:4971
+ process_one_work+0x98d/0x15f0 kernel/workqueue.c:2275
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
+ kthread+0x3b1/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

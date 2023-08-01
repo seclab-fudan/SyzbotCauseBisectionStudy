@@ -1,0 +1,48 @@
+XFS (loop0): metadata I/O error in "xfs_read_agf+0x2c9/0x600" at daddr 0x1 len 1 error 117
+XFS (loop0): page discard on page ffffea0001c573c0, inode 0x2a, pos 0.
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read_write include/linux/instrumented.h:102 [inline]
+BUG: KASAN: null-ptr-deref in atomic_inc include/linux/atomic/atomic-instrumented.h:190 [inline]
+BUG: KASAN: null-ptr-deref in xfs_filestream_pick_ag fs/xfs/xfs_filestream.c:156 [inline]
+BUG: KASAN: null-ptr-deref in xfs_filestream_create_association fs/xfs/xfs_filestream.c:301 [inline]
+BUG: KASAN: null-ptr-deref in xfs_filestream_select_ag+0x14e5/0x1ca0 fs/xfs/xfs_filestream.c:372
+Write of size 4 at addr 00000000000001c0 by task kworker/u4:3/47
+
+CPU: 0 PID: 47 Comm: kworker/u4:3 Not tainted 6.3.0-rc3-syzkaller-00012-g17214b70a159 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Workqueue: writeback wb_workfn (flush-7:0)
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_report+0xe6/0x540 mm/kasan/report.c:433
+ kasan_report+0x176/0x1b0 mm/kasan/report.c:536
+ kasan_check_range+0x283/0x290 mm/kasan/generic.c:187
+ instrument_atomic_read_write include/linux/instrumented.h:102 [inline]
+ atomic_inc include/linux/atomic/atomic-instrumented.h:190 [inline]
+ xfs_filestream_pick_ag fs/xfs/xfs_filestream.c:156 [inline]
+ xfs_filestream_create_association fs/xfs/xfs_filestream.c:301 [inline]
+ xfs_filestream_select_ag+0x14e5/0x1ca0 fs/xfs/xfs_filestream.c:372
+ xfs_bmap_btalloc_filestreams fs/xfs/libxfs/xfs_bmap.c:3558 [inline]
+ xfs_bmap_btalloc+0xffa/0x28a0 fs/xfs/libxfs/xfs_bmap.c:3672
+ xfs_bmapi_allocate+0x647/0xf30
+ xfs_bmapi_convert_delalloc+0x98f/0x1310 fs/xfs/libxfs/xfs_bmap.c:4554
+ xfs_convert_blocks fs/xfs/xfs_aops.c:266 [inline]
+ xfs_map_blocks+0x780/0x1090 fs/xfs/xfs_aops.c:389
+ iomap_writepage_map fs/iomap/buffered-io.c:1641 [inline]
+ iomap_do_writepage+0x941/0x2ee0 fs/iomap/buffered-io.c:1803
+ write_cache_pages+0x89e/0x12c0 mm/page-writeback.c:2473
+ iomap_writepages+0x68/0x240 fs/iomap/buffered-io.c:1820
+ xfs_vm_writepages+0x139/0x1a0 fs/xfs/xfs_aops.c:513
+ do_writepages+0x3a6/0x670 mm/page-writeback.c:2551
+ __writeback_single_inode+0x155/0xfb0 fs/fs-writeback.c:1600
+ writeback_sb_inodes+0x8ef/0x11d0 fs/fs-writeback.c:1891
+ wb_writeback+0x458/0xc70 fs/fs-writeback.c:2065
+ wb_do_writeback fs/fs-writeback.c:2208 [inline]
+ wb_workfn+0x400/0xff0 fs/fs-writeback.c:2248
+ process_one_work+0x8a0/0x10e0 kernel/workqueue.c:2390
+ worker_thread+0xa63/0x1210 kernel/workqueue.c:2537
+ kthread+0x270/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+==================================================================

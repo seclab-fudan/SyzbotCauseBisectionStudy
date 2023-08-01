@@ -1,0 +1,29 @@
+==================================================================
+BUG: KCSAN: data-race in snd_rawmidi_poll / snd_rawmidi_proceed
+
+read-write to 0xffff88801096cc38 of 8 bytes by task 3085 on cpu 1:
+ __snd_rawmidi_transmit_ack sound/core/rawmidi.c:1255 [inline]
+ snd_rawmidi_proceed+0xd8/0x1e0 sound/core/rawmidi.c:1336
+ snd_vmidi_output_work+0x8e/0x200 sound/core/seq/seq_virmidi.c:139
+ process_one_work+0x3e1/0x950 kernel/workqueue.c:2275
+ worker_thread+0x635/0xb90 kernel/workqueue.c:2421
+ kthread+0x1fd/0x220 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+read to 0xffff88801096cc38 of 8 bytes by task 18636 on cpu 0:
+ snd_rawmidi_ready sound/core/rawmidi.c:102 [inline]
+ snd_rawmidi_poll+0x1ce/0x210 sound/core/rawmidi.c:1506
+ vfs_poll include/linux/poll.h:90 [inline]
+ do_select+0x8b1/0xfc0 fs/select.c:534
+ core_sys_select+0x408/0x690 fs/select.c:677
+ do_pselect fs/select.c:759 [inline]
+ __do_sys_pselect6+0x1bf/0x220 fs/select.c:800
+ __se_sys_pselect6 fs/select.c:791 [inline]
+ __x64_sys_pselect6+0x74/0x80 fs/select.c:791
+ do_syscall_64+0x39/0x80 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 18636 Comm: syz-executor.3 Not tainted 5.10.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

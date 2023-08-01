@@ -1,0 +1,55 @@
+audit: type=1400 audit(1520539290.470:6): avc:  denied  { map } for  pid=4229 comm="bash" path="/bin/bash" dev="sda1" ino=1457 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:file_t:s0 tclass=file permissive=1
+audit: type=1400 audit(1520539296.817:7): avc:  denied  { map } for  pid=4243 comm="syzkaller462325" path="/root/syzkaller462325528" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 4243 Comm: syzkaller462325 Not tainted 4.16.0-rc4+ #346
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:lowpan_device_event+0xca/0x130 net/ieee802154/6lowpan/core.c:220
+RSP: 0018:ffff8801b1a7f010 EFLAGS: 00010206
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff85aedf10
+RDX: 0000000000000006 RSI: 0000000000000006 RDI: 0000000000000030
+RBP: ffff8801b1a7f028 R08: 0000000000000000 R09: 1ffff1003634fdd0
+R10: ffff8801b1a7f038 R11: 0000000000000001 R12: 0000000000000006
+R13: 0000000000000000 R14: ffffffff876992e0 R15: ffffffff87687d60
+FS:  000000000236f880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffd59cfafac CR3: 0000000006e22002 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ notifier_call_chain+0x136/0x2c0 kernel/notifier.c:93
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2d/0x40 kernel/notifier.c:401
+ call_netdevice_notifiers_info+0x32/0x70 net/core/dev.c:1707
+ call_netdevice_notifiers net/core/dev.c:1725 [inline]
+ rollback_registered_many+0x8b5/0xe20 net/core/dev.c:7398
+ rollback_registered+0x1be/0x3c0 net/core/dev.c:7440
+ unregister_netdevice_queue+0x2e3/0x5f0 net/core/dev.c:8454
+ unregister_netdevice include/linux/netdevice.h:2473 [inline]
+ __tun_detach+0x520/0x10b0 drivers/net/tun.c:735
+ tun_detach drivers/net/tun.c:745 [inline]
+ tun_chr_close+0x44/0x60 drivers/net/tun.c:3167
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x4429e8
+RSP: 002b:00007ffd2080c1e8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004429e8
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004c2628 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 00000000004002e0 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d4180 R14: 0000000000000000 R15: 0000000000000000
+Code: ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 59 48 8b 9b 50 03 00 00 48 b8 00 00 00 00 00 fc ff df 48 8d 7b 30 48 89 fa 48 c1 ea 03 <80> 3c 02 00 75 3e 48 8b 5b 30 41 bd 01 00 00 00 48 85 db 74 92 
+RIP: lowpan_device_event+0xca/0x130 net/ieee802154/6lowpan/core.c:220 RSP: ffff8801b1a7f010
+---[ end trace e3070a3c583080d7 ]---

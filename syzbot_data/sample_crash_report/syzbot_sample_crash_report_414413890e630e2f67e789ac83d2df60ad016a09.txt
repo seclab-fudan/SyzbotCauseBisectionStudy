@@ -1,0 +1,37 @@
+==================================================================
+BUG: KCSAN: data-race in wg_packet_decrypt_worker / wg_packet_rx_poll
+
+write to 0xffff888136fa0088 of 8 bytes by interrupt on cpu 1:
+ counter_validate drivers/net/wireguard/receive.c:321 [inline]
+ wg_packet_rx_poll+0x3a4/0xf70 drivers/net/wireguard/receive.c:461
+ __napi_poll+0x60/0x3b0 net/core/dev.c:6483
+ napi_poll net/core/dev.c:6550 [inline]
+ net_rx_action+0x31a/0x6c0 net/core/dev.c:6660
+ __do_softirq+0xc1/0x265 kernel/softirq.c:571
+ do_softirq+0x7e/0xb0 kernel/softirq.c:472
+ __local_bh_enable_ip+0x64/0x70 kernel/softirq.c:396
+ __raw_spin_unlock_bh include/linux/spinlock_api_smp.h:167 [inline]
+ _raw_spin_unlock_bh+0x36/0x40 kernel/locking/spinlock.c:210
+ spin_unlock_bh include/linux/spinlock.h:395 [inline]
+ ptr_ring_consume_bh include/linux/ptr_ring.h:367 [inline]
+ wg_packet_decrypt_worker+0x171/0x700 drivers/net/wireguard/receive.c:499
+ process_one_work+0x3e6/0x750 kernel/workqueue.c:2390
+ worker_thread+0x5f2/0xa10 kernel/workqueue.c:2537
+ kthread+0x1a6/0x1e0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+read to 0xffff888136fa0088 of 8 bytes by task 34 on cpu 0:
+ decrypt_packet drivers/net/wireguard/receive.c:252 [inline]
+ wg_packet_decrypt_worker+0x220/0x700 drivers/net/wireguard/receive.c:501
+ process_one_work+0x3e6/0x750 kernel/workqueue.c:2390
+ worker_thread+0x5f2/0xa10 kernel/workqueue.c:2537
+ kthread+0x1a6/0x1e0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+value changed: 0x000000000000803c -> 0x000000000000803f
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 34 Comm: kworker/0:1 Not tainted 6.3.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/30/2023
+Workqueue: wg-crypt-wg2 wg_packet_decrypt_worker
+==================================================================

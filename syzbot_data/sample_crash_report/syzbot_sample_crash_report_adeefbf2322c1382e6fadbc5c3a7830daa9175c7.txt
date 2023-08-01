@@ -1,0 +1,69 @@
+snd_hda_intel 0000:00:06.0: No response from codec, disabling MSI: last cmd=0x004a0000
+------------[ cut here ]------------
+snd_hda_intel 0000:00:06.0: azx_get_response timeout, switching to single_cmd mode: last cmd=0x004a0000
+WARNING: CPU: 2 PID: 9214 at sound/pci/hda/hda_controller.c:886 azx_rirb_get_response+0x5d6/0x720 sound/pci/hda/hda_controller.c:886
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 2 PID: 9214 Comm: syz-executor.3 Not tainted 5.5.0-rc2-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org 04/01/2014
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ panic+0x2e3/0x75c kernel/panic.c:221
+ __warn.cold+0x2f/0x3e kernel/panic.c:582
+ report_bug+0x289/0x300 lib/bug.c:195
+ fixup_bug arch/x86/kernel/traps.c:174 [inline]
+ fixup_bug arch/x86/kernel/traps.c:169 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:267
+ do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:286
+ invalid_op+0x23/0x30 arch/x86/entry/entry_64.S:1027
+RIP: 0010:azx_rirb_get_response+0x5d6/0x720 sound/pci/hda/hda_controller.c:886
+Code: f6 00 00 00 49 8b 5d 00 e8 a7 42 7a fb 4c 89 ef e8 af 04 5a fe 44 89 f9 48 89 da 48 c7 c7 c0 0b ce 88 48 89 c6 e8 49 ec 4a fb <0f> 0b 48 b8 00 00 00 00 00 fc ff df 48 8b 4d 88 48 89 ca 48 c1 ea
+RSP: 0018:ffffc90002d57718 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: ffff888027e9c0c0 RCX: 0000000000000000
+RDX: 0000000000040000 RSI: ffffffff815e8906 RDI: fffff520005aaed5
+RBP: ffffc90002d57790 R08: ffff88805ca6c2c0 R09: ffffed1005a46621
+R10: ffffed1005a46620 R11: ffff88802d233107 R12: ffff88807372e000
+R13: ffff88807ab700b0 R14: dffffc0000000000 R15: 00000000004a0000
+ azx_get_response sound/pci/hda/hda_controller.c:994 [inline]
+ azx_get_response+0x14c/0x180 sound/pci/hda/hda_controller.c:984
+ snd_hdac_bus_exec_verb_unlocked+0x4b5/0x950 sound/hda/hdac_bus.c:115
+ codec_exec_verb+0x13d/0x340 sound/pci/hda/hda_codec.c:52
+ snd_hdac_exec_verb+0x65/0x110 sound/hda/hdac_device.c:257
+ codec_read+0xa2/0x100 sound/hda/hdac_device.c:986
+ snd_hdac_codec_read+0x34/0x40 sound/hda/hdac_device.c:1015
+ snd_hda_codec_read include/sound/hda_codec.h:318 [inline]
+ update_pcm_format.part.0+0x36/0xc0 sound/pci/hda/hda_codec.c:1057
+ update_pcm_format sound/pci/hda/hda_codec.c:1056 [inline]
+ snd_hda_codec_setup_stream.part.0+0x355/0xa40 sound/pci/hda/hda_codec.c:1102
+ snd_hda_codec_setup_stream+0x47/0x60 sound/pci/hda/hda_codec.c:1086
+ capture_pcm_prepare+0x63/0x100 sound/pci/hda/hda_generic.c:5376
+ snd_hda_codec_prepare+0xa5/0x420 sound/pci/hda/hda_codec.c:3160
+ azx_pcm_prepare+0x53f/0x950 sound/pci/hda/hda_controller.c:195
+ snd_pcm_do_prepare+0x61/0xa0 sound/core/pcm_native.c:1729
+ snd_pcm_action_single+0x7a/0x130 sound/core/pcm_native.c:1111
+ snd_pcm_action_nonatomic+0x9c/0xb0 sound/core/pcm_native.c:1227
+ snd_pcm_prepare+0x121/0x1b0 sound/core/pcm_native.c:1776
+ snd_pcm_kernel_ioctl+0x117/0x1f0 sound/core/pcm_native.c:3068
+ snd_pcm_oss_prepare+0x49/0x150 sound/core/oss/pcm_oss.c:1125
+ snd_pcm_oss_make_ready+0x12b/0x170 sound/core/oss/pcm_oss.c:1153
+ snd_pcm_oss_sync.isra.0+0x1c4/0x7e0 sound/core/oss/pcm_oss.c:1707
+ snd_pcm_oss_release+0x214/0x290 sound/core/oss/pcm_oss.c:2545
+ __fput+0x2ff/0x890 fs/file_table.c:280
+ ____fput+0x16/0x20 fs/file_table.c:313
+ task_work_run+0x145/0x1c0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x316/0x380 arch/x86/entry/common.c:164
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:278 [inline]
+ do_syscall_64+0x676/0x790 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4141b1
+Code: 75 14 b8 02 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 e4 19 00 00 c3 48 83 ec 08 e8 6a fa ff ff 48 89 04 24 b8 02 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 b3 fa ff ff 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007f37282b37b0 EFLAGS: 00000293 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffea RBX: 6666666666666667 RCX: 00000000004141b1
+RDX: 0000000000000000 RSI: 0000000000004000 RDI: 00007f37282b3860
+RBP: 00007f37282b3860 R08: 000000000000000f R09: 0000000000000000
+R10: ffffffffffffffff R11: 0000000000000293 R12: 00007f37282b46d4
+R13: 00000000004b1ed8 R14: 00000000006f8270 R15: 00000000ffffffff
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

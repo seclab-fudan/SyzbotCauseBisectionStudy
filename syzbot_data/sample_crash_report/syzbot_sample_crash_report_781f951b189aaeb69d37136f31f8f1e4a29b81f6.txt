@@ -1,0 +1,76 @@
+netlink: 5 bytes leftover after parsing attributes in process `syz-executor2'.
+netlink: 11 bytes leftover after parsing attributes in process `syz-executor3'.
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 10881 Comm: syz-executor6 Not tainted 4.14.0+ #192
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801c487c500 task.stack: ffff8801c3d10000
+RIP: 0010:fanout_demux_rollover+0xb6/0x4d0 net/packet/af_packet.c:1382
+RSP: 0018:ffff8801db506a08 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff847d780e
+RDX: 0000000000000000 RSI: ffff8801c487ce48 RDI: ffffffff85ecb558
+RBP: ffff8801db506a68 R08: 1ffff1003b6a0d01 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801916ec4c0
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000001
+FS:  00007f2082a96700(0000) GS:ffff8801db500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000fa8 CR3: 000000019183a000 CR4: 00000000001406e0
+Call Trace:
+ <IRQ>
+ packet_rcv_fanout+0x649/0x7c8 net/packet/af_packet.c:1477
+ dev_queue_xmit_nit+0x866/0xc40 net/core/dev.c:1963
+ xmit_one net/core/dev.c:2987 [inline]
+ dev_hard_start_xmit+0x16b/0xac0 net/core/dev.c:3007
+ __dev_queue_xmit+0x17d2/0x2070 net/core/dev.c:3488
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3521
+ neigh_hh_output include/net/neighbour.h:472 [inline]
+ neigh_output include/net/neighbour.h:480 [inline]
+ ip_finish_output2+0xece/0x1460 net/ipv4/ip_output.c:229
+ ip_finish_output+0x85e/0xd10 net/ipv4/ip_output.c:317
+ NF_HOOK_COND include/linux/netfilter.h:239 [inline]
+ ip_output+0x1cc/0x860 net/ipv4/ip_output.c:405
+ dst_output include/net/dst.h:460 [inline]
+ ip_local_out+0x95/0x160 net/ipv4/ip_output.c:124
+ igmpv3_sendpack+0x19b/0x2b0 net/ipv4/igmp.c:398
+ igmpv3_send_cr net/ipv4/igmp.c:680 [inline]
+ igmp_ifc_timer_expire+0x637/0xa70 net/ipv4/igmp.c:768
+ call_timer_fn+0x246/0x850 kernel/time/timer.c:1312
+ expire_timers kernel/time/timer.c:1351 [inline]
+ __run_timers+0x7fd/0xb90 kernel/time/timer.c:1654
+ run_timer_softirq+0x4c/0xb0 kernel/time/timer.c:1680
+ __do_softirq+0x29d/0xbb2 kernel/softirq.c:285
+ invoke_softirq kernel/softirq.c:365 [inline]
+ irq_exit+0x1d3/0x210 kernel/softirq.c:405
+ exiting_irq arch/x86/include/asm/apic.h:540 [inline]
+ smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0x9d/0xb0 arch/x86/entry/entry_64.S:791
+ </IRQ>
+RIP: 0010:atomic_dec arch/x86/include/asm/atomic.h:104 [inline]
+RIP: 0010:hb_waiters_dec kernel/futex.c:373 [inline]
+RIP: 0010:__unqueue_futex+0x1bb/0x290 kernel/futex.c:1392
+RSP: 0018:ffff8801c3d17738 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff11
+RAX: 0000000000000000 RBX: 1ffff100387a2ee9 RCX: 0000000000000000
+RDX: 0000000000000971 RSI: ffffc900031ea000 RDI: ffffed00387a2ee0
+RBP: ffff8801c3d17810 R08: 1ffff9200018da3a R09: 0000000000000004
+R10: 0000000000000000 R11: ffffffff8747dd60 R12: ffff8801cebef940
+R13: ffffc90000c6d188 R14: dffffc0000000000 R15: ffff8801cebef970
+ mark_wake_futex+0x129/0x1c0 kernel/futex.c:1413
+ futex_wake+0x53c/0x680 kernel/futex.c:1567
+ do_futex+0x1197/0x2280 kernel/futex.c:3495
+ SYSC_futex kernel/futex.c:3551 [inline]
+ SyS_futex+0x260/0x390 kernel/futex.c:3519
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x452879
+RSP: 002b:00007f2082a95c18 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: ffffffffffffffda RBX: 0000000000758020 RCX: 0000000000452879
+RDX: 0000000000000015 RSI: 0000000000000001 RDI: 000000000075804c
+RBP: 0000000000000086 R08: 0000000000000000 R09: 0000000000000548
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006f4f60
+R13: 00000000ffffffff R14: 00007f2082a966d4 R15: 0000000000000000
+Code: df 48 c1 ea 03 80 3c 02 00 0f 85 f8 03 00 00 48 8b 45 c0 48 8b 98 70 07 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 da 48 c1 ea 03 <0f> b6 04 02 84 c0 74 08 3c 03 0f 8e ee 03 00 00 45 8d 77 ff 44 
+RIP: fanout_demux_rollover+0xb6/0x4d0 net/packet/af_packet.c:1382 RSP: ffff8801db506a08
+---[ end trace f8c28ed0748fdaf0 ]---

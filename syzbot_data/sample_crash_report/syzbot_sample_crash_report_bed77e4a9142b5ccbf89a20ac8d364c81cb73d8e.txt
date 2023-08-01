@@ -1,0 +1,55 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in strlcpy include/linux/string.h:300 [inline]
+BUG: KASAN: stack-out-of-bounds in ip6_tnl_create net/ipv6/ip6_tunnel.c:303 [inline]
+BUG: KASAN: stack-out-of-bounds in ip6_tnl_locate+0x4f2/0x980 net/ipv6/ip6_tunnel.c:365
+Write of size 23 at addr ffff8801b2dff7e8 by task syz-executor7/17410
+
+CPU: 0 PID: 17410 Comm: syz-executor7 Not tainted 4.16.0+ #2
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x1b9/0x29f lib/dump_stack.c:53
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0xac/0x2f5 mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ memcpy+0x37/0x50 mm/kasan/kasan.c:303
+ strlcpy include/linux/string.h:300 [inline]
+ ip6_tnl_create net/ipv6/ip6_tunnel.c:303 [inline]
+ ip6_tnl_locate+0x4f2/0x980 net/ipv6/ip6_tunnel.c:365
+ ip6_tnl_ioctl+0x5d1/0xbe0 net/ipv6/ip6_tunnel.c:1619
+ dev_ifsioc+0x43e/0xb90 net/core/dev_ioctl.c:334
+ dev_ioctl+0x69a/0xcc0 net/core/dev_ioctl.c:525
+ sock_ioctl+0x47e/0x680 net/socket.c:1015
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:500 [inline]
+ do_vfs_ioctl+0x1cf/0x1650 fs/ioctl.c:684
+ ksys_ioctl+0xa9/0xd0 fs/ioctl.c:701
+ SYSC_ioctl fs/ioctl.c:708 [inline]
+ SyS_ioctl+0x24/0x30 fs/ioctl.c:706
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x455279
+RSP: 002b:00007f188f41ac68 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007f188f41b6d4 RCX: 0000000000455279
+RDX: 0000000020000080 RSI: 00000000000089f1 RDI: 0000000000000013
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000000381 R14: 00000000006f84b8 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0006cb7fc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: 0000000000000000 ffffea0006cb0101 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b2dff680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801b2dff700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801b2dff780: 00 f1 f1 f1 f1 f8 f2 f2 f2 f2 f2 f2 f2 00 00 f2
+                                                                ^
+ ffff8801b2dff800: f2 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801b2dff880: 00 00 f1 f1 f1 f1 f8 f2 f2 f2 f2 f2 f2 f2 00 00
+==================================================================

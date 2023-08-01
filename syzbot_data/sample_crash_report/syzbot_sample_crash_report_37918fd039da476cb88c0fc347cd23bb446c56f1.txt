@@ -1,0 +1,44 @@
+==================================================================
+BUG: KCSAN: data-race in update_defense_level / update_defense_level
+
+write to 0xffffffff861a6260 of 4 bytes by task 9959 on cpu 1:
+ update_defense_level+0xa62/0xb30 net/netfilter/ipvs/ip_vs_ctl.c:205
+ defense_work_handler+0x3d/0xd0 net/netfilter/ipvs/ip_vs_ctl.c:225
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2269
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2415
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+read to 0xffffffff861a6260 of 4 bytes by task 7417 on cpu 0:
+ update_defense_level+0x621/0xb30 net/netfilter/ipvs/ip_vs_ctl.c:177
+ defense_work_handler+0x3d/0xd0 net/netfilter/ipvs/ip_vs_ctl.c:225
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2269
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2415
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 7417 Comm: kworker/0:3 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events defense_work_handler
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 7417 Comm: kworker/0:3 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events defense_work_handler
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xf5/0x159 lib/dump_stack.c:113
+ panic+0x210/0x640 kernel/panic.c:221
+ kcsan_report.cold+0xc/0x10 kernel/kcsan/report.c:302
+ __kcsan_setup_watchpoint+0x32e/0x4a0 kernel/kcsan/core.c:411
+ __tsan_read4 kernel/kcsan/kcsan.c:35 [inline]
+ __tsan_read4+0x2c/0x30 kernel/kcsan/kcsan.c:35
+ update_defense_level+0x621/0xb30 net/netfilter/ipvs/ip_vs_ctl.c:177
+ defense_work_handler+0x3d/0xd0 net/netfilter/ipvs/ip_vs_ctl.c:225
+ process_one_work+0x3d4/0x890 kernel/workqueue.c:2269
+ worker_thread+0xa0/0x800 kernel/workqueue.c:2415
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

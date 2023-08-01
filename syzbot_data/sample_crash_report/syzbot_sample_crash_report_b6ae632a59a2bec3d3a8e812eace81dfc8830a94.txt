@@ -1,0 +1,91 @@
+F2FS-fs (loop0): Failed to initialize F2FS segment manager
+F2FS-fs (loop0): Magic Mismatch, valid(0xf2f52010) - read(0x0)
+F2FS-fs (loop0): Can't find valid F2FS filesystem in 1th superblock
+F2FS-fs (loop0): invalid crc value
+==================================================================
+BUG: KASAN: use-after-free in build_sit_entries fs/f2fs/segment.c:3653 [inline]
+BUG: KASAN: use-after-free in build_segment_manager+0xb92d/0xbf70 fs/f2fs/segment.c:3852
+Read of size 4 at addr ffff8801ace9c900 by task syzkaller514500/4514
+
+CPU: 1 PID: 4514 Comm: syzkaller514500 Not tainted 4.17.0-rc1+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ build_sit_entries fs/f2fs/segment.c:3653 [inline]
+ build_segment_manager+0xb92d/0xbf70 fs/f2fs/segment.c:3852
+ f2fs_fill_super+0x4095/0x7bf0 fs/f2fs/super.c:2803
+ mount_bdev+0x30c/0x3e0 fs/super.c:1164
+ f2fs_mount+0x34/0x40 fs/f2fs/super.c:3020
+ mount_fs+0xae/0x328 fs/super.c:1267
+ vfs_kern_mount.part.34+0xd4/0x4d0 fs/namespace.c:1037
+ vfs_kern_mount fs/namespace.c:1027 [inline]
+ do_new_mount fs/namespace.c:2518 [inline]
+ do_mount+0x564/0x3070 fs/namespace.c:2848
+ ksys_mount+0x12d/0x140 fs/namespace.c:3064
+ __do_sys_mount fs/namespace.c:3078 [inline]
+ __se_sys_mount fs/namespace.c:3075 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3075
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x443dea
+RSP: 002b:00007ffdc0f9e148 EFLAGS: 00000297 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: fe03f80fe03f80ff RCX: 0000000000443dea
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007ffdc0f9e160
+RBP: 0000000000000003 R08: 0000000020016a00 R09: 000000000000000a
+R10: 0000000000000000 R11: 0000000000000297 R12: 0000000020000c00
+R13: 0030656c69662f2e R14: 0000000000000004 R15: 0000000020010400
+
+Allocated by task 4512:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ getname_flags+0xd0/0x5a0 fs/namei.c:140
+ getname+0x19/0x20 fs/namei.c:211
+ do_sys_open+0x39a/0x740 fs/open.c:1087
+ __do_sys_open fs/open.c:1111 [inline]
+ __se_sys_open fs/open.c:1106 [inline]
+ __x64_sys_open+0x7e/0xc0 fs/open.c:1106
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 4512:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+ putname+0xf2/0x130 fs/namei.c:261
+ do_sys_open+0x554/0x740 fs/open.c:1102
+ __do_sys_open fs/open.c:1111 [inline]
+ __se_sys_open fs/open.c:1106 [inline]
+ __x64_sys_open+0x7e/0xc0 fs/open.c:1106
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801ace9c880
+ which belongs to the cache names_cache of size 4096
+The buggy address is located 128 bytes inside of
+ 4096-byte region [ffff8801ace9c880, ffff8801ace9d880)
+The buggy address belongs to the page:
+page:ffffea0006b3a700 count:1 mapcount:0 mapping:ffff8801ace9c880 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801ace9c880 0000000000000000 0000000100000001
+raw: ffffea0006b3a620 ffffea0006b48e20 ffff8801da988dc0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ace9c800: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801ace9c880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801ace9c900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8801ace9c980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801ace9ca00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

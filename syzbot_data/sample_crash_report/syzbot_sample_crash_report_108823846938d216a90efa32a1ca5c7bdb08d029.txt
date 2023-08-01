@@ -1,0 +1,88 @@
+audit: type=1400 audit(1515708029.662:11): avc:  denied  { map_read map_write } for  pid=3506 comm="syzkaller623626" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=bpf permissive=1
+==================================================================
+BUG: KASAN: slab-out-of-bounds in __read_once_size include/linux/compiler.h:188 [inline]
+BUG: KASAN: slab-out-of-bounds in perf_event_fd_array_release+0x435/0x480 kernel/bpf/arraymap.c:544
+Read of size 8 at addr ffff8801cbc7e740 by task syzkaller623626/3506
+
+CPU: 0 PID: 3506 Comm: syzkaller623626 Not tainted 4.15.0-rc7-next-20180111+ #94
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23b/0x360 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __read_once_size include/linux/compiler.h:188 [inline]
+ perf_event_fd_array_release+0x435/0x480 kernel/bpf/arraymap.c:544
+ bpf_map_release+0x84/0xc0 kernel/bpf/syscall.c:257
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:869
+ do_group_exit+0x149/0x400 kernel/exit.c:972
+ SYSC_exit_group kernel/exit.c:983 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:981
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x440a69
+RSP: 002b:00000000007dff48 EFLAGS: 00000206 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007fff81d9f6b0 RCX: 0000000000440a69
+RDX: 0000000000440a69 RSI: 000000000000002c RDI: 0000000000000001
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000206 R12: 0000000000402240
+R13: 00000000004022d0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3506:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ __do_kmalloc_node mm/slab.c:3669 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3676
+ kmalloc_node include/linux/slab.h:557 [inline]
+ bpf_map_area_alloc+0x32/0x80 kernel/bpf/syscall.c:123
+ array_map_alloc+0x351/0xa00 kernel/bpf/arraymap.c:96
+ fd_array_map_alloc+0x57/0x70 kernel/bpf/arraymap.c:341
+ find_and_alloc_map kernel/bpf/syscall.c:105 [inline]
+ map_create kernel/bpf/syscall.c:404 [inline]
+ SYSC_bpf kernel/bpf/syscall.c:1805 [inline]
+ SyS_bpf+0x7f8/0x4400 kernel/bpf/syscall.c:1782
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 1848:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3485 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3800
+ seq_release fs/seq_file.c:366 [inline]
+ single_release+0x80/0xb0 fs/seq_file.c:602
+ __fput+0x327/0x7e0 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x275/0x2f0 arch/x86/entry/common.c:165
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x9e/0xa0
+
+The buggy address belongs to the object at ffff8801cbc7e640
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 0 bytes to the right of
+ 256-byte region [ffff8801cbc7e640, ffff8801cbc7e740)
+The buggy address belongs to the page:
+page:ffffea00072f1f80 count:1 mapcount:0 mapping:ffff8801cbc7e000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801cbc7e000 0000000000000000 000000010000000c
+raw: ffffea00072f1e60 ffffea00072f41a0 ffff8801dac007c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cbc7e600: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+ ffff8801cbc7e680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801cbc7e700: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+                                           ^
+ ffff8801cbc7e780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801cbc7e800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

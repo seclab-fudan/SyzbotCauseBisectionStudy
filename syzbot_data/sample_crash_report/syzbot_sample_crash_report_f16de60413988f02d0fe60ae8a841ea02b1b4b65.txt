@@ -1,0 +1,30 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/l1tf.html for details.
+=====================================================
+BUG: KMSAN: uninit-value in kvm_apic_set_irq arch/x86/kvm/lapic.c:634 [inline]
+BUG: KMSAN: uninit-value in kvm_irq_delivery_to_apic_fast+0x7a7/0x990 arch/x86/kvm/lapic.c:1044
+ kvm_apic_set_irq arch/x86/kvm/lapic.c:634 [inline]
+ kvm_irq_delivery_to_apic_fast+0x7a7/0x990 arch/x86/kvm/lapic.c:1044
+ kvm_irq_delivery_to_apic+0xdb/0xe40 arch/x86/kvm/irq_comm.c:54
+ kvm_pv_kick_cpu_op+0xd1/0x100 arch/x86/kvm/x86.c:9155
+ kvm_emulate_hypercall+0xee7/0x1340 arch/x86/kvm/x86.c:9285
+ __vmx_handle_exit+0x101f/0x1710 arch/x86/kvm/vmx/vmx.c:6237
+ vmx_handle_exit+0x38/0x1f0 arch/x86/kvm/vmx/vmx.c:6254
+ vcpu_enter_guest+0x4733/0x52d0 arch/x86/kvm/x86.c:10366
+ vcpu_run+0x794/0x1230 arch/x86/kvm/x86.c:10455
+ kvm_arch_vcpu_ioctl_run+0x11fe/0x1b30 arch/x86/kvm/x86.c:10659
+ kvm_vcpu_ioctl+0xcd4/0x1980 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3948
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl+0x222/0x400 fs/ioctl.c:856
+ __x64_sys_ioctl+0x92/0xd0 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x46/0xb0
+
+Local variable lapic_irq created at:
+ kvm_pv_kick_cpu_op+0x46/0x100 arch/x86/kvm/x86.c:9146
+ kvm_emulate_hypercall+0xee7/0x1340 arch/x86/kvm/x86.c:9285
+
+CPU: 1 PID: 3490 Comm: syz-executor407 Not tainted 5.19.0-rc3-syzkaller-30868-g4b28366af7d9 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+=====================================================

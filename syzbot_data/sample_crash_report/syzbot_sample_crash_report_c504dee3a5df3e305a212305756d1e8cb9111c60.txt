@@ -1,0 +1,149 @@
+ do_anonymous_page mm/memory.c:3147 [inline]
+ handle_pte_fault mm/memory.c:3961 [inline]
+ __handle_mm_fault+0x34be/0x4150 mm/memory.c:4087
+INFO: task kworker/0:1:24 blocked for more than 120 seconds.
+ handle_mm_fault+0x53a/0xc70 mm/memory.c:4124
+      Not tainted 4.16.0+ #19
+ __do_page_fault+0x60b/0xe40 arch/x86/mm/fault.c:1399
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+kworker/0:1     D
+ do_page_fault+0xee/0x8a7 arch/x86/mm/fault.c:1474
+19800    24      2 0x80000000
+Workqueue: events cgwb_release_workfn
+ page_fault+0x25/0x50 arch/x86/entry/entry_64.S:1159
+RIP: 0010:copy_user_generic_unrolled+0x86/0xc0 arch/x86/lib/copy_user_64.S:65
+RSP: 0018:ffff88018a5cfb98 EFLAGS: 00010202
+RAX: ffffed00314b9f83 RBX: 0000000000000010 RCX: 0000000000000002
+RDX: 0000000000000000 RSI: 0000000020013000 RDI: ffff88018a5cfc08
+RBP: ffff88018a5cfbd0 R08: ffffed00314b9f83 R09: ffffed00314b9f81
+R10: ffffed00314b9f82 R11: ffff88018a5cfc17 R12: 0000000020013010
+R13: 0000000020013000 R14: ffff88018a5cfc08 R15: 00007ffffffff000
+Call Trace:
+ copy_from_user include/linux/uaccess.h:147 [inline]
+ get_timespec64+0x75/0x180 kernel/time/time.c:861
+ do_pselect fs/select.c:717 [inline]
+ SYSC_pselect6 fs/select.c:777 [inline]
+ SyS_pselect6+0x1ca/0x680 fs/select.c:762
+ context_switch kernel/sched/core.c:2848 [inline]
+ __schedule+0x807/0x1e40 kernel/sched/core.c:3490
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x455279
+RSP: 002b:00007f7b49500c68 EFLAGS: 00000246 ORIG_RAX: 000000000000010e
+RAX: ffffffffffffffda RBX: 00007f7b495016d4 RCX: 0000000000455279
+RDX: 0000000020011000 RSI: 0000000020011fc0 RDI: 0000000000000040
+RBP: 000000000072bea0 R08: 0000000020013000 R09: 0000000020001ff8
+R10: 0000000020003000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000000473 R14: 00000000006f9b68 R15: 0000000000000000
+ schedule+0xef/0x430 kernel/sched/core.c:3549
+ bit_wait+0x18/0x90 kernel/sched/wait_bit.c:197
+ __wait_on_bit+0xb3/0x130 kernel/sched/wait_bit.c:48
+ out_of_line_wait_on_bit+0x204/0x3a0 kernel/sched/wait_bit.c:63
+ wait_on_bit include/linux/wait_bit.h:76 [inline]
+ wb_shutdown+0x370/0x470 mm/backing-dev.c:366
+ cgwb_release_workfn+0x87/0x750 mm/backing-dev.c:509
+ process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+ worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+
+Showing all locks held in the system:
+2 locks held by kworker/0:1/24:
+ #0: 00000000145fb684 ((wq_completion)"events"){+.+.}, at: __write_once_size include/linux/compiler.h:215 [inline]
+ #0: 00000000145fb684 ((wq_completion)"events"){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: 00000000145fb684 ((wq_completion)"events"){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:40 [inline]
+ #0: 00000000145fb684 ((wq_completion)"events"){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:57 [inline]
+ #0: 00000000145fb684 ((wq_completion)"events"){+.+.}, at: set_work_data kernel/workqueue.c:617 [inline]
+ #0: 00000000145fb684 ((wq_completion)"events"){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+ #0: 00000000145fb684 ((wq_completion)"events"){+.+.}, at: process_one_work+0xaef/0x1b50 kernel/workqueue.c:2116
+ #1: 000000002d6a70e3 ((work_completion)(&wb->release_work)){+.+.}, at: process_one_work+0xb46/0x1b50 kernel/workqueue.c:2120
+3 locks held by kworker/u4:2/32:
+ #0: 000000009bf66e95 ((wq_completion)"%s""netns"){+.+.}, at: __write_once_size include/linux/compiler.h:215 [inline]
+ #0: 000000009bf66e95 ((wq_completion)"%s""netns"){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: 000000009bf66e95 ((wq_completion)"%s""netns"){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:40 [inline]
+ #0: 000000009bf66e95 ((wq_completion)"%s""netns"){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:57 [inline]
+ #0: 000000009bf66e95 ((wq_completion)"%s""netns"){+.+.}, at: set_work_data kernel/workqueue.c:617 [inline]
+ #0: 000000009bf66e95 ((wq_completion)"%s""netns"){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+ #0: 000000009bf66e95 ((wq_completion)"%s""netns"){+.+.}, at: process_one_work+0xaef/0x1b50 kernel/workqueue.c:2116
+ #1: 0000000079555d09 (net_cleanup_work){+.+.}, at: process_one_work+0xb46/0x1b50 kernel/workqueue.c:2120
+ #2: 00000000fd101d18 (pernet_ops_rwsem){++++}, at: cleanup_net+0x11a/0xb20 net/core/net_namespace.c:490
+2 locks held by khungtaskd/889:
+ #0: 00000000fab17a2e (rcu_read_lock){....}, at: check_hung_uninterruptible_tasks kernel/hung_task.c:175 [inline]
+ #0: 00000000fab17a2e (rcu_read_lock){....}, at: watchdog+0x1ff/0xf60 kernel/hung_task.c:249
+ #1: 00000000639b932e (tasklist_lock){.+.+}, at: debug_show_all_locks+0xde/0x34a kernel/locking/lockdep.c:4470
+2 locks held by getty/4437:
+ #0: 00000000c32ec35a (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000f33b8245 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4438:
+ #0: 000000004968bea8 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 000000002f8b9ae7 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4439:
+ #0: 000000005a464f05 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000f1db0662 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4440:
+ #0: 000000008423ef64 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000a8628fef (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4441:
+ #0: 0000000042c01800 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 000000004cf2e439 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4442:
+ #0: 000000001d59e88d (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 0000000042bcc9d6 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+2 locks held by getty/4443:
+ #0: 0000000089112ef5 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 0000000043076551 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x321/0x1cc0 drivers/tty/n_tty.c:2131
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 889 Comm: khungtaskd Not tainted 4.16.0+ #19
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.4+0x19/0xce lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x151/0x192 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:138 [inline]
+ check_hung_task kernel/hung_task.c:132 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:190 [inline]
+ watchdog+0xc10/0xf60 kernel/hung_task.c:249
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 2371 Comm: udevd Not tainted 4.16.0+ #19
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:preempt_count arch/x86/include/asm/preempt.h:23 [inline]
+RIP: 0010:check_kcov_mode kernel/kcov.c:67 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x11/0x50 kernel/kcov.c:101
+RSP: 0018:ffff8801cae7f750 EFLAGS: 00000246
+RAX: ffff8801cae70080 RBX: ffff8801cae7fb04 RCX: ffffffff81bfbfe4
+RDX: 0000000080000000 RSI: 0000000000000000 RDI: 0000000000000005
+RBP: ffff8801cae7f930 R08: ffff8801cae70080 R09: ffffed003b6046c2
+R10: 0000000000000003 R11: 0000000000000000 R12: 0000000000000076
+R13: dffffc0000000000 R14: 0000000000000000 R15: ffff8801cae7fac0
+FS:  00007fcc5a4077a0(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000006fe178 CR3: 00000001cadbb000 CR4: 00000000001406f0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+ path_lookupat.isra.44+0x247/0xbd0 fs/namei.c:2286
+ filename_lookup+0x258/0x4f0 fs/namei.c:2321
+ user_path_at_empty+0x40/0x50 fs/namei.c:2555
+ user_path_at include/linux/namei.h:57 [inline]
+ vfs_statx+0x121/0x1f0 fs/stat.c:185
+ vfs_stat include/linux/fs.h:3072 [inline]
+ SYSC_newstat+0x87/0xf0 fs/stat.c:337
+ SyS_newstat+0x1d/0x30 fs/stat.c:333
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x7fcc59b0ec65
+RSP: 002b:00007ffce475dba8 EFLAGS: 00000246 ORIG_RAX: 0000000000000004
+RAX: ffffffffffffffda RBX: 0000000000f2a250 RCX: 00007fcc59b0ec65
+RDX: 00007ffce475dbc0 RSI: 00007ffce475dbc0 RDI: 00007ffce475e050
+RBP: 00007ffce475e4b0 R08: 000000000041f4f1 R09: 00007fcc59b657d0
+R10: 7269762f73656369 R11: 0000000000000246 R12: 0000000000000004
+R13: 00007ffce475e4b7 R14: 0000000000f35cd0 R15: 0000000000f2a250
+Code: 89 7c 10 e0 4a 89 74 10 e8 4a 89 54 10 f0 4a 89 4c d8 20 4c 89 08 5d c3 66 90 55 65 48 8b 04 25 c0 ed 01 00 65 8b 15 0f b0 8a 7e <48> 89 e5 81 e2 00 01 1f 00 48 8b 75 08 75 2b 8b 90 b8 12 00 00 

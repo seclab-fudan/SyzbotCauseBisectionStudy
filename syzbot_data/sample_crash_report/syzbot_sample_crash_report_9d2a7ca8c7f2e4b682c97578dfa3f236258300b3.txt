@@ -1,0 +1,73 @@
+general protection fault, probably for non-canonical address 0xdffffc000000006a: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000350-0x0000000000000357]
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.8.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:rose_send_frame net/rose/rose_link.c:101 [inline]
+RIP: 0010:rose_transmit_clear_request+0x1e8/0x4a0 net/rose/rose_link.c:255
+Code: fc ff df 80 3c 08 00 74 12 48 89 df e8 71 bd 6a fa 48 b9 00 00 00 00 00 fc ff df bd 50 03 00 00 48 03 2b 48 89 e8 48 c1 e8 03 <80> 3c 08 00 74 12 48 89 ef e8 4a bd 6a fa 48 b9 00 00 00 00 00 fc
+RSP: 0018:ffffc90000007bc8 EFLAGS: 00010206
+RAX: 000000000000006a RBX: ffff8880a733f020 RCX: dffffc0000000000
+RDX: 0000000000000101 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000350 R08: ffffffff8748e20f R09: ffffed101505569d
+R10: ffffed101505569d R11: 0000000000000000 R12: ffff8880a82ab45c
+R13: 0000000000000032 R14: ffff8880a733f000 R15: ffff8880a82ab45d
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f0daf48f000 CR3: 0000000092dd0000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ rose_rx_call_request+0xa11/0x1980 net/rose/af_rose.c:998
+ rose_loopback_timer+0x2ea/0x480 net/rose/rose_loopback.c:100
+ call_timer_fn+0x91/0x160 kernel/time/timer.c:1415
+ expire_timers kernel/time/timer.c:1460 [inline]
+ __run_timers+0x736/0x930 kernel/time/timer.c:1784
+ run_timer_softirq+0x46/0x80 kernel/time/timer.c:1797
+ __do_softirq+0x268/0x80c kernel/softirq.c:292
+ asm_call_on_stack+0xf/0x20 arch/x86/entry/entry_64.S:711
+ </IRQ>
+ __run_on_irqstack arch/x86/include/asm/irq_stack.h:22 [inline]
+ run_on_irqstack_cond arch/x86/include/asm/irq_stack.h:48 [inline]
+ do_softirq_own_stack+0xe0/0x1a0 arch/x86/kernel/irq_64.c:77
+ invoke_softirq kernel/softirq.c:387 [inline]
+ __irq_exit_rcu+0x1e1/0x1f0 kernel/softirq.c:417
+ irq_exit_rcu+0x6/0x50 kernel/softirq.c:429
+ sysvec_apic_timer_interrupt+0x117/0x130 arch/x86/kernel/apic/apic.c:1091
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:585
+RIP: 0010:native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:61
+Code: 80 e1 07 80 c1 03 38 c1 7c bc 48 89 df e8 ca 69 93 f9 eb b2 cc cc cc cc cc cc cc cc e9 07 00 00 00 0f 00 2d 36 80 62 00 fb f4 <c3> 90 e9 07 00 00 00 0f 00 2d 26 80 62 00 f4 c3 cc cc 41 56 53 65
+RSP: 0018:ffffffff89407d48 EFLAGS: 00000286
+RAX: 1ffffffff1297902 RBX: 0000000000000000 RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff882039ca
+RBP: 1ffff11014d1a84e R08: ffffffff817a3310 R09: fffffbfff1290539
+R10: fffffbfff1290539 R11: 0000000000000000 R12: 0000000000000001
+R13: dffffc0000000000 R14: dffffc0000000000 R15: ffff8880a68d4270
+ arch_safe_halt arch/x86/include/asm/paravirt.h:150 [inline]
+ acpi_safe_halt+0x87/0xe0 drivers/acpi/processor_idle.c:111
+ acpi_idle_do_entry drivers/acpi/processor_idle.c:525 [inline]
+ acpi_idle_enter+0x3f4/0xac0 drivers/acpi/processor_idle.c:651
+ cpuidle_enter_state+0x2d7/0x7b0 drivers/cpuidle/cpuidle.c:235
+ cpuidle_enter+0x59/0x90 drivers/cpuidle/cpuidle.c:346
+ call_cpuidle kernel/sched/idle.c:126 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:214 [inline]
+ do_idle+0x49c/0x650 kernel/sched/idle.c:276
+ cpu_startup_entry+0x15/0x20 kernel/sched/idle.c:372
+ start_kernel+0x674/0x777 init/main.c:1043
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+Modules linked in:
+---[ end trace f249db12a81c3a05 ]---
+RIP: 0010:rose_send_frame net/rose/rose_link.c:101 [inline]
+RIP: 0010:rose_transmit_clear_request+0x1e8/0x4a0 net/rose/rose_link.c:255
+Code: fc ff df 80 3c 08 00 74 12 48 89 df e8 71 bd 6a fa 48 b9 00 00 00 00 00 fc ff df bd 50 03 00 00 48 03 2b 48 89 e8 48 c1 e8 03 <80> 3c 08 00 74 12 48 89 ef e8 4a bd 6a fa 48 b9 00 00 00 00 00 fc
+RSP: 0018:ffffc90000007bc8 EFLAGS: 00010206
+RAX: 000000000000006a RBX: ffff8880a733f020 RCX: dffffc0000000000
+RDX: 0000000000000101 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000350 R08: ffffffff8748e20f R09: ffffed101505569d
+R10: ffffed101505569d R11: 0000000000000000 R12: ffff8880a82ab45c
+R13: 0000000000000032 R14: ffff8880a733f000 R15: ffff8880a82ab45d
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f0daf48f000 CR3: 0000000092dd0000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

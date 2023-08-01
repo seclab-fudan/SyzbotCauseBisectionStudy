@@ -1,0 +1,92 @@
+audit: type=1400 audit(1540511784.284:36): avc:  denied  { map } for  pid=5526 comm="syz-executor435" path="/root/syz-executor435209504" dev="sda1" ino=16484 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: slab-out-of-bounds in sctp_getsockopt_pr_streamstatus net/sctp/socket.c:7174 [inline]
+BUG: KASAN: slab-out-of-bounds in sctp_getsockopt+0x7516/0x7cc2 net/sctp/socket.c:7582
+Read of size 8 at addr ffff8801ca1ff168 by task syz-executor435/5529
+
+CPU: 1 PID: 5529 Comm: syz-executor435 Not tainted 4.19.0+ #82
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_address_description.cold.7+0x9/0x1ff mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.8+0x242/0x309 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ sctp_getsockopt_pr_streamstatus net/sctp/socket.c:7174 [inline]
+ sctp_getsockopt+0x7516/0x7cc2 net/sctp/socket.c:7582
+ sock_common_getsockopt+0x9a/0xe0 net/core/sock.c:2937
+ __sys_getsockopt+0x1ad/0x390 net/socket.c:1939
+ __do_sys_getsockopt net/socket.c:1950 [inline]
+ __se_sys_getsockopt net/socket.c:1947 [inline]
+ __x64_sys_getsockopt+0xbe/0x150 net/socket.c:1947
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x445789
+Code: e8 6c b6 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 2b 12 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ff683eb6db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 00000000006dac48 RCX: 0000000000445789
+RDX: 0000000000000074 RSI: 0000000000000084 RDI: 0000000000000003
+RBP: 00000000006dac40 R08: 0000000020000040 R09: 0000000000000000
+R10: 0000000020000080 R11: 0000000000000246 R12: 00000000006dac4c
+R13: 00007ffedd6edd7f R14: 00007ff683eb79c0 R15: 00000000006dad2c
+
+Allocated by task 5528:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x750 mm/slab.c:3620
+ kmalloc include/linux/slab.h:513 [inline]
+ kzalloc include/linux/slab.h:707 [inline]
+ sctp_stream_init_ext+0x4f/0xf0 net/sctp/stream.c:237
+ sctp_sendmsg_to_asoc+0x1308/0x1a20 net/sctp/socket.c:1896
+ sctp_sendmsg+0x13c2/0x1da0 net/sctp/socket.c:2113
+ inet_sendmsg+0x1a1/0x690 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:631
+ __sys_sendto+0x3d7/0x670 net/socket.c:1788
+ __do_sys_sendto net/socket.c:1800 [inline]
+ __se_sys_sendto net/socket.c:1796 [inline]
+ __x64_sys_sendto+0xe1/0x1a0 net/socket.c:1796
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 4060:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3813
+ free_rb_tree_fname+0x85/0xe0 fs/ext4/dir.c:404
+ ext4_htree_free_dir_info fs/ext4/dir.c:426 [inline]
+ ext4_release_dir+0x44/0x60 fs/ext4/dir.c:624
+ __fput+0x385/0xa30 fs/file_table.c:278
+ ____fput+0x15/0x20 fs/file_table.c:309
+ task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801ca1ff100
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 8 bytes to the right of
+ 96-byte region [ffff8801ca1ff100, ffff8801ca1ff160)
+The buggy address belongs to the page:
+page:ffffea0007287fc0 count:1 mapcount:0 mapping:ffff8801da8004c0 index:0xffff8801ca1ff200
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea000728ac48 ffffea00071ea348 ffff8801da8004c0
+raw: ffff8801ca1ff200 ffff8801ca1ff000 000000010000001b 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801ca1ff000: 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc
+ ffff8801ca1ff080: 00 00 00 00 00 00 00 00 05 fc fc fc fc fc fc fc
+>ffff8801ca1ff100: 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc
+                                                          ^
+ ffff8801ca1ff180: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff8801ca1ff200: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+==================================================================

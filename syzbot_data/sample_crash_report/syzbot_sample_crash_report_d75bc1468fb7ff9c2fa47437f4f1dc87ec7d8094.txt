@@ -1,0 +1,108 @@
+8021q: adding VLAN 0 to HW filter on device team0
+bpfilter: read fail -512
+==================================================================
+BUG: KASAN: use-after-free in io_is_direct include/linux/fs.h:3199 [inline]
+BUG: KASAN: use-after-free in iocb_flags include/linux/fs.h:3226 [inline]
+BUG: KASAN: use-after-free in init_sync_kiocb include/linux/fs.h:1941 [inline]
+BUG: KASAN: use-after-free in new_sync_write fs/read_write.c:470 [inline]
+BUG: KASAN: use-after-free in __vfs_write+0x929/0x960 fs/read_write.c:487
+Read of size 8 at addr ffff8801d1c15348 by task syz-executor1/4609
+
+CPU: 0 PID: 4609 Comm: syz-executor1 Not tainted 4.17.0+ #89
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ io_is_direct include/linux/fs.h:3199 [inline]
+ iocb_flags include/linux/fs.h:3226 [inline]
+ init_sync_kiocb include/linux/fs.h:1941 [inline]
+ new_sync_write fs/read_write.c:470 [inline]
+ __vfs_write+0x929/0x960 fs/read_write.c:487
+ __kernel_write+0x10c/0x380 fs/read_write.c:506
+ __bpfilter_process_sockopt+0x1d8/0x35b net/bpfilter/bpfilter_kern.c:66
+ bpfilter_mbox_request+0x4d/0xb0 net/ipv4/bpfilter/sockopt.c:25
+ bpfilter_ip_get_sockopt+0x6b/0x90 net/ipv4/bpfilter/sockopt.c:42
+ ip_getsockopt+0x238/0x2a0 net/ipv4/ip_sockglue.c:1563
+ tcp_getsockopt+0x93/0xe0 net/ipv4/tcp.c:3532
+ sock_common_getsockopt+0x9a/0xe0 net/core/sock.c:3012
+ __sys_getsockopt+0x1a5/0x370 net/socket.c:1972
+ __do_sys_getsockopt net/socket.c:1983 [inline]
+ __se_sys_getsockopt net/socket.c:1980 [inline]
+ __x64_sys_getsockopt+0xbe/0x150 net/socket.c:1980
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4584ea
+Code: b8 34 01 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 1d 8f fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 37 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 fa 8e fb ff c3 66 0f 1f 84 00 00 00 00 00 
+RSP: 002b:0000000000a3e328 EFLAGS: 00000246 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 0000000000a3e350 RCX: 00000000004584ea
+RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 0000000000705f20 R08: 0000000000a3e34c R09: 0000000000004000
+R10: 0000000000a3e350 R11: 0000000000000246 R12: 0000000000000003
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000703d60
+
+Allocated by task 2222:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ alloc_inode+0xb2/0x190 fs/inode.c:212
+ new_inode_pseudo+0x69/0x1a0 fs/inode.c:895
+ get_pipe_inode fs/pipe.c:707 [inline]
+ create_pipe_files+0x90/0x940 fs/pipe.c:748
+ umh_pipe_setup+0xac/0x430 kernel/umh.c:431
+ call_usermodehelper_exec_async+0x3c0/0x9e0 kernel/umh.c:93
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Freed by task 2222:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+ free_inode_nonrcu+0x1c/0x20 fs/inode.c:230
+ destroy_inode+0x151/0x1f0 fs/inode.c:267
+ evict+0x5cd/0x960 fs/inode.c:575
+ iput_final fs/inode.c:1520 [inline]
+ iput+0x62d/0xa80 fs/inode.c:1546
+ dentry_unlink_inode+0x49a/0x620 fs/dcache.c:376
+ __dentry_kill+0x444/0x790 fs/dcache.c:568
+ dentry_kill+0xc9/0x5a0 fs/dcache.c:687
+ dput.part.26+0x65a/0x780 fs/dcache.c:848
+ dput+0x15/0x20 fs/dcache.c:830
+ __fput+0x558/0x890 fs/file_table.c:227
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x1e4/0x290 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1aee/0x2730 kernel/exit.c:865
+ do_group_exit+0x16f/0x430 kernel/exit.c:968
+ __do_sys_exit_group kernel/exit.c:979 [inline]
+ __se_sys_exit_group kernel/exit.c:977 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:977
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801d1c15140
+ which belongs to the cache inode_cache of size 944
+The buggy address is located 520 bytes inside of
+ 944-byte region [ffff8801d1c15140, ffff8801d1c154f0)
+The buggy address belongs to the page:
+page:ffffea0007470540 count:1 mapcount:0 mapping:ffff8801d1c15140 index:0xffff8801d1c15ffd
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d1c15140 ffff8801d1c15ffd 0000000100000003
+raw: ffffea000753fee0 ffffea00074708e0 ffff8801da986ac0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d1c15200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d1c15280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801d1c15300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                              ^
+ ffff8801d1c15380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d1c15400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

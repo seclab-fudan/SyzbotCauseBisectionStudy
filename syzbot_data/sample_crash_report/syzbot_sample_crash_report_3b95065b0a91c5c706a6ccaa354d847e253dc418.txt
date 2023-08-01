@@ -1,0 +1,75 @@
+============================================
+WARNING: possible recursive locking detected
+4.14.0-rc1+ #88 Not tainted
+--------------------------------------------
+syzkaller883997/2981 is trying to acquire lock:
+ (&grp->list_mutex){++++}, at: [<ffffffff83d4dd49>] deliver_to_subscribers sound/core/seq/seq_clientmgr.c:666 [inline]
+ (&grp->list_mutex){++++}, at: [<ffffffff83d4dd49>] snd_seq_deliver_event+0x279/0x790 sound/core/seq/seq_clientmgr.c:807
+
+but task is already holding lock:
+ (&grp->list_mutex){++++}, at: [<ffffffff83d4dd49>] deliver_to_subscribers sound/core/seq/seq_clientmgr.c:666 [inline]
+ (&grp->list_mutex){++++}, at: [<ffffffff83d4dd49>] snd_seq_deliver_event+0x279/0x790 sound/core/seq/seq_clientmgr.c:807
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&grp->list_mutex);
+  lock(&grp->list_mutex);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+2 locks held by syzkaller883997/2981:
+ #0:  (register_mutex#4){+.+.}, at: [<ffffffff83d60ada>] odev_release+0x4a/0x70 sound/core/seq/oss/seq_oss.c:152
+ #1:  (&grp->list_mutex){++++}, at: [<ffffffff83d4dd49>] deliver_to_subscribers sound/core/seq/seq_clientmgr.c:666 [inline]
+ #1:  (&grp->list_mutex){++++}, at: [<ffffffff83d4dd49>] snd_seq_deliver_event+0x279/0x790 sound/core/seq/seq_clientmgr.c:807
+
+stack backtrace:
+CPU: 1 PID: 2981 Comm: syzkaller883997 Not tainted 4.14.0-rc1+ #88
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_deadlock_bug kernel/locking/lockdep.c:1797 [inline]
+ check_deadlock kernel/locking/lockdep.c:1844 [inline]
+ validate_chain kernel/locking/lockdep.c:2453 [inline]
+ __lock_acquire+0x1232/0x4620 kernel/locking/lockdep.c:3498
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:4002
+ down_read+0x96/0x150 kernel/locking/rwsem.c:23
+ deliver_to_subscribers sound/core/seq/seq_clientmgr.c:666 [inline]
+ snd_seq_deliver_event+0x279/0x790 sound/core/seq/seq_clientmgr.c:807
+ snd_seq_kernel_client_dispatch+0x11e/0x150 sound/core/seq/seq_clientmgr.c:2309
+ dummy_input+0x2c4/0x400 sound/core/seq/seq_dummy.c:104
+ snd_seq_deliver_single_event.constprop.11+0x2fb/0x940 sound/core/seq/seq_clientmgr.c:621
+ deliver_to_subscribers sound/core/seq/seq_clientmgr.c:676 [inline]
+ snd_seq_deliver_event+0x318/0x790 sound/core/seq/seq_clientmgr.c:807
+ snd_seq_kernel_client_dispatch+0x11e/0x150 sound/core/seq/seq_clientmgr.c:2309
+ dummy_input+0x2c4/0x400 sound/core/seq/seq_dummy.c:104
+ snd_seq_deliver_single_event.constprop.11+0x2fb/0x940 sound/core/seq/seq_clientmgr.c:621
+ snd_seq_deliver_event+0x12c/0x790 sound/core/seq/seq_clientmgr.c:818
+ snd_seq_kernel_client_dispatch+0x11e/0x150 sound/core/seq/seq_clientmgr.c:2309
+ snd_seq_oss_dispatch sound/core/seq/oss/seq_oss_device.h:150 [inline]
+ snd_seq_oss_midi_reset+0x44b/0x700 sound/core/seq/oss/seq_oss_midi.c:481
+ snd_seq_oss_synth_reset+0x398/0x980 sound/core/seq/oss/seq_oss_synth.c:416
+ snd_seq_oss_reset+0x6c/0x260 sound/core/seq/oss/seq_oss_init.c:448
+ snd_seq_oss_release+0x71/0x120 sound/core/seq/oss/seq_oss_init.c:425
+ odev_release+0x52/0x70 sound/core/seq/oss/seq_oss.c:153
+ __fput+0x333/0x7f0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:112
+ exit_task_work include/linux/task_work.h:21 [inline]
+ do_exit+0xa52/0x1b40 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x442c58
+RSP: 002b:00007ffd15d4f8d8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000442c58
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 0000000000000082 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000401ca0
+R13: 0000000000401d30 R14

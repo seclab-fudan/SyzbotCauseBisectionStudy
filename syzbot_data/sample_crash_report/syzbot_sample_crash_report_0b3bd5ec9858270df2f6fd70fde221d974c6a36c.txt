@@ -1,0 +1,58 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in tlb_flush_mmu_free+0x13f/0x160 mm/memory.c:258
+Read of size 4 at addr ffff880195a4d008 by task syz-executor1/8636
+
+CPU: 1 PID: 8636 Comm: syz-executor1 Not tainted 4.18.0-rc3+ #50
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ tlb_flush_mmu_free+0x13f/0x160 mm/memory.c:258
+ zap_pte_range mm/memory.c:1400 [inline]
+ zap_pmd_range mm/memory.c:1437 [inline]
+ zap_pud_range mm/memory.c:1466 [inline]
+ zap_p4d_range mm/memory.c:1487 [inline]
+ unmap_page_range+0x1a45/0x2220 mm/memory.c:1508
+ unmap_single_vma+0x1a0/0x310 mm/memory.c:1553
+ unmap_vmas+0x120/0x1f0 mm/memory.c:1583
+ exit_mmap+0x2c2/0x5b0 mm/mmap.c:3105
+ __mmput kernel/fork.c:970 [inline]
+ mmput+0x265/0x620 kernel/fork.c:991
+ exit_mm kernel/exit.c:544 [inline]
+ do_exit+0xea9/0x2750 kernel/exit.c:852
+ do_group_exit+0x177/0x440 kernel/exit.c:968
+ get_signal+0x88e/0x1970 kernel/signal.c:2468
+ do_signal+0x9c/0x21c0 arch/x86/kernel/signal.c:816
+ exit_to_usermode_loop+0x2e0/0x370 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455a79
+Code: 1d ba fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb b9 fb ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007fa605d95ce8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 000000000072bf68 RCX: 0000000000455a79
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 000000000072bf68
+RBP: 000000000072bf68 R08: 0000000000000000 R09: 000000000072bf48
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffe5708f09f R14: 00007fa605d969c0 R15: 0000000000000001
+
+The buggy address belongs to the page:
+page:ffffea0006569340 count:1 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 dead000000000100 dead000000000200 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff880195a4cf00: 00 f1 f1 f1 f1 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2
+ ffff880195a4cf80: f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2 f8 f2 f2
+>ffff880195a4d000: f2 f2 f2 f2 f2 00 f2 f2 f2 00 00 00 00 00 00 00
+                      ^
+ ffff880195a4d080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1
+ ffff880195a4d100: f1 f1 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2
+==================================================================

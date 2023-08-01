@@ -1,0 +1,103 @@
+audit: type=1400 audit(1514793026.648:7): avc:  denied  { map } for  pid=3496 comm="syzkaller466182" path="/root/syzkaller466182713" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+
+=============================
+WARNING: suspicious RCU usage
+4.15.0-rc6+ #245 Not tainted
+-----------------------------
+./include/linux/rcupdate.h:302 Illegal context switch in RCU read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+2 locks held by syzkaller466182/3496:
+ #0:  (&net->xfrm.xfrm_cfg_mutex){+.+.}, at: [<00000000c0aba7b0>] xfrm_netlink_rcv+0x60/0x90 net/xfrm/xfrm_user.c:2598
+ #1:  (rcu_read_lock){....}, at: [<00000000c5557572>] xfrm_state_get_afinfo+0x62/0x280 net/xfrm/xfrm_state.c:2150
+
+stack backtrace:
+CPU: 0 PID: 3496 Comm: syzkaller466182 Not tainted 4.15.0-rc6+ #245
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4585
+ rcu_preempt_sleep_check include/linux/rcupdate.h:301 [inline]
+ ___might_sleep+0x385/0x470 kernel/sched/core.c:6025
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6013
+ slab_pre_alloc_hook mm/slab.h:419 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ kmem_cache_alloc_trace+0x298/0x750 mm/slab.c:3608
+ kmalloc include/linux/slab.h:499 [inline]
+ call_modprobe kernel/kmod.c:80 [inline]
+ __request_module+0x2e1/0xc20 kernel/kmod.c:171
+ xfrm_get_type_offload net/xfrm/xfrm_state.c:317 [inline]
+ __xfrm_init_state+0xa61/0xdd0 net/xfrm/xfrm_state.c:2250
+ xfrm_state_construct net/xfrm/xfrm_user.c:590 [inline]
+ xfrm_add_sa+0x1a09/0x33e0 net/xfrm/xfrm_user.c:646
+ xfrm_user_rcv_msg+0x422/0x860 net/xfrm/xfrm_user.c:2591
+ netlink_rcv_skb+0x224/0x470 net/netlink/af_netlink.c:2408
+ xfrm_netlink_rcv+0x6f/0x90 net/xfrm/xfrm_user.c:2599
+ netlink_unicast_kernel net/netlink/af_netlink.c:1275 [inline]
+ netlink_unicast+0x4ee/0x700 net/netlink/af_netlink.c:1301
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1864
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:646
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2026
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2060
+ SYSC_sendmsg net/socket.c:2071 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2067
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x440059
+RSP: 002b:00007ffdaa1844a8 EFLAGS: 00000203 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000440059
+RDX: 0000000000000000 RSI: 0000000020004000 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000203 R12: 00000000004019c0
+R13: 0000000000401a50 R14: 0000000000000000 R15: 0000000000000000
+BUG: sleeping function called from invalid context at mm/slab.h:419
+in_atomic(): 1, irqs_disabled(): 0, pid: 3496, name: syzkaller466182
+2 locks held by syzkaller466182/3496:
+ #0:  (&net->xfrm.xfrm_cfg_mutex){+.+.}, at: [<00000000c0aba7b0>] xfrm_netlink_rcv+0x60/0x90 net/xfrm/xfrm_user.c:2598
+ #1:  (rcu_read_lock){....}, at: [<00000000c5557572>] xfrm_state_get_afinfo+0x62/0x280 net/xfrm/xfrm_state.c:2150
+CPU: 0 PID: 3496 Comm: syzkaller466182 Not tainted 4.15.0-rc6+ #245
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ ___might_sleep+0x2b2/0x470 kernel/sched/core.c:6060
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6013
+ slab_pre_alloc_hook mm/slab.h:419 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ kmem_cache_alloc_trace+0x298/0x750 mm/slab.c:3608
+ kmalloc include/linux/slab.h:499 [inline]
+ call_modprobe kernel/kmod.c:80 [inline]
+ __request_module+0x2e1/0xc20 kernel/kmod.c:171
+ xfrm_get_type_offload net/xfrm/xfrm_state.c:317 [inline]
+ __xfrm_init_state+0xa61/0xdd0 net/xfrm/xfrm_state.c:2250
+ xfrm_state_construct net/xfrm/xfrm_user.c:590 [inline]
+ xfrm_add_sa+0x1a09/0x33e0 net/xfrm/xfrm_user.c:646
+ xfrm_user_rcv_msg+0x422/0x860 net/xfrm/xfrm_user.c:2591
+ netlink_rcv_skb+0x224/0x470 net/netlink/af_netlink.c:2408
+ xfrm_netlink_rcv+0x6f/0x90 net/xfrm/xfrm_user.c:2599
+ netlink_unicast_kernel net/netlink/af_netlink.c:1275 [inline]
+ netlink_unicast+0x4ee/0x700 net/netlink/af_netlink.c:1301
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1864
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:646
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2026
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2060
+ SYSC_sendmsg net/socket.c:2071 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2067
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x440059
+RSP: 002b:00007ffdaa1844a8 EFLAGS: 00000203 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000440059
+RDX: 0000000000000000 RSI: 0000000020004000 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000203 R12: 00000000004019c0
+R13: 0000000000401a50 R14: 0000000000000000 R15: 0000000000000000
+BUG: scheduling while atomic: syzkaller466182/3496/0x00000002
+2 locks held by syzkaller466182/3496:
+ #0:  (&net->xfrm.xfrm_cfg_mutex){+.+.}, at: [<00000000c0aba7b0>] xfrm_netlink_rcv+0x60/0x90 net/xfrm/xfrm_user.c:2598
+ #1:  (rcu_read_lock){....}, at: [<00000000c5557572>] xfrm_state_get_afinfo+0x62/0x280 net/xfrm/xfrm_state.c:2150
+Modules linked in:

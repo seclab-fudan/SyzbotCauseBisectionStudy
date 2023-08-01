@@ -1,0 +1,86 @@
+INFO: task syz-executor370:7818 blocked for more than 143 seconds.
+      Not tainted 5.1.0-rc5+ #70
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor370 D28120  7818   7794 0x00000004
+Call Trace:
+ context_switch kernel/sched/core.c:2877 [inline]
+ __schedule+0x813/0x1cc0 kernel/sched/core.c:3518
+ schedule+0x92/0x180 kernel/sched/core.c:3562
+ schedule_timeout+0x8ca/0xfd0 kernel/time/timer.c:1779
+ do_wait_for_common kernel/sched/completion.c:83 [inline]
+ __wait_for_common kernel/sched/completion.c:104 [inline]
+ wait_for_common kernel/sched/completion.c:115 [inline]
+ wait_for_completion+0x29c/0x440 kernel/sched/completion.c:136
+ crypto_wait_req include/linux/crypto.h:680 [inline]
+ _aead_recvmsg crypto/algif_aead.c:313 [inline]
+ aead_recvmsg+0x1492/0x1ab0 crypto/algif_aead.c:334
+ sock_recvmsg_nosec net/socket.c:881 [inline]
+ sock_recvmsg net/socket.c:888 [inline]
+ sock_recvmsg+0xd0/0x110 net/socket.c:884
+ sock_read_iter+0x299/0x3b0 net/socket.c:966
+ call_read_iter include/linux/fs.h:1860 [inline]
+ do_iter_readv_writev+0x700/0x8e0 fs/read_write.c:679
+ do_iter_read+0x27c/0x660 fs/read_write.c:920
+ vfs_readv+0xf0/0x160 fs/read_write.c:984
+ do_readv+0x15e/0x370 fs/read_write.c:1017
+ __do_sys_readv fs/read_write.c:1104 [inline]
+ __se_sys_readv fs/read_write.c:1101 [inline]
+ __x64_sys_readv+0x75/0xb0 fs/read_write.c:1101
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441349
+Code: Bad RIP value.
+RSP: 002b:00007ffd03d84728 EFLAGS: 00000246 ORIG_RAX: 0000000000000013
+RAX: ffffffffffffffda RBX: 00000000004a23d8 RCX: 0000000000441349
+RDX: 0000000000000001 RSI: 00000000200007c0 RDI: 0000000000000004
+RBP: 0000000000052e64 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000246 R12: 0000000000402170
+R13: 0000000000402200 R14: 0000000000000000 R15: 0000000000000000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1043:
+ #0: 00000000e2e42ae5 (rcu_read_lock){....}, at: debug_show_all_locks+0x5f/0x27e kernel/locking/lockdep.c:5056
+1 lock held by rsyslogd/7678:
+ #0: 0000000033d8ba67 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0xee/0x110 fs/file.c:801
+2 locks held by getty/7768:
+ #0: 00000000695c8b33 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:341
+ #1: 00000000b0b463f2 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1b70 drivers/tty/n_tty.c:2156
+2 locks held by getty/7769:
+ #0: 000000006818530d (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:341
+ #1: 00000000ed610f73 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1b70 drivers/tty/n_tty.c:2156
+2 locks held by getty/7770:
+ #0: 00000000fbcde1ed (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:341
+ #1: 00000000817f6048 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1b70 drivers/tty/n_tty.c:2156
+2 locks held by getty/7771:
+ #0: 000000001606e8d4 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:341
+ #1: 0000000005557a95 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1b70 drivers/tty/n_tty.c:2156
+2 locks held by getty/7772:
+ #0: 00000000f6ef863e (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:341
+ #1: 00000000c55157f8 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1b70 drivers/tty/n_tty.c:2156
+2 locks held by getty/7773:
+ #0: 000000004cd964f4 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:341
+ #1: 0000000091a9b2ef (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1b70 drivers/tty/n_tty.c:2156
+2 locks held by getty/7774:
+ #0: 00000000e33d0631 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:341
+ #1: 0000000001081adc (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1b70 drivers/tty/n_tty.c:2156
+1 lock held by syz-executor370/7818:
+ #0: 000000009baf1423 (sk_lock-AF_ALG){+.+.}, at: lock_sock include/net/sock.h:1513 [inline]
+ #0: 000000009baf1423 (sk_lock-AF_ALG){+.+.}, at: af_alg_wait_for_data+0x215/0x540 crypto/af_alg.c:764
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1043 Comm: khungtaskd Not tainted 5.1.0-rc5+ #70
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold+0x63/0xa4 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x1be/0x236 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:204 [inline]
+ watchdog+0x9b7/0xec0 kernel/hung_task.c:288
+ kthread+0x357/0x430 kernel/kthread.c:253
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 0 to CPUs 1:

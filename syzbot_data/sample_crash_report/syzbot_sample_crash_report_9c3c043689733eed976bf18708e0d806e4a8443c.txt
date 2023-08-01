@@ -1,0 +1,108 @@
+==================================================================
+BUG: KASAN: use-after-free in ext4_data_block_valid+0x2ef/0x350 fs/ext4/block_validity.c:261
+Read of size 8 at addr ffff8882166435c8 by task blkid/28302
+
+CPU: 1 PID: 28302 Comm: blkid Not tainted 5.2.0+ #64
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x16f/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0xd4/0x306 mm/kasan/report.c:351
+ __kasan_report.cold+0x1b/0x36 mm/kasan/report.c:482
+ kasan_report+0x12/0x17 mm/kasan/common.c:612
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ ext4_data_block_valid+0x2ef/0x350 fs/ext4/block_validity.c:261
+ __check_block_validity.constprop.0+0x19f/0x300 fs/ext4/inode.c:406
+ ext4_map_blocks+0xf83/0x17f0 fs/ext4/inode.c:596
+ ext4_getblk+0x448/0x580 fs/ext4/inode.c:974
+ ext4_bread_batch+0x7f/0x450 fs/ext4/inode.c:1044
+ __ext4_find_entry+0x4a1/0x1150 fs/ext4/namei.c:1518
+ ext4_lookup_entry fs/ext4/namei.c:1616 [inline]
+ ext4_lookup fs/ext4/namei.c:1684 [inline]
+ ext4_lookup+0x524/0x7a0 fs/ext4/namei.c:1675
+ lookup_open+0x6cd/0x1a50 fs/namei.c:3211
+ do_last fs/namei.c:3322 [inline]
+ path_openat+0x1e94/0x4630 fs/namei.c:3533
+ do_filp_open+0x1a1/0x280 fs/namei.c:3563
+ do_sys_open+0x3fe/0x5d0 fs/open.c:1070
+ __do_sys_open fs/open.c:1088 [inline]
+ __se_sys_open fs/open.c:1083 [inline]
+ __x64_sys_open+0x7e/0xc0 fs/open.c:1083
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x7fcade7081a7
+Code: c3 66 90 c7 05 fa af 20 00 16 00 00 00 b8 ff ff ff ff c3 f7 d8 89 05 ec af 20 00 83 c8 ff c3 90 90 90 90 b8 02 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8d 0d cd af 20 00 31 d2 48 29 c2 89
+RSP: 002b:00007fff4ad53138 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 00007fcade9104c8 RCX: 00007fcade7081a7
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007fcade90c629
+RBP: 00007fff4ad531b0 R08: 00007fff4ad535af R09: 0000000000000000
+R10: 00007fcade90c629 R11: 0000000000000246 R12: 0000000000000008
+R13: 00007fcade912040 R14: 0000000000000000 R15: 00007fff4ad535af
+
+Allocated by task 1:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:487 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:460
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:495
+ slab_post_alloc_hook mm/slab.h:520 [inline]
+ slab_alloc mm/slab.c:3319 [inline]
+ kmem_cache_alloc+0x121/0x700 mm/slab.c:3483
+ add_system_zone+0x302/0x650 fs/ext4/block_validity.c:85
+ ext4_setup_system_zone+0x431/0xae0 fs/ext4/block_validity.c:213
+ ext4_fill_super+0x7d5e/0xcbe0 fs/ext4/super.c:4493
+ mount_bdev+0x304/0x3c0 fs/super.c:1286
+ ext4_mount+0x35/0x40 fs/ext4/super.c:6007
+ legacy_get_tree+0x108/0x220 fs/fs_context.c:661
+ vfs_get_tree+0x8e/0x390 fs/super.c:1416
+ do_new_mount fs/namespace.c:2791 [inline]
+ do_mount+0x13b3/0x1c30 fs/namespace.c:3111
+ ksys_mount+0xdb/0x150 fs/namespace.c:3320
+ do_mount_root+0x35/0x1d3 init/do_mounts.c:389
+ mount_block_root+0x353/0x61d init/do_mounts.c:418
+ mount_root+0x283/0x2cd init/do_mounts.c:563
+ prepare_namespace+0x26f/0x2ae init/do_mounts.c:622
+ kernel_init_freeable+0x5a5/0x5be init/main.c:1211
+ kernel_init+0x12/0x1c3 init/main.c:1110
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 28259:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:449
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:457
+ __cache_free mm/slab.c:3425 [inline]
+ kmem_cache_free+0x86/0x310 mm/slab.c:3693
+ ext4_release_system_zone+0x6f/0xf0 fs/ext4/block_validity.c:237
+ ext4_setup_system_zone+0x80a/0xae0 fs/ext4/block_validity.c:194
+ ext4_remount+0x112e/0x22d0 fs/ext4/super.c:5452
+ legacy_reconfigure+0x124/0x180 fs/fs_context.c:684
+ reconfigure_super+0x2eb/0x920 fs/super.c:954
+ do_remount fs/namespace.c:2525 [inline]
+ do_mount+0x1622/0x1c30 fs/namespace.c:3102
+ ksys_mount+0xdb/0x150 fs/namespace.c:3320
+ __do_sys_mount fs/namespace.c:3334 [inline]
+ __se_sys_mount fs/namespace.c:3331 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3331
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8882166435b0
+ which belongs to the cache ext4_system_zone of size 40
+The buggy address is located 24 bytes inside of
+ 40-byte region [ffff8882166435b0, ffff8882166435d8)
+The buggy address belongs to the page:
+page:ffffea00085990c0 refcount:1 mapcount:0 mapping:ffff8880a5cce1c0 index:0xffff888216643fb9
+flags: 0x6fffc0000000200(slab)
+raw: 06fffc0000000200 ffff888219872638 ffff888219872638 ffff8880a5cce1c0
+raw: ffff888216643fb9 ffff888216643000 000000010000001b 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888216643480: fb fc fc fb fb fb fb fb fc fc fb fb fb fb fb fc
+ ffff888216643500: fc fb fb fb fb fb fc fc fb fb fb fb fb fc fc fb
+>ffff888216643580: fb fb fb fb fc fc fb fb fb fb fb fc fc fc fc fc
+                                              ^
+ ffff888216643600: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888216643680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

@@ -1,0 +1,57 @@
+kvm: KVM_SET_TSS_ADDR need to be called before entering vcpu
+==================================================================
+BUG: KASAN: stack-out-of-bounds in write_mmio+0x560/0x600 arch/x86/kvm/x86.c:4669
+Read of size 8 at addr ffff8801c5b87220 by task syzkaller093882/3155
+
+CPU: 0 PID: 3155 Comm: syzkaller093882 Not tainted 4.15.0-rc2-mm1+ #39
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ write_mmio+0x560/0x600 arch/x86/kvm/x86.c:4669
+ emulator_read_write_onepage+0x45a/0xea0 arch/x86/kvm/x86.c:4739
+ emulator_read_write+0xe7/0x540 arch/x86/kvm/x86.c:4788
+ emulator_write_emulated arch/x86/kvm/x86.c:4825 [inline]
+ emulator_fix_hypercall+0x14d/0x1b0 arch/x86/kvm/x86.c:6349
+ em_hypercall+0x5d/0x120 arch/x86/kvm/emulate.c:3705
+ x86_emulate_insn+0x55d/0x3c20 arch/x86/kvm/emulate.c:5498
+ x86_emulate_instruction+0x411/0x1ad0 arch/x86/kvm/x86.c:5756
+ emulate_instruction arch/x86/include/asm/kvm_host.h:1177 [inline]
+ handle_exception+0x3d5/0xa20 arch/x86/kvm/vmx.c:5921
+ vmx_handle_exit+0x25d/0x1ce0 arch/x86/kvm/vmx.c:8887
+ vcpu_enter_guest arch/x86/kvm/x86.c:7068 [inline]
+ vcpu_run arch/x86/kvm/x86.c:7130 [inline]
+ kvm_arch_vcpu_ioctl_run+0x1836/0x5be0 arch/x86/kvm/x86.c:7300
+ kvm_vcpu_ioctl+0x64c/0x1010 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2555
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1530 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x4435c9
+RSP: 002b:00007fff805a07d8 EFLAGS: 00000202 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000205b3000 RCX: 00000000004435c9
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000005
+RBP: 000000000000000b R08: 0000000000000000 R09: 0000000000000002
+R10: 0000000000000012 R11: 0000000000000202 R12: 00000000205b7e00
+R13: 00000000205b6e00 R14: 00000000205b7a00 R15: 00000000205b3000
+
+The buggy address belongs to the page:
+page:0000000068f6483a count:0 mapcount:0 mapping:          (null) index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: 0000000000000000 0000000100000001 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c5b87100: f2 f2 f2 f2 00 f2 f2 f2 f3 f3 f3 f3 00 00 00 00
+ ffff8801c5b87180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801c5b87200: f1 f1 f1 f1 03 f2 f2 f2 f3 f3 f3 f3 00 00 00 00
+                               ^
+ ffff8801c5b87280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801c5b87300: 00 f1 f1 f1 f1 02 f2 f2 f2 f2 f2 f2 f2 00 f2 f2
+==================================================================

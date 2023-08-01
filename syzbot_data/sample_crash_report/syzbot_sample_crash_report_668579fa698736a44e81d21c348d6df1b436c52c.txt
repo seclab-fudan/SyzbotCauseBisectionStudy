@@ -1,0 +1,48 @@
+audit: type=1400 audit(1515733976.513:11): avc:  denied  { map_read map_write } for  pid=3500 comm="syzkaller140992" scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=bpf permissive=1
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 3500 Comm: syzkaller140992 Not tainted 4.15.0-rc7+ #258
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__bpf_prog_put+0x8e/0x580 kernel/bpf/syscall.c:939
+RSP: 0018:ffff8801c00bf718 EFLAGS: 00010a07
+RAX: 1e200036200001b8 RBX: 1ffff10038017ee6 RCX: ffffffff817db4b7
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: f10001b100000dac
+RBP: ffff8801c00bf7f8 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: f10001b100000dac
+R13: f10001b100000dc4 R14: ffff8801c00bf7d0 R15: dffffc0000000000
+FS:  00000000016ac880(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020f01fd4 CR3: 0000000006822005 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ bpf_prog_put+0x1a/0x20 kernel/bpf/syscall.c:950
+ prog_fd_array_put_ptr+0x15/0x20 kernel/bpf/arraymap.c:446
+ fd_array_map_delete_elem kernel/bpf/arraymap.c:420 [inline]
+ bpf_fd_array_map_clear+0xd2/0x140 kernel/bpf/arraymap.c:461
+ bpf_map_put_uref+0x54/0x70 kernel/bpf/syscall.c:224
+ bpf_map_put_with_uref kernel/bpf/syscall.c:248 [inline]
+ bpf_map_release+0x91/0xc0 kernel/bpf/syscall.c:259
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ SYSC_exit_group kernel/exit.c:979 [inline]
+ SyS_exit_group+0x1d/0x20 kernel/exit.c:977
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x440a69
+RSP: 002b:00000000007dff48 EFLAGS: 00000206 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007ffe4e7f1560 RCX: 0000000000440a69
+RDX: 0000000000440a69 RSI: 000000000000002c RDI: 0000000000000001
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000206 R12: 0000000000402240
+R13: 00000000004022d0 R14: 0000000000000000 R15: 0000000000000000
+Code: f1 f1 f1 c7 40 04 00 f2 f2 f2 c7 40 08 f2 f2 f2 f2 c7 40 0c 00 f2 f2 f2 c7 40 10 f3 f3 f3 f3 e8 c9 62 f2 ff 4c 89 e8 48 c1 e8 03 <42> 80 3c 38 00 0f 85 07 04 00 00 49 8b 44 24 18 f0 ff 08 74 3a 
+RIP: __bpf_prog_put+0x8e/0x580 kernel/bpf/syscall.c:939 RSP: ffff8801c00bf718
+---[ end trace 52e969fb65d3fffd ]---

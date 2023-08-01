@@ -1,0 +1,93 @@
+l2tp_core: tunl 4: sockfd_lookup(fd=5) returned -9
+l2tp_core: tunl 4: sockfd_lookup(fd=3) returned -9
+l2tp_core: tunl 4: sockfd_lookup(fd=3) returned -9
+==================================================================
+BUG: KASAN: use-after-free in __read_once_size include/linux/compiler.h:188 [inline]
+BUG: KASAN: use-after-free in sk_dst_get include/net/sock.h:1772 [inline]
+BUG: KASAN: use-after-free in pppol2tp_session_init net/l2tp/l2tp_ppp.c:587 [inline]
+BUG: KASAN: use-after-free in pppol2tp_connect+0x1e60/0x1f60 net/l2tp/l2tp_ppp.c:747
+Read of size 8 at addr ffff8801b11249e8 by task syzkaller717731/21094
+
+CPU: 0 PID: 21094 Comm: syzkaller717731 Not tainted 4.16.0+ #2
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x1b9/0x29f lib/dump_stack.c:53
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0xac/0x2f5 mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ __read_once_size include/linux/compiler.h:188 [inline]
+ sk_dst_get include/net/sock.h:1772 [inline]
+ pppol2tp_session_init net/l2tp/l2tp_ppp.c:587 [inline]
+ pppol2tp_connect+0x1e60/0x1f60 net/l2tp/l2tp_ppp.c:747
+ __sys_connect+0x37d/0x4c0 net/socket.c:1665
+ SYSC_connect net/socket.c:1676 [inline]
+ SyS_connect+0x24/0x30 net/socket.c:1673
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x446b79
+RSP: 002b:00007f93971badb8 EFLAGS: 00000297 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00000000006e29e4 RCX: 0000000000446b79
+RDX: 000000000000002e RSI: 00000000205fafd2 RDI: 0000000000000005
+RBP: 00000000006e29e0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000297 R12: 0000000000000000
+R13: 00007ffcac53731f R14: 00007f93971bb9c0 R15: 0000000000000009
+
+Allocated by task 21094:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:552
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3542
+ sk_prot_alloc+0x69/0x2e0 net/core/sock.c:1468
+ sk_alloc+0x104/0x17b0 net/core/sock.c:1528
+ inet6_create+0x4f0/0x12a0 net/ipv6/af_inet6.c:183
+ __sock_create+0x526/0x920 net/socket.c:1285
+ sock_create net/socket.c:1325 [inline]
+ __sys_socket+0x100/0x250 net/socket.c:1355
+ SYSC_socket net/socket.c:1364 [inline]
+ SyS_socket+0x24/0x30 net/socket.c:1362
+ do_syscall_64+0x29e/0x9d0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 22:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3486 [inline]
+ kmem_cache_free+0x86/0x2d0 mm/slab.c:3744
+ sk_prot_free net/core/sock.c:1509 [inline]
+ __sk_destruct+0x6fe/0xa40 net/core/sock.c:1593
+ sk_destruct+0x78/0x90 net/core/sock.c:1601
+ __sk_free+0x22e/0x340 net/core/sock.c:1612
+ sk_free+0x42/0x50 net/core/sock.c:1623
+ sock_put include/net/sock.h:1664 [inline]
+ l2tp_tunnel_free net/l2tp/l2tp_core.c:160 [inline]
+ l2tp_tunnel_dec_refcount net/l2tp/l2tp_core.h:264 [inline]
+ l2tp_tunnel_del_work+0x669/0x830 net/l2tp/l2tp_core.c:1307
+ process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+ worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+
+The buggy address belongs to the object at ffff8801b11247c0
+ which belongs to the cache UDPv6 of size 1728
+The buggy address is located 552 bytes inside of
+ 1728-byte region [ffff8801b11247c0, ffff8801b1124e80)
+The buggy address belongs to the page:
+page:ffffea0006c44900 count:1 mapcount:0 mapping:ffff8801b1124080 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801b1124080 0000000000000000 0000000100000002
+raw: ffffea00076544a0 ffffea00075a44a0 ffff8801ce537380 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b1124880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801b1124900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801b1124980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                          ^
+ ffff8801b1124a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801b1124a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

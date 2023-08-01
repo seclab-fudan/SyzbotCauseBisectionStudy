@@ -1,0 +1,42 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc5-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+2 locks held by kworker/1:1/27:
+ #0: 
+ffff888011070d38
+ (
+(wq_completion)events_power_efficient
+){+.+.}-{0:0}
+, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+, at: atomic64_set include/asm-generic/atomic-instrumented.h:856 [inline]
+, at: atomic_long_set include/asm-generic/atomic-long.h:41 [inline]
+, at: set_work_data kernel/workqueue.c:617 [inline]
+, at: set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+, at: process_one_work+0x871/0x1600 kernel/workqueue.c:2247
+ #1: 
+ffffc90000e37da8
+ (
+(gc_work).work
+){+.+.}-{0:0}
+, at: process_one_work+0x8a5/0x1600 kernel/workqueue.c:2251
+
+stack backtrace:
+CPU: 1 PID: 27 Comm: kworker/1:1 Not tainted 5.13.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_power_efficient wg_ratelimiter_gc_entries
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ wg_ratelimiter_gc_entries+0x2f1/0x430 drivers/net/wireguard/ratelimiter.c:78
+ process_one_work+0x98d/0x1600 kernel/workqueue.c:2276
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2422
+ kthread+0x3b1/0x4a0 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294

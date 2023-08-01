@@ -1,0 +1,62 @@
+==================================================================
+BUG: KMSAN: uninit-value in __list_add_valid+0x2a3/0x460 lib/list_debug.c:26
+CPU: 1 PID: 7736 Comm: syz-executor019 Not tainted 4.20.0-rc3+ #91
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x32d/0x480 lib/dump_stack.c:113
+ kmsan_report+0x19f/0x300 mm/kmsan/kmsan.c:911
+ __msan_warning+0x76/0xc0 mm/kmsan/kmsan_instr.c:415
+ __list_add_valid+0x2a3/0x460 lib/list_debug.c:26
+ __list_add include/linux/list.h:60 [inline]
+ list_add_tail include/linux/list.h:93 [inline]
+ cma_listen_on_all drivers/infiniband/core/cma.c:2474 [inline]
+ rdma_listen+0x782/0x10a0 drivers/infiniband/core/cma.c:3489
+ ucma_listen+0x32d/0x560 drivers/infiniband/core/ucma.c:1100
+ ucma_write+0x5f9/0x670 drivers/infiniband/core/ucma.c:1689
+ __vfs_write+0x1f4/0xb80 fs/read_write.c:485
+ vfs_write+0x4a3/0x8f0 fs/read_write.c:549
+ ksys_write fs/read_write.c:598 [inline]
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write+0x17a/0x370 fs/read_write.c:607
+ __x64_sys_write+0x4a/0x70 fs/read_write.c:607
+ do_syscall_64+0xcf/0x110 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x440fa9
+Code: e8 cc ab 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 bb 0a fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffcfdcd7db8 EFLAGS: 00000207 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000440fa9
+RDX: 0000000000000010 RSI: 0000000020000000 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000207 R12: 0000000000013804
+R13: 0000000000401f80 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:252 [inline]
+ kmsan_internal_poison_shadow+0xc8/0x1c0 mm/kmsan/kmsan.c:177
+ kmsan_kmalloc+0x98/0xf0 mm/kmsan/kmsan_hooks.c:104
+ kmsan_slab_alloc+0xe/0x10 mm/kmsan/kmsan_hooks.c:113
+ slab_post_alloc_hook mm/slab.h:446 [inline]
+ slab_alloc_node mm/slub.c:2765 [inline]
+ __kmalloc_node_track_caller+0xf62/0x14e0 mm/slub.c:4396
+ __kmalloc_reserve net/core/skbuff.c:138 [inline]
+ __alloc_skb+0x42b/0xeb0 net/core/skbuff.c:206
+ alloc_skb_fclone include/linux/skbuff.h:1040 [inline]
+ sk_stream_alloc_skb+0x236/0xe60 net/ipv4/tcp.c:874
+ tcp_sendmsg_locked+0x2638/0x6c30 net/ipv4/tcp.c:1286
+ tcp_sendmsg+0xb2/0x100 net/ipv4/tcp.c:1443
+ inet_sendmsg+0x4e9/0x800 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:621 [inline]
+ sock_sendmsg net/socket.c:631 [inline]
+ sock_write_iter+0x3f4/0x4f0 net/socket.c:900
+ call_write_iter include/linux/fs.h:1857 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x888/0xb80 fs/read_write.c:487
+ vfs_write+0x4a3/0x8f0 fs/read_write.c:549
+ ksys_write fs/read_write.c:598 [inline]
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write+0x17a/0x370 fs/read_write.c:607
+ __x64_sys_write+0x4a/0x70 fs/read_write.c:607
+ do_syscall_64+0xcf/0x110 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+==================================================================

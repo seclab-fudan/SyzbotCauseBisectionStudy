@@ -1,0 +1,106 @@
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 7845 at net/core/stream.c:207 sk_stream_kill_queues+0x3dd/0x530 net/core/stream.c:207
+Modules linked in:
+CPU: 1 PID: 7845 Comm: syz-executor588 Not tainted 5.15.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:sk_stream_kill_queues+0x3dd/0x530 net/core/stream.c:207
+Code: fa 89 ee 48 89 df e8 02 ae fb ff e9 64 ff ff ff e8 b8 a8 5a fa 0f 0b e9 b2 fe ff ff e8 ac a8 5a fa 0f 0b eb c4 e8 a3 a8 5a fa <0f> 0b eb 86 4c 89 e7 e8 e7 fd a1 fa eb 9e e8 e0 fd a1 fa e9 5f ff
+RSP: 0018:ffffc90000dc0ae8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffff88807bb0c800 RCX: 0000000000000100
+RDX: ffff88806a5d5580 RSI: ffffffff871c446d RDI: 0000000000000003
+RBP: 00000000fffffe80 R08: 0000000000000000 R09: ffff8880b9d32a0b
+R10: ffffffff871c43f3 R11: 0000000000000000 R12: ffff88807bb0ca20
+R13: ffff88807bb0c950 R14: ffff88807bb0c828 R15: ffff88807bb0c830
+FS:  0000000000000000(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffc5a22caf8 CR3: 0000000011f24000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ inet_csk_destroy_sock+0x1a5/0x490 net/ipv4/inet_connection_sock.c:1012
+ tcp_done+0x233/0x330 net/ipv4/tcp.c:4421
+ tcp_write_err net/ipv4/tcp_timer.c:74 [inline]
+ tcp_write_timeout net/ipv4/tcp_timer.c:276 [inline]
+ tcp_retransmit_timer+0x20d2/0x3320 net/ipv4/tcp_timer.c:512
+ tcp_write_timer_handler+0x595/0xad0 net/ipv4/tcp_timer.c:622
+ tcp_write_timer+0xa2/0x2b0 net/ipv4/tcp_timer.c:642
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1421
+ expire_timers kernel/time/timer.c:1466 [inline]
+ __run_timers.part.0+0x675/0xa20 kernel/time/timer.c:1734
+ __run_timers kernel/time/timer.c:1715 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1747
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:636
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:648
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:orc_find arch/x86/kernel/unwind_orc.c:163 [inline]
+RIP: 0010:unwind_next_frame+0x23b/0x1ce0 arch/x86/kernel/unwind_orc.c:443
+Code: 8d 43 ff 39 c6 0f 83 bc 13 00 00 48 b8 00 00 00 00 00 fc ff df 89 f2 48 8d 3c 95 50 54 85 8e 48 89 f9 48 c1 e9 03 0f b6 0c 01 <48> 89 f8 83 e0 07 83 c0 03 38 c8 7c 27 84 c9 74 23 48 89 54 24 30
+RSP: 0018:ffffc900042974f8 EFLAGS: 00000a03
+RAX: dffffc0000000000 RBX: 1ffff92000852ea7 RCX: 0000000000000000
+RDX: 000000000000aed5 RSI: 000000000000aed5 RDI: ffffffff8e880fa4
+RBP: 0000000000000001 R08: ffffffff8b7f83e0 R09: 0000000000000001
+R10: fffff52000852ec5 R11: 0000000000086089 R12: ffffc90004297618
+R13: ffffc90004297605 R14: ffffc900042975d0 R15: ffffffff81aed5d6
+ arch_stack_walk+0x7d/0xe0 arch/x86/kernel/stacktrace.c:25
+ stack_trace_save+0x8c/0xc0 kernel/stacktrace.c:121
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:360
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free mm/kasan/common.c:328 [inline]
+ __kasan_slab_free+0xff/0x130 mm/kasan/common.c:374
+ kasan_slab_free include/linux/kasan.h:230 [inline]
+ slab_free_hook mm/slub.c:1700 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1726
+ slab_free mm/slub.c:3492 [inline]
+ kmem_cache_free+0x95/0x4e0 mm/slub.c:3508
+ remove_vma+0x137/0x170 mm/mmap.c:188
+ exit_mmap+0x268/0x630 mm/mmap.c:3182
+ __mmput+0x122/0x4b0 kernel/fork.c:1115
+ mmput+0x58/0x60 kernel/fork.c:1136
+ exit_mm kernel/exit.c:501 [inline]
+ do_exit+0xabc/0x2a30 kernel/exit.c:812
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ get_signal+0x47f/0x21d0 kernel/signal.c:2855
+ arch_do_signal_or_restart+0x2a9/0x1c40 arch/x86/kernel/signal.c:865
+ handle_signal_work kernel/entry/common.c:148 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x17d/0x290 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:300
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f681fc62389
+Code: Unable to access opcode bytes at RIP 0x7f681fc6235f.
+RSP: 002b:00007f681fbef318 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000001 RBX: 00007f681fceb4d8 RCX: 00007f681fc62389
+RDX: 00000000000f4240 RSI: 0000000000000081 RDI: 00007f681fceb4dc
+RBP: 00007f681fceb4d0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000004 R11: 0000000000000246 R12: 00007f681fcb74a0
+R13: 00007ffc5a22ca9f R14: 00007f681fbef400 R15: 0000000000022000
+----------------
+Code disassembly (best guess):
+   0:	8d 43 ff             	lea    -0x1(%rbx),%eax
+   3:	39 c6                	cmp    %eax,%esi
+   5:	0f 83 bc 13 00 00    	jae    0x13c7
+   b:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  12:	fc ff df
+  15:	89 f2                	mov    %esi,%edx
+  17:	48 8d 3c 95 50 54 85 	lea    -0x717aabb0(,%rdx,4),%rdi
+  1e:	8e
+  1f:	48 89 f9             	mov    %rdi,%rcx
+  22:	48 c1 e9 03          	shr    $0x3,%rcx
+  26:	0f b6 0c 01          	movzbl (%rcx,%rax,1),%ecx
+* 2a:	48 89 f8             	mov    %rdi,%rax <-- trapping instruction
+  2d:	83 e0 07             	and    $0x7,%eax
+  30:	83 c0 03             	add    $0x3,%eax
+  33:	38 c8                	cmp    %cl,%al
+  35:	7c 27                	jl     0x5e
+  37:	84 c9                	test   %cl,%cl
+  39:	74 23                	je     0x5e
+  3b:	48 89 54 24 30       	mov    %rdx,0x30(%rsp)

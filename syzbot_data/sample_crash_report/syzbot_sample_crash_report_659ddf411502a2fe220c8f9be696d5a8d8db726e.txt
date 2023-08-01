@@ -1,0 +1,58 @@
+=====================================================
+BUG: KMSAN: uninit-value in ath9k_htc_rx_msg+0x544/0x980 drivers/net/wireless/ath/ath9k/htc_hst.c:417
+ ath9k_htc_rx_msg+0x544/0x980 drivers/net/wireless/ath/ath9k/htc_hst.c:417
+ ath9k_hif_usb_rx_stream drivers/net/wireless/ath/ath9k/hif_usb.c:653 [inline]
+ ath9k_hif_usb_rx_cb+0x196a/0x1f10 drivers/net/wireless/ath/ath9k/hif_usb.c:686
+ __usb_hcd_giveback_urb+0x522/0x740 drivers/usb/core/hcd.c:1670
+ usb_hcd_giveback_urb+0x150/0x620 drivers/usb/core/hcd.c:1747
+ dummy_timer+0xd3f/0x4f20 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x43/0x480 kernel/time/timer.c:1474
+ expire_timers+0x272/0x610 kernel/time/timer.c:1519
+ __run_timers+0x5bc/0x8c0 kernel/time/timer.c:1790
+ run_timer_softirq+0x64/0xe0 kernel/time/timer.c:1803
+ __do_softirq+0x1cc/0x7fb kernel/softirq.c:571
+ invoke_softirq+0x8f/0x100 kernel/softirq.c:445
+ __irq_exit_rcu kernel/softirq.c:650 [inline]
+ irq_exit_rcu+0x5a/0x110 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x9a/0xc0 arch/x86/kernel/apic/apic.c:1106
+ asm_sysvec_apic_timer_interrupt+0x20/0x30
+ native_safe_halt arch/x86/include/asm/irqflags.h:51 [inline]
+ arch_safe_halt arch/x86/include/asm/irqflags.h:89 [inline]
+ acpi_safe_halt drivers/acpi/processor_idle.c:111 [inline]
+ acpi_idle_do_entry drivers/acpi/processor_idle.c:554 [inline]
+ acpi_idle_enter+0x63b/0x770 drivers/acpi/processor_idle.c:691
+ cpuidle_enter_state+0x83b/0x1620 drivers/cpuidle/cpuidle.c:237
+ cpuidle_enter+0x7b/0xf0 drivers/cpuidle/cpuidle.c:351
+ call_cpuidle kernel/sched/idle.c:155 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:236 [inline]
+ do_idle+0x5f1/0x800 kernel/sched/idle.c:303
+ cpu_startup_entry+0x1d/0x20 kernel/sched/idle.c:400
+ rest_init+0x22a/0x2b0 init/main.c:727
+ start_kernel+0x0/0xba9 init/main.c:885
+ start_kernel+0x9a5/0xba9 init/main.c:1140
+ x86_64_start_reservations+0x2a/0x2c arch/x86/kernel/head64.c:554
+ x86_64_start_kernel+0xf5/0xfa arch/x86/kernel/head64.c:535
+ secondary_startup_64_no_verify+0xcf/0xdb
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:755 [inline]
+ slab_alloc_node mm/slub.c:3258 [inline]
+ __kmalloc_node_track_caller+0x86c/0x1230 mm/slub.c:4995
+ kmalloc_reserve net/core/skbuff.c:354 [inline]
+ __alloc_skb+0x34a/0xd70 net/core/skbuff.c:426
+ __netdev_alloc_skb+0x126/0x780 net/core/skbuff.c:494
+ __dev_alloc_skb include/linux/skbuff.h:3264 [inline]
+ ath9k_hif_usb_rx_stream drivers/net/wireless/ath/ath9k/hif_usb.c:635 [inline]
+ ath9k_hif_usb_rx_cb+0xe7b/0x1f10 drivers/net/wireless/ath/ath9k/hif_usb.c:686
+ __usb_hcd_giveback_urb+0x522/0x740 drivers/usb/core/hcd.c:1670
+ usb_hcd_giveback_urb+0x150/0x620 drivers/usb/core/hcd.c:1747
+ dummy_timer+0xd3f/0x4f20 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x43/0x480 kernel/time/timer.c:1474
+ expire_timers+0x272/0x610 kernel/time/timer.c:1519
+ __run_timers+0x5bc/0x8c0 kernel/time/timer.c:1790
+ run_timer_softirq+0x64/0xe0 kernel/time/timer.c:1803
+ __do_softirq+0x1cc/0x7fb kernel/softirq.c:571
+
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.19.0-rc4-syzkaller-31333-g97117d69c353 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+=====================================================

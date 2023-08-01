@@ -1,0 +1,52 @@
+list_del corruption. prev->next should be ffff0000c9210828, but was ffff80001645dea0. (prev=ffff80001645dea0)
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:61!
+Internal error: Oops - BUG: 00000000f2000800 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 5963 Comm: syz-executor132 Not tainted 6.3.0-rc1-syzkaller-gfe15c26ee26e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __list_del_entry_valid+0x13c/0x158 lib/list_debug.c:59
+lr : __list_del_entry_valid+0x13c/0x158 lib/list_debug.c:59
+sp : ffff80001e3c7890
+x29: ffff80001e3c7890 x28: 1fffe000183a263f x27: 1fffe000183a2635
+x26: ffff0000c1d131a8 x25: ffff0000c04d4f30 x24: ffff0000c84be828
+x23: dfff800000000000 x22: dfff800000000000 x21: ffff80001645dea0
+x20: ffff0000c84be828 x19: ffff0000c9210828 x18: 1fffe000368951b6
+x17: ffff800015cdd000 x16: ffff80001246250c x15: 0000000000000000
+x14: 1ffff00002b9c0b2 x13: dfff800000000000 x12: 0000000000000001
+x11: ff80800008357cc8 x10: 0000000000000000 x9 : 677aeaac7207ac00
+x8 : 677aeaac7207ac00 x7 : ffff80000828dc14 x6 : 0000000000000000
+x5 : 0000000000000001 x4 : 0000000000000001 x3 : ffff80000ab32f98
+x2 : ffff0001b44a90c8 x1 : 0000000100000000 x0 : 000000000000006d
+Call trace:
+ __list_del_entry_valid+0x13c/0x158 lib/list_debug.c:59
+ __list_del_entry include/linux/list.h:134 [inline]
+ list_del include/linux/list.h:148 [inline]
+ efivar_entry_remove+0x38/0x110 fs/efivarfs/vars.c:488
+ efivarfs_destroy+0x20/0x3c fs/efivarfs/super.c:186
+ efivar_entry_iter+0x94/0xdc fs/efivarfs/vars.c:715
+ efivarfs_kill_sb+0x44/0x5c fs/efivarfs/super.c:253
+ deactivate_locked_super+0xac/0x124 fs/super.c:331
+ deactivate_super+0xf0/0x110 fs/super.c:362
+ put_fs_context+0x88/0x790 fs/fs_context.c:465
+ fscontext_release+0x64/0x84 fs/fsopen.c:73
+ __fput+0x30c/0x7bc fs/file_table.c:321
+ ____fput+0x20/0x30 fs/file_table.c:349
+ task_work_run+0x240/0x2f0 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x4fc/0x1a30 kernel/exit.c:869
+ do_group_exit+0x194/0x22c kernel/exit.c:1019
+ __do_sys_exit_group kernel/exit.c:1030 [inline]
+ __se_sys_exit_group kernel/exit.c:1028 [inline]
+ __wake_up_parent+0x0/0x60 kernel/exit.c:1028
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x98/0x2c0 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0x138/0x258 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x168 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+Code: 91120000 aa1303e1 aa1503e3 95e2df44 (d4210000) 
+---[ end trace 0000000000000000 ]---
+pstore: backend (efi_pstore) writing error (-16)

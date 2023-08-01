@@ -1,0 +1,87 @@
+general protection fault, probably for non-canonical address 0xdffffc00000001f6: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000fb0-0x0000000000000fb7]
+CPU: 3 PID: 0 Comm: swapper/3 Not tainted 5.18.0-rc2-syzkaller-00275-g59250f8a7f3a #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+RIP: 0010:ath9k_hif_usb_rx_stream drivers/net/wireless/ath/ath9k/hif_usb.c:589 [inline]
+RIP: 0010:ath9k_hif_usb_rx_cb+0xcfd/0x10d0 drivers/net/wireless/ath/ath9k/hif_usb.c:687
+Code: 48 c1 ea 03 80 3c 02 00 0f 85 cc 03 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b 5b 08 48 8d bb b4 0f 00 00 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 09 84 d2 74 05 e8
+RSP: 0018:ffffc900007f8918 EFLAGS: 00010007
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000100
+RDX: 00000000000001f6 RSI: ffffffff8526f0d9 RDI: 0000000000000fb4
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff8526ee3f R11: 0000000000004e00 R12: 0000000000000000
+R13: ffff888027550000 R14: ffff888026062000 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff88802cd00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020001a80 CR3: 0000000023db6000 CR4: 0000000000150ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __usb_hcd_giveback_urb+0x2b0/0x5c0 drivers/usb/core/hcd.c:1670
+ usb_hcd_giveback_urb+0x367/0x410 drivers/usb/core/hcd.c:1747
+ dummy_timer+0x11f9/0x32b0 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x1a5/0x6b0 kernel/time/timer.c:1421
+ expire_timers kernel/time/timer.c:1466 [inline]
+ __run_timers.part.0+0x67c/0xa30 kernel/time/timer.c:1734
+ __run_timers kernel/time/timer.c:1715 [inline]
+ run_timer_softirq+0xb3/0x1d0 kernel/time/timer.c:1747
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:637
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:649
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:645
+RIP: 0010:default_idle+0xb/0x10 arch/x86/kernel/process.c:734
+Code: ff ff ff 48 89 df e8 84 be 60 f8 e9 55 ff ff ff 4c 89 e7 e8 77 be 60 f8 eb 96 0f 1f 44 00 00 eb 07 0f 00 2d 37 19 64 00 fb f4 <c3> cc cc cc cc 41 55 41 54 55 48 89 fd 53 e8 52 c9 15 f8 e8 dd 19
+RSP: 0018:ffffc9000069fdf8 EFLAGS: 00000206
+RAX: 000000000020bc95 RBX: ffff888011944280 RCX: ffffffff895f9611
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
+RBP: 0000000000000003 R08: 0000000000000001 R09: ffff88802cd3b013
+R10: ffffed10059a7602 R11: 0000000000000000 R12: ffffed1002328850
+R13: 0000000000000003 R14: ffffffff8db6c810 R15: 0000000000000000
+ default_idle_call+0x87/0xd0 kernel/sched/idle.c:109
+ cpuidle_idle_call kernel/sched/idle.c:191 [inline]
+ do_idle+0x401/0x590 kernel/sched/idle.c:303
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:400
+ start_secondary+0x265/0x340 arch/x86/kernel/smpboot.c:266
+ secondary_startup_64_no_verify+0xc3/0xcb
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:ath9k_hif_usb_rx_stream drivers/net/wireless/ath/ath9k/hif_usb.c:589 [inline]
+RIP: 0010:ath9k_hif_usb_rx_cb+0xcfd/0x10d0 drivers/net/wireless/ath/ath9k/hif_usb.c:687
+Code: 48 c1 ea 03 80 3c 02 00 0f 85 cc 03 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b 5b 08 48 8d bb b4 0f 00 00 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 09 84 d2 74 05 e8
+RSP: 0018:ffffc900007f8918 EFLAGS: 00010007
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000100
+RDX: 00000000000001f6 RSI: ffffffff8526f0d9 RDI: 0000000000000fb4
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff8526ee3f R11: 0000000000004e00 R12: 0000000000000000
+R13: ffff888027550000 R14: ffff888026062000 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff88802cd00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020001a80 CR3: 0000000023db6000 CR4: 0000000000150ee0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	48 c1 ea 03          	shr    $0x3,%rdx
+   4:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+   8:	0f 85 cc 03 00 00    	jne    0x3da
+   e:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  15:	fc ff df
+  18:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
+  1c:	48 8d bb b4 0f 00 00 	lea    0xfb4(%rbx),%rdi
+  23:	48 89 fa             	mov    %rdi,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	0f b6 14 02          	movzbl (%rdx,%rax,1),%edx <-- trapping instruction
+  2e:	48 89 f8             	mov    %rdi,%rax
+  31:	83 e0 07             	and    $0x7,%eax
+  34:	83 c0 03             	add    $0x3,%eax
+  37:	38 d0                	cmp    %dl,%al
+  39:	7c 09                	jl     0x44
+  3b:	84 d2                	test   %dl,%dl
+  3d:	74 05                	je     0x44
+  3f:	e8                   	.byte 0xe8

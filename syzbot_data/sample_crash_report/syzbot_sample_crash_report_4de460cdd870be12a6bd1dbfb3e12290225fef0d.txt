@@ -1,0 +1,90 @@
+
+BUG: sleeping function called from invalid context at mm/slab.h:419
+in_atomic(): 1, irqs_disabled(): 0, pid: 6329, name: syz-executor1
+1 lock held by syz-executor1/6329:
+ #0:  (rcu_read_lock){....}, at: [<000000006687deda>] map_get_next_key kernel/bpf/syscall.c:836 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000006687deda>] SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000006687deda>] SyS_bpf+0x1105/0x4860 kernel/bpf/syscall.c:1846
+CPU: 1 PID: 6329 Comm: syz-executor1 Not tainted 4.15.0-rc8+ #1
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ ___might_sleep+0x2b2/0x470 kernel/sched/core.c:6060
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6013
+ slab_pre_alloc_hook mm/slab.h:419 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ __do_kmalloc mm/slab.c:3706 [inline]
+ __kmalloc+0x2c5/0x760 mm/slab.c:3717
+ kmalloc include/linux/slab.h:504 [inline]
+ trie_get_next_key+0x517/0xf10 kernel/bpf/lpm_trie.c:626
+ map_get_next_key kernel/bpf/syscall.c:842 [inline]
+ SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ SyS_bpf+0x11b4/0x4860 kernel/bpf/syscall.c:1846
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x452f19
+RSP: 002b:00007fc9808abc58 EFLAGS: 00000212 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000452f19
+RDX: 0000000000000018 RSI: 000000002001f000 RDI: 0000000000000004
+RBP: 000000000000003c R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006ef640
+R13: 00000000ffffffff R14: 00007fc9808ac6d4 R15: 0000000000000000
+=============================
+WARNING: suspicious RCU usage
+4.15.0-rc8+ #1 Tainted: G        W       
+-----------------------------
+./include/linux/rcupdate.h:302 Illegal context switch in RCU read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by syz-executor3/6330:
+ #0:  (rcu_read_lock){....}, at: [<000000006687deda>] map_get_next_key kernel/bpf/syscall.c:836 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000006687deda>] SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ #0:  (rcu_read_lock){....}, at: [<000000006687deda>] SyS_bpf+0x1105/0x4860 kernel/bpf/syscall.c:1846
+
+stack backtrace:
+CPU: 0 PID: 6330 Comm: syz-executor3 Tainted: G        W        4.15.0-rc8+ #1
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ lockdep_rcu_suspicious+0x123/0x170 kernel/locking/lockdep.c:4585
+ rcu_preempt_sleep_check include/linux/rcupdate.h:301 [inline]
+ ___might_sleep+0x385/0x470 kernel/sched/core.c:6025
+ __might_sleep+0x95/0x190 kernel/sched/core.c:6013
+ slab_pre_alloc_hook mm/slab.h:419 [inline]
+ slab_alloc mm/slab.c:3368 [inline]
+ __do_kmalloc mm/slab.c:3706 [inline]
+ __kmalloc+0x2c5/0x760 mm/slab.c:3717
+ kmalloc include/linux/slab.h:504 [inline]
+ trie_get_next_key+0x517/0xf10 kernel/bpf/lpm_trie.c:626
+ map_get_next_key kernel/bpf/syscall.c:842 [inline]
+ SYSC_bpf kernel/bpf/syscall.c:1881 [inline]
+ SyS_bpf+0x11b4/0x4860 kernel/bpf/syscall.c:1846
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x452f19
+RSP: 002b:00007fd22468cc58 EFLAGS: 00000212 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000452f19
+RDX: 0000000000000018 RSI: 000000002001f000 RDI: 0000000000000004
+RBP: 00000000000003d6 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f4cb0
+R13: 00000000ffffffff R14: 00007fd22468d6d4 R15: 0000000000000000
+tmpfs: No value for mount option './file0'
+tmpfs: No value for mount option './file0'
+tmpfs: No value for mount option ''
+tmpfs: No value for mount option ''
+overlayfs: unrecognized mount option "�E`-YES8�Q�
+m8EX�V�[og����P���US��NC�������c�d�w��k�"���C��D�V�5óG��KE=�f�XN�K��K���{ ��[#\b" or missing value
+overlayfs: unrecognized mount option "�E`-YES8�Q�
+m8EX�V�[og����P���US��NC�������c�d�w��k�"���C��D�V�5óG��KE=�f�XN�K��K���{ ��[#\b" or missing value
+tmpfs: Bad mount option �'0���?CDy�(bD�(g崺
+audit: type=1400 audit(1516722457.762:18): avc:  denied  { map } for  pid=6893 comm="syz-executor2" path="socket:[17616]" dev="sockfs" ino=17616 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=unix_dgram_socket permissive=1
+tmpfs: Bad mount option �'0���?CDy�(bD�(g崺
+audit: type=1400 audit(1516722458.577:19): avc:  denied  { map } for  pid=7007 comm="syz-executor5" path="socket:[18586]" dev="sockfs" ino=18586 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=unix_stream_socket permissive=1
+tmpfs: No value for mount option '|���6D:'
+tmpfs: No value for mount option '|���6D:'
+hrtimer: interrupt took 35356 ns
+tmpfs: No value for mount option '�'
+tmpfs: No value for mount option '�'

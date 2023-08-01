@@ -1,0 +1,62 @@
+BUG: MAX_LOCKDEP_CHAIN_HLOCKS too low!
+turning off the locking correctness validator.
+CPU: 1 PID: 7153 Comm: kworker/u4:24 Not tainted 6.3.0-rc2-syzkaller-00069-g0ddc84d2dd43 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Workqueue: bond391 bond_mii_monitor
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ add_chain_cache kernel/locking/lockdep.c:3698 [inline]
+ lookup_chain_cache_add kernel/locking/lockdep.c:3779 [inline]
+ validate_chain kernel/locking/lockdep.c:3800 [inline]
+ __lock_acquire+0x4433/0x5d40 kernel/locking/lockdep.c:5056
+ lock_acquire kernel/locking/lockdep.c:5669 [inline]
+ lock_acquire+0x1af/0x520 kernel/locking/lockdep.c:5634
+ __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+ _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+ rcu_note_context_switch+0x345/0x1800 kernel/rcu/tree_plugin.h:324
+ __schedule+0x26f/0x5770 kernel/sched/core.c:6522
+ preempt_schedule_irq+0x52/0x90 kernel/sched/core.c:6934
+ irqentry_exit+0x35/0x80 kernel/entry/common.c:432
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
+RIP: 0010:lock_acquire+0x1f3/0x520 kernel/locking/lockdep.c:5637
+Code: ce 9d 7e 83 f8 01 0f 85 b9 02 00 00 9c 58 f6 c4 02 0f 85 a4 02 00 00 48 83 7c 24 08 00 74 01 fb 48 b8 00 00 00 00 00 fc ff df <48> 01 c3 48 c7 03 00 00 00 00 48 c7 43 08 00 00 00 00 48 8b 84 24
+RSP: 0018:ffffc9000ac9fac0 EFLAGS: 00000206
+RAX: dffffc0000000000 RBX: 1ffff92001593f5a RCX: a7397b2def1d2776
+RDX: 1ffff11010261896 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: ffffffff914d9b87
+R10: fffffbfff229b370 R11: 0000000000000000 R12: 0000000000000002
+R13: 0000000000000000 R14: ffffffff8c7956c0 R15: 0000000000000000
+ rcu_lock_acquire include/linux/rcupdate.h:327 [inline]
+ rcu_read_lock include/linux/rcupdate.h:773 [inline]
+ bond_should_notify_peers+0x3c/0x4e0 drivers/net/bonding/bond_main.c:1126
+ bond_mii_monitor+0x167/0x27f0 drivers/net/bonding/bond_main.c:2775
+ process_one_work+0x991/0x15c0 kernel/workqueue.c:2390
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+----------------
+Code disassembly (best guess), 1 bytes skipped:
+   0:	9d                   	popfq
+   1:	7e 83                	jle    0xffffff86
+   3:	f8                   	clc
+   4:	01 0f                	add    %ecx,(%rdi)
+   6:	85 b9 02 00 00 9c    	test   %edi,-0x63fffffe(%rcx)
+   c:	58                   	pop    %rax
+   d:	f6 c4 02             	test   $0x2,%ah
+  10:	0f 85 a4 02 00 00    	jne    0x2ba
+  16:	48 83 7c 24 08 00    	cmpq   $0x0,0x8(%rsp)
+  1c:	74 01                	je     0x1f
+  1e:	fb                   	sti
+  1f:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  26:	fc ff df
+* 29:	48 01 c3             	add    %rax,%rbx <-- trapping instruction
+  2c:	48 c7 03 00 00 00 00 	movq   $0x0,(%rbx)
+  33:	48 c7 43 08 00 00 00 	movq   $0x0,0x8(%rbx)
+  3a:	00
+  3b:	48                   	rex.W
+  3c:	8b                   	.byte 0x8b
+  3d:	84                   	.byte 0x84
+  3e:	24                   	.byte 0x24

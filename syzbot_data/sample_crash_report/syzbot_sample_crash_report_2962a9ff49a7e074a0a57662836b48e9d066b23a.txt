@@ -1,0 +1,417 @@
+name failslab, interval 1, probability 0, space 0, times 0
+kasan: CONFIG_KASAN_INLINE enabled
+CPU: 1 PID: 4798 Comm: syz-executor422 Not tainted 4.17.0+ #104
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+general protection fault: 0000 [#1] SMP KASAN
+Call Trace:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.17.0+ #104
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__delayacct_blkio_end+0x4f/0xc0 kernel/delayacct.c:83
+Code: 48 
+c1 
+ea 03 
+80 
+3c 
+ fail_dump lib/fault-inject.c:51 [inline]
+ should_fail.cold.4+0xa/0x1a lib/fault-inject.c:149
+02 
+00 
+0f 
+85 80 
+00 
+00 
+00 
+48 
+ __should_failslab+0x124/0x180 mm/failslab.c:32
+8b 
+ should_failslab+0x9/0x14 mm/slab_common.c:1553
+9b 
+ slab_pre_alloc_hook mm/slab.h:423 [inline]
+ slab_alloc mm/slab.c:3378 [inline]
+ kmem_cache_alloc+0x2af/0x760 mm/slab.c:3552
+48 
+12 
+ kmem_cache_zalloc include/linux/slab.h:697 [inline]
+ __delayacct_tsk_init+0x20/0x80 kernel/delayacct.c:45
+00 
+ delayacct_tsk_init include/linux/delayacct.h:105 [inline]
+ copy_process.part.39+0x2ba8/0x7250 kernel/fork.c:1687
+00 
+48 
+b8 
+00 
+00 
+00 
+00 
+00 
+fc 
+ff 
+df 
+48 
+8d 
+7b 
+38 
+48 
+89 
+fa 
+48 
+c1 
+ea 
+03 
+<0f> 
+b6 
+04 
+02 
+84 
+c0 74 
+04 3c 
+03 7e 
+51 
+44 8b 
+63 38 
+31 ff 
+41 83 
+e4 01 
+RSP: 0000:ffff8801dae06c28 EFLAGS: 00010002
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffff8801d9778538
+RDX: 0000000000000007 RSI: ffffffff817cba01 RDI: 0000000000000038
+RBP: ffff8801dae06c40 R08: ffffed003b5c46d7 R09: 0000000000000000
+R10: ffff8801dae06d50 R11: ffff8801dae236b3 R12: ffffffff88e75dc0
+R13: ffff8801d9778500 R14: ffff8801d977853c R15: 0000000000000002
+FS:  0000000000000000(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000008e6a000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ copy_process kernel/fork.c:1616 [inline]
+ _do_fork+0x291/0x12a0 kernel/fork.c:2099
+ <IRQ>
+ delayacct_blkio_end include/linux/delayacct.h:128 [inline]
+ try_to_wake_up+0xacb/0x12b0 kernel/sched/core.c:2057
+ default_wake_function+0x30/0x50 kernel/sched/core.c:3742
+ __do_sys_clone kernel/fork.c:2206 [inline]
+ __se_sys_clone kernel/fork.c:2200 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2200
+ autoremove_wake_function+0x80/0x370 kernel/sched/wait.c:373
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ wake_bit_function+0xcb/0x160 kernel/sched/wait_bit.c:30
+ __wake_up_common+0x191/0x740 kernel/sched/wait.c:90
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441519
+Code: 
+e8 
+ac 
+b5 
+02 
+00 
+ __wake_up_common_lock+0x1c2/0x330 kernel/sched/wait.c:119
+48 
+83 
+c4 
+18 
+c3 
+ __wake_up+0xe/0x10 kernel/sched/wait.c:143
+0f 
+ __wake_up_bit+0x1af/0x290 kernel/sched/wait_bit.c:125
+1f 
+80 
+00 
+00 
+00 
+00 
+48 
+89 
+ wake_up_bit+0x3d/0x40 kernel/sched/wait_bit.c:148
+f8 
+ journal_end_buffer_io_sync+0xa4/0xe0 fs/jbd2/commit.c:44
+48 
+ end_bio_bh_io_sync+0xf3/0x140 fs/buffer.c:2969
+89 
+f7 
+ bio_endio+0x530/0x9e0 block/bio.c:1836
+48 
+89 
+d6 
+48 
+89 
+ca 
+4d 
+89 
+ req_bio_endio block/blk-core.c:281 [inline]
+ blk_update_request+0x3b2/0xcd0 block/blk-core.c:3091
+c2 
+4d 
+89 
+c8 
+ scsi_end_request+0xde/0x890 drivers/scsi/scsi_lib.c:672
+4c 
+8b 
+ scsi_io_completion+0xcc6/0x1dd0 drivers/scsi/scsi_lib.c:898
+4c 
+24 
+08 
+0f 
+ scsi_finish_command+0x54a/0x8f0 drivers/scsi/scsi.c:248
+05 
+<48> 
+3d 
+01 
+f0 
+ff 
+ff 
+0f 
+83 
+1b 
+09 
+ scsi_softirq_done+0x3f6/0x4d0 drivers/scsi/scsi_lib.c:1687
+fc 
+ff 
+c3 
+66 
+ __blk_mq_complete_request block/blk-mq.c:583 [inline]
+ blk_mq_complete_request+0x355/0x630 block/blk-mq.c:620
+2e 
+ scsi_mq_done+0xe7/0x450 drivers/scsi/scsi_lib.c:1998
+0f 
+1f 
+84 
+00 
+00 
+ virtscsi_complete_cmd+0x573/0x740 drivers/scsi/virtio_scsi.c:207
+00 
+00 
+ virtscsi_vq_done+0xcb/0x180 drivers/scsi/virtio_scsi.c:223
+RSP: 002b:00007ffc2ba79078 EFLAGS: 00000246
+ ORIG_RAX: 0000000000000038
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000441519
+RDX: 0000000020000440 RSI: 0000000020000340 RDI: 0000000000000000
+RBP: 00007ffc2ba79090 R08: 00000000200004c0 R09: 0000000000000001
+ virtscsi_req_done+0xa7/0xd0 drivers/scsi/virtio_scsi.c:238
+R10: 0000000020000480 R11: 0000000000000246 R12: ffffffffffffffff
+R13: 0000000000000003 R14: 0000000000000000 R15: 0000000000000000
+ vring_interrupt+0x128/0x170 drivers/virtio/virtio_ring.c:950
+ __handle_irq_event_percpu+0x1c8/0xaf0 kernel/irq/handle.c:149
+ handle_irq_event_percpu+0xa0/0x1d0 kernel/irq/handle.c:189
+ handle_irq_event+0xa7/0x135 kernel/irq/handle.c:206
+ handle_edge_irq+0x20f/0x870 kernel/irq/chip.c:791
+ generic_handle_irq_desc include/linux/irqdesc.h:159 [inline]
+ handle_irq+0x18c/0x2e7 arch/x86/kernel/irq_64.c:77
+ do_IRQ+0x78/0x190 arch/x86/kernel/irq.c:245
+ common_interrupt+0xf/0xf arch/x86/entry/entry_64.S:642
+ </IRQ>
+RIP: 0010:native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:54
+Code: c7 48 89 45 d8 e8 6a 91 27 fa 48 8b 45 d8 e9 d2 fe ff ff 48 89 df e8 59 91 27 fa eb 8a 90 90 90 90 90 90 90 55 48 89 e5 fb f4 <5d> c3 0f 1f 84 00 00 00 00 00 55 48 89 e5 f4 5d c3 90 90 90 90 90 
+RSP: 0000:ffffffff88e07bc0 EFLAGS: 00000286 ORIG_RAX: ffffffffffffffda
+RAX: dffffc0000000000 RBX: 1ffffffff11c0f7b RCX: 0000000000000000
+RDX: 1ffffffff11e3600 RSI: 0000000000000001 RDI: ffffffff88f1b000
+RBP: ffffffff88e07bc0 R08: ffffed003b5c46d7 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: ffffffff88e07c78 R14: ffffffff899ea9e0 R15: 0000000000000000
+ arch_safe_halt arch/x86/include/asm/paravirt.h:94 [inline]
+ default_idle+0xc7/0x450 arch/x86/kernel/process.c:500
+ arch_cpu_idle+0x10/0x20 arch/x86/kernel/process.c:491
+ default_idle_call+0x6d/0x90 kernel/sched/idle.c:93
+ cpuidle_idle_call kernel/sched/idle.c:153 [inline]
+ do_idle+0x3aa/0x570 kernel/sched/idle.c:262
+ cpu_startup_entry+0x10c/0x120 kernel/sched/idle.c:368
+ rest_init+0xe1/0xe4 init/main.c:442
+ start_kernel+0x90e/0x949 init/main.c:738
+ x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:452
+ x86_64_start_kernel+0x76/0x79 arch/x86/kernel/head64.c:433
+ secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:242
+Modules linked in:
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.17.0+ #104 Not tainted
+------------------------------------------------------
+swapper/0/0 is trying to acquire lock:
+(____ptrval____) ((console_sem).lock){-...}, at: down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+
+but task is already holding lock:
+(____ptrval____) (&p->pi_lock){-.-.}, at: try_to_wake_up+0xd2/0x12b0 kernel/sched/core.c:1986
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&p->pi_lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       try_to_wake_up+0xd2/0x12b0 kernel/sched/core.c:1986
+       wake_up_process+0x10/0x20 kernel/sched/core.c:2149
+       __up.isra.1+0x1c0/0x2a0 kernel/locking/semaphore.c:262
+       up+0x13c/0x1c0 kernel/locking/semaphore.c:187
+       __up_console_sem+0xbe/0x1b0 kernel/printk/printk.c:242
+       console_unlock+0x7a2/0x10b0 kernel/printk/printk.c:2411
+       vprintk_emit+0x6c6/0xdf0 kernel/printk/printk.c:1907
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1948
+       vprintk_func+0x7a/0xe7 kernel/printk/printk_safe.c:382
+       printk+0xa7/0xcf kernel/printk/printk.c:1981
+       load_umh+0x51/0xbd net/bpfilter/bpfilter_kern.c:99
+       do_one_initcall+0x127/0x913 init/main.c:884
+       do_initcall_level init/main.c:952 [inline]
+       do_initcalls init/main.c:960 [inline]
+       do_basic_setup init/main.c:978 [inline]
+       kernel_init_freeable+0x49b/0x58e init/main.c:1135
+       kernel_init+0x11/0x1b3 init/main.c:1061
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+-> #0 ((console_sem).lock){-...}:
+       lock_acquire+0x1e4/0x540 kernel/locking/lockdep.c:3924
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+       __down_trylock_console_sem+0xae/0x200 kernel/printk/printk.c:225
+       console_trylock+0x15/0xa0 kernel/printk/printk.c:2230
+       console_trylock_spinning kernel/printk/printk.c:1643 [inline]
+       vprintk_emit+0x6ad/0xdf0 kernel/printk/printk.c:1906
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1948
+       vprintk_func+0x7a/0xe7 kernel/printk/printk_safe.c:382
+       printk+0xa7/0xcf kernel/printk/printk.c:1981
+       kasan_die_handler.cold.22+0x11/0x30 arch/x86/mm/kasan_init_64.c:251
+       notifier_call_chain+0x180/0x390 kernel/notifier.c:93
+       __atomic_notifier_call_chain kernel/notifier.c:183 [inline]
+       atomic_notifier_call_chain+0x98/0x190 kernel/notifier.c:193
+       notify_die+0x1be/0x2e0 kernel/notifier.c:549
+       do_general_protection+0x248/0x2f0 arch/x86/kernel/traps.c:559
+       general_protection+0x1e/0x30 arch/x86/entry/entry_64.S:1159
+       __delayacct_blkio_end+0x4f/0xc0 kernel/delayacct.c:83
+       delayacct_blkio_end include/linux/delayacct.h:128 [inline]
+       try_to_wake_up+0xacb/0x12b0 kernel/sched/core.c:2057
+       default_wake_function+0x30/0x50 kernel/sched/core.c:3742
+       autoremove_wake_function+0x80/0x370 kernel/sched/wait.c:373
+       wake_bit_function+0xcb/0x160 kernel/sched/wait_bit.c:30
+       __wake_up_common+0x191/0x740 kernel/sched/wait.c:90
+       __wake_up_common_lock+0x1c2/0x330 kernel/sched/wait.c:119
+       __wake_up+0xe/0x10 kernel/sched/wait.c:143
+       __wake_up_bit+0x1af/0x290 kernel/sched/wait_bit.c:125
+       wake_up_bit+0x3d/0x40 kernel/sched/wait_bit.c:148
+       journal_end_buffer_io_sync+0xa4/0xe0 fs/jbd2/commit.c:44
+       end_bio_bh_io_sync+0xf3/0x140 fs/buffer.c:2969
+       bio_endio+0x530/0x9e0 block/bio.c:1836
+       req_bio_endio block/blk-core.c:281 [inline]
+       blk_update_request+0x3b2/0xcd0 block/blk-core.c:3091
+       scsi_end_request+0xde/0x890 drivers/scsi/scsi_lib.c:672
+       scsi_io_completion+0xcc6/0x1dd0 drivers/scsi/scsi_lib.c:898
+       scsi_finish_command+0x54a/0x8f0 drivers/scsi/scsi.c:248
+       scsi_softirq_done+0x3f6/0x4d0 drivers/scsi/scsi_lib.c:1687
+       __blk_mq_complete_request block/blk-mq.c:583 [inline]
+       blk_mq_complete_request+0x355/0x630 block/blk-mq.c:620
+       scsi_mq_done+0xe7/0x450 drivers/scsi/scsi_lib.c:1998
+       virtscsi_complete_cmd+0x573/0x740 drivers/scsi/virtio_scsi.c:207
+       virtscsi_vq_done+0xcb/0x180 drivers/scsi/virtio_scsi.c:223
+       virtscsi_req_done+0xa7/0xd0 drivers/scsi/virtio_scsi.c:238
+       vring_interrupt+0x128/0x170 drivers/virtio/virtio_ring.c:950
+       __handle_irq_event_percpu+0x1c8/0xaf0 kernel/irq/handle.c:149
+       handle_irq_event_percpu+0xa0/0x1d0 kernel/irq/handle.c:189
+       handle_irq_event+0xa7/0x135 kernel/irq/handle.c:206
+       handle_edge_irq+0x20f/0x870 kernel/irq/chip.c:791
+       generic_handle_irq_desc include/linux/irqdesc.h:159 [inline]
+       handle_irq+0x18c/0x2e7 arch/x86/kernel/irq_64.c:77
+       do_IRQ+0x78/0x190 arch/x86/kernel/irq.c:245
+       ret_from_intr+0x0/0x1e
+       native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:54
+       arch_safe_halt arch/x86/include/asm/paravirt.h:94 [inline]
+       default_idle+0xc7/0x450 arch/x86/kernel/process.c:500
+       arch_cpu_idle+0x10/0x20 arch/x86/kernel/process.c:491
+       default_idle_call+0x6d/0x90 kernel/sched/idle.c:93
+       cpuidle_idle_call kernel/sched/idle.c:153 [inline]
+       do_idle+0x3aa/0x570 kernel/sched/idle.c:262
+       cpu_startup_entry+0x10c/0x120 kernel/sched/idle.c:368
+       rest_init+0xe1/0xe4 init/main.c:442
+       start_kernel+0x90e/0x949 init/main.c:738
+       x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:452
+       x86_64_start_kernel+0x76/0x79 arch/x86/kernel/head64.c:433
+       secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:242
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&p->pi_lock);
+                               lock((console_sem).lock);
+                               lock(&p->pi_lock);
+  lock((console_sem).lock);
+
+ *** DEADLOCK ***
+
+4 locks held by swapper/0/0:
+ #0: (____ptrval____) (&(&virtscsi_vq->vq_lock)->rlock){-.-.}, at: virtscsi_vq_done+0xa5/0x180 drivers/scsi/virtio_scsi.c:219
+ #1: (____ptrval____) (bit_wait_table + i){-.-.}, at: __wake_up_common_lock+0x19e/0x330 kernel/sched/wait.c:118
+ #2: (____ptrval____) (&p->pi_lock){-.-.}, at: try_to_wake_up+0xd2/0x12b0 kernel/sched/core.c:1986
+ #3: (____ptrval____) (rcu_read_lock){....}, at: atomic_notifier_call_chain+0x0/0x190 kernel/notifier.c:329
+
+stack backtrace:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.17.0+ #104
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_circular_bug.isra.36.cold.56+0x1bd/0x27d kernel/locking/lockdep.c:1227
+ check_prev_add kernel/locking/lockdep.c:1867 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1980 [inline]
+ validate_chain kernel/locking/lockdep.c:2421 [inline]
+ __lock_acquire+0x3449/0x5020 kernel/locking/lockdep.c:3435
+ lock_acquire+0x1e4/0x540 kernel/locking/lockdep.c:3924
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+ down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+ __down_trylock_console_sem+0xae/0x200 kernel/printk/printk.c:225
+ console_trylock+0x15/0xa0 kernel/printk/printk.c:2230
+ console_trylock_spinning kernel/printk/printk.c:1643 [inline]
+ vprintk_emit+0x6ad/0xdf0 kernel/printk/printk.c:1906
+ vprintk_default+0x28/0x30 kernel/printk/printk.c:1948
+ vprintk_func+0x7a/0xe7 kernel/printk/printk_safe.c:382
+ printk+0xa7/0xcf kernel/printk/printk.c:1981
+ kasan_die_handler.cold.22+0x11/0x30 arch/x86/mm/kasan_init_64.c:251
+ notifier_call_chain+0x180/0x390 kernel/notifier.c:93
+ __atomic_notifier_call_chain kernel/notifier.c:183 [inline]
+ atomic_notifier_call_chain+0x98/0x190 kernel/notifier.c:193
+ notify_die+0x1be/0x2e0 kernel/notifier.c:549
+ do_general_protection+0x248/0x2f0 arch/x86/kernel/traps.c:559
+ general_protection+0x1e/0x30 arch/x86/entry/entry_64.S:1159
+RIP: 0010:__delayacct_blkio_end+0x4f/0xc0 kernel/delayacct.c:83
+Code: 48 c1 ea 03 80 3c 02 00 0f 85 80 00 00 00 48 8b 9b 48 12 00 00 48 b8 00 00 00 00 00 fc ff df 48 8d 7b 38 48 89 fa 48 c1 ea 03 <0f> b6 04 02 84 c0 74 04 3c 03 7e 51 44 8b 63 38 31 ff 41 83 e4 01 
+RSP: 0000:ffff8801dae06c28 EFLAGS: 00010002
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffff8801d9778538
+RDX: 0000000000000007 RSI: ffffffff817cba01 RDI: 0000000000000038
+RBP: ffff8801dae06c40 R08: ffffed003b5c46d7 R09: 0000000000000000
+R10: ffff8801dae06d50 R11: ffff8801dae236b3 R12: ffffffff88e75dc0
+R13: ffff8801d9778500 R14: ffff8801d977853c R15: 0000000000000002
+ delayacct_blkio_end include/linux/delayacct.h:128 [inline]
+ try_to_wake_up+0xacb/0x12b0 kernel/sched/core.c:2057
+ default_wake_function+0x30/0x50 kernel/sched/core.c:3742
+ autoremove_wake_function+0x80/0x370 kernel/sched/wait.c:373
+ wake_bit_function+0xcb/0x160 kernel/sched/wait_bit.c:30
+ __wake_up_common+0x191/0x740 kernel/sched/wait.c:90
+ __wake_up_common_lock+0x1c2/0x330 kernel/sched/wait.c:119
+ __wake_up+0xe/0x10 kernel/sched/wait.c:143
+ __wake_up_bit+0x1af/0x290 kernel/sched/wait_bit.c:125
+ wake_up_bit+0x3d/0x40 kernel/sched/wait_bit.c:148
+ journal_end_buffer_io
+Lost 167 message(s)!
+---[ end trace 9ef680b141ad1ec6 ]---
+RIP: 0010:__delayacct_blkio_end+0x4f/0xc0 kernel/delayacct.c:83
+Code: 48 c1 ea 03 80 3c 02 00 0f 85 80 00 00 00 48 8b 9b 48 12 00 00 48 b8 00 00 00 00 00 fc ff df 48 8d 7b 38 48 89 fa 48 c1 ea 03 <0f> b6 04 02 84 c0 74 04 3c 03 7e 51 44 8b 63 38 31 ff 41 83 e4 01 
+RSP: 0000:ffff8801dae06c28 EFLAGS: 00010002
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffff8801d9778538
+RDX: 0000000000000007 RSI: ffffffff817cba01 RDI: 0000000000000038
+RBP: ffff8801dae06c40 R08: ffffed003b5c46d7 R09: 0000000000000000
+R10: ffff8801dae06d50 R11: ffff8801dae236b3 R12: ffffffff88e75dc0
+R13: ffff8801d9778500 R14: ffff8801d977853c R15: 0000000000000002
+FS:  0000000000000000(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000008e6a000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

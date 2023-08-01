@@ -1,0 +1,134 @@
+==================================================================
+BUG: KASAN: use-after-free in __wake_up_common+0x637/0x650 kernel/sched/wait.c:100
+Read of size 8 at addr ffff888016095530 by task syz-executor445/3686
+
+CPU: 1 PID: 3686 Comm: syz-executor445 Tainted: G        W         5.17.0-syzkaller-02172-g6b1f86f8e9c7 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0xa5/0x3e0 mm/kasan/report.c:255
+ __kasan_report mm/kasan/report.c:442 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:459
+ __wake_up_common+0x637/0x650 kernel/sched/wait.c:100
+ __wake_up_common_lock+0xd0/0x130 kernel/sched/wait.c:137
+ tty_release+0x657/0x1200 drivers/tty/tty_io.c:1781
+ __fput+0x286/0x9f0 fs/file_table.c:317
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ exit_task_work include/linux/task_work.h:32 [inline]
+ do_exit+0xaff/0x2a30 kernel/exit.c:806
+ do_group_exit+0xd2/0x2f0 kernel/exit.c:936
+ __do_sys_exit_group kernel/exit.c:947 [inline]
+ __se_sys_exit_group kernel/exit.c:945 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:945
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f8acd99dc69
+Code: Unable to access opcode bytes at RIP 0x7f8acd99dc3f.
+RSP: 002b:00007fff6305f8c8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007f8acda12330 RCX: 00007f8acd99dc69
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffffffffffc0 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f8acda12330
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+
+Allocated by task 3674:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:436 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:515 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:474 [inline]
+ __kasan_kmalloc+0xa9/0xd0 mm/kasan/common.c:524
+ kmalloc include/linux/slab.h:584 [inline]
+ io_arm_poll_handler+0x39d/0x940 fs/io_uring.c:6248
+ io_queue_sqe_arm_apoll+0x6d/0x430 fs/io_uring.c:7499
+ __io_queue_sqe fs/io_uring.c:7541 [inline]
+ io_queue_sqe fs/io_uring.c:7568 [inline]
+ io_submit_sqe fs/io_uring.c:7776 [inline]
+ io_submit_sqes+0x7dda/0x9310 fs/io_uring.c:7882
+ __do_sys_io_uring_enter+0x9f1/0x1520 fs/io_uring.c:10924
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 3674:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free+0x166/0x1a0 mm/kasan/common.c:328
+ kasan_slab_free include/linux/kasan.h:215 [inline]
+ slab_free_hook mm/slub.c:1728 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1754
+ slab_free mm/slub.c:3523 [inline]
+ kfree+0xd6/0x4d0 mm/slub.c:4576
+ io_clean_op+0x20a/0xd90 fs/io_uring.c:7137
+ io_dismantle_req fs/io_uring.c:2270 [inline]
+ __io_req_complete_post+0x88c/0xc90 fs/io_uring.c:2108
+ io_req_complete_post+0x56/0x1d0 fs/io_uring.c:2121
+ io_apoll_task_func+0x1df/0x230 fs/io_uring.c:6003
+ handle_tw_list fs/io_uring.c:2480 [inline]
+ tctx_task_work+0x1a2/0x1380 fs/io_uring.c:2514
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ exit_task_work include/linux/task_work.h:32 [inline]
+ do_exit+0xaff/0x2a30 kernel/exit.c:806
+ do_group_exit+0xd2/0x2f0 kernel/exit.c:936
+ __do_sys_exit_group kernel/exit.c:947 [inline]
+ __se_sys_exit_group kernel/exit.c:945 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:945
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff888016095500
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 48 bytes inside of
+ 96-byte region [ffff888016095500, ffff888016095560)
+The buggy address belongs to the page:
+page:ffffea0000582540 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x16095
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea0000794d40 dead000000000003 ffff888010c41780
+raw: 0000000000000000 0000000000200020 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 1, ts 3066425818, free_ts 0
+ prep_new_page mm/page_alloc.c:2382 [inline]
+ get_page_from_freelist+0xba2/0x3df0 mm/page_alloc.c:4123
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5349
+ alloc_page_interleave+0x1e/0x200 mm/mempolicy.c:2107
+ alloc_pages+0x2b1/0x310 mm/mempolicy.c:2257
+ alloc_slab_page mm/slub.c:1799 [inline]
+ allocate_slab+0x26c/0x3c0 mm/slub.c:1944
+ new_slab mm/slub.c:2004 [inline]
+ ___slab_alloc+0x8d0/0xf30 mm/slub.c:3018
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3105
+ slab_alloc_node mm/slub.c:3196 [inline]
+ slab_alloc mm/slub.c:3238 [inline]
+ kmem_cache_alloc_trace+0x310/0x3f0 mm/slub.c:3269
+ kmalloc include/linux/slab.h:584 [inline]
+ kzalloc include/linux/slab.h:717 [inline]
+ pnp_new_resource+0x47/0x180 drivers/pnp/resource.c:501
+ pnp_add_resource+0x19/0x1b0 drivers/pnp/resource.c:514
+ pnpacpi_add_irqresource drivers/pnp/pnpacpi/rsparser.c:106 [inline]
+ pnpacpi_allocated_resource+0x2a1/0x930 drivers/pnp/pnpacpi/rsparser.c:183
+ acpi_walk_resource_buffer+0x194/0x2b2 drivers/acpi/acpica/rsxface.c:547
+ acpi_walk_resources drivers/acpi/acpica/rsxface.c:623 [inline]
+ acpi_walk_resources+0x11b/0x1ca drivers/acpi/acpica/rsxface.c:594
+ pnpacpi_parse_allocated_resource+0xc5/0x130 drivers/pnp/pnpacpi/rsparser.c:280
+ pnpacpi_add_device drivers/pnp/pnpacpi/core.c:258 [inline]
+ pnpacpi_add_device_handler+0x57a/0x745 drivers/pnp/pnpacpi/core.c:295
+ acpi_ns_get_device_callback drivers/acpi/acpica/nsxfeval.c:740 [inline]
+ acpi_ns_get_device_callback+0x3b5/0x411 drivers/acpi/acpica/nsxfeval.c:635
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff888016095400: fa fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff888016095480: 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc
+>ffff888016095500: fa fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+                                     ^
+ ffff888016095580: fa fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff888016095600: fa fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+==================================================================

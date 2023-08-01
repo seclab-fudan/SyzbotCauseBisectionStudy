@@ -1,0 +1,131 @@
+device ifb0 left promiscuous mode
+==================================================================
+BUG: KASAN: use-after-free in x25_kill_by_device net/x25/af_x25.c:217 [inline]
+BUG: KASAN: use-after-free in x25_device_event+0x296/0x2b0 net/x25/af_x25.c:252
+Read of size 8 at addr ffff8880a0356790 by task syz-executor221/7708
+
+CPU: 0 PID: 7708 Comm: syz-executor221 Not tainted 5.0.0+ #15
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ x25_kill_by_device net/x25/af_x25.c:217 [inline]
+ x25_device_event+0x296/0x2b0 net/x25/af_x25.c:252
+ notifier_call_chain+0xc7/0x240 kernel/notifier.c:93
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2e/0x40 kernel/notifier.c:401
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1739
+ call_netdevice_notifiers_extack net/core/dev.c:1751 [inline]
+ call_netdevice_notifiers net/core/dev.c:1765 [inline]
+ __dev_notify_flags+0x1e9/0x2c0 net/core/dev.c:7607
+ dev_change_flags+0x10d/0x170 net/core/dev.c:7643
+ dev_ifsioc+0x5bf/0x990 net/core/dev_ioctl.c:237
+ dev_ioctl+0x1b8/0xc90 net/core/dev_ioctl.c:488
+ sock_do_ioctl+0x1bd/0x300 net/socket.c:995
+ sock_ioctl+0x32b/0x610 net/socket.c:1096
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd6e/0x1390 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4467c9
+Code: e8 0c e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 5b 07 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fb1a6e04d98 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000006dbc58 RCX: 00000000004467c9
+RDX: 0000000020000340 RSI: 0000000000008914 RDI: 0000000000000003
+RBP: 00000000006dbc50 R08: 00007fb1a6e05700 R09: 0000000000000000
+R10: 00007fb1a6e05700 R11: 0000000000000246 R12: 00000000006dbc5c
+R13: 6000030030626669 R14: 0000000000000000 R15: 0000000030626669
+
+Allocated by task 7690:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:511
+ kmem_cache_alloc_trace+0x151/0x760 mm/slab.c:3621
+ kmalloc include/linux/slab.h:545 [inline]
+ x25_link_device_up+0x46/0x3f0 net/x25/x25_link.c:249
+ x25_device_event+0x116/0x2b0 net/x25/af_x25.c:242
+ notifier_call_chain+0xc7/0x240 kernel/notifier.c:93
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2e/0x40 kernel/notifier.c:401
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1739
+ call_netdevice_notifiers_extack net/core/dev.c:1751 [inline]
+ call_netdevice_notifiers net/core/dev.c:1765 [inline]
+ __dev_notify_flags+0x121/0x2c0 net/core/dev.c:7605
+ dev_change_flags+0x10d/0x170 net/core/dev.c:7643
+ dev_ifsioc+0x5bf/0x990 net/core/dev_ioctl.c:237
+ dev_ioctl+0x1b8/0xc90 net/core/dev_ioctl.c:488
+ sock_do_ioctl+0x1bd/0x300 net/socket.c:995
+ sock_ioctl+0x32b/0x610 net/socket.c:1096
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd6e/0x1390 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7696:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3821
+ x25_neigh_put include/net/x25.h:253 [inline]
+ __x25_remove_neigh net/x25/x25_link.c:290 [inline]
+ __x25_remove_neigh+0x187/0x1f0 net/x25/x25_link.c:283
+ x25_link_device_down+0xc7/0x130 net/x25/x25_link.c:308
+ x25_device_event+0x261/0x2b0 net/x25/af_x25.c:254
+ notifier_call_chain+0xc7/0x240 kernel/notifier.c:93
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2e/0x40 kernel/notifier.c:401
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1739
+ call_netdevice_notifiers_extack net/core/dev.c:1751 [inline]
+ call_netdevice_notifiers net/core/dev.c:1765 [inline]
+ __dev_notify_flags+0x1e9/0x2c0 net/core/dev.c:7607
+ dev_change_flags+0x10d/0x170 net/core/dev.c:7643
+ dev_ifsioc+0x5bf/0x990 net/core/dev_ioctl.c:237
+ dev_ioctl+0x1b8/0xc90 net/core/dev_ioctl.c:488
+ sock_do_ioctl+0x1bd/0x300 net/socket.c:995
+ sock_ioctl+0x32b/0x610 net/socket.c:1096
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd6e/0x1390 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8880a0356780
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 16 bytes inside of
+ 256-byte region [ffff8880a0356780, ffff8880a0356880)
+The buggy address belongs to the page:
+page:ffffea000280d580 count:1 mapcount:0 mapping:ffff88812c3f07c0 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea00027d6388 ffffea000280da08 ffff88812c3f07c0
+raw: 0000000000000000 ffff8880a0356000 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a0356680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880a0356700: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8880a0356780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                         ^
+ ffff8880a0356800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880a0356880: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,45 @@
+------------[ cut here ]------------
+refcount_t: saturated; leaking memory.
+WARNING: CPU: 1 PID: 8414 at lib/refcount.c:19 refcount_warn_saturate+0xf4/0x1e0 lib/refcount.c:19
+Modules linked in:
+CPU: 1 PID: 8414 Comm: syz-executor793 Not tainted 5.12.0-rc6-next-20210406-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:refcount_warn_saturate+0xf4/0x1e0 lib/refcount.c:19
+Code: 1d 69 0c e6 09 31 ff 89 de e8 c8 b4 a6 fd 84 db 75 ab e8 0f ae a6 fd 48 c7 c7 e0 52 c2 89 c6 05 49 0c e6 09 01 e8 91 0f 00 05 <0f> 0b eb 8f e8 f3 ad a6 fd 0f b6 1d 33 0c e6 09 31 ff 89 de e8 93
+RSP: 0018:ffffc90000eef388 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff88801bbdd580 RSI: ffffffff815c2e05 RDI: fffff520001dde63
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff815bcc6e R11: 0000000000000000 R12: 1ffff920001dde74
+R13: 0000000090200301 R14: ffff888026e00000 R15: ffffc90000eef3c0
+FS:  0000000001422300(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 0000000012b3b000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __refcount_add_not_zero include/linux/refcount.h:163 [inline]
+ __refcount_inc_not_zero include/linux/refcount.h:227 [inline]
+ refcount_inc_not_zero include/linux/refcount.h:245 [inline]
+ sk_psock_get+0x3b0/0x400 include/linux/skmsg.h:435
+ bpf_exec_tx_verdict+0x11e/0x11a0 net/tls/tls_sw.c:799
+ tls_sw_sendmsg+0xa41/0x1800 net/tls/tls_sw.c:1013
+ inet_sendmsg+0x99/0xe0 net/ipv4/af_inet.c:821
+ sock_sendmsg_nosec net/socket.c:654 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:674
+ sock_write_iter+0x289/0x3c0 net/socket.c:1001
+ call_write_iter include/linux/fs.h:2106 [inline]
+ do_iter_readv_writev+0x46f/0x740 fs/read_write.c:740
+ do_iter_write+0x188/0x670 fs/read_write.c:866
+ vfs_writev+0x1aa/0x630 fs/read_write.c:939
+ do_writev+0x27f/0x300 fs/read_write.c:982
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x43efa9
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe9279f418 EFLAGS: 00000246 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 000000000043efa9
+RDX: 0000000000000001 RSI: 0000000020000100 RDI: 0000000000000003
+RBP: 0000000000402f90 R08: 0000000000400488 R09: 0000000000400488
+R10: 0000000000000038 R11: 0000000000000246 R12: 0000000000403020
+R13: 0000000000000000 R14: 00000000004ac018 R15: 0000000000400488

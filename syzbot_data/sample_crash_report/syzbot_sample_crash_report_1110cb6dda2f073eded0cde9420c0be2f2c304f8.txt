@@ -1,0 +1,101 @@
+bpfilter: read fail -512
+==================================================================
+BUG: KASAN: use-after-free in pipe_lock_nested fs/pipe.c:61 [inline]
+BUG: KASAN: use-after-free in pipe_lock fs/pipe.c:70 [inline]
+BUG: KASAN: use-after-free in pipe_wait+0x251/0x2a0 fs/pipe.c:118
+Read of size 4 at addr ffff8801cda7b85c by task syz-executor3/4603
+
+CPU: 1 PID: 4603 Comm: syz-executor3 Not tainted 4.17.0+ #83
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ pipe_lock_nested fs/pipe.c:61 [inline]
+ pipe_lock fs/pipe.c:70 [inline]
+ pipe_wait+0x251/0x2a0 fs/pipe.c:118
+ pipe_read+0x37c/0x940 fs/pipe.c:333
+ call_read_iter include/linux/fs.h:1785 [inline]
+ new_sync_read fs/read_write.c:406 [inline]
+ __vfs_read+0x696/0xa50 fs/read_write.c:418
+ vfs_read+0x17f/0x3d0 fs/read_write.c:452
+ kernel_read+0xab/0x120 fs/read_write.c:431
+ __bpfilter_process_sockopt+0x238/0x35b net/bpfilter/bpfilter_kern.c:74
+ bpfilter_mbox_request+0x4d/0xb0 net/ipv4/bpfilter/sockopt.c:25
+ bpfilter_ip_get_sockopt+0x6b/0x90 net/ipv4/bpfilter/sockopt.c:42
+ ip_getsockopt+0x238/0x2a0 net/ipv4/ip_sockglue.c:1563
+ tcp_getsockopt+0x93/0xe0 net/ipv4/tcp.c:3532
+ sock_common_getsockopt+0x9a/0xe0 net/core/sock.c:3012
+ __sys_getsockopt+0x1a5/0x370 net/socket.c:1972
+ __do_sys_getsockopt net/socket.c:1983 [inline]
+ __se_sys_getsockopt net/socket.c:1980 [inline]
+ __x64_sys_getsockopt+0xbe/0x150 net/socket.c:1980
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4584ea
+Code: b8 34 01 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 1d 8f fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 49 89 ca b8 37 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 fa 8e fb ff c3 66 0f 1f 84 00 00 00 00 00 
+RSP: 002b:0000000000a3e328 EFLAGS: 00000246 ORIG_RAX: 0000000000000037
+RAX: ffffffffffffffda RBX: 0000000000a3e350 RCX: 00000000004584ea
+RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000013
+RBP: 0000000000706f20 R08: 0000000000a3e34c R09: 0000000000004000
+R10: 0000000000a3e350 R11: 0000000000000246 R12: 0000000000000013
+R13: 0000000000000000 R14: 0000000000000000 R15: 00000000007061a0
+
+Allocated by task 2224:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kmem_cache_alloc_trace+0x152/0x780 mm/slab.c:3620
+ kmalloc include/linux/slab.h:513 [inline]
+ kzalloc include/linux/slab.h:706 [inline]
+ alloc_pipe_info+0x16d/0x580 fs/pipe.c:636
+ get_pipe_inode fs/pipe.c:715 [inline]
+ create_pipe_files+0xd0/0x940 fs/pipe.c:748
+ umh_pipe_setup+0x17b/0x430 kernel/umh.c:442
+ call_usermodehelper_exec_async+0x3c0/0x9e0 kernel/umh.c:93
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+Freed by task 2224:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+ free_pipe_info+0x253/0x300 fs/pipe.c:687
+ put_pipe_info+0xd0/0xf0 fs/pipe.c:559
+ pipe_release+0x1de/0x270 fs/pipe.c:580
+ __fput+0x353/0x890 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x1e4/0x290 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1aee/0x2730 kernel/exit.c:865
+ do_group_exit+0x16f/0x430 kernel/exit.c:968
+ __do_sys_exit_group kernel/exit.c:979 [inline]
+ __se_sys_exit_group kernel/exit.c:977 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:977
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801cda7b780
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 220 bytes inside of
+ 512-byte region [ffff8801cda7b780, ffff8801cda7b980)
+The buggy address belongs to the page:
+page:ffffea0007369ec0 count:1 mapcount:0 mapping:ffff8801cda7b000 index:0xffff8801cda7bc80
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801cda7b000 ffff8801cda7bc80 0000000100000004
+raw: ffffea00074ae260 ffffea00073626e0 ffff8801da800940 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cda7b700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801cda7b780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801cda7b800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff8801cda7b880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801cda7b900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

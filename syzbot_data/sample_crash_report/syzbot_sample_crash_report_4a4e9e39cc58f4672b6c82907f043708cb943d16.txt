@@ -1,0 +1,125 @@
+loop0: detected capacity change from 0 to 4096
+ntfs: volume version 3.1.
+======================================================
+WARNING: possible circular locking dependency detected
+6.2.0-syzkaller-06695-gd8ca6dbb8de7 #0 Not tainted
+------------------------------------------------------
+syz-executor158/5070 is trying to acquire lock:
+ffff888072cf1a50 (&lcnbmp_mrec_lock_key){+.+.}-{3:3}, at: map_mft_record+0x40/0x6c0 fs/ntfs/mft.c:154
+
+but task is already holding lock:
+ffff888027f099f8 (&vol->lcnbmp_lock){+.+.}-{3:3}, at: ntfs_put_super+0x39c/0x1700 fs/ntfs/super.c:2282
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&vol->lcnbmp_lock){+.+.}-{3:3}:
+       down_write+0x92/0x200 kernel/locking/rwsem.c:1573
+       __ntfs_cluster_free+0x12d/0xbe0 fs/ntfs/lcnalloc.c:862
+       ntfs_cluster_free fs/ntfs/lcnalloc.h:96 [inline]
+       ntfs_truncate+0x16c1/0x2a50 fs/ntfs/inode.c:2695
+       ntfs_truncate_vfs fs/ntfs/inode.c:2862 [inline]
+       ntfs_setattr+0x397/0x560 fs/ntfs/inode.c:2914
+       notify_change+0xb2c/0x1180 fs/attr.c:482
+       do_truncate+0x143/0x200 fs/open.c:66
+       handle_truncate fs/namei.c:3219 [inline]
+       do_open fs/namei.c:3564 [inline]
+       path_openat+0x2083/0x2750 fs/namei.c:3715
+       do_file_open_root+0x2cc/0x590 fs/namei.c:3767
+       file_open_root+0x2b1/0x430 fs/open.c:1292
+       do_handle_open+0x327/0x8b0 fs/fhandle.c:232
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&lcnbmp_mrec_lock_key){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3098 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+       validate_chain kernel/locking/lockdep.c:3832 [inline]
+       __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+       lock_acquire kernel/locking/lockdep.c:5669 [inline]
+       lock_acquire+0x1e3/0x670 kernel/locking/lockdep.c:5634
+       __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+       __mutex_lock+0x12f/0x1350 kernel/locking/mutex.c:747
+       map_mft_record+0x40/0x6c0 fs/ntfs/mft.c:154
+       __ntfs_write_inode+0x88/0xc40 fs/ntfs/inode.c:2978
+       ntfs_commit_inode fs/ntfs/inode.h:300 [inline]
+       ntfs_put_super+0xf43/0x1700 fs/ntfs/super.c:2283
+       generic_shutdown_super+0x158/0x480 fs/super.c:491
+       kill_block_super+0x9b/0xf0 fs/super.c:1398
+       deactivate_locked_super+0x98/0x160 fs/super.c:331
+       deactivate_super+0xb1/0xd0 fs/super.c:362
+       cleanup_mnt+0x2ae/0x3d0 fs/namespace.c:1177
+       task_work_run+0x16f/0x270 kernel/task_work.c:179
+       exit_task_work include/linux/task_work.h:38 [inline]
+       do_exit+0xad3/0x2a40 kernel/exit.c:869
+       do_group_exit+0xd4/0x2a0 kernel/exit.c:1019
+       __do_sys_exit_group kernel/exit.c:1030 [inline]
+       __se_sys_exit_group kernel/exit.c:1028 [inline]
+       __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:1028
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&vol->lcnbmp_lock);
+                               lock(&lcnbmp_mrec_lock_key);
+                               lock(&vol->lcnbmp_lock);
+  lock(&lcnbmp_mrec_lock_key);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor158/5070:
+ #0: ffff8880293200e0 (&type->s_umount_key#46){+.+.}-{3:3}, at: deactivate_super+0xa9/0xd0 fs/super.c:361
+ #1: ffff888027f099f8 (&vol->lcnbmp_lock){+.+.}-{3:3}, at: ntfs_put_super+0x39c/0x1700 fs/ntfs/super.c:2282
+
+stack backtrace:
+CPU: 1 PID: 5070 Comm: syz-executor158 Not tainted 6.2.0-syzkaller-06695-gd8ca6dbb8de7 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2178
+ check_prev_add kernel/locking/lockdep.c:3098 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+ validate_chain kernel/locking/lockdep.c:3832 [inline]
+ __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+ lock_acquire kernel/locking/lockdep.c:5669 [inline]
+ lock_acquire+0x1e3/0x670 kernel/locking/lockdep.c:5634
+ __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+ __mutex_lock+0x12f/0x1350 kernel/locking/mutex.c:747
+ map_mft_record+0x40/0x6c0 fs/ntfs/mft.c:154
+ __ntfs_write_inode+0x88/0xc40 fs/ntfs/inode.c:2978
+ ntfs_commit_inode fs/ntfs/inode.h:300 [inline]
+ ntfs_put_super+0xf43/0x1700 fs/ntfs/super.c:2283
+ generic_shutdown_super+0x158/0x480 fs/super.c:491
+ kill_block_super+0x9b/0xf0 fs/super.c:1398
+ deactivate_locked_super+0x98/0x160 fs/super.c:331
+ deactivate_super+0xb1/0xd0 fs/super.c:362
+ cleanup_mnt+0x2ae/0x3d0 fs/namespace.c:1177
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0xad3/0x2a40 kernel/exit.c:869
+ do_group_exit+0xd4/0x2a0 kernel/exit.c:1019
+ __do_sys_exit_group kernel/exit.c:1030 [inline]
+ __se_sys_exit_group kernel/exit.c:1028 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:1028
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fcf8333da29
+Code: Unable to access opcode bytes at 0x7fcf8333d9ff.
+RSP: 002b:00007fff4233dbf8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007fcf833d2330 RCX: 00007fcf8333da29
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000001
+RBP: 0000000000000001 R08: ffffffffffffffc0 R09: 00007fcf833cce40
+R10: 000000000001f1b4 R11: 0000000000000246 R12: 00007fcf833d2330
+R13: 0000000000000001 R14: 

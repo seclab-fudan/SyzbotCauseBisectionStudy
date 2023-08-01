@@ -1,0 +1,105 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ip6_dst_idev include/net/ip6_fib.h:203 [inline]
+BUG: KASAN: slab-out-of-bounds in ip6_xmit+0x2002/0x23f0 net/ipv6/ip6_output.c:264
+Read of size 8 at addr ffff8801b300edb0 by task syz-executor888/4522
+
+CPU: 0 PID: 4522 Comm: syz-executor888 Not tainted 4.17.0-rc4+ #17
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ ip6_dst_idev include/net/ip6_fib.h:203 [inline]
+ ip6_xmit+0x2002/0x23f0 net/ipv6/ip6_output.c:264
+ inet6_csk_xmit+0x377/0x630 net/ipv6/inet6_connection_sock.c:139
+ tcp_transmit_skb+0x1be0/0x3e40 net/ipv4/tcp_output.c:1159
+ tcp_send_syn_data net/ipv4/tcp_output.c:3441 [inline]
+ tcp_connect+0x2207/0x45a0 net/ipv4/tcp_output.c:3480
+ tcp_v4_connect+0x1934/0x1d50 net/ipv4/tcp_ipv4.c:272
+ __inet_stream_connect+0x943/0x1120 net/ipv4/af_inet.c:655
+ tcp_sendmsg_fastopen net/ipv4/tcp.c:1162 [inline]
+ tcp_sendmsg_locked+0x2859/0x3ee0 net/ipv4/tcp.c:1209
+ tcp_sendmsg+0x2f/0x50 net/ipv4/tcp.c:1447
+ inet_sendmsg+0x19f/0x690 net/ipv4/af_inet.c:798
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:639
+ ___sys_sendmsg+0x805/0x940 net/socket.c:2117
+ __sys_sendmsg+0x115/0x270 net/socket.c:2155
+ __do_sys_sendmsg net/socket.c:2164 [inline]
+ __se_sys_sendmsg net/socket.c:2162 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2162
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43ff99
+RSP: 002b:00007ffc00bd1cf8 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043ff99
+RDX: 0000000020000000 RSI: 0000000020000580 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000217 R12: 00000000004018c0
+R13: 0000000000401950 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 0:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ dst_alloc+0xbb/0x1d0 net/core/dst.c:105
+ rt_dst_alloc+0xfa/0x500 net/ipv4/route.c:1556
+ __mkroute_output net/ipv4/route.c:2246 [inline]
+ ip_route_output_key_hash_rcu+0xa45/0x3380 net/ipv4/route.c:2473
+ ip_route_output_key_hash+0x23a/0x390 net/ipv4/route.c:2302
+ __ip_route_output_key include/net/route.h:124 [inline]
+ ip_route_output_flow+0x28/0xc0 net/ipv4/route.c:2557
+ ip_route_output_key include/net/route.h:134 [inline]
+ ip_send_unicast_reply+0x97f/0x1800 net/ipv4/ip_output.c:1572
+ tcp_v4_send_reset+0x1253/0x2900 net/ipv4/tcp_ipv4.c:731
+ tcp_v4_rcv+0x1f0b/0x38d0 net/ipv4/tcp_ipv4.c:1801
+ ip_local_deliver_finish+0x2e3/0xd80 net/ipv4/ip_input.c:215
+ NF_HOOK include/linux/netfilter.h:288 [inline]
+ ip_local_deliver+0x1e1/0x720 net/ipv4/ip_input.c:256
+ dst_input include/net/dst.h:450 [inline]
+ ip_rcv_finish+0x81b/0x2200 net/ipv4/ip_input.c:396
+ NF_HOOK include/linux/netfilter.h:288 [inline]
+ ip_rcv+0x9fe/0x125c net/ipv4/ip_input.c:492
+ __netif_receive_skb_core+0x2468/0x3650 net/core/dev.c:4646
+ __netif_receive_skb+0x2c/0x1e0 net/core/dev.c:4711
+ netif_receive_skb_internal+0x126/0x7b0 net/core/dev.c:4785
+ napi_skb_finish net/core/dev.c:5147 [inline]
+ napi_gro_receive+0x44d/0x5a0 net/core/dev.c:5178
+ receive_buf+0xc64/0x2b90 drivers/net/virtio_net.c:959
+ virtnet_receive drivers/net/virtio_net.c:1214 [inline]
+ virtnet_poll+0x3c8/0xdb5 drivers/net/virtio_net.c:1296
+ napi_poll net/core/dev.c:5789 [inline]
+ net_rx_action+0x7b7/0x1930 net/core/dev.c:5855
+ __do_softirq+0x2e0/0xaf5 kernel/softirq.c:285
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801b300ed00
+ which belongs to the cache ip_dst_cache of size 160
+The buggy address is located 16 bytes to the right of
+ 160-byte region [ffff8801b300ed00, ffff8801b300eda0)
+The buggy address belongs to the page:
+page:ffffea0006cc0380 count:1 mapcount:0 mapping:ffff8801b300e000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801b300e000 0000000000000000 0000000100000010
+raw: ffffea0006b6ec60 ffff8801d65f7748 ffff8801d4400840 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b300ec80: fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801b300ed00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801b300ed80: 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc fc
+                                     ^
+ ffff8801b300ee00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801b300ee80: 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

@@ -1,0 +1,44 @@
+==================================================================
+BUG: KCSAN: data-race in skb_queue_tail / unix_dgram_poll
+
+write to 0xffff8881039f1ce0 of 4 bytes by task 1017 on cpu 1:
+ __skb_insert include/linux/skbuff.h:1943 [inline]
+ __skb_queue_before include/linux/skbuff.h:2048 [inline]
+ __skb_queue_tail include/linux/skbuff.h:2081 [inline]
+ skb_queue_tail+0x80/0xa0 net/core/skbuff.c:3310
+ unix_dgram_sendmsg+0x101e/0x1650 net/unix/af_unix.c:1902
+ sock_sendmsg_nosec net/socket.c:704 [inline]
+ sock_sendmsg net/socket.c:724 [inline]
+ ____sys_sendmsg+0x39a/0x510 net/socket.c:2409
+ ___sys_sendmsg net/socket.c:2463 [inline]
+ __sys_sendmsg+0x242/0x2c0 net/socket.c:2492
+ __do_sys_sendmsg net/socket.c:2501 [inline]
+ __se_sys_sendmsg net/socket.c:2499 [inline]
+ __x64_sys_sendmsg+0x42/0x50 net/socket.c:2499
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xa0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+read to 0xffff8881039f1ce0 of 4 bytes by task 372 on cpu 0:
+ skb_queue_len include/linux/skbuff.h:1874 [inline]
+ unix_recvq_full net/unix/af_unix.c:195 [inline]
+ unix_dgram_poll+0x2bc/0x3e0 net/unix/af_unix.c:3076
+ sock_poll+0x23e/0x260 net/socket.c:1302
+ vfs_poll include/linux/poll.h:90 [inline]
+ ep_item_poll fs/eventpoll.c:846 [inline]
+ ep_send_events fs/eventpoll.c:1685 [inline]
+ ep_poll fs/eventpoll.c:1799 [inline]
+ do_epoll_wait+0x6b7/0xf10 fs/eventpoll.c:2227
+ __do_sys_epoll_wait fs/eventpoll.c:2239 [inline]
+ __se_sys_epoll_wait fs/eventpoll.c:2234 [inline]
+ __x64_sys_epoll_wait+0x119/0x140 fs/eventpoll.c:2234
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x44/0xa0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+value changed: 0x00000000 -> 0x00000001
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 372 Comm: systemd-journal Not tainted 5.14.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

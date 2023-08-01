@@ -1,0 +1,111 @@
+================================
+WARNING: inconsistent lock state
+4.13.0-rc5+ #35 Not tainted
+--------------------------------
+inconsistent {IN-SOFTIRQ-W} -> {SOFTIRQ-ON-W} usage.
+syzkaller704391/3002 [HC0[0]:SC0[0]:HE1:SE1] takes:
+ (slock-AF_INET){+.?...}, at: [<ffffffff83dd98d8>] spin_lock include/linux/spinlock.h:299 [inline]
+ (slock-AF_INET){+.?...}, at: [<ffffffff83dd98d8>] sk_clone_lock+0x438/0x11f0 net/core/sock.c:1654
+{IN-SOFTIRQ-W} state was registered at:
+  mark_irqflags kernel/locking/lockdep.c:2945 [inline]
+  __lock_acquire+0xcbb/0x3dc0 kernel/locking/lockdep.c:3324
+  lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3855
+  __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+  _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:151
+  spin_lock include/linux/spinlock.h:299 [inline]
+  sk_clone_lock+0x438/0x11f0 net/core/sock.c:1654
+  inet_csk_clone_lock+0x92/0x4f0 net/ipv4/inet_connection_sock.c:782
+  tcp_create_openreq_child+0x7e/0x1d70 net/ipv4/tcp_minisocks.c:430
+  tcp_v4_syn_recv_sock+0x113/0x1150 net/ipv4/tcp_ipv4.c:1346
+  tcp_check_req+0xe7f/0x1620 net/ipv4/tcp_minisocks.c:758
+  tcp_v4_rcv+0x168e/0x2df0 net/ipv4/tcp_ipv4.c:1725
+  ip_local_deliver_finish+0x2e2/0xba0 net/ipv4/ip_input.c:216
+  NF_HOOK include/linux/netfilter.h:248 [inline]
+  ip_local_deliver+0x1ce/0x6d0 net/ipv4/ip_input.c:257
+  dst_input include/net/dst.h:477 [inline]
+  ip_rcv_finish+0x8db/0x19c0 net/ipv4/ip_input.c:397
+  NF_HOOK include/linux/netfilter.h:248 [inline]
+  ip_rcv+0xc3f/0x17d0 net/ipv4/ip_input.c:488
+  __netif_receive_skb_core+0x1b05/0x3230 net/core/dev.c:4298
+  __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4336
+  netif_receive_skb_internal+0x16a/0x1a50 net/core/dev.c:4497
+  napi_skb_finish net/core/dev.c:4858 [inline]
+  napi_gro_receive+0x3d0/0x500 net/core/dev.c:4889
+  receive_buf+0xaef/0x5690 drivers/net/virtio_net.c:781
+  virtnet_receive drivers/net/virtio_net.c:1022 [inline]
+  virtnet_poll+0x50b/0xab0 drivers/net/virtio_net.c:1103
+  napi_poll net/core/dev.c:5499 [inline]
+  net_rx_action+0x792/0x1910 net/core/dev.c:5565
+  __do_softirq+0x2f5/0xba3 kernel/softirq.c:284
+  invoke_softirq kernel/softirq.c:364 [inline]
+  irq_exit+0x1cc/0x200 kernel/softirq.c:405
+  exiting_irq arch/x86/include/asm/apic.h:638 [inline]
+  do_IRQ+0xf6/0x190 arch/x86/kernel/irq.c:256
+  ret_from_intr+0x0/0x1e
+  native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:53
+  arch_safe_halt arch/x86/include/asm/paravirt.h:98 [inline]
+  default_idle+0xbf/0x460 arch/x86/kernel/process.c:341
+  arch_cpu_idle+0xa/0x10 arch/x86/kernel/process.c:332
+  default_idle_call+0x36/0x90 kernel/sched/idle.c:98
+  cpuidle_idle_call kernel/sched/idle.c:156 [inline]
+  do_idle+0x256/0x3b0 kernel/sched/idle.c:246
+  cpu_startup_entry+0x18/0x20 kernel/sched/idle.c:351
+  start_secondary+0x277/0x310 arch/x86/kernel/smpboot.c:275
+  verify_cpu+0x0/0xf1
+irq event stamp: 15512
+hardirqs last  enabled at (15510): [<ffffffff81a07a9d>] kmem_cache_free+0x15d/0x280 mm/slab.c:3764
+hardirqs last disabled at (15511): [<ffffffff8141fc6c>] __local_bh_enable_ip+0x5c/0x160 kernel/softirq.c:163
+softirqs last  enabled at (15512): [<ffffffff83685a6d>] tun_rx_batched.isra.42+0x5bd/0x860 include/linux/spinlock.h:339
+softirqs last disabled at (15462): [<ffffffff83685a6d>] tun_rx_batched.isra.42+0x5bd/0x860 include/linux/spinlock.h:339
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(slock-AF_INET);
+  <Interrupt>
+    lock(slock-AF_INET);
+
+ *** DEADLOCK ***
+
+1 lock held by syzkaller704391/3002:
+ #0:  (slock-AF_INET){+.?...}, at: [<ffffffff83dd98d8>] spin_lock include/linux/spinlock.h:299 [inline]
+ #0:  (slock-AF_INET){+.?...}, at: [<ffffffff83dd98d8>] sk_clone_lock+0x438/0x11f0 net/core/sock.c:1654
+
+stack backtrace:
+CPU: 0 PID: 3002 Comm: syzkaller704391 Not tainted 4.13.0-rc5+ #35
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_usage_bug+0x421/0x480 kernel/locking/lockdep.c:2403
+ valid_state kernel/locking/lockdep.c:2416 [inline]
+ mark_lock_irq kernel/locking/lockdep.c:2618 [inline]
+ mark_lock+0xe59/0x13d0 kernel/locking/lockdep.c:3087
+ mark_held_locks+0xaf/0x100 kernel/locking/lockdep.c:2676
+ __trace_hardirqs_on_caller kernel/locking/lockdep.c:2705 [inline]
+ trace_hardirqs_on_caller+0x421/0x5c0 kernel/locking/lockdep.c:2752
+ trace_hardirqs_on+0xd/0x10 kernel/locking/lockdep.c:2759
+ __local_bh_enable_ip+0x9d/0x160 kernel/softirq.c:186
+ local_bh_enable include/linux/bottom_half.h:31 [inline]
+ tun_rx_batched.isra.42+0x5fd/0x860 drivers/net/tun.c:1168
+ tun_get_user+0xde5/0x2910 drivers/net/tun.c:1339
+ tun_chr_write_iter+0xd8/0x190 drivers/net/tun.c:1365
+ call_write_iter include/linux/fs.h:1743 [inline]
+ new_sync_write fs/read_write.c:457 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:470
+ vfs_write+0x189/0x510 fs/read_write.c:518
+ SYSC_write fs/read_write.c:565 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:557
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x401730
+RSP: 002b:00007ffde126d278 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000006d6ee0 RCX: 0000000000401730
+RDX: 0000000000000036 RSI: 0000000020004000 RDI: 0000000000000003
+RBP: 0000000000000086 R08: 0000000000000013 R09: 0000000000000052
+R10: 0000000020016ff0 R11: 0000000000000246 R12: 0000000000402620
+R13: 00000000004026b0 R14: 0000000000000000 R15: 0000000000000000
+BUG: scheduling while atomic: syzkaller704391/3002/0x00000002
+INFO: lockdep is turned off.
+Modules linked in:

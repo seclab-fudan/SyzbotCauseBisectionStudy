@@ -1,0 +1,76 @@
+------------[ cut here ]------------
+refcount_t: increment on 0; use-after-free.
+WARNING: CPU: 0 PID: 17967 at lib/refcount.c:153 refcount_inc_checked+0x5d/0x70 lib/refcount.c:153
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 17967 Comm: syz-executor5 Not tainted 4.20.0-rc7+ #163
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d3/0x2c6 lib/dump_stack.c:113
+ panic+0x2ad/0x55c kernel/panic.c:188
+kobject: 'loop1' (000000007792feef): kobject_uevent_env
+ __warn.cold.8+0x20/0x45 kernel/panic.c:540
+kobject: 'loop1' (000000007792feef): fill_kobj_path: path = '/devices/virtual/block/loop1'
+ report_bug+0x254/0x2d0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:178 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
+ do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:290
+kobject: 'loop1' (000000007792feef): kobject_uevent_env
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:973
+RIP: 0010:refcount_inc_checked+0x5d/0x70 lib/refcount.c:153
+kobject: 'loop1' (000000007792feef): fill_kobj_path: path = '/devices/virtual/block/loop1'
+Code: 1d 73 dd 83 06 31 ff 89 de e8 2f b1 ef fd 84 db 75 df e8 56 b0 ef fd 48 c7 c7 20 c0 60 88 c6 05 53 dd 83 06 01 e8 03 63 b9 fd <0f> 0b eb c3 0f 1f 44 00 00 66 2e 0f 1f 84 00 00 00 00 00 55 48 89
+RSP: 0018:ffff8881c6ae6ce0 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81653f85 RDI: 0000000000000005
+RBP: ffff8881c6ae6ce8 R08: ffff8881d8980440 R09: ffffed103b5c3ef8
+R10: ffffed103b5c3ef8 R11: ffff8881dae1f7c7 R12: 0000000000000000
+R13: 0000000100000fc7 R14: ffff8881c1e12800 R15: dffffc0000000000
+ igmp_start_timer+0xaf/0xe0 net/ipv4/igmp.c:214
+ igmp_mod_timer net/ipv4/igmp.c:252 [inline]
+ igmp_heard_query net/ipv4/igmp.c:1038 [inline]
+ igmp_rcv+0x1a62/0x3220 net/ipv4/igmp.c:1073
+kobject: 'loop1' (000000007792feef): kobject_uevent_env
+kobject: 'loop1' (000000007792feef): fill_kobj_path: path = '/devices/virtual/block/loop1'
+kobject: 'loop0' (0000000084235d76): kobject_uevent_env
+kobject: 'loop0' (0000000084235d76): fill_kobj_path: path = '/devices/virtual/block/loop0'
+kobject: 'loop2' (000000008d10b225): kobject_uevent_env
+ ip_local_deliver_finish+0x2e9/0xda0 net/ipv4/ip_input.c:215
+kobject: 'loop2' (000000008d10b225): fill_kobj_path: path = '/devices/virtual/block/loop2'
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ip_local_deliver+0x1e9/0x750 net/ipv4/ip_input.c:256
+kobject: 'loop4' (000000009b3000f6): kobject_uevent_env
+ dst_input include/net/dst.h:450 [inline]
+ ip_rcv_finish+0x1f9/0x300 net/ipv4/ip_input.c:415
+kobject: 'loop4' (000000009b3000f6): fill_kobj_path: path = '/devices/virtual/block/loop4'
+ NF_HOOK include/linux/netfilter.h:289 [inline]
+ ip_rcv+0xed/0x600 net/ipv4/ip_input.c:524
+ __netif_receive_skb_one_core+0x14d/0x200 net/core/dev.c:4946
+kobject: 'loop3' (00000000df02957e): kobject_uevent_env
+kobject: 'loop3' (00000000df02957e): fill_kobj_path: path = '/devices/virtual/block/loop3'
+ __netif_receive_skb+0x2c/0x1e0 net/core/dev.c:5056
+ netif_receive_skb_internal+0x12c/0x620 net/core/dev.c:5159
+ napi_frags_finish net/core/dev.c:5699 [inline]
+ napi_gro_frags+0x75a/0xc90 net/core/dev.c:5772
+ tun_get_user+0x3189/0x4250 drivers/net/tun.c:1952
+ tun_chr_write_iter+0xb9/0x160 drivers/net/tun.c:1997
+ call_write_iter include/linux/fs.h:1857 [inline]
+ do_iter_readv_writev+0x8b0/0xa80 fs/read_write.c:680
+ do_iter_write+0x185/0x5f0 fs/read_write.c:959
+ vfs_writev+0x1f1/0x360 fs/read_write.c:1004
+ do_writev+0x11a/0x310 fs/read_write.c:1039
+ __do_sys_writev fs/read_write.c:1112 [inline]
+ __se_sys_writev fs/read_write.c:1109 [inline]
+ __x64_sys_writev+0x75/0xb0 fs/read_write.c:1109
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457521
+Code: 75 14 b8 14 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 34 b5 fb ff c3 48 83 ec 08 e8 1a 2d 00 00 48 89 04 24 b8 14 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 63 2d 00 00 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007f2da89ceba0 EFLAGS: 00000293 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 000000000000002a RCX: 0000000000457521
+RDX: 0000000000000001 RSI: 00007f2da89cebf0 RDI: 00000000000000f0
+RBP: 0000000020000640 R08: 00000000000000f0 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000293 R12: 00007f2da89cf6d4
+R13: 00000000004c53b4 R14: 00000000004d9900 R15: 00000000ffffffff
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

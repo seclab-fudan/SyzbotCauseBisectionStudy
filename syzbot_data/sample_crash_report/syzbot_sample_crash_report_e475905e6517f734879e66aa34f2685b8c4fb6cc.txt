@@ -1,0 +1,39 @@
+loop4: detected capacity change from 0 to 1024
+=====================================================
+BUG: KMSAN: uninit-value in strncmp+0x11b/0x180 lib/string.c:307
+ strncmp+0x11b/0x180 lib/string.c:307
+ hfsplus_listxattr+0x996/0x1aa0
+ vfs_listxattr fs/xattr.c:472 [inline]
+ listxattr+0x703/0x780 fs/xattr.c:820
+ path_listxattr fs/xattr.c:844 [inline]
+ __do_sys_llistxattr fs/xattr.c:862 [inline]
+ __se_sys_llistxattr fs/xattr.c:859 [inline]
+ __ia32_sys_llistxattr+0x16d/0x300 fs/xattr.c:859
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:766 [inline]
+ slab_alloc_node mm/slub.c:3452 [inline]
+ __kmem_cache_alloc_node+0x71f/0xce0 mm/slub.c:3491
+ kmalloc_trace+0x4d/0x1f0 mm/slab_common.c:1062
+ kmalloc include/linux/slab.h:580 [inline]
+ hfsplus_listxattr+0x4dc/0x1aa0 fs/hfsplus/xattr.c:702
+ vfs_listxattr fs/xattr.c:472 [inline]
+ listxattr+0x703/0x780 fs/xattr.c:820
+ path_listxattr fs/xattr.c:844 [inline]
+ __do_sys_llistxattr fs/xattr.c:862 [inline]
+ __se_sys_llistxattr fs/xattr.c:859 [inline]
+ __ia32_sys_llistxattr+0x16d/0x300 fs/xattr.c:859
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+CPU: 1 PID: 11511 Comm: syz-executor.4 Not tainted 6.2.0-rc3-syzkaller-79341-g80383273f7a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+=====================================================

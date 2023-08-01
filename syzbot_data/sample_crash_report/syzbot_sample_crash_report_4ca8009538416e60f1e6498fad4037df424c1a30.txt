@@ -1,0 +1,117 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr0: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr_slave_1: link becomes ready
+IPv6: ADDRCONF(NETDEV_UP): vxcan1: link is not ready
+8021q: adding VLAN 0 to HW filter on device batadv0
+==================================================================
+BUG: KASAN: use-after-free in filemap_fault+0x25f5/0x2a00 mm/filemap.c:2559
+Read of size 8 at addr ffff888093f00eb0 by task syz-executor044/7808
+
+CPU: 0 PID: 7808 Comm: syz-executor044 Not tainted 4.20.0-rc7-next-20181224 #1
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ filemap_fault+0x25f5/0x2a00 mm/filemap.c:2559
+ __do_fault+0x176/0x7b0 mm/memory.c:3013
+ do_shared_fault mm/memory.c:3479 [inline]
+ do_fault mm/memory.c:3554 [inline]
+ handle_pte_fault mm/memory.c:3781 [inline]
+ __handle_mm_fault+0x3500/0x55a0 mm/memory.c:3905
+ handle_mm_fault+0x4ec/0xc80 mm/memory.c:3942
+ do_user_addr_fault arch/x86/mm/fault.c:1475 [inline]
+ __do_page_fault+0x5da/0xd60 arch/x86/mm/fault.c:1541
+ do_page_fault+0xe6/0x7d8 arch/x86/mm/fault.c:1572
+ page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1143
+RIP: 0010:copy_user_generic_unrolled+0x89/0xc0 arch/x86/lib/copy_user_64.S:67
+Code: 38 4c 89 47 20 4c 89 4f 28 4c 89 57 30 4c 89 5f 38 48 8d 76 40 48 8d 7f 40 ff c9 75 b6 89 d1 83 e2 07 c1 e9 03 74 12 4c 8b 06 <4c> 89 07 48 8d 76 08 48 8d 7f 08 ff c9 75 ee 21 d2 74 10 89 d1 8a
+RSP: 0018:ffff8880a4ebf3e8 EFLAGS: 00010203
+RAX: ffffed1012581c15 RBX: 000000000000000f RCX: 0000000000000001
+RDX: 0000000000000007 RSI: ffff888092c0e094 RDI: 00000000201a7f08
+RBP: ffff8880a4ebf420 R08: 2030722029383128 R09: ffffed1012581c15
+R10: ffffed1012581c14 R11: ffff888092c0e0a2 R12: 00000000201a7f08
+R13: ffff888092c0e094 R14: 00000000201a7f17 R15: 00007ffffffff000
+ copy_to_user include/linux/uaccess.h:155 [inline]
+ bpf_verifier_vlog+0x15c/0x280 kernel/bpf/verifier.c:254
+ verbose+0x22f/0x280 kernel/bpf/verifier.c:287
+ print_bpf_insn+0x3e9/0x1850 kernel/bpf/disasm.c:215
+ do_check+0x2984/0xb440 kernel/bpf/verifier.c:5734
+ bpf_check+0x536a/0x8760 kernel/bpf/verifier.c:6979
+ bpf_prog_load+0x10da/0x1d00 kernel/bpf/syscall.c:1532
+ __do_sys_bpf+0xeb5/0x43c0 kernel/bpf/syscall.c:2618
+ __se_sys_bpf kernel/bpf/syscall.c:2580 [inline]
+ __x64_sys_bpf+0x73/0xb0 kernel/bpf/syscall.c:2580
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x44ceb9
+Code: e8 2c 19 03 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b 0c fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fdc5bdabce8 EFLAGS: 00000297 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000006e3c98 RCX: 000000000044ceb9
+RDX: 0000000000000048 RSI: 00000000200ba000 RDI: 0000000000000005
+RBP: 00000000006e3c90 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000297 R12: 00000000006e3c9c
+R13: 00007fff5eed725f R14: 00007fdc5bdac9c0 R15: 00000000006e3d8c
+
+Allocated by task 7807:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ kasan_kmalloc mm/kasan/common.c:482 [inline]
+ kasan_kmalloc+0xcf/0xe0 mm/kasan/common.c:455
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:397
+ kmem_cache_alloc+0x12d/0x710 mm/slab.c:3541
+ vm_area_alloc+0x7a/0x1d0 kernel/fork.c:331
+ mmap_region+0x93b/0x1ca0 mm/mmap.c:1756
+ do_mmap+0xa09/0x1220 mm/mmap.c:1559
+ do_mmap_pgoff include/linux/mm.h:2421 [inline]
+ vm_mmap_pgoff+0x20b/0x2b0 mm/util.c:350
+ ksys_mmap_pgoff+0x4f8/0x650 mm/mmap.c:1609
+ __do_sys_mmap arch/x86/kernel/sys_x86_64.c:99 [inline]
+ __se_sys_mmap arch/x86/kernel/sys_x86_64.c:90 [inline]
+ __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:90
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7807:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:444
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:452
+ __cache_free mm/slab.c:3485 [inline]
+ kmem_cache_free+0x86/0x260 mm/slab.c:3747
+ vm_area_free+0x1d/0x30 kernel/fork.c:350
+ remove_vma+0x142/0x180 mm/mmap.c:185
+ remove_vma_list mm/mmap.c:2585 [inline]
+ __do_munmap+0x707/0xed0 mm/mmap.c:2822
+ do_munmap mm/mmap.c:2830 [inline]
+ mmap_region+0x698/0x1ca0 mm/mmap.c:1729
+ do_mmap+0xa09/0x1220 mm/mmap.c:1559
+ do_mmap_pgoff include/linux/mm.h:2421 [inline]
+ vm_mmap_pgoff+0x20b/0x2b0 mm/util.c:350
+ ksys_mmap_pgoff+0x102/0x650 mm/mmap.c:1609
+ __do_sys_mmap arch/x86/kernel/sys_x86_64.c:99 [inline]
+ __se_sys_mmap arch/x86/kernel/sys_x86_64.c:90 [inline]
+ __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:90
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888093f00e70
+ which belongs to the cache vm_area_struct of size 200
+The buggy address is located 64 bytes inside of
+ 200-byte region [ffff888093f00e70, ffff888093f00f38)
+The buggy address belongs to the page:
+page:ffffea00024fc000 count:1 mapcount:0 mapping:ffff88821bc40ac0 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea00024fc508 ffffea000265be48 ffff88821bc40ac0
+raw: 0000000000000000 ffff888093f00000 000000010000000f 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888093f00d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888093f00e00: fb fb fb fb fb fb fc fc fc fc fc fc fc fc fb fb
+>ffff888093f00e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff888093f00f00: fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc fc
+ ffff888093f00f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

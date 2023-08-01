@@ -1,0 +1,82 @@
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
+list_add corruption. prev->next should be next (ffff8801dae26708), but was 0000000000000000. (prev=ffff8801dae26740).
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:28!
+invalid opcode: 0000 [#1] SMP KASAN
+CPU: 0 PID: 5072 Comm: syz-executor741 Not tainted 4.18.0-rc5-next-20180716+ #8
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__list_add_valid.cold.0+0x23/0x25 lib/list_debug.c:26
+Code: e8 9f f2 56 fe eb 97 48 89 d9 48 c7 c7 40 86 1a 88 e8 32 35 ff fd 0f 0b 48 89 f1 48 c7 c7 00 87 1a 88 48 89 de e8 1e 35 ff fd <0f> 0b 4c 89 e2 48 89 de 48 c7 c7 40 88 1a 88 e8 0a 35 ff fd 0f 0b 
+RSP: 0018:ffff8801dae079c0 EFLAGS: 00010086
+RAX: 0000000000000075 RBX: ffff8801dae26708 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81633fc1 RDI: 0000000000000001
+RBP: ffff8801dae079d8 R08: ffff8801c722e540 R09: ffffed003b5c4fc0
+R10: ffffed003b5c4fc0 R11: ffff8801dae27e07 R12: ffff8801dae26740
+R13: ffff8801dae07ab8 R14: ffff8801dae26740 R15: 0000000000000001
+FS:  00007fc2687f2700(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fc2687f1e78 CR3: 00000001a956f000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __list_add include/linux/list.h:60 [inline]
+ list_add_tail include/linux/list.h:93 [inline]
+ __cpu_stop_queue_work kernel/stop_machine.c:72 [inline]
+ cpu_stop_queue_work+0x248/0x460 kernel/stop_machine.c:87
+ stop_one_cpu_nowait+0xd3/0x100 kernel/stop_machine.c:341
+ watchdog_timer_fn+0x93/0x2e0 kernel/watchdog.c:367
+ __run_hrtimer kernel/time/hrtimer.c:1398 [inline]
+ __hrtimer_run_queues+0x3eb/0x10c0 kernel/time/hrtimer.c:1460
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x165/0x730 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:867
+ </IRQ>
+RIP: 0010:do_make_slave fs/pnode.c:102 [inline]
+RIP: 0010:change_mnt_propagation+0x253/0x1470 fs/pnode.c:129
+Code: 89 e7 4c 89 a5 98 fc ff ff 49 be 00 00 00 00 00 fc ff df eb 30 e8 6d af a8 ff 49 8d 7f 20 48 89 f9 48 c1 e9 03 42 80 3c 31 00 <0f> 85 10 0d 00 00 48 8b 85 a0 fc ff ff 49 39 84 24 78 ff ff ff 0f 
+RSP: 0018:ffff8801a5cf7368 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: ffff8801c722e540 RBX: ffff8801abdc3600 RCX: 1ffff10039fba344
+RDX: 0000000000000000 RSI: ffffffff81d3c0e3 RDI: ffff8801cfdd1a20
+RBP: ffff8801a5cf7708 R08: ffff8801c722e540 R09: fffffbfff1209364
+R10: fffffbfff1209364 R11: ffffffff89049b23 R12: ffff8801cfdd1aa8
+R13: ffff8801abdc36a8 R14: dffffc0000000000 R15: ffff8801cfdd1a00
+ umount_tree+0x758/0x1270 fs/namespace.c:1394
+ attach_recursive_mnt+0x91a/0xb70 fs/namespace.c:1951
+ graft_tree+0x1aa/0x240 fs/namespace.c:2015
+ do_loopback fs/namespace.c:2143 [inline]
+ do_mount+0x1a90/0x1fb0 fs/namespace.c:2883
+ ksys_mount+0x12d/0x140 fs/namespace.c:3105
+ __do_sys_mount fs/namespace.c:3119 [inline]
+ __se_sys_mount fs/namespace.c:3116 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3116
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4471d9
+Code: e8 cc e5 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 3b 06 fc ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007fc2687f1da8 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00000000006ddc84 RCX: 00000000004471d9
+RDX: 0000000020753000 RSI: 0000000020000880 RDI: 0000000020000100
+RBP: 00000000006ddc80 R08: 0000000020000640 R09: 0000000000000000
+R10: 0000000000005010 R11: 0000000000000246 R12: 0030656c69662f2e
+R13: 2f30656c69662f2e R14: 69662f30656c6966 R15: 000000000000000a
+Modules linked in:
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+---[ end trace 8894ce5e0173a58d ]---
+RIP: 0010:__list_add_valid.cold.0+0x23/0x25 lib/list_debug.c:26
+Code: e8 9f f2 56 fe eb 97 48 89 d9 48 c7 c7 40 86 1a 88 e8 32 35 ff fd 0f 0b 48 89 f1 48 c7 c7 00 87 1a 88 48 89 de e8 1e 35 ff fd <0f> 0b 4c 89 e2 48 89 de 48 c7 c7 40 88 1a 88 e8 0a 35 ff fd 0f 0b 
+RSP: 0018:ffff8801dae079c0 EFLAGS: 00010086
+RAX: 0000000000000075 RBX: ffff8801dae26708 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81633fc1 RDI: 0000000000000001
+RBP: ffff8801dae079d8 R08: ffff8801c722e540 R09: ffffed003b5c4fc0
+R10: ffffed003b5c4fc0 R11: ffff8801dae27e07 R12: ffff8801dae26740
+R13: ffff8801dae07ab8 R14: ffff8801dae26740 R15: 0000000000000001
+FS:  00007fc2687f2700(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fc2687f1e78 CR3: 00000001a956f000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

@@ -1,0 +1,37 @@
+==================================================================
+BUG: KMSAN: uninit-value in strlen lib/string.c:482 [inline]
+BUG: KMSAN: uninit-value in strlcpy+0x68/0x1c0 lib/string.c:142
+CPU: 1 PID: 4514 Comm: syz-executor022 Not tainted 4.16.0+ #87
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:53
+ kmsan_report+0x142/0x240 mm/kmsan/kmsan.c:1067
+ __msan_warning_32+0x6c/0xb0 mm/kmsan/kmsan_instr.c:683
+ strlen lib/string.c:482 [inline]
+ strlcpy+0x68/0x1c0 lib/string.c:142
+ vti6_tnl_create net/ipv6/ip6_vti.c:216 [inline]
+ vti6_locate net/ipv6/ip6_vti.c:278 [inline]
+ vti6_ioctl+0x1cea/0x3410 net/ipv6/ip6_vti.c:809
+ dev_ifsioc+0x8a8/0x10c0 net/core/dev_ioctl.c:334
+ dev_ioctl+0xc3e/0x1cf0 net/core/dev_ioctl.c:525
+ sock_ioctl+0x744/0xca0 net/socket.c:1015
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0xaf0/0x2440 fs/ioctl.c:686
+ SYSC_ioctl+0x1d2/0x260 fs/ioctl.c:701
+ SyS_ioctl+0x54/0x80 fs/ioctl.c:692
+ do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+RIP: 0033:0x43fe59
+RSP: 002b:00007ffeb63ff5b8 EFLAGS: 00000286 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fe59
+RDX: 0000000020000000 RSI: 08000000000089f1 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000286 R12: 0000000000401780
+R13: 0000000000401810 R14: 0000000000000000 R15: 0000000000000000
+
+Local variable description: ----p1@vti6_ioctl
+Variable was created at:
+ vti6_ioctl+0xc1/0x3410 net/ipv6/ip6_vti.c:771
+ dev_ifsioc+0x8a8/0x10c0 net/core/dev_ioctl.c:334
+==================================================================

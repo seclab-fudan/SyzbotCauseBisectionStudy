@@ -1,0 +1,85 @@
+device syz3 left promiscuous mode
+device syz3 entered promiscuous mode
+==================================================================
+BUG: KASAN: use-after-free in sock_release+0x1c6/0x1e0 net/socket.c:601
+Read of size 8 at addr ffff8801c8dd1d10 by task syz-executor4/31085
+
+CPU: 0 PID: 31085 Comm: syz-executor4 Not tainted 4.14.0+ #129
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ sock_release+0x1c6/0x1e0 net/socket.c:601
+ sock_close+0x16/0x20 net/socket.c:1125
+ __fput+0x333/0x7f0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ae0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x73f/0x16c0 kernel/signal.c:2335
+ do_signal+0x94/0x1ee0 arch/x86/kernel/signal.c:809
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x94/0x96
+RIP: 0033:0x452879
+RSP: 002b:00007fb1c2435ce8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 0000000000758100 RCX: 0000000000452879
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000758100
+RBP: 0000000000758100 R08: 0000000000000304 R09: 00000000007580d8
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000a6f7ff R14: 00007fb1c24369c0 R15: 000000000000000e
+
+Allocated by task 31066:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3613
+ kmalloc include/linux/slab.h:499 [inline]
+ sock_alloc_inode+0xb4/0x300 net/socket.c:253
+ alloc_inode+0x65/0x180 fs/inode.c:208
+ new_inode_pseudo+0x69/0x190 fs/inode.c:890
+ sock_alloc+0x41/0x270 net/socket.c:565
+ __sock_create+0x148/0x850 net/socket.c:1225
+ sock_create net/socket.c:1301 [inline]
+ SYSC_socket net/socket.c:1331 [inline]
+ SyS_socket+0xeb/0x200 net/socket.c:1311
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 3039:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3491 [inline]
+ kfree+0xca/0x250 mm/slab.c:3806
+ __rcu_reclaim kernel/rcu/rcu.h:190 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2758 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:3012 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2979 [inline]
+ rcu_process_callbacks+0xe79/0x17d0 kernel/rcu/tree.c:2996
+ __do_softirq+0x29d/0xbb2 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801c8dd1cc0
+ which belongs to the cache kmalloc-128 of size 128
+The buggy address is located 80 bytes inside of
+ 128-byte region [ffff8801c8dd1cc0, ffff8801c8dd1d40)
+The buggy address belongs to the page:
+page:ffffea0007237440 count:1 mapcount:0 mapping:ffff8801c8dd1000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801c8dd1000 0000000000000000 0000000100000015
+raw: ffffea0007086320 ffffea00070588a0 ffff8801db000640 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c8dd1c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c8dd1c80: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>ffff8801c8dd1d00: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                         ^
+ ffff8801c8dd1d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c8dd1e00: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+==================================================================

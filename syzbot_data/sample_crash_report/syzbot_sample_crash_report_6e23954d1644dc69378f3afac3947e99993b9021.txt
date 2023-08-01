@@ -1,0 +1,222 @@
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x405b/0x5d40 kernel/locking/lockdep.c:4926
+Read of size 8 at addr ffff888072212418 by task syz-executor.1/5256
+
+CPU: 0 PID: 5256 Comm: syz-executor.1 Not tainted 6.2.0-syzkaller-06742-g307e14c03906 #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ print_address_description.constprop.0+0x28/0x370 mm/kasan/report.c:306
+ print_report mm/kasan/report.c:417 [inline]
+ kasan_report+0x11c/0x130 mm/kasan/report.c:517
+ __lock_acquire+0x405b/0x5d40 kernel/locking/lockdep.c:4926
+ lock_acquire kernel/locking/lockdep.c:5669 [inline]
+ lock_acquire+0x1e3/0x670 kernel/locking/lockdep.c:5634
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x3d/0x60 kernel/locking/spinlock.c:162
+ p9_tag_remove net/9p/client.c:390 [inline]
+ p9_req_put net/9p/client.c:398 [inline]
+ p9_req_put+0xca/0x250 net/9p/client.c:395
+ req_done+0x1e2/0x2e0 net/9p/trans_virtio.c:147
+ vring_interrupt drivers/virtio/virtio_ring.c:2470 [inline]
+ vring_interrupt+0x2a1/0x3d0 drivers/virtio/virtio_ring.c:2445
+ __handle_irq_event_percpu+0x264/0x9f0 kernel/irq/handle.c:158
+ handle_irq_event_percpu kernel/irq/handle.c:193 [inline]
+ handle_irq_event+0xab/0x1e0 kernel/irq/handle.c:210
+ handle_edge_irq+0x263/0xd00 kernel/irq/chip.c:819
+ generic_handle_irq_desc include/linux/irqdesc.h:158 [inline]
+ handle_irq arch/x86/kernel/irq.c:231 [inline]
+ __common_interrupt+0xa1/0x220 arch/x86/kernel/irq.c:250
+ common_interrupt+0xa8/0xd0 arch/x86/kernel/irq.c:240
+ </IRQ>
+ <TASK>
+ asm_common_interrupt+0x26/0x40 arch/x86/include/asm/idtentry.h:640
+RIP: 0010:arch_atomic_add_negative arch/x86/include/asm/atomic.h:152 [inline]
+RIP: 0010:atomic_add_negative include/linux/atomic/atomic-instrumented.h:592 [inline]
+RIP: 0010:page_remove_rmap+0x72/0x1210 mm/rmap.c:1401
+Code: ff 45 85 ed 0f 85 b5 06 00 00 e8 69 2f bd ff 48 89 ef e8 41 b3 15 00 48 8d 7d 30 be 04 00 00 00 e8 e3 f6 0d 00 f0 83 45 30 ff <41> 0f 98 c6 31 ff 44 89 f6 e8 a0 2b bd ff 45 84 f6 0f 84 6a 03 00
+RSP: 0018:ffffc900049776b8 EFLAGS: 00000213
+RAX: 0000000000000001 RBX: 0000000000000000 RCX: ffffffff81c69f7d
+RDX: fffff94000240d67 RSI: 0000000000000004 RDI: ffffea0001206b30
+RBP: ffffea0001206b00 R08: 0000000000000001 R09: ffffea0001206b33
+R10: fffff94000240d66 R11: 0000000000000000 R12: ffff8880277c21c0
+R13: 0000000000000000 R14: dffffc0000000000 R15: ffffea0001206b08
+ zap_pte_range mm/memory.c:1401 [inline]
+ zap_pmd_range mm/memory.c:1525 [inline]
+ zap_pud_range mm/memory.c:1554 [inline]
+ zap_p4d_range mm/memory.c:1575 [inline]
+ unmap_page_range+0x20e0/0x3cc0 mm/memory.c:1596
+ unmap_single_vma+0x190/0x2a0 mm/memory.c:1642
+ unmap_vmas+0x226/0x370 mm/memory.c:1681
+ exit_mmap+0x18d/0x7c0 mm/mmap.c:3089
+ __mmput+0x128/0x4c0 kernel/fork.c:1212
+ mmput+0x60/0x70 kernel/fork.c:1234
+ exit_mm kernel/exit.c:563 [inline]
+ do_exit+0x9d7/0x2a40 kernel/exit.c:856
+ do_group_exit+0xd4/0x2a0 kernel/exit.c:1019
+ get_signal+0x2315/0x25b0 kernel/signal.c:2859
+ arch_do_signal_or_restart+0x79/0x5c0 arch/x86/kernel/signal.c:306
+ exit_to_user_mode_loop kernel/entry/common.c:168 [inline]
+ exit_to_user_mode_prepare+0x15f/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7ff051c8c0f9
+Code: Unable to access opcode bytes at 0x7ff051c8c0cf.
+RSP: 002b:00007ff052a24218 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 00007ff051dabf88 RCX: 00007ff051c8c0f9
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 00007ff051dabf88
+RBP: 00007ff051dabf80 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ff051dabf8c
+R13: 00007ffc627803ff R14: 00007ff052a24300 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 5255:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:374 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:333 [inline]
+ __kasan_kmalloc+0xa3/0xb0 mm/kasan/common.c:383
+ kmalloc include/linux/slab.h:580 [inline]
+ p9_client_create+0xb3/0x1140 net/9p/client.c:975
+ v9fs_session_init+0x1e6/0x1900 fs/9p/v9fs.c:407
+ v9fs_mount+0xbe/0xca0 fs/9p/vfs_super.c:125
+ legacy_get_tree+0x109/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x8d/0x350 fs/super.c:1501
+ do_new_mount fs/namespace.c:3031 [inline]
+ path_mount+0x1342/0x1e40 fs/namespace.c:3361
+ do_mount fs/namespace.c:3374 [inline]
+ __do_sys_mount fs/namespace.c:3583 [inline]
+ __se_sys_mount fs/namespace.c:3560 [inline]
+ __x64_sys_mount+0x283/0x300 fs/namespace.c:3560
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 5255:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2b/0x40 mm/kasan/generic.c:523
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x13b/0x1a0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ __cache_free mm/slab.c:3396 [inline]
+ __do_kmem_cache_free mm/slab.c:3582 [inline]
+ __kmem_cache_free+0xcd/0x2c0 mm/slab.c:3589
+ p9_client_create+0x7cc/0x1140 net/9p/client.c:1046
+ v9fs_session_init+0x1e6/0x1900 fs/9p/v9fs.c:407
+ v9fs_mount+0xbe/0xca0 fs/9p/vfs_super.c:125
+ legacy_get_tree+0x109/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x8d/0x350 fs/super.c:1501
+ do_new_mount fs/namespace.c:3031 [inline]
+ path_mount+0x1342/0x1e40 fs/namespace.c:3361
+ do_mount fs/namespace.c:3374 [inline]
+ __do_sys_mount fs/namespace.c:3583 [inline]
+ __se_sys_mount fs/namespace.c:3560 [inline]
+ __x64_sys_mount+0x283/0x300 fs/namespace.c:3560
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Last potentially related work creation:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0x7b/0x90 mm/kasan/generic.c:493
+ __call_rcu_common.constprop.0+0x99/0x870 kernel/rcu/tree.c:2622
+ fib6_info_release include/net/ip6_fib.h:340 [inline]
+ fib6_info_release include/net/ip6_fib.h:337 [inline]
+ fixup_permanent_addr net/ipv6/addrconf.c:3496 [inline]
+ addrconf_permanent_addr net/ipv6/addrconf.c:3524 [inline]
+ addrconf_notify+0x153c/0x19f0 net/ipv6/addrconf.c:3596
+ notifier_call_chain+0xb5/0x200 kernel/notifier.c:87
+ call_netdevice_notifiers_info+0xb5/0x130 net/core/dev.c:1937
+ call_netdevice_notifiers_extack net/core/dev.c:1975 [inline]
+ call_netdevice_notifiers net/core/dev.c:1989 [inline]
+ __dev_notify_flags+0x120/0x2d0 net/core/dev.c:8564
+ dev_change_flags+0x11b/0x170 net/core/dev.c:8602
+ do_setlink+0x9f4/0x3d30 net/core/rtnetlink.c:2833
+ __rtnl_newlink+0xd69/0x1840 net/core/rtnetlink.c:3623
+ rtnl_newlink+0x68/0xa0 net/core/rtnetlink.c:3670
+ rtnetlink_rcv_msg+0x43d/0xd50 net/core/rtnetlink.c:6174
+ netlink_rcv_skb+0x165/0x440 net/netlink/af_netlink.c:2574
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1365
+ netlink_sendmsg+0x925/0xe30 net/netlink/af_netlink.c:1942
+ sock_sendmsg_nosec net/socket.c:722 [inline]
+ sock_sendmsg+0xde/0x190 net/socket.c:745
+ __sys_sendto+0x23a/0x340 net/socket.c:2145
+ __do_sys_sendto net/socket.c:2157 [inline]
+ __se_sys_sendto net/socket.c:2153 [inline]
+ __x64_sys_sendto+0xe1/0x1b0 net/socket.c:2153
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff888072212400
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 24 bytes inside of
+ 512-byte region [ffff888072212400, ffff888072212600)
+
+The buggy address belongs to the physical page:
+page:ffffea0001c88480 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x72212
+flags: 0x4fff00000000200(slab|node=1|zone=1|lastcpupid=0x7ff)
+raw: 04fff00000000200 ffff888012440600 ffffea0001c88410 ffffea0001c884d0
+raw: 0000000000000000 ffff888072212000 0000000100000004 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x40cc0(GFP_KERNEL|__GFP_COMP), pid 5171, tgid 5171 (syz-executor.1), ts 261761897786, free_ts 0
+ prep_new_page mm/page_alloc.c:2531 [inline]
+ get_page_from_freelist+0x119c/0x2d00 mm/page_alloc.c:4283
+ __alloc_pages+0x1cb/0x5c0 mm/page_alloc.c:5549
+ __alloc_pages_node include/linux/gfp.h:237 [inline]
+ kmem_getpages mm/slab.c:1363 [inline]
+ cache_grow_begin+0x9b/0x3b0 mm/slab.c:2576
+ fallback_alloc+0x1e2/0x2d0 mm/slab.c:3119
+ __do_cache_alloc mm/slab.c:3223 [inline]
+ slab_alloc_node mm/slab.c:3256 [inline]
+ __kmem_cache_alloc_node+0x105/0x3f0 mm/slab.c:3546
+ kmalloc_trace+0x26/0x60 mm/slab_common.c:1062
+ kmalloc include/linux/slab.h:580 [inline]
+ kzalloc include/linux/slab.h:720 [inline]
+ fib6_info_alloc+0xc9/0x220 net/ipv6/ip6_fib.c:155
+ ip6_route_info_create+0x341/0x1980 net/ipv6/route.c:3742
+ ip6_route_add+0x28/0x150 net/ipv6/route.c:3836
+ addrconf_add_mroute+0x1e0/0x350 net/ipv6/addrconf.c:2489
+ addrconf_add_dev+0x156/0x1c0 net/ipv6/addrconf.c:2507
+ inet6_addr_add+0x19f/0xae0 net/ipv6/addrconf.c:2937
+ inet6_rtm_newaddr+0xfa8/0x1a60 net/ipv6/addrconf.c:4932
+ rtnetlink_rcv_msg+0x43d/0xd50 net/core/rtnetlink.c:6174
+ netlink_rcv_skb+0x165/0x440 net/netlink/af_netlink.c:2574
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1365
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff888072212300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888072212380: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888072212400: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff888072212480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888072212500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
+----------------
+Code disassembly (best guess):
+   0:	ff 45 85             	incl   -0x7b(%rbp)
+   3:	ed                   	in     (%dx),%eax
+   4:	0f 85 b5 06 00 00    	jne    0x6bf
+   a:	e8 69 2f bd ff       	callq  0xffbd2f78
+   f:	48 89 ef             	mov    %rbp,%rdi
+  12:	e8 41 b3 15 00       	callq  0x15b358
+  17:	48 8d 7d 30          	lea    0x30(%rbp),%rdi
+  1b:	be 04 00 00 00       	mov    $0x4,%esi
+  20:	e8 e3 f6 0d 00       	callq  0xdf708
+  25:	f0 83 45 30 ff       	lock addl $0xffffffff,0x30(%rbp)
+* 2a:	41 0f 98 c6          	sets   %r14b <-- trapping instruction
+  2e:	31 ff                	xor    %edi,%edi
+  30:	44 89 f6             	mov    %r14d,%esi
+  33:	e8 a0 2b bd ff       	callq  0xffbd2bd8
+  38:	45 84 f6             	test   %r14b,%r14b
+  3b:	0f                   	.byte 0xf
+  3c:	84 6a 03             	test   %ch,0x3(%rdx)

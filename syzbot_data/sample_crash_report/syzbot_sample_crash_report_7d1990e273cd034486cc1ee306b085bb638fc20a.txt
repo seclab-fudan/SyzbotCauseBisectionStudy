@@ -1,0 +1,76 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in pid_alive include/linux/sched.h:1271 [inline]
+BUG: KASAN: stack-out-of-bounds in __task_pid_nr_ns+0x5ad/0x620 kernel/pid.c:423
+Read of size 8 at addr ffff880197ca0648 by task syz-executor4/4451
+
+CPU: 1 PID: 4451 Comm: syz-executor4 Not tainted 4.18.0-rc3+ #48
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+PANIC: double fault, error_code: 0x0
+ pid_alive include/linux/sched.h:1271 [inline]
+ __task_pid_nr_ns+0x5ad/0x620 kernel/pid.c:423
+CPU: 0 PID: 14002 Comm: syz-executor1 Not tainted 4.18.0-rc3+ #48
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:trace_event_get_offsets_lock_acquire include/trace/events/lock.h:13 [inline]
+RIP: 0010:perf_trace_lock_acquire+0xe6/0x9a0 include/trace/events/lock.h:13
+Code: 18 
+48 89 
+85 
+ task_pid_vnr include/linux/sched.h:1250 [inline]
+ wait_task_zombie kernel/exit.c:1054 [inline]
+ wait_consider_task+0x1402/0x39b0 kernel/exit.c:1388
+70 fe 
+ff ff 
+48 c1 
+e8 03 
+80 3c 
+10 00 
+0f 85 
+8a 05 
+00 00 
+49 8b 
+79 18 
+48 85 
+ff 0f 
+84 72 
+04 00 
+ do_wait_thread kernel/exit.c:1451 [inline]
+ do_wait+0x477/0xb80 kernel/exit.c:1522
+00 4c 
+89 8d 
+58 fe 
+ff ff 
+<e8> 35 
+d6 33 
+06 4c 
+8b 8d 
+ kernel_wait4+0x247/0x3f0 kernel/exit.c:1665
+58 fe 
+ff ff 
+41 89 
+ __do_sys_wait4+0x137/0x150 kernel/exit.c:1677
+c6 83 
+c0 01 
+c1 e0 
+10 83 
+RSP: 0018:ffff880191dfffd8 EFLAGS: 00010086
+ __se_sys_wait4 kernel/exit.c:1673 [inline]
+ __x64_sys_wait4+0x97/0xf0 kernel/exit.c:1673
+RAX: 1ffffffff11f24c7 RBX: 1ffff100323c0005 RCX: 0000000000000000
+RDX: dffffc0000000000 RSI: ffffffff88f92620 RDI: ffffffff87ebd260
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+RBP: ffff880191e001b0 R08: 0000000000000002 R09: ffffffff88f92620
+R10: ffffffff815dfe10 R11: dffffc0000000000 R12: ffff880191e00188
+R13: 0000000000000002 R14: 0000000000000000 R15: ffffffff88f7b740
+FS:  0000000000c5b940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff880191dfffc8 CR3: 00000001d836d000 CR4: 00000000001406f0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:

@@ -1,0 +1,130 @@
+audit: type=1400 audit(1519570733.003:6): avc:  denied  { map } for  pid=4230 comm="bash" path="/bin/bash" dev="sda1" ino=1457 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:file_t:s0 tclass=file permissive=1
+audit: type=1400 audit(1519570739.302:7): avc:  denied  { map } for  pid=4244 comm="syzkaller742220" path="/root/syzkaller742220966" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: slab-out-of-bounds in sock_net_uid include/net/sock.h:1732 [inline]
+BUG: KASAN: slab-out-of-bounds in ip6_route_me_harder+0x9d8/0xc00 net/ipv6/netfilter.c:26
+Read of size 4 at addr ffff8801b0ae61a8 by task syzkaller742220/4244
+
+CPU: 0 PID: 4244 Comm: syzkaller742220 Not tainted 4.16.0-rc2+ #328
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23b/0x360 mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ sock_net_uid include/net/sock.h:1732 [inline]
+ ip6_route_me_harder+0x9d8/0xc00 net/ipv6/netfilter.c:26
+ ip6t_mangle_out net/ipv6/netfilter/ip6table_mangle.c:63 [inline]
+ ip6table_mangle_hook+0x636/0x920 net/ipv6/netfilter/ip6table_mangle.c:77
+ nf_hook_entry_hookfn include/linux/netfilter.h:120 [inline]
+ nf_hook_slow+0xba/0x1a0 net/netfilter/core.c:483
+ nf_hook include/linux/netfilter.h:243 [inline]
+ NF_HOOK include/linux/netfilter.h:286 [inline]
+ ip6_xmit+0x10ec/0x2260 net/ipv6/ip6_output.c:277
+ tcp_v6_send_synack+0x57b/0xaa0 net/ipv6/tcp_ipv6.c:490
+ tcp_conn_request+0x26fd/0x3660 net/ipv4/tcp_input.c:6336
+ tcp_v6_conn_request+0x212/0x270 net/ipv6/tcp_ipv6.c:1021
+ tcp_rcv_state_process+0x8f5/0x4920 net/ipv4/tcp_input.c:5845
+ tcp_v6_do_rcv+0x739/0x1250 net/ipv6/tcp_ipv6.c:1331
+ tcp_v6_rcv+0x24a1/0x2d70 net/ipv6/tcp_ipv6.c:1510
+ ip6_input_finish+0x37e/0x17a0 net/ipv6/ip6_input.c:284
+ NF_HOOK include/linux/netfilter.h:288 [inline]
+ ip6_input+0xdb/0x560 net/ipv6/ip6_input.c:327
+ dst_input include/net/dst.h:449 [inline]
+ ip6_rcv_finish+0x297/0x8c0 net/ipv6/ip6_input.c:71
+ NF_HOOK include/linux/netfilter.h:288 [inline]
+ ipv6_rcv+0xf37/0x1fa0 net/ipv6/ip6_input.c:208
+ __netif_receive_skb_core+0x1a41/0x3460 net/core/dev.c:4554
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4619
+ process_backlog+0x203/0x740 net/core/dev.c:5299
+ napi_poll net/core/dev.c:5697 [inline]
+ net_rx_action+0x792/0x1910 net/core/dev.c:5763
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:1011
+ </IRQ>
+ do_softirq.part.19+0x14d/0x190 kernel/softirq.c:329
+ do_softirq kernel/softirq.c:177 [inline]
+ __local_bh_enable_ip+0x1ee/0x230 kernel/softirq.c:182
+ local_bh_enable include/linux/bottom_half.h:32 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:726 [inline]
+ ip6_finish_output2+0xba0/0x23a0 net/ipv6/ip6_output.c:121
+ ip6_finish_output+0x69b/0xaf0 net/ipv6/ip6_output.c:154
+ NF_HOOK_COND include/linux/netfilter.h:277 [inline]
+ ip6_output+0x1eb/0x840 net/ipv6/ip6_output.c:171
+ dst_output include/net/dst.h:443 [inline]
+ NF_HOOK include/linux/netfilter.h:288 [inline]
+ ip6_xmit+0xe1f/0x2260 net/ipv6/ip6_output.c:277
+ inet6_csk_xmit+0x2fc/0x580 net/ipv6/inet6_connection_sock.c:139
+ tcp_transmit_skb+0x1b12/0x3960 net/ipv4/tcp_output.c:1176
+ tcp_send_syn_data net/ipv4/tcp_output.c:3487 [inline]
+ tcp_connect+0x1f45/0x40f0 net/ipv4/tcp_output.c:3526
+ tcp_v6_connect+0x2083/0x26c0 net/ipv6/tcp_ipv6.c:306
+ __inet_stream_connect+0x2d4/0xf00 net/ipv4/af_inet.c:620
+ tcp_sendmsg_fastopen net/ipv4/tcp.c:1168 [inline]
+ tcp_sendmsg_locked+0x264e/0x3c70 net/ipv4/tcp.c:1214
+ tcp_sendmsg+0x2f/0x50 net/ipv4/tcp.c:1463
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:764
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:640
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1747
+ SyS_sendto+0x40/0x50 net/socket.c:1715
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x441e79
+RSP: 002b:00007fff72bb92f8 EFLAGS: 00000212 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000441e79
+RDX: 0000000000000000 RSI: 00000000204e8000 RDI: 0000000000000004
+RBP: 00000000006cc018 R08: 000000002007f000 R09: 000000000000001c
+R10: 0000000020000001 R11: 0000000000000212 R12: 00000000004037a0
+R13: 0000000000403830 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4242:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3541
+ getname_flags+0xcb/0x580 fs/namei.c:138
+ getname+0x19/0x20 fs/namei.c:209
+ do_sys_open+0x2e7/0x6d0 fs/open.c:1053
+ SYSC_open fs/open.c:1077 [inline]
+ SyS_open+0x2d/0x40 fs/open.c:1072
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 4242:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3485 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3743
+ putname+0xee/0x130 fs/namei.c:258
+ do_sys_open+0x31b/0x6d0 fs/open.c:1068
+ SYSC_open fs/open.c:1077 [inline]
+ SyS_open+0x2d/0x40 fs/open.c:1072
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+The buggy address belongs to the object at ffff8801b0ae6e80
+ which belongs to the cache names_cache of size 4096
+The buggy address is located 3288 bytes to the left of
+ 4096-byte region [ffff8801b0ae6e80, ffff8801b0ae7e80)
+The buggy address belongs to the page:
+page:ffffea0006c2b980 count:1 mapcount:0 mapping:ffff8801b0ae6e80 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801b0ae6e80 0000000000000000 0000000100000001
+raw: ffffea0006c2b820 ffffea0006c2dd20 ffff8801da5d6600 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b0ae6080: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801b0ae6100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801b0ae6180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                  ^
+ ffff8801b0ae6200: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801b0ae6280: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

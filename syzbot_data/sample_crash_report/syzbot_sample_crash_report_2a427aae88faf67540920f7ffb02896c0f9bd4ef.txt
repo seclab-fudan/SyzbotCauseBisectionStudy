@@ -1,0 +1,105 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.2.0-next-20230224-syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor.0/5084 is trying to acquire lock:
+ffff88807e624880 ((work_completion)(&hdev->cmd_sync_work)){+.+.}-{0:0}, at: __flush_work+0xdd/0xb60 kernel/workqueue.c:3167
+
+but task is already holding lock:
+ffff88807e624920 (&hdev->cmd_sync_work_lock){+.+.}-{3:3}, at: hci_cmd_sync_clear+0x3c/0x2a0 net/bluetooth/hci_sync.c:653
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&hdev->cmd_sync_work_lock){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+       __mutex_lock+0x12f/0x1350 kernel/locking/mutex.c:747
+       hci_cmd_sync_work+0x26f/0x450 net/bluetooth/hci_sync.c:287
+       process_one_work+0x9bf/0x1820 kernel/workqueue.c:2390
+       worker_thread+0x669/0x1090 kernel/workqueue.c:2537
+       kthread+0x2e8/0x3a0 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+-> #0 ((work_completion)(&hdev->cmd_sync_work)){+.+.}-{0:0}:
+       check_prev_add kernel/locking/lockdep.c:3098 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+       validate_chain kernel/locking/lockdep.c:3832 [inline]
+       __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+       lock_acquire.part.0+0x11a/0x370 kernel/locking/lockdep.c:5669
+       __flush_work+0x109/0xb60 kernel/workqueue.c:3170
+       __cancel_work_timer+0x3f9/0x570 kernel/workqueue.c:3261
+       hci_cmd_sync_clear+0x48/0x2a0 net/bluetooth/hci_sync.c:654
+       hci_unregister_dev+0x16b/0x580 net/bluetooth/hci_core.c:2696
+       vhci_release+0x80/0xf0 drivers/bluetooth/hci_vhci.c:568
+       __fput+0x27c/0xa90 fs/file_table.c:321
+       task_work_run+0x16f/0x270 kernel/task_work.c:179
+       exit_task_work include/linux/task_work.h:38 [inline]
+       do_exit+0xb42/0x2b60 kernel/exit.c:869
+       do_group_exit+0xd4/0x2a0 kernel/exit.c:1019
+       get_signal+0x2315/0x25b0 kernel/signal.c:2859
+       arch_do_signal_or_restart+0x79/0x5c0 arch/x86/kernel/signal.c:306
+       exit_to_user_mode_loop kernel/entry/common.c:168 [inline]
+       exit_to_user_mode_prepare+0x15f/0x250 kernel/entry/common.c:203
+       __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+       syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+       do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+other info that might help us debug this:
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&hdev->cmd_sync_work_lock);
+                               lock((work_completion)(&hdev->cmd_sync_work));
+                               lock(&hdev->cmd_sync_work_lock);
+  lock((work_completion)(&hdev->cmd_sync_work));
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor.0/5084:
+ #0: ffff88807e624920 (&hdev->cmd_sync_work_lock){+.+.}-{3:3}, at: hci_cmd_sync_clear+0x3c/0x2a0 net/bluetooth/hci_sync.c:653
+
+stack backtrace:
+CPU: 1 PID: 5084 Comm: syz-executor.0 Not tainted 6.2.0-next-20230224-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/16/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2178
+ check_prev_add kernel/locking/lockdep.c:3098 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+ validate_chain kernel/locking/lockdep.c:3832 [inline]
+ __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+ lock_acquire.part.0+0x11a/0x370 kernel/locking/lockdep.c:5669
+ __flush_work+0x109/0xb60 kernel/workqueue.c:3170
+ __cancel_work_timer+0x3f9/0x570 kernel/workqueue.c:3261
+ hci_cmd_sync_clear+0x48/0x2a0 net/bluetooth/hci_sync.c:654
+ hci_unregister_dev+0x16b/0x580 net/bluetooth/hci_core.c:2696
+ vhci_release+0x80/0xf0 drivers/bluetooth/hci_vhci.c:568
+ __fput+0x27c/0xa90 fs/file_table.c:321
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0xb42/0x2b60 kernel/exit.c:869
+ do_group_exit+0xd4/0x2a0 kernel/exit.c:1019
+ get_signal+0x2315/0x25b0 kernel/signal.c:2859
+ arch_do_signal_or_restart+0x79/0x5c0 arch/x86/kernel/signal.c:306
+ exit_to_user_mode_loop kernel/entry/common.c:168 [inline]
+ exit_to_user_mode_prepare+0x15f/0x250 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x1d/0x50 kernel/entry/common.c:296
+ do_syscall_64+0x46/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fd0ed88ba67
+Code: Unable to access opcode bytes at 0x7fd0ed88ba3d.
+RSP: 002b:00007ffecfa53b18 EFLAGS: 00000206 ORIG_RAX: 0000000000000057
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00007fd0ed88ba67
+RDX: 00007ffecfa53b50 RSI: 00007ffecfa53b50 RDI: 00007ffecfa53be0
+RBP: 00007ffecfa53be0 R08: 0000000000000001 R09: 00007ffecfa539b0
+R10: 0000555556247893 R11: 0000000000000206 R12: 00007fd0ed8e6b24
+R13: 00007ffecfa54ca0 R14: 0000555556247810 R15: 00007ffecfa54ce0
+ </TASK>

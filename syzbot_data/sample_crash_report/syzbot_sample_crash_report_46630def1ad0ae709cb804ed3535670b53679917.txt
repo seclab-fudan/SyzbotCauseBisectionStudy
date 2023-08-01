@@ -1,0 +1,37 @@
+smc: removing ib device syz1
+------------[ cut here ]------------
+refcount_t: decrement hit 0; leaking memory.
+WARNING: CPU: 1 PID: 12966 at lib/refcount.c:31 refcount_warn_saturate+0x1d7/0x1f0 lib/refcount.c:31
+Modules linked in:
+CPU: 1 PID: 12966 Comm: kworker/u4:15 Not tainted 6.1.0-rc8-next-20221207-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: ib-unreg-wq ib_unregister_work
+RIP: 0010:refcount_warn_saturate+0x1d7/0x1f0 lib/refcount.c:31
+Code: 05 5a 60 51 0a 01 e8 35 0a b5 05 0f 0b e9 d3 fe ff ff e8 6c 9b 75 fd 48 c7 c7 c0 6d a6 8a c6 05 37 60 51 0a 01 e8 16 0a b5 05 <0f> 0b e9 b4 fe ff ff 48 89 ef e8 5a b5 c3 fd e9 5c fe ff ff 0f 1f
+RSP: 0018:ffffc9001496fb30 EFLAGS: 00010082
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888094769d40 RSI: ffffffff8166b1dc RDI: fffff5200292df58
+RBP: ffff888076954600 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000080000001 R11: 0000000000000000 R12: 1ffff9200292df6b
+R13: 0000000000000000 R14: ffff888076954600 R15: ffff888020a60000
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007efd7856e000 CR3: 000000007ddcc000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __refcount_dec include/linux/refcount.h:344 [inline]
+ refcount_dec include/linux/refcount.h:359 [inline]
+ ref_tracker_free+0x539/0x6b0 lib/ref_tracker.c:118
+ netdev_tracker_free include/linux/netdevice.h:4039 [inline]
+ netdev_put include/linux/netdevice.h:4056 [inline]
+ dev_put include/linux/netdevice.h:4082 [inline]
+ free_netdevs+0x1f8/0x470 drivers/infiniband/core/device.c:2204
+ __ib_unregister_device+0xa0/0x1a0 drivers/infiniband/core/device.c:1478
+ ib_unregister_work+0x19/0x30 drivers/infiniband/core/device.c:1586
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x669/0x1090 kernel/workqueue.c:2436
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>

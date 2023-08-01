@@ -1,0 +1,40 @@
+=====================================================
+BUG: KMSAN: uninit-value in longest_match+0xc88/0x1220 lib/zlib_deflate/deflate.c:668
+ longest_match+0xc88/0x1220 lib/zlib_deflate/deflate.c:668
+ deflate_fast+0x1838/0x2280 lib/zlib_deflate/deflate.c:954
+ zlib_deflate+0x1783/0x22b0 lib/zlib_deflate/deflate.c:410
+ zlib_compress_pages+0xd34/0x1f90 fs/btrfs/zlib.c:178
+ compression_compress_pages fs/btrfs/compression.c:77 [inline]
+ btrfs_compress_pages+0x325/0x440 fs/btrfs/compression.c:1208
+ compress_file_range+0x11ac/0x3510 fs/btrfs/inode.c:730
+ async_cow_start+0x33/0xd0 fs/btrfs/inode.c:1458
+ btrfs_work_helper+0x55a/0x990 fs/btrfs/async-thread.c:280
+ process_one_work+0xb27/0x13e0 kernel/workqueue.c:2289
+ worker_thread+0x1076/0x1d60 kernel/workqueue.c:2436
+ kthread+0x31b/0x430 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Uninit was created at:
+ __kmalloc_large_node+0x2f7/0x3a0 mm/slab_common.c:1106
+ __do_kmalloc_node mm/slab_common.c:943 [inline]
+ __kmalloc_node+0x1d2/0x3c0 mm/slab_common.c:962
+ kmalloc_node include/linux/slab.h:579 [inline]
+ kvmalloc_node+0xbc/0x2d0 mm/util.c:581
+ kvmalloc include/linux/slab.h:706 [inline]
+ zlib_alloc_workspace+0x111/0x5e0 fs/btrfs/zlib.c:66
+ alloc_workspace+0x329/0x5a0 fs/btrfs/compression.c:939
+ btrfs_init_workspace_manager+0x11f/0x4d0 fs/btrfs/compression.c:982
+ btrfs_init_compress+0x1f/0x30 fs/btrfs/compression.c:1249
+ init_btrfs_fs+0x94/0x5f2 fs/btrfs/super.c:2736
+ do_one_initcall+0x221/0x860 init/main.c:1303
+ do_initcall_level+0x146/0x322 init/main.c:1376
+ do_initcalls+0x11a/0x201 init/main.c:1392
+ do_basic_setup+0x22/0x24 init/main.c:1411
+ kernel_init_freeable+0x308/0x4d0 init/main.c:1631
+ kernel_init+0x2b/0x7d0 init/main.c:1519
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+CPU: 0 PID: 39 Comm: kworker/u4:2 Not tainted 6.1.0-syzkaller-64311-g5c6259d6d19f #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Workqueue: btrfs-delalloc btrfs_work_helper
+=====================================================

@@ -1,0 +1,56 @@
+usb 1-1: config 0 interface 44 altsetting 0 bulk endpoint 0x8A has invalid maxpacket 0
+usb 1-1: New USB device found, idVendor=10cf, idProduct=5501, bcdDevice=67.87
+usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+usb 1-1: config 0 descriptor??
+general protection fault, probably for non-canonical address 0xdffffc0000000002: 0000 [#1] SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000010-0x0000000000000017]
+CPU: 0 PID: 158 Comm: kworker/0:3 Not tainted 5.7.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+RIP: 0010:vmk80xx_write_packet+0x75/0x260 drivers/staging/comedi/drivers/vmk80xx.c:204
+Code: 48 8d 7b 70 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 d3 01 00 00 48 b8 00 00 00 00 00 fc ff df 4c 8b 6b 70 4c 89 ea 48 c1 ea 03 <0f> b6 04 02 4c 89 ea 83 e2 07 38 d0 7f 08 84 c0 0f 85 84 01 00 00
+RSP: 0018:ffff8881cec0f128 EFLAGS: 00010202
+RAX: dffffc0000000000 RBX: ffff8881cff53300 RCX: 0000000000000000
+RDX: 0000000000000002 RSI: ffffffff8498d493 RDI: ffff8881cff53370
+RBP: ffff8881c257f000 R08: ffff8881cf93b180 R09: 0000000000000010
+R10: ffffffff893646f7 R11: fffffbfff126c8de R12: ffff8881cd0ec000
+R13: 0000000000000010 R14: 0000000000000000 R15: ffff8881cfee2088
+FS:  0000000000000000(0000) GS:ffff8881db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055ab70eaa160 CR3: 00000001d0f7d000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ vmk80xx_reset_device drivers/staging/comedi/drivers/vmk80xx.c:226 [inline]
+ vmk80xx_auto_attach+0x13ee/0x1800 drivers/staging/comedi/drivers/vmk80xx.c:814
+ comedi_auto_config+0x16e/0x250 drivers/staging/comedi/drivers.c:1067
+ usb_probe_interface+0x310/0x800 drivers/usb/core/driver.c:374
+ really_probe+0x290/0xac0 drivers/base/dd.c:527
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:701
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:808
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x21a/0x390 drivers/base/dd.c:874
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1367/0x1c20 drivers/base/core.c:2533
+ usb_set_configuration+0xed4/0x1850 drivers/usb/core/message.c:2025
+ usb_generic_driver_probe+0x9d/0xe0 drivers/usb/core/generic.c:241
+ usb_probe_device+0xd9/0x230 drivers/usb/core/driver.c:272
+ really_probe+0x290/0xac0 drivers/base/dd.c:527
+ driver_probe_device+0x223/0x350 drivers/base/dd.c:701
+ __device_attach_driver+0x1d1/0x290 drivers/base/dd.c:808
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:431
+ __device_attach+0x21a/0x390 drivers/base/dd.c:874
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:491
+ device_add+0x1367/0x1c20 drivers/base/core.c:2533
+ usb_new_device.cold+0x552/0xf6e drivers/usb/core/hub.c:2548
+ hub_port_connect drivers/usb/core/hub.c:5195 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5335 [inline]
+ port_event drivers/usb/core/hub.c:5481 [inline]
+ hub_event+0x226d/0x43c0 drivers/usb/core/hub.c:5563
+ process_one_work+0x965/0x1630 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x326/0x430 kernel/kthread.c:268
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+---[ end trace f72ff8b628a85001 ]---
+RIP: 0010:vmk80xx_write_packet+

@@ -1,0 +1,121 @@
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read include/linux/instrumented.h:71 [inline]
+BUG: KASAN: use-after-free in atomic_read include/linux/atomic/atomic-instrumented.h:27 [inline]
+BUG: KASAN: use-after-free in ip6mr_sk_done+0x11b/0x410 net/ipv6/ip6mr.c:1578
+Read of size 4 at addr ffff88802094d088 by task kworker/u4:5/1037
+
+CPU: 0 PID: 1037 Comm: kworker/u4:5 Not tainted 5.17.0-rc2-syzkaller-00650-g5a8fb33e5305 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: netns cleanup_net
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0x8d/0x336 mm/kasan/report.c:255
+ __kasan_report mm/kasan/report.c:442 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:459
+ check_region_inline mm/kasan/generic.c:183 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:189
+ instrument_atomic_read include/linux/instrumented.h:71 [inline]
+ atomic_read include/linux/atomic/atomic-instrumented.h:27 [inline]
+ ip6mr_sk_done+0x11b/0x410 net/ipv6/ip6mr.c:1578
+ rawv6_close+0x58/0x80 net/ipv6/raw.c:1201
+ inet_release+0x12e/0x280 net/ipv4/af_inet.c:428
+ inet6_release+0x4c/0x70 net/ipv6/af_inet6.c:478
+ __sock_release net/socket.c:650 [inline]
+ sock_release+0x87/0x1b0 net/socket.c:678
+ inet_ctl_sock_destroy include/net/inet_common.h:65 [inline]
+ igmp6_net_exit+0x6b/0x170 net/ipv6/mcast.c:3173
+ ops_exit_list+0xb0/0x170 net/core/net_namespace.c:168
+ cleanup_net+0x4ea/0xb00 net/core/net_namespace.c:600
+ process_one_work+0x9ac/0x1650 kernel/workqueue.c:2307
+ worker_thread+0x657/0x1110 kernel/workqueue.c:2454
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+ </TASK>
+
+Allocated by task 49:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:436 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:515 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:474 [inline]
+ __kasan_kmalloc+0xa9/0xd0 mm/kasan/common.c:524
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ set_kthread_struct+0xc5/0x250 kernel/kthread.c:118
+ copy_process+0x3783/0x7300 kernel/fork.c:2091
+ kernel_clone+0xe7/0xab0 kernel/fork.c:2555
+ kernel_thread+0xb5/0xf0 kernel/fork.c:2607
+ call_usermodehelper_exec_sync kernel/umh.c:135 [inline]
+ call_usermodehelper_exec_work+0x69/0x180 kernel/umh.c:166
+ process_one_work+0x9ac/0x1650 kernel/workqueue.c:2307
+ worker_thread+0x657/0x1110 kernel/workqueue.c:2454
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+Freed by task 1037:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free+0x130/0x160 mm/kasan/common.c:328
+ kasan_slab_free include/linux/kasan.h:236 [inline]
+ slab_free_hook mm/slub.c:1728 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1754
+ slab_free mm/slub.c:3509 [inline]
+ kfree+0xcb/0x280 mm/slub.c:4562
+ ops_exit_list+0xb0/0x170 net/core/net_namespace.c:168
+ cleanup_net+0x4ea/0xb00 net/core/net_namespace.c:600
+ process_one_work+0x9ac/0x1650 kernel/workqueue.c:2307
+ worker_thread+0x657/0x1110 kernel/workqueue.c:2454
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+
+The buggy address belongs to the object at ffff88802094d000
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 136 bytes inside of
+ 256-byte region [ffff88802094d000, ffff88802094d100)
+The buggy address belongs to the page:
+page:ffffea0000825300 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x2094c
+head:ffffea0000825300 order:1 compound_mapcount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffffea00007a0300 dead000000000002 ffff888010c41b40
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 1, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 10, ts 11742720330, free_ts 0
+ prep_new_page mm/page_alloc.c:2434 [inline]
+ get_page_from_freelist+0xa72/0x2f50 mm/page_alloc.c:4165
+ __alloc_pages+0x1b2/0x500 mm/page_alloc.c:5389
+ alloc_pages+0x1aa/0x310 mm/mempolicy.c:2271
+ alloc_slab_page mm/slub.c:1799 [inline]
+ allocate_slab mm/slub.c:1944 [inline]
+ new_slab+0x28a/0x3b0 mm/slub.c:2004
+ ___slab_alloc+0x87c/0xe90 mm/slub.c:3018
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3105
+ slab_alloc_node mm/slub.c:3196 [inline]
+ slab_alloc mm/slub.c:3238 [inline]
+ kmem_cache_alloc_trace+0x289/0x2c0 mm/slub.c:3255
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ set_kthread_struct+0xc5/0x250 kernel/kthread.c:118
+ copy_process+0x3783/0x7300 kernel/fork.c:2091
+ kernel_clone+0xe7/0xab0 kernel/fork.c:2555
+ kernel_thread+0xb5/0xf0 kernel/fork.c:2607
+ call_usermodehelper_exec_work kernel/umh.c:174 [inline]
+ call_usermodehelper_exec_work+0xcc/0x180 kernel/umh.c:160
+ process_one_work+0x9ac/0x1650 kernel/workqueue.c:2307
+ worker_thread+0x657/0x1110 kernel/workqueue.c:2454
+ kthread+0x2e9/0x3a0 kernel/kthread.c:377
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff88802094cf80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88802094d000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88802094d080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff88802094d100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88802094d180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

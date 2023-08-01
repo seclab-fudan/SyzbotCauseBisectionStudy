@@ -1,0 +1,50 @@
+audit: type=1400 audit(1521377060.016:6): avc:  denied  { map } for  pid=4210 comm="bash" path="/bin/bash" dev="sda1" ino=1457 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:file_t:s0 tclass=file permissive=1
+audit: type=1400 audit(1521377077.866:7): avc:  denied  { map } for  pid=4228 comm="syzkaller050160" path="/root/syzkaller050160487" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+------------[ cut here ]------------
+kernel BUG at drivers/vhost/vhost.c:1655!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 4228 Comm: syzkaller050160 Not tainted 4.16.0-rc5+ #357
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:set_bit_to_user drivers/vhost/vhost.c:1655 [inline]
+RIP: 0010:log_write+0x3ca/0x490 drivers/vhost/vhost.c:1679
+RSP: 0018:ffff8801b0fa77b0 EFLAGS: 00010293
+RAX: ffff8801af534240 RBX: dffffc0000000000 RCX: ffffffff8443f50a
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: ffff8801af535618
+RBP: ffff8801b0fa78f0 R08: 0000000000000040 R09: 0000000000000001
+R10: ffff8801b0fa76d0 R11: 0000000000000002 R12: 0001ffffffffffff
+R13: ffffed00361f4f09 R14: ffff8801b0fa78c8 R15: ffff8801b0fa7848
+FS:  00000000007df880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020d7c000 CR3: 00000001d3e5b005 CR4: 00000000001606e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ vhost_update_used_flags+0x379/0x480 drivers/vhost/vhost.c:1726
+ vhost_vq_init_access+0xca/0x540 drivers/vhost/vhost.c:1766
+ vhost_net_set_backend drivers/vhost/net.c:1166 [inline]
+ vhost_net_ioctl+0xee0/0x1920 drivers/vhost/net.c:1320
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43ff09
+RSP: 002b:00007ffe94d57fc8 EFLAGS: 00000207 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043ff09
+RDX: 0000000020d7c000 RSI: 000000004008af30 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000207 R12: 0000000000401830
+R13: 00000000004018c0 R14: 0000000000000000 R15: 0000000000000000
+Code: 5e 41 5f 5d c3 31 c0 eb a6 e8 b3 22 2d fd 4c 89 ef e8 5b bb 4d fd 4c 89 f8 48 c1 e8 03 c6 04 18 f8 e9 3a ff ff ff e8 96 22 2d fd <0f> 0b e8 8f 22 2d fd 4d 8d 6c 24 ff e9 89 fe ff ff e8 80 22 2d 
+RIP: set_bit_to_user drivers/vhost/vhost.c:1655 [inline] RSP: ffff8801b0fa77b0
+RIP: log_write+0x3ca/0x490 drivers/vhost/vhost.c:1679 RSP: ffff8801b0fa77b0
+---[ end trace 867ce9e35847b153 ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

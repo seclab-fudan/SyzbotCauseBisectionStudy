@@ -1,0 +1,42 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/l1tf.html for details.
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 8431 at arch/x86/kvm/x86.c:7620 x86_emulate_instruction+0x9e8/0x1460 arch/x86/kvm/x86.c:7620
+Modules linked in:
+CPU: 0 PID: 8431 Comm: syz-executor681 Not tainted 5.13.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:x86_emulate_instruction+0x9e8/0x1460 arch/x86/kvm/x86.c:7620
+Code: c0 74 07 7f 05 e8 a8 48 a9 00 41 0f b6 5c 24 30 bf 06 00 00 00 89 de e8 56 4d 64 00 80 fb 06 0f 85 06 05 00 00 e8 98 46 64 00 <0f> 0b e8 91 46 64 00 48 89 ef e8 89 48 fe ff c7 44 24 1c 01 00 00
+RSP: 0018:ffffc90002057930 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000006 RCX: 0000000000000000
+RDX: ffff88802caad4c0 RSI: ffffffff81108cc8 RDI: 0000000000000003
+RBP: ffff88802eb08000 R08: 0000000000000000 R09: 0000000000000006
+R10: ffffffff81108cba R11: 0000000000000006 R12: ffff88802bd48000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000040
+FS:  00000000012e3300(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000001459c000 CR4: 00000000001526f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ kvm_mmu_page_fault+0x2eb/0x1890 arch/x86/kvm/mmu/mmu.c:5103
+ handle_ept_violation+0x29c/0x6f0 arch/x86/kvm/vmx/vmx.c:5402
+ __vmx_handle_exit arch/x86/kvm/vmx/vmx.c:6106 [inline]
+ vmx_handle_exit+0x336/0x1800 arch/x86/kvm/vmx/vmx.c:6123
+ vcpu_enter_guest+0x235e/0x47e0 arch/x86/kvm/x86.c:9425
+ vcpu_run arch/x86/kvm/x86.c:9491 [inline]
+ kvm_arch_vcpu_ioctl_run+0x47d/0x1990 arch/x86/kvm/x86.c:9719
+ kvm_vcpu_ioctl+0x467/0xd10 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3458
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:1069 [inline]
+ __se_sys_ioctl fs/ioctl.c:1055 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:1055
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x440da9
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe2af5d538 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000400488 RCX: 0000000000440da9
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000005
+RBP: 00000000004048a0 R08: 0000000000400488 R09: 0000000000400488
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000404930
+R13: 0000000000000000 R14: 00000000004ae018 R15: 0000000000400488

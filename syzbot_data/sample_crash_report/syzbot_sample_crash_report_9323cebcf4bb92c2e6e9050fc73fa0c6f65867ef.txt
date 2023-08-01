@@ -1,0 +1,88 @@
+==================================================================
+BUG: KASAN: use-after-free in constant_test_bit arch/x86/include/asm/bitops.h:325 [inline]
+BUG: KASAN: use-after-free in sock_flag include/net/sock.h:800 [inline]
+BUG: KASAN: use-after-free in rds_find_bound+0x989/0xa10 net/rds/bind.c:64
+Read of size 8 at addr ffff8801c09a60e0 by task kworker/u4:3/283
+
+CPU: 0 PID: 283 Comm: kworker/u4:3 Not tainted 4.15.0-rc4+ #164
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: krdsd rds_send_worker
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+netlink: 'syz-executor1': attribute type 16 has an invalid length.
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:430
+ constant_test_bit arch/x86/include/asm/bitops.h:325 [inline]
+ sock_flag include/net/sock.h:800 [inline]
+ rds_find_bound+0x989/0xa10 net/rds/bind.c:64
+netlink: 'syz-executor1': attribute type 16 has an invalid length.
+ rds_recv_incoming+0x582/0x11d0 net/rds/recv.c:360
+ rds_loop_xmit+0x149/0x320 net/rds/loop.c:82
+ rds_send_xmit+0xa48/0x22d0 net/rds/send.c:349
+ rds_send_worker+0x115/0x2a0 net/rds/threads.c:189
+ process_one_work+0xbbf/0x1b10 kernel/workqueue.c:2112
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2246
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:515
+
+Allocated by task 4918:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3544
+ sk_prot_alloc+0x65/0x2a0 net/core/sock.c:1465
+ sk_alloc+0x8c/0x730 net/core/sock.c:1525
+ rds_create+0x11c/0x660 net/rds/af_rds.c:535
+ __sock_create+0x4d4/0x850 net/socket.c:1257
+ sock_create net/socket.c:1297 [inline]
+ SYSC_socket net/socket.c:1327 [inline]
+ SyS_socket+0xeb/0x1d0 net/socket.c:1307
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 4918:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3746
+ sk_prot_free net/core/sock.c:1506 [inline]
+ __sk_destruct+0x622/0x910 net/core/sock.c:1590
+ sk_destruct+0x47/0x80 net/core/sock.c:1598
+ __sk_free+0xf1/0x2b0 net/core/sock.c:1609
+ sk_free+0x2a/0x40 net/core/sock.c:1620
+ sock_put include/net/sock.h:1652 [inline]
+ rds_release+0x3a6/0x520 net/rds/af_rds.c:89
+ sock_release+0x8d/0x1e0 net/socket.c:593
+ sock_close+0x16/0x20 net/socket.c:1121
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:191 [inline]
+ exit_to_usermode_loop+0x296/0x310 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x94/0x96
+
+The buggy address belongs to the object at ffff8801c09a6080
+ which belongs to the cache RDS of size 1472
+The buggy address is located 96 bytes inside of
+ 1472-byte region [ffff8801c09a6080, ffff8801c09a6640)
+The buggy address belongs to the page:
+page:0000000016f9f919 count:1 mapcount:0 mapping:000000007bb0ced8 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801c09a6080 0000000000000000 0000000100000005
+raw: ffffea0007665620 ffff8801d3f07f48 ffff8801d3d4a500 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c09a5f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801c09a6000: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801c09a6080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                       ^
+ ffff8801c09a6100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801c09a6180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

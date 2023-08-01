@@ -1,0 +1,62 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 12489 Comm: syz-executor.0 Not tainted 5.2.0-rc4+ #23
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:dst_input include/net/dst.h:439 [inline]
+RIP: 0010:ip6_rcv_finish+0x1db/0x310 net/ipv6/ip6_input.c:76
+Code: 6b 1c 55 fb 48 83 e3 fe 48 b8 00 00 00 00 00 fc ff df 48 8d 7b 28 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 06 01 00 00 4c 89 e7 <ff> 53 28 41 89 c5 e8 3a 1c 55 fb 44 89 e8 5b 41 5c 41 5d 41 5e 41
+RSP: 0018:ffff88803cd574c0 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff88808e6b205e RCX: ffffc90005fea000
+RDX: 1ffff11011cd6410 RSI: ffffffff861b8a65 RDI: ffff8880976dc8c0
+RBP: ffff88803cd574e8 R08: ffff8880870383c0 R09: 0000000000000003
+R10: ffffed10079aae5c R11: ffff8880ae935efb R12: ffff8880976dc8c0
+R13: 0000000000000000 R14: ffff8880976dc918 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880ae900000(0063) knlGS:00000000f5db2b40
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 00000000f5d91db0 CR3: 000000008d7c7000 CR4: 00000000001426e0
+Call Trace:
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ipv6_rcv+0x10e/0x420 net/ipv6/ip6_input.c:272
+ __netif_receive_skb_one_core+0x113/0x1a0 net/core/dev.c:4981
+ __netif_receive_skb+0x2c/0x1d0 net/core/dev.c:5095
+ netif_receive_skb_internal+0x108/0x390 net/core/dev.c:5185
+ netif_receive_skb+0x6e/0x5a0 net/core/dev.c:5244
+ tun_rx_batched.isra.0+0x4f7/0x840 drivers/net/tun.c:1562
+ tun_get_user+0x1482/0x3ff0 drivers/net/tun.c:1999
+ tun_chr_write_iter+0xbd/0x156 drivers/net/tun.c:2028
+ call_write_iter include/linux/fs.h:1872 [inline]
+ do_iter_readv_writev+0x5f8/0x8f0 fs/read_write.c:693
+ do_iter_write fs/read_write.c:970 [inline]
+ do_iter_write+0x184/0x610 fs/read_write.c:951
+ compat_writev+0x1f6/0x3a0 fs/read_write.c:1295
+ do_compat_writev+0xf5/0x1f0 fs/read_write.c:1316
+ __do_compat_sys_writev fs/read_write.c:1327 [inline]
+ __se_compat_sys_writev fs/read_write.c:1323 [inline]
+ __ia32_compat_sys_writev+0x74/0xb0 fs/read_write.c:1323
+ do_syscall_32_irqs_on arch/x86/entry/common.c:337 [inline]
+ do_fast_syscall_32+0x27b/0xd7d arch/x86/entry/common.c:408
+ entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7fd7849
+Code: 85 d2 74 02 89 0a 5b 5d c3 8b 04 24 c3 8b 14 24 c3 8b 3c 24 c3 90 90 90 90 90 90 90 90 90 90 90 90 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000f5db2054 EFLAGS: 00000292 ORIG_RAX: 0000000000000092
+RAX: ffffffffffffffda RBX: 00000000000000f0 RCX: 00000000f5db20a4
+RDX: 0000000000000001 RSI: 00000000080ecacc RDI: 00000000f5db2b28
+RBP: 00000000f5db2168 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+---[ end trace ef2512720989beeb ]---
+RIP: 0010:dst_input include/net/dst.h:439 [inline]
+RIP: 0010:ip6_rcv_finish+0x1db/0x310 net/ipv6/ip6_input.c:76
+Code: 6b 1c 55 fb 48 83 e3 fe 48 b8 00 00 00 00 00 fc ff df 48 8d 7b 28 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 06 01 00 00 4c 89 e7 <ff> 53 28 41 89 c5 e8 3a 1c 55 fb 44 89 e8 5b 41 5c 41 5d 41 5e 41
+RSP: 0018:ffff88803cd574c0 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffff88808e6b205e RCX: ffffc90005fea000
+RDX: 1ffff11011cd6410 RSI: ffffffff861b8a65 RDI: ffff8880976dc8c0
+RBP: ffff88803cd574e8 R08: ffff8880870383c0 R09: 0000000000000003
+R10: ffffed10079aae5c R11: ffff8880ae935efb R12: ffff8880976dc8c0
+R13: 0000000000000000 R14: ffff8880976dc918 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880ae900000(0063) knlGS:00000000f5db2b40
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 00000000f5d91db0 CR3: 000000008d7c7000 CR4: 00000000001426e0

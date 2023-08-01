@@ -1,0 +1,48 @@
+usb 1-1: config 0 has no interface number 0
+usb 1-1: New USB device found, idVendor=174f, idProduct=5212, bcdDevice=1e.19
+usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+usb 1-1: config 0 descriptor??
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 1 PID: 22 Comm: kworker/1:1 Not tainted 5.4.0-rc6+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ assign_lock_key kernel/locking/lockdep.c:881 [inline]
+ register_lock_class+0x1022/0x11d0 kernel/locking/lockdep.c:1190
+ __lock_acquire+0xfc/0x3b60 kernel/locking/lockdep.c:3837
+ lock_acquire+0x127/0x320 kernel/locking/lockdep.c:4487
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x32/0x50 kernel/locking/spinlock.c:159
+ ida_destroy+0xb0/0x3a0 lib/idr.c:551
+ media_device_cleanup+0x15/0x70 drivers/media/mc/mc-device.c:722
+ uvc_delete+0x8e/0x2f0 drivers/media/usb/uvc/uvc_driver.c:1872
+ kref_put include/linux/kref.h:65 [inline]
+ uvc_probe+0xf95/0x64e4 drivers/media/usb/uvc/uvc_driver.c:2223
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:430
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:490
+ device_add+0xae6/0x16f0 drivers/base/core.c:2202
+ usb_set_configuration+0xdf6/0x1670 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:430
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:490
+ device_add+0xae6/0x16f0 drivers/base/core.c:2202
+ usb_new_device.cold+0x6a4/0xe79 drivers/usb/core/hub.c:2537
+ hub_port_connect drivers/usb/core/hub.c:5184 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5324 [inline]
+ port_event drivers/usb/core/hub.c:5470 [inline]
+ hub_event+0x1df8/0x3800 drivers/usb/core/hub.c:5552
+ process_one_work+0x92b/0x1530 kernel/workqueue.c:2269

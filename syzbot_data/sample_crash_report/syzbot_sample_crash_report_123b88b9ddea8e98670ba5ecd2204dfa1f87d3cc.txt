@@ -1,0 +1,53 @@
+==================================================================
+BUG: KCSAN: data-race in tcp_add_backlog / tcp_grow_window.isra.0
+
+write to 0xffff8881233332ec of 4 bytes by interrupt on cpu 0:
+ sk_add_backlog include/net/sock.h:934 [inline]
+ tcp_add_backlog+0x4a0/0xcc0 net/ipv4/tcp_ipv4.c:1756
+ tcp_v4_rcv+0x1a60/0x1bb0 net/ipv4/tcp_ipv4.c:1944
+ ip_protocol_deliver_rcu+0x4d/0x420 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish+0x110/0x140 net/ipv4/ip_input.c:231
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_local_deliver+0x133/0x210 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:442 [inline]
+ ip_rcv_finish+0x121/0x160 net/ipv4/ip_input.c:413
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_rcv+0x18f/0x1a0 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core+0xa7/0xe0 net/core/dev.c:5010
+ __netif_receive_skb+0x37/0xf0 net/core/dev.c:5124
+ netif_receive_skb_internal+0x59/0x190 net/core/dev.c:5214
+ napi_skb_finish net/core/dev.c:5677 [inline]
+ napi_gro_receive+0x28f/0x330 net/core/dev.c:5710
+ receive_buf+0x284/0x30b0 drivers/net/virtio_net.c:1061
+ virtnet_receive drivers/net/virtio_net.c:1323 [inline]
+ virtnet_poll+0x436/0x7d0 drivers/net/virtio_net.c:1428
+ napi_poll net/core/dev.c:6392 [inline]
+ net_rx_action+0x3ae/0xa90 net/core/dev.c:6460
+
+read to 0xffff8881233332ec of 4 bytes by task 7195 on cpu 1:
+ tcp_space include/net/tcp.h:1383 [inline]
+ tcp_grow_window.isra.0+0x6b/0x480 net/ipv4/tcp_input.c:413
+ tcp_event_data_recv+0x68f/0x990 net/ipv4/tcp_input.c:717
+ tcp_rcv_established+0xbfe/0xf50 net/ipv4/tcp_input.c:5662
+ tcp_v4_do_rcv+0x381/0x4e0 net/ipv4/tcp_ipv4.c:1561
+ sk_backlog_rcv include/net/sock.h:945 [inline]
+ __release_sock+0x135/0x1e0 net/core/sock.c:2435
+ release_sock+0x61/0x160 net/core/sock.c:2951
+ tcp_recvmsg+0x63b/0x1a30 net/ipv4/tcp.c:2182
+ inet_recvmsg+0xbb/0x250 net/ipv4/af_inet.c:838
+ sock_recvmsg_nosec net/socket.c:871 [inline]
+ sock_recvmsg net/socket.c:889 [inline]
+ sock_recvmsg+0x92/0xb0 net/socket.c:885
+ sock_read_iter+0x15f/0x1e0 net/socket.c:967
+ call_read_iter include/linux/fs.h:1889 [inline]
+ new_sync_read+0x389/0x4f0 fs/read_write.c:414
+ __vfs_read+0xb1/0xc0 fs/read_write.c:427
+ vfs_read fs/read_write.c:461 [inline]
+ vfs_read+0x143/0x2c0 fs/read_write.c:446
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 7195 Comm: syz-fuzzer Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

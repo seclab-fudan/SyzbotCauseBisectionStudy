@@ -1,0 +1,26 @@
+==================================================================
+BUG: KCSAN: data-race in snd_rawmidi_transmit / snd_rawmidi_write
+
+write to 0xffff8880289c07b8 of 8 bytes by task 2048 on cpu 1:
+ __snd_rawmidi_transmit_ack sound/core/rawmidi.c:1267 [inline]
+ snd_rawmidi_transmit+0x2b8/0x3b0 sound/core/rawmidi.c:1326
+ snd_vmidi_output_work+0xf1/0x200 sound/core/seq/seq_virmidi.c:144
+ process_one_work+0x3e1/0x950 kernel/workqueue.c:2275
+ worker_thread+0x616/0xa70 kernel/workqueue.c:2421
+ kthread+0x20b/0x230 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+read to 0xffff8880289c07b8 of 8 bytes by task 27017 on cpu 0:
+ snd_rawmidi_write+0x5ef/0x720 sound/core/rawmidi.c:1489
+ vfs_write+0x21a/0x7e0 fs/read_write.c:603
+ ksys_write+0xce/0x180 fs/read_write.c:658
+ __do_sys_write fs/read_write.c:670 [inline]
+ __se_sys_write fs/read_write.c:667 [inline]
+ __x64_sys_write+0x3e/0x50 fs/read_write.c:667
+ do_syscall_64+0x39/0x80 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 27017 Comm: syz-executor.4 Not tainted 5.11.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

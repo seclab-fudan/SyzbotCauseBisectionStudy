@@ -1,0 +1,116 @@
+==================================================================
+BUG: KASAN: double-free or invalid-free in skb_free_head+0x93/0xb0 net/core/skbuff.c:591
+
+CPU: 1 PID: 9156 Comm: syz-executor213 Not tainted 5.4.0-rc5+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ kasan_report_invalid_free+0x65/0xa0 mm/kasan/report.c:468
+ __kasan_slab_free+0x13a/0x150 mm/kasan/common.c:450
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:480
+ __cache_free mm/slab.c:3425 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3756
+ skb_free_head+0x93/0xb0 net/core/skbuff.c:591
+ skb_release_data+0x42d/0x7c0 net/core/skbuff.c:611
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:665
+ __kfree_skb net/core/skbuff.c:679 [inline]
+ kfree_skb net/core/skbuff.c:697 [inline]
+ kfree_skb+0x101/0x3c0 net/core/skbuff.c:691
+ bcsp_close+0xc7/0x130 drivers/bluetooth/hci_bcsp.c:748
+ hci_uart_tty_close+0x21e/0x280 drivers/bluetooth/hci_ldisc.c:548
+ tty_ldisc_close.isra.0+0x119/0x1a0 drivers/tty/tty_ldisc.c:494
+ tty_ldisc_kill+0x9c/0x160 drivers/tty/tty_ldisc.c:642
+ tty_ldisc_release+0xe9/0x2b0 drivers/tty/tty_ldisc.c:814
+ tty_release_struct+0x1b/0x50 drivers/tty/tty_io.c:1612
+ tty_release+0xbcb/0xe90 drivers/tty/tty_io.c:1785
+ __fput+0x2ff/0x890 fs/file_table.c:280
+ ____fput+0x16/0x20 fs/file_table.c:313
+ task_work_run+0x145/0x1c0 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x904/0x2e60 kernel/exit.c:817
+ do_group_exit+0x135/0x360 kernel/exit.c:921
+ get_signal+0x47c/0x2500 kernel/signal.c:2734
+ do_signal+0x87/0x1700 arch/x86/kernel/signal.c:815
+ exit_to_usermode_loop+0x286/0x380 arch/x86/entry/common.c:159
+ prepare_exit_to_usermode arch/x86/entry/common.c:194 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:274 [inline]
+ do_syscall_64+0x65f/0x760 arch/x86/entry/common.c:300
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x446809
+Code: Bad RIP value.
+RSP: 002b:00007feedabcfdb8 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: fffffffffffffe00 RBX: 00000000006dbc38 RCX: 0000000000446809
+RDX: 000000000000005b RSI: 0000000020000080 RDI: 0000000000000007
+RBP: 00000000006dbc30 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc3c
+R13: 00007fff8abe57cf R14: 00007feedabd09c0 R15: 0000000000000000
+
+Allocated by task 9184:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:510 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:483
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:524
+ __do_kmalloc_node mm/slab.c:3615 [inline]
+ __kmalloc_node_track_caller+0x4e/0x70 mm/slab.c:3629
+ __kmalloc_reserve.isra.0+0x40/0xf0 net/core/skbuff.c:141
+ __alloc_skb+0x10b/0x5e0 net/core/skbuff.c:209
+ alloc_skb include/linux/skbuff.h:1049 [inline]
+ bt_skb_alloc include/net/bluetooth/bluetooth.h:339 [inline]
+ bcsp_recv+0x8c1/0x13a0 drivers/bluetooth/hci_bcsp.c:670
+ hci_uart_tty_receive+0x279/0x6e0 drivers/bluetooth/hci_ldisc.c:613
+ tty_ldisc_receive_buf+0x15f/0x1c0 drivers/tty/tty_buffer.c:465
+ tty_port_default_receive_buf+0x7d/0xb0 drivers/tty/tty_port.c:38
+ receive_buf drivers/tty/tty_buffer.c:481 [inline]
+ flush_to_ldisc+0x222/0x390 drivers/tty/tty_buffer.c:533
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 9184:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ kasan_set_free_info mm/kasan/common.c:332 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:471
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:480
+ __cache_free mm/slab.c:3425 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3756
+ skb_free_head+0x93/0xb0 net/core/skbuff.c:591
+ skb_release_data+0x42d/0x7c0 net/core/skbuff.c:611
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:665
+ __kfree_skb net/core/skbuff.c:679 [inline]
+ kfree_skb net/core/skbuff.c:697 [inline]
+ kfree_skb+0x101/0x3c0 net/core/skbuff.c:691
+ bcsp_recv+0x2d8/0x13a0 drivers/bluetooth/hci_bcsp.c:608
+ hci_uart_tty_receive+0x279/0x6e0 drivers/bluetooth/hci_ldisc.c:613
+ tty_ldisc_receive_buf+0x15f/0x1c0 drivers/tty/tty_buffer.c:465
+ tty_port_default_receive_buf+0x7d/0xb0 drivers/tty/tty_port.c:38
+ receive_buf drivers/tty/tty_buffer.c:481 [inline]
+ flush_to_ldisc+0x222/0x390 drivers/tty/tty_buffer.c:533
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff8880946e4000
+ which belongs to the cache kmalloc-8k of size 8192
+The buggy address is located 0 bytes inside of
+ 8192-byte region [ffff8880946e4000, ffff8880946e6000)
+The buggy address belongs to the page:
+page:ffffea000251b900 refcount:1 mapcount:0 mapping:ffff8880aa4021c0 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea00024a2e08 ffffea0002631c08 ffff8880aa4021c0
+raw: 0000000000000000 ffff8880946e4000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880946e3f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8880946e3f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8880946e4000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8880946e4080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880946e4100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

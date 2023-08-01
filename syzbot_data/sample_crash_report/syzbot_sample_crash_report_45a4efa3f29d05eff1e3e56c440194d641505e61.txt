@@ -1,0 +1,113 @@
+loop0: detected capacity change from 0 to 8226
+ntfs3: loop0: Mark volume as dirty due to NTFS errors
+ntfs3: loop0: Failed to load $Extend.
+==================================================================
+BUG: KASAN: slab-out-of-bounds in ntfs_trim_fs+0x84b/0x940 fs/ntfs3/bitmap.c:1434
+Read of size 2 at addr ffff888016aa86a0 by task syz-executor111/3605
+
+CPU: 1 PID: 3605 Comm: syz-executor111 Not tainted 6.1.0-rc2-syzkaller-00105-gb229b6ca5abb #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/11/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:284 [inline]
+ print_report+0x15e/0x45d mm/kasan/report.c:395
+ kasan_report+0xbb/0x1f0 mm/kasan/report.c:495
+ ntfs_trim_fs+0x84b/0x940 fs/ntfs3/bitmap.c:1434
+ ntfs_ioctl_fitrim+0x23e/0x340 fs/ntfs3/file.c:40
+ ntfs_ioctl+0x9c/0xd0 fs/ntfs3/file.c:57
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f7fa72ec559
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd82dba828 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f7fa72ec559
+RDX: 0000000020000040 RSI: 00000000c0185879 RDI: 0000000000000003
+RBP: 00007ffd82dba830 R08: 6c616b7a79732f2e R09: 6c616b7a79732f2e
+R10: 00005555565dd2c0 R11: 0000000000000246 R12: 00007f7fa72abd60
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+Allocated by task 1:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:371 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:330 [inline]
+ __kasan_kmalloc+0xa1/0xb0 mm/kasan/common.c:380
+ kasan_kmalloc include/linux/kasan.h:211 [inline]
+ __do_kmalloc_node mm/slab_common.c:955 [inline]
+ __kmalloc_node_track_caller+0x55/0xc0 mm/slab_common.c:975
+ kstrdup+0x3b/0x70 mm/util.c:61
+ kstrdup_const+0x53/0x80 mm/util.c:84
+ __kernfs_new_node+0x9d/0x8b0 fs/kernfs/dir.c:599
+ kernfs_new_node fs/kernfs/dir.c:665 [inline]
+ kernfs_create_dir_ns+0x9c/0x220 fs/kernfs/dir.c:1011
+ sysfs_create_dir_ns+0x127/0x290 fs/sysfs/dir.c:59
+ create_dir lib/kobject.c:63 [inline]
+ kobject_add_internal+0x2c9/0x8f0 lib/kobject.c:223
+ kobject_add_varg lib/kobject.c:358 [inline]
+ kobject_add+0x150/0x1c0 lib/kobject.c:410
+ device_add+0x368/0x1e90 drivers/base/core.c:3452
+ register_cpu+0x313/0x4c0 drivers/base/cpu.c:377
+ topology_init+0x86/0x91 arch/x86/kernel/topology.c:158
+ do_one_initcall+0x13d/0x780 init/main.c:1303
+ do_initcall_level init/main.c:1376 [inline]
+ do_initcalls init/main.c:1392 [inline]
+ do_basic_setup init/main.c:1411 [inline]
+ kernel_init_freeable+0x6ff/0x788 init/main.c:1631
+ kernel_init+0x1a/0x1d0 init/main.c:1519
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+The buggy address belongs to the object at ffff888016aa8690
+ which belongs to the cache kmalloc-8 of size 8
+The buggy address is located 8 bytes to the right of
+ 8-byte region [ffff888016aa8690, ffff888016aa8698)
+
+The buggy address belongs to the physical page:
+page:ffffea00005aaa00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x16aa8
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffffea00005d6440 dead000000000002 ffff888011841280
+raw: 0000000000000000 0000000080660066 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY), pid 1, tgid 1 (swapper/0), ts 1417483201, free_ts 0
+ prep_new_page mm/page_alloc.c:2538 [inline]
+ get_page_from_freelist+0x10b5/0x2d50 mm/page_alloc.c:4287
+ __alloc_pages+0x1c7/0x5a0 mm/page_alloc.c:5554
+ alloc_page_interleave+0x1e/0x200 mm/mempolicy.c:2118
+ alloc_pages+0x22f/0x270 mm/mempolicy.c:2280
+ alloc_slab_page mm/slub.c:1794 [inline]
+ allocate_slab+0x213/0x300 mm/slub.c:1939
+ new_slab mm/slub.c:1992 [inline]
+ ___slab_alloc+0xa91/0x1400 mm/slub.c:3180
+ __slab_alloc.constprop.0+0x56/0xa0 mm/slub.c:3279
+ slab_alloc_node mm/slub.c:3364 [inline]
+ __kmem_cache_alloc_node+0x191/0x3e0 mm/slub.c:3437
+ __do_kmalloc_node mm/slab_common.c:954 [inline]
+ __kmalloc_node_track_caller+0x45/0xc0 mm/slab_common.c:975
+ kstrdup+0x3b/0x70 mm/util.c:61
+ kstrdup_const+0x53/0x80 mm/util.c:84
+ __kernfs_new_node+0x9d/0x8b0 fs/kernfs/dir.c:599
+ kernfs_new_node fs/kernfs/dir.c:665 [inline]
+ kernfs_create_dir_ns+0x9c/0x220 fs/kernfs/dir.c:1011
+ sysfs_create_dir_ns+0x127/0x290 fs/sysfs/dir.c:59
+ create_dir lib/kobject.c:63 [inline]
+ kobject_add_internal+0x2c9/0x8f0 lib/kobject.c:223
+ kobject_add_varg lib/kobject.c:358 [inline]
+ kobject_add+0x150/0x1c0 lib/kobject.c:410
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff888016aa8580: fc fc fc fc 02 fc fc fc fc fa fc fc fc fc 00 fc
+ ffff888016aa8600: fc fc fc 00 fc fc fc fc 05 fc fc fc fc 05 fc fc
+>ffff888016aa8680: fc fc 05 fc fc fc fc 05 fc fc fc fc 05 fc fc fc
+                               ^
+ ffff888016aa8700: fc 06 fc fc fc fc 05 fc fc fc fc 05 fc fc fc fc
+ ffff888016aa8780: 05 fc fc fc fc 05 fc fc fc fc 06 fc fc fc fc 07
+==================================================================

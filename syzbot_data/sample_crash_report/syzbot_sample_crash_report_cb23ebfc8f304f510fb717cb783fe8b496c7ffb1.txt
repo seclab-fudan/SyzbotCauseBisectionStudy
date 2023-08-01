@@ -1,0 +1,125 @@
+Bluetooth: hci4: command 0x1003 tx timeout
+==================================================================
+BUG: KASAN: use-after-free in hci_cmd_timeout+0x239/0x250 net/bluetooth/hci_core.c:1494
+Read of size 8 at addr ffff88801bd23858 by task kworker/u5:0/49
+
+CPU: 1 PID: 49 Comm: kworker/u5:0 Not tainted 6.0.0-rc6-next-20220923-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+Workqueue: hci5 hci_cmd_timeout
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:284 [inline]
+ print_report+0x15e/0x45d mm/kasan/report.c:395
+ kasan_report+0xbb/0x1f0 mm/kasan/report.c:495
+ hci_cmd_timeout+0x239/0x250 net/bluetooth/hci_core.c:1494
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+
+Allocated by task 3685:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:52
+ __kasan_slab_alloc+0x7e/0x80 mm/kasan/common.c:325
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook mm/slab.h:754 [inline]
+ slab_alloc_node mm/slub.c:3336 [inline]
+ slab_alloc mm/slub.c:3344 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3351 [inline]
+ kmem_cache_alloc+0x2b7/0x3d0 mm/slub.c:3360
+ skb_clone+0x16e/0x3c0 net/core/skbuff.c:1548
+ hci_cmd_work+0x191/0x570 net/bluetooth/hci_core.c:4064
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+Freed by task 3680:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2a/0x40 mm/kasan/generic.c:511
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x160/0x1c0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ slab_free_hook mm/slub.c:1669 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1695
+ slab_free mm/slub.c:3599 [inline]
+ kmem_cache_free+0xea/0x5b0 mm/slub.c:3621
+ kfree_skbmem+0xef/0x1b0 net/core/skbuff.c:714
+ __kfree_skb net/core/skbuff.c:771 [inline]
+ kfree_skb_reason+0x193/0x4b0 net/core/skbuff.c:793
+ kfree_skb include/linux/skbuff.h:1207 [inline]
+ hci_dev_open_sync+0xbe2/0x2190 net/bluetooth/hci_sync.c:4698
+ hci_dev_do_open+0x2d/0x70 net/bluetooth/hci_core.c:483
+ hci_power_on+0xda/0x620 net/bluetooth/hci_core.c:984
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+
+The buggy address belongs to the object at ffff88801bd23780
+ which belongs to the cache skbuff_head_cache of size 240
+The buggy address is located 216 bytes inside of
+ 240-byte region [ffff88801bd23780, ffff88801bd23870)
+
+The buggy address belongs to the physical page:
+page:ffffea00006f48c0 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffffea00006ff040 pfn:0x1bd23
+flags: 0xfff00000000200(slab|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000200 ffff888012784500 dead0000000c000c 0000000000000000
+raw: ffffea00006ff040 dead000000000005 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x12820(GFP_ATOMIC|__GFP_NOWARN|__GFP_NORETRY), pid 919, tgid 919 (kworker/0:2), ts 116201808187, free_ts 116189850050
+ prep_new_page mm/page_alloc.c:2538 [inline]
+ get_page_from_freelist+0x1092/0x2d20 mm/page_alloc.c:4287
+ __alloc_pages+0x1c7/0x5a0 mm/page_alloc.c:5546
+ alloc_pages+0x1a6/0x270 mm/mempolicy.c:2280
+ alloc_slab_page mm/slub.c:1739 [inline]
+ allocate_slab+0x213/0x300 mm/slub.c:1884
+ new_slab mm/slub.c:1937 [inline]
+ ___slab_alloc+0xac1/0x1430 mm/slub.c:3119
+ __slab_alloc.constprop.0+0x4d/0xa0 mm/slub.c:3217
+ slab_alloc_node mm/slub.c:3302 [inline]
+ kmem_cache_alloc_node+0x18b/0x400 mm/slub.c:3381
+ __alloc_skb+0x210/0x2f0 net/core/skbuff.c:422
+ alloc_skb include/linux/skbuff.h:1258 [inline]
+ nsim_dev_trap_skb_build drivers/net/netdevsim/dev.c:742 [inline]
+ nsim_dev_trap_report drivers/net/netdevsim/dev.c:799 [inline]
+ nsim_dev_trap_report_work+0x2ad/0xc70 drivers/net/netdevsim/dev.c:844
+ process_one_work+0x9bf/0x1710 kernel/workqueue.c:2289
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2436
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1458 [inline]
+ free_pcp_prepare+0x65c/0xd90 mm/page_alloc.c:1508
+ free_unref_page_prepare mm/page_alloc.c:3386 [inline]
+ free_unref_page+0x19/0x4d0 mm/page_alloc.c:3482
+ __vunmap+0x85d/0xd30 mm/vmalloc.c:2713
+ __vfree+0x3c/0xd0 mm/vmalloc.c:2761
+ vfree+0x5a/0x90 mm/vmalloc.c:2792
+ n_tty_close+0xcf/0x1e0 drivers/tty/n_tty.c:1861
+ tty_ldisc_close+0x110/0x190 drivers/tty/tty_ldisc.c:456
+ tty_set_ldisc+0x214/0x680 drivers/tty/tty_ldisc.c:552
+ tiocsetd drivers/tty/tty_io.c:2433 [inline]
+ tty_ioctl+0xe20/0x15d0 drivers/tty/tty_io.c:2714
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0x193/0x200 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Memory state around the buggy address:
+ ffff88801bd23700: fb fb fb fb fb fb fc fc fc fc fc fc fc fc fc fc
+ ffff88801bd23780: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88801bd23800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fc fc
+                                                    ^
+ ffff88801bd23880: fc fc fc fc fc fc fc fc fa fb fb fb fb fb fb fb
+ ffff88801bd23900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

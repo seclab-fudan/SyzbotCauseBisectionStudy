@@ -1,0 +1,48 @@
+==================================================================
+BUG: KCSAN: data-race in sk_stream_wait_memory / tcp_ack
+
+write to 0xffff888121ee5688 of 4 bytes by interrupt on cpu 1:
+ sk_wmem_free_skb include/net/sock.h:1470 [inline]
+ tcp_rtx_queue_unlink_and_free include/net/tcp.h:1801 [inline]
+ tcp_clean_rtx_queue net/ipv4/tcp_input.c:3161 [inline]
+ tcp_ack+0xf2c/0x3170 net/ipv4/tcp_input.c:3688
+ tcp_rcv_established+0x37e/0xf50 net/ipv4/tcp_input.c:5696
+ tcp_v4_do_rcv+0x381/0x4e0 net/ipv4/tcp_ipv4.c:1561
+ tcp_v4_rcv+0x19dc/0x1bb0 net/ipv4/tcp_ipv4.c:1942
+ ip_protocol_deliver_rcu+0x4d/0x420 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish+0x110/0x140 net/ipv4/ip_input.c:231
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_local_deliver+0x133/0x210 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:442 [inline]
+ ip_rcv_finish+0x121/0x160 net/ipv4/ip_input.c:413
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip_rcv+0x18f/0x1a0 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core+0xa7/0xe0 net/core/dev.c:5010
+ __netif_receive_skb+0x37/0xf0 net/core/dev.c:5124
+ process_backlog+0x1d3/0x420 net/core/dev.c:5955
+ napi_poll net/core/dev.c:6392 [inline]
+ net_rx_action+0x3ae/0xa90 net/core/dev.c:6460
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+
+read to 0xffff888121ee5688 of 4 bytes by task 21384 on cpu 0:
+ __sk_stream_memory_free include/net/sock.h:1210 [inline]
+ sk_stream_memory_free include/net/sock.h:1219 [inline]
+ sk_stream_wait_memory+0x437/0x7c0 net/core/stream.c:145
+ tcp_sendmsg_locked+0xb47/0x1f30 net/ipv4/tcp.c:1393
+ tcp_sendmsg+0x39/0x60 net/ipv4/tcp.c:1434
+ inet_sendmsg+0x6d/0x90 net/ipv4/af_inet.c:807
+ sock_sendmsg_nosec net/socket.c:637 [inline]
+ sock_sendmsg+0x9f/0xc0 net/socket.c:657
+ __sys_sendto+0x21f/0x320 net/socket.c:1952
+ __do_sys_sendto net/socket.c:1964 [inline]
+ __se_sys_sendto net/socket.c:1960 [inline]
+ __x64_sys_sendto+0x89/0xb0 net/socket.c:1960
+ do_syscall_64+0xcc/0x370 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 21384 Comm: syz-executor.1 Not tainted 5.4.0-rc3+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

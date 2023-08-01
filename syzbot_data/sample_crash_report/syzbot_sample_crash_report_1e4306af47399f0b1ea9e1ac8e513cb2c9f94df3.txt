@@ -1,0 +1,93 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in enqueue_task_fair+0x3ab/0x910 kernel/sched/fair.c:5424
+Read of size 8 at addr ffff8801aa1fa918 by task blkid/9200
+PANIC: double fault, error_code: 0x0
+
+CPU: 0 PID: 9192 Comm: syz-executor3 Not tainted 4.18.0-rc3+ #57
+CPU: 1 PID: 9200 Comm: blkid Not tainted 4.18.0-rc3+ #57
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__lock_acquire+0x2e/0x5020 kernel/locking/lockdep.c:3294
+Call Trace:
+Code: 41 
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+57 41 
+89 
+cf 
+41 
+56 41 
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+55 
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+49 89 
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+fd 
+ enqueue_task_fair+0x3ab/0x910 kernel/sched/fair.c:5424
+41 
+54 
+45 89 
+cc 53 
+ enqueue_task kernel/sched/core.c:751 [inline]
+ activate_task+0x123/0x2e0 kernel/sched/core.c:770
+65 
+ ttwu_activate kernel/sched/core.c:1659 [inline]
+ ttwu_do_activate+0xd5/0x1f0 kernel/sched/core.c:1718
+4c 8b 
+ ttwu_queue kernel/sched/core.c:1863 [inline]
+ try_to_wake_up+0x948/0x12b0 kernel/sched/core.c:2076
+34 
+25 40 
+ee 01 
+00 
+48 83 
+e4 
+f0 
+48 81 
+ec 
+60 
+03 
+00 
+00 48 
+ wake_up_process+0x10/0x20 kernel/sched/core.c:2149
+8b 45 
+ hrtimer_wakeup+0x48/0x60 kernel/time/hrtimer.c:1647
+10 <89> 
+ __run_hrtimer kernel/time/hrtimer.c:1398 [inline]
+ __hrtimer_run_queues+0x3eb/0x10c0 kernel/time/hrtimer.c:1460
+94 
+24 
+80 00 
+00 00 
+48 ba 
+00 00 
+00 
+00 00 
+fc 
+ff df 
+48 
+89 
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+84 24 
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x165/0x730 arch/x86/kernel/apic/apic.c:1050
+98 
+RSP: 0018:ffff8801a8b54f60 EFLAGS: 00010086
+RAX: 0000000000000000 RBX: 1ffff1003516aa68 RCX: 0000000000000002
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff88f92620
+RBP: ffff8801a8b552e8 R08: 0000000000000000 R09: 0000000000000000
+R10: ffff8801aa57fbe0 R11: ffff8801d904acfb R12: 0000000000000000
+R13: ffffffff88f92620 R14: ffff8801d904a580 R15: 0000000000000002
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+FS:  0000000001156940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+ </IRQ>
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff8801a8b54f58 CR3: 00000001d699d000 CR4: 00000000001406f0
+RIP: 0033:0x7fa7a88df79d
+DR0: 0000000020000000 DR1: 0000000000000000 DR2: 0000000020000000
+Code: 
+DR3: 0000000020000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:
+85 

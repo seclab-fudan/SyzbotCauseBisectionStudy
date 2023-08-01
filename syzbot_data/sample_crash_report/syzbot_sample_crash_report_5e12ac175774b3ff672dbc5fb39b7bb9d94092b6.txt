@@ -1,0 +1,93 @@
+XFS (loop0): Mounting V4 Filesystem
+XFS (loop0): totally zeroed log
+==================================================================
+BUG: KASAN: use-after-free in xfs_inobt_init_key_from_rec+0x6a/0x70 fs/xfs/libxfs/xfs_ialloc_btree.c:195
+Read of size 4 at addr ffff8801af98cf00 by task syzkaller185183/4464
+
+CPU: 0 PID: 4464 Comm: syzkaller185183 Not tainted 4.16.0+ #12
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x1a7/0x27d lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23c/0x360 mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ xfs_inobt_init_key_from_rec+0x6a/0x70 fs/xfs/libxfs/xfs_ialloc_btree.c:195
+ xfs_lookup_get_search_key+0x7e/0xc0 fs/xfs/libxfs/xfs_btree.c:1858
+ xfs_btree_lookup+0x932/0x1180 fs/xfs/libxfs/xfs_btree.c:1948
+ xfs_inobt_lookup fs/xfs/libxfs/xfs_ialloc.c:75 [inline]
+ xfs_imap_lookup+0x216/0x640 fs/xfs/libxfs/xfs_ialloc.c:2235
+ xfs_imap+0x78f/0x960 fs/xfs/libxfs/xfs_ialloc.c:2364
+ xfs_iread+0xc7/0x770 fs/xfs/libxfs/xfs_inode_buf.c:556
+ xfs_iget_cache_miss fs/xfs/xfs_icache.c:475 [inline]
+ xfs_iget+0xcec/0x3060 fs/xfs/xfs_icache.c:626
+ xfs_mountfs+0x139a/0x2690 fs/xfs/xfs_mount.c:881
+ xfs_fs_fill_super+0xc8d/0x1250 fs/xfs/xfs_super.c:1703
+ mount_bdev+0x2b7/0x370 fs/super.c:1119
+ xfs_fs_mount+0x34/0x40 fs/xfs/xfs_super.c:1770
+ mount_fs+0x66/0x2d0 fs/super.c:1222
+ vfs_kern_mount.part.26+0xc6/0x4a0 fs/namespace.c:1037
+ vfs_kern_mount fs/namespace.c:2514 [inline]
+ do_new_mount fs/namespace.c:2517 [inline]
+ do_mount+0xea4/0x2b90 fs/namespace.c:2847
+ ksys_mount+0xab/0x120 fs/namespace.c:3063
+ SYSC_mount fs/namespace.c:3077 [inline]
+ SyS_mount+0x39/0x50 fs/namespace.c:3074
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x44371a
+RSP: 002b:00007fff43e464c8 EFLAGS: 00000202 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0000000020000840 RCX: 000000000044371a
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007fff43e464d0
+RBP: 0000000000000003 R08: 0000000020018900 R09: 000000000000000a
+R10: 0000000000000000 R11: 0000000000000202 R12: 0000000000000004
+R13: 0000000000402610 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4462:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3542
+ getname_flags+0xcb/0x580 fs/namei.c:138
+ getname+0x19/0x20 fs/namei.c:209
+ do_sys_open+0x2e7/0x6d0 fs/open.c:1095
+ SYSC_open fs/open.c:1119 [inline]
+ SyS_open+0x2d/0x40 fs/open.c:1114
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+Freed by task 4462:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3486 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3744
+ putname+0xee/0x130 fs/namei.c:258
+ do_sys_open+0x31b/0x6d0 fs/open.c:1110
+ SYSC_open fs/open.c:1119 [inline]
+ SyS_open+0x2d/0x40 fs/open.c:1114
+ do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+
+The buggy address belongs to the object at ffff8801af98c600
+ which belongs to the cache names_cache of size 4096
+The buggy address is located 2304 bytes inside of
+ 4096-byte region [ffff8801af98c600, ffff8801af98d600)
+The buggy address belongs to the page:
+page:ffffea0006be6300 count:1 mapcount:0 mapping:ffff8801af98c600 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801af98c600 0000000000000000 0000000100000001
+raw: ffffea0006be7aa0 ffffea0006be5f20 ffff8801da5ea600 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801af98ce00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801af98ce80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801af98cf00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8801af98cf80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801af98d000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

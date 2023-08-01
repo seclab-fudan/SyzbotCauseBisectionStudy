@@ -1,0 +1,90 @@
+audit: type=1400 audit(1514760184.557:7): avc:  denied  { map } for  pid=3492 comm="syzkaller233465" path="/root/syzkaller233465124" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+device syz0 entered promiscuous mode
+==================================================================
+BUG: KASAN: slab-out-of-bounds in __tcp_hdrlen include/linux/tcp.h:35 [inline]
+BUG: KASAN: slab-out-of-bounds in tcp_hdrlen include/linux/tcp.h:40 [inline]
+BUG: KASAN: slab-out-of-bounds in qdisc_pkt_len_init net/core/dev.c:3143 [inline]
+BUG: KASAN: slab-out-of-bounds in __dev_queue_xmit+0x27c8/0x2920 net/core/dev.c:3432
+Read of size 2 at addr ffff8801c00a8920 by task syzkaller233465/3492
+
+CPU: 1 PID: 3492 Comm: syzkaller233465 Not tainted 4.15.0-rc5+ #244
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load2_noabort+0x14/0x20 mm/kasan/report.c:428
+ __tcp_hdrlen include/linux/tcp.h:35 [inline]
+ tcp_hdrlen include/linux/tcp.h:40 [inline]
+ qdisc_pkt_len_init net/core/dev.c:3143 [inline]
+ __dev_queue_xmit+0x27c8/0x2920 net/core/dev.c:3432
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3521
+ packet_snd net/packet/af_packet.c:2943 [inline]
+ packet_sendmsg+0x3aed/0x60b0 net/packet/af_packet.c:2968
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:646
+ sock_write_iter+0x31a/0x5d0 net/socket.c:915
+ call_write_iter include/linux/fs.h:1772 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x444449
+RSP: 002b:00007fffd57dd798 EFLAGS: 00000297 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000004002e0 RCX: 0000000000444449
+RDX: 00000000000000ce RSI: 0000000020fecf2b RDI: 0000000000000005
+RBP: 00000000006cf018 R08: 0000000000402130 R09: 0000000000402130
+R10: 0000000000402130 R11: 0000000000000297 R12: 0000000000402130
+R13: 00000000004021c0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3492:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc_node mm/slab.c:3672 [inline]
+ __kmalloc_node_track_caller+0x47/0x70 mm/slab.c:3686
+ __kmalloc_reserve.isra.39+0x41/0xd0 net/core/skbuff.c:137
+ __alloc_skb+0x13b/0x780 net/core/skbuff.c:205
+ alloc_skb include/linux/skbuff.h:983 [inline]
+ alloc_skb_with_frags+0x10d/0x750 net/core/skbuff.c:5147
+ sock_alloc_send_pskb+0x787/0x9b0 net/core/sock.c:2078
+ packet_alloc_skb net/packet/af_packet.c:2802 [inline]
+ packet_snd net/packet/af_packet.c:2893 [inline]
+ packet_sendmsg+0x1ece/0x60b0 net/packet/af_packet.c:2968
+ sock_sendmsg_nosec net/socket.c:636 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:646
+ sock_write_iter+0x31a/0x5d0 net/socket.c:915
+ call_write_iter include/linux/fs.h:1772 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801c00a84c0
+ which belongs to the cache kmalloc-1024 of size 1024
+The buggy address is located 96 bytes to the right of
+ 1024-byte region [ffff8801c00a84c0, ffff8801c00a88c0)
+The buggy address belongs to the page:
+page:00000000f9d8af66 count:1 mapcount:0 mapping:00000000603a6de8 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801c00a8040 0000000000000000 0000000100000007
+raw: ffffea0007019d20 ffff8801dac01848 ffff8801dac00ac0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c00a8800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801c00a8880: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+>ffff8801c00a8900: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+                               ^
+ ffff8801c00a8980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801c00a8a00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

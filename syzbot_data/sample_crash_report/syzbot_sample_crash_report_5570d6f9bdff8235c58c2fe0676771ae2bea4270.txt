@@ -1,0 +1,52 @@
+general protection fault, probably for non-canonical address 0xffff000000000300: 0000 [#1] PREEMPT SMP KASAN
+KASAN: maybe wild-memory-access in range [0xfff8200000001800-0xfff8200000001807]
+CPU: 0 PID: 91 Comm: kworker/u4:4 Not tainted 5.19.0-syzkaller-14377-g9f162193d6e4 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Workqueue: events_unbound call_usermodehelper_exec_work
+RIP: 0010:slab_alloc mm/slub.c:3251 [inline]
+RIP: 0010:__kmem_cache_alloc_lru mm/slub.c:3258 [inline]
+RIP: 0010:kmem_cache_alloc+0x12d/0x310 mm/slub.c:3268
+Code: 84 1c 01 00 00 48 83 78 10 00 0f 84 11 01 00 00 49 8b 3f 40 f6 c7 0f 0f 85 e3 01 00 00 45 84 c0 0f 84 dc 01 00 00 41 8b 47 28 <49> 8b 5c 05 00 48 8d 4a 08 4c 89 e8 65 48 0f c7 0f 0f 94 c0 a8 01
+RSP: 0000:ffffc90001caf708 EFLAGS: 00010202
+RAX: 0000000000000300 RBX: 0000000000000dc0 RCX: 0000000000000000
+RDX: 00000000000008f8 RSI: 0000000000000dc0 RDI: 00000000000409b0
+RBP: ffffffff81512ee1 R08: dffffc0000000001 R09: fffffbfff1c4ade6
+R10: fffffbfff1c4ade6 R11: 1ffffffff1c4ade5 R12: 1ffff92000395f1c
+R13: ffff000000000000 R14: ffffffff81512ee1 R15: ffff888140006500
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff88823ffff000 CR3: 000000000ca8e000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ kmem_cache_zalloc include/linux/slab.h:723 [inline]
+ copy_signal+0x51/0x630 kernel/fork.c:1689
+ copy_process+0x19bd/0x4010 kernel/fork.c:2253
+ kernel_clone+0x22f/0x7a0 kernel/fork.c:2673
+ user_mode_thread+0x12d/0x190 kernel/fork.c:2742
+ call_usermodehelper_exec_work+0x57/0x220 kernel/umh.c:174
+ process_one_work+0x81c/0xd10 kernel/workqueue.c:2289
+ worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+ </TASK>
+Modules linked in:
+----------------
+Code disassembly (best guess):
+   0:	84 1c 01             	test   %bl,(%rcx,%rax,1)
+   3:	00 00                	add    %al,(%rax)
+   5:	48 83 78 10 00       	cmpq   $0x0,0x10(%rax)
+   a:	0f 84 11 01 00 00    	je     0x121
+  10:	49 8b 3f             	mov    (%r15),%rdi
+  13:	40 f6 c7 0f          	test   $0xf,%dil
+  17:	0f 85 e3 01 00 00    	jne    0x200
+  1d:	45 84 c0             	test   %r8b,%r8b
+  20:	0f 84 dc 01 00 00    	je     0x202
+  26:	41 8b 47 28          	mov    0x28(%r15),%eax
+* 2a:	49 8b 5c 05 00       	mov    0x0(%r13,%rax,1),%rbx <-- trapping instruction
+  2f:	48 8d 4a 08          	lea    0x8(%rdx),%rcx
+  33:	4c 89 e8             	mov    %r13,%rax
+  36:	65 48 0f c7 0f       	cmpxchg16b %gs:(%rdi)
+  3b:	0f 94 c0             	sete   %al
+  3e:	a8 01                	test   $0x1,%al

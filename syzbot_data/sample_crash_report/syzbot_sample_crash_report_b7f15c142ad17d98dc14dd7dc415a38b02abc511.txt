@@ -1,0 +1,141 @@
+kasan: CONFIG_KASAN_INLINE enabled
+Bluetooth: Can't allocate HCI device
+Bluetooth: Invalid header checksum
+netlink: 'syz-executor.4': attribute type 1 has an invalid length.
+==================================================================
+BUG: KASAN: use-after-free in h5_reset_rx+0xe0/0x100 drivers/bluetooth/hci_h5.c:544
+Read of size 8 at addr ffff88803c3bcbd8 by task kworker/u4:0/18103
+
+CPU: 0 PID: 18103 Comm: kworker/u4:0 Not tainted 5.0.0-rc8 #87
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound flush_to_ldisc
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ h5_reset_rx+0xe0/0x100 drivers/bluetooth/hci_h5.c:544
+ h5_rx_3wire_hdr+0x2f5/0x3c0 drivers/bluetooth/hci_h5.c:455
+ h5_recv+0x30a/0x4c0 drivers/bluetooth/hci_h5.c:578
+netlink: 'syz-executor.2': attribute type 1 has an invalid length.
+ hci_uart_tty_receive+0x22b/0x530 drivers/bluetooth/hci_ldisc.c:607
+ tty_ldisc_receive_buf+0x164/0x1c0 drivers/tty/tty_buffer.c:465
+ tty_port_default_receive_buf+0x7d/0xb0 drivers/tty/tty_port.c:38
+ receive_buf drivers/tty/tty_buffer.c:481 [inline]
+ flush_to_ldisc+0x228/0x390 drivers/tty/tty_buffer.c:533
+ process_one_work+0x98e/0x1790 kernel/workqueue.c:2173
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2319
+ kthread+0x357/0x430 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Allocated by task 23376:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_kmalloc mm/kasan/common.c:495 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:468
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:509
+ kmem_cache_alloc_trace+0x151/0x760 mm/slab.c:3615
+ kmalloc include/linux/slab.h:545 [inline]
+ kzalloc include/linux/slab.h:740 [inline]
+ h5_open+0x4e4/0x5f0 drivers/bluetooth/hci_h5.c:222
+ hci_uart_set_proto drivers/bluetooth/hci_ldisc.c:686 [inline]
+ hci_uart_tty_ioctl+0x2d4/0xa70 drivers/bluetooth/hci_ldisc.c:748
+ tty_ioctl+0xac9/0x14d0 drivers/tty/tty_io.c:2662
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd6e/0x1390 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 23376:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:457
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:465
+ __cache_free mm/slab.c:3494 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3811
+ h5_close+0x11a/0x150 drivers/bluetooth/hci_h5.c:266
+ hci_uart_set_proto drivers/bluetooth/hci_ldisc.c:696 [inline]
+ hci_uart_tty_ioctl+0x839/0xa70 drivers/bluetooth/hci_ldisc.c:748
+ tty_ioctl+0xac9/0x14d0 drivers/tty/tty_io.c:2662
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd6e/0x1390 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88803c3bc900
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 728 bytes inside of
+ 1024-byte region [ffff88803c3bc900, ffff88803c3bcd00)
+The buggy address belongs to the page:
+page:ffffea0000f0ef00 count:1 mapcount:0 mapping:ffff88812c3f0ac0 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea0002245b08 ffff88812c3f1848 ffff88812c3f0ac0
+raw: 0000000000000000 ffff88803c3bc000 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88803c3bca80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88803c3bcb00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88803c3bcb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                    ^
+ ffff88803c3bcc00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88803c3bcc80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
+netlink: 'syz-executor.4': attribute type 1 has an invalid length.
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 10751 Comm: kworker/0:4 Tainted: G    B             5.0.0-rc8 #87
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events hci_uart_write_work
+RIP: 0010:hci_uart_write_work+0x1b6/0x710 drivers/bluetooth/hci_ldisc.c:180
+Code: 0f 85 6a 04 00 00 49 8b b4 24 c8 00 00 00 4c 89 ef e8 de 57 53 02 89 c6 48 8b 45 d0 48 8d b8 5c 10 00 00 48 89 f8 48 c1 e8 03 <0f> b6 14 18 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 1d
+RSP: 0018:ffff88809127fcb0 EFLAGS: 00010203
+RAX: 000000000000020b RBX: dffffc0000000000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: 000000000000105c
+RBP: ffff88809127fd30 R08: ffff8880a8700440 R09: ffff8880a8700d08
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff888081578080
+R13: ffff8880a8f2edc0 R14: ffff88809a4bd0e8 R15: ffff8880815780f0
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f2195a42db8 CR3: 000000005492b000 CR4: 00000000001426f0
+Call Trace:
+ process_one_work+0x98e/0x1790 kernel/workqueue.c:2173
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2319
+ kthread+0x357/0x430 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Modules linked in:
+---[ end trace c10edbba2a1e3d1f ]---
+RIP: 0010:hci_uart_write_work+0x1b6/0x710 drivers/bluetooth/hci_ldisc.c:180
+Code: 0f 85 6a 04 00 00 49 8b b4 24 c8 00 00 00 4c 89 ef e8 de 57 53 02 89 c6 48 8b 45 d0 48 8d b8 5c 10 00 00 48 89 f8 48 c1 e8 03 <0f> b6 14 18 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 1d
+Dev loop3: unable to read RDB block 1
+kobject: 'loop2' (000000006693825d): kobject_uevent_env
+kobject: 'loop2' (000000006693825d): fill_kobj_path: path = '/devices/virtual/block/loop2'
+ loop3: unable to read partition table
+loop3: partition table beyond EOD, truncated
+kobject: 'loop5' (0000000019bd2c4b): kobject_uevent_env
+RSP: 0018:ffff88809127fcb0 EFLAGS: 00010203
+loop_reread_partitions: partition scan of loop3 () failed (rc=-5)
+RAX: 000000000000020b RBX: dffffc0000000000 RCX: 0000000000000000
+kobject: 'loop5' (0000000019bd2c4b): fill_kobj_path: path = '/devices/virtual/block/loop5'
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: 000000000000105c
+RBP: ffff88809127fd30 R08: ffff8880a8700440 R09: ffff8880a8700d08
+kobject: 'loop4' (000000008602ee67): kobject_uevent_env
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff888081578080
+kobject: 'loop4' (000000008602ee67): fill_kobj_path: path = '/devices/virtual/block/loop4'
+R13: ffff8880a8f2edc0 R14: ffff88809a4bd0e8 R15: ffff8880815780f0
+kobject: 'loop4' (000000008602ee67): kobject_uevent_env
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+kobject: 'loop4' (000000008602ee67): fill_kobj_path: path = '/devices/virtual/block/loop4'
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fd0511017d8 CR3: 000000005492b000 CR4: 00000000001426f0

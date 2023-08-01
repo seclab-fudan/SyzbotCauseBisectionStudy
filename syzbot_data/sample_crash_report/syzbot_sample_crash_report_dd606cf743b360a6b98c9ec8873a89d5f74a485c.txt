@@ -1,0 +1,75 @@
+==================================================================
+BUG: KASAN: use-after-free in rds_tcp_tune+0x491/0x520 net/rds/tcp.c:397
+Read of size 4 at addr ffff8801cd6a20d8 by task kworker/u4:1/21
+
+CPU: 0 PID: 21 Comm: kworker/u4:1 Not tainted 4.15.0-rc8-next-20180119+ #102
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: krdsd rds_connect_worker
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report+0x23b/0x360 mm/kasan/report.c:412
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+ rds_tcp_tune+0x491/0x520 net/rds/tcp.c:397
+ rds_tcp_conn_path_connect+0x397/0x940 net/rds/tcp_connect.c:113
+ rds_connect_worker+0x156/0x1f0 net/rds/threads.c:175
+ process_one_work+0xbbf/0x1af0 kernel/workqueue.c:2113
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:541
+
+Allocated by task 3670:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+ __do_kmalloc mm/slab.c:3705 [inline]
+ __kmalloc+0x162/0x760 mm/slab.c:3714
+IPv6: ADDRCONF(NETDEV_UP): bridge0: link is not ready
+ kmalloc include/linux/slab.h:517 [inline]
+ kzalloc include/linux/slab.h:701 [inline]
+ ops_init+0x172/0x570 net/core/net_namespace.c:108
+ setup_net+0x313/0x710 net/core/net_namespace.c:302
+ copy_net_ns+0x238/0x580 net/core/net_namespace.c:426
+ create_new_namespaces+0x425/0x880 kernel/nsproxy.c:107
+ unshare_nsproxy_namespaces+0xae/0x1e0 kernel/nsproxy.c:206
+ SYSC_unshare kernel/fork.c:2415 [inline]
+ SyS_unshare+0x653/0xfa0 kernel/fork.c:2365
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 298:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+ __cache_free mm/slab.c:3485 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3800
+ ops_free net/core/net_namespace.c:132 [inline]
+ ops_free_list.part.8+0x27e/0x3e0 net/core/net_namespace.c:154
+ ops_free_list net/core/net_namespace.c:152 [inline]
+ cleanup_net+0x665/0xb50 net/core/net_namespace.c:495
+ process_one_work+0xbbf/0x1af0 kernel/workqueue.c:2113
+ worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:541
+
+The buggy address belongs to the object at ffff8801cd6a2080
+ which belongs to the cache kmalloc-96 of size 96
+The buggy address is located 88 bytes inside of
+ 96-byte region [ffff8801cd6a2080, ffff8801cd6a20e0)
+The buggy address belongs to the page:
+page:ffffea000735a880 count:1 mapcount:0 mapping:ffff8801cd6a2000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801cd6a2000 0000000000000000 0000000100000020
+raw: ffffea000736a260 ffffea00072662a0 ffff8801dac004c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801cd6a1f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801cd6a2000: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+>ffff8801cd6a2080: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+                                                    ^
+ ffff8801cd6a2100: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff8801cd6a2180: 00 00 00 00 00 00 00 00 00 00 fc fc fc fc fc fc
+==================================================================

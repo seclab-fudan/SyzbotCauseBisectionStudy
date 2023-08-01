@@ -1,0 +1,211 @@
+==================================================================
+BUG: KASAN: use-after-free in drm_gem_object_release_handle drivers/gpu/drm/drm_gem.c:239 [inline]
+BUG: KASAN: use-after-free in drm_gem_handle_delete+0x14d/0x170 drivers/gpu/drm/drm_gem.c:273
+Read of size 8 at addr ffff88806f3839e8 by task syz-executor.2/9445
+
+CPU: 0 PID: 9445 Comm: syz-executor.2 Not tainted 6.1.0-rc8-syzkaller-00003-gbce9332220bd #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:284 [inline]
+ print_report+0x15e/0x45d mm/kasan/report.c:395
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:495
+ drm_gem_object_release_handle drivers/gpu/drm/drm_gem.c:239 [inline]
+ drm_gem_handle_delete+0x14d/0x170 drivers/gpu/drm/drm_gem.c:273
+ drm_mode_destroy_dumb drivers/gpu/drm/drm_dumb_buffers.c:145 [inline]
+ drm_mode_destroy_dumb_ioctl+0xf6/0x140 drivers/gpu/drm/drm_dumb_buffers.c:153
+ drm_ioctl_kernel+0x281/0x4e0 drivers/gpu/drm/drm_ioctl.c:788
+ drm_ioctl+0x51a/0x980 drivers/gpu/drm/drm_ioctl.c:891
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0x197/0x210 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fd8c4e8c0d9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fd8c5c7a168 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007fd8c4fac050 RCX: 00007fd8c4e8c0d9
+RDX: 0000000020000200 RSI: 00000000c00464b4 RDI: 0000000000000003
+RBP: 00007fd8c4ee7ae9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007fd8c50cfb1f R14: 00007fd8c5c7a300 R15: 0000000000022000
+ </TASK>
+
+Allocated by task 9429:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:371 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:330 [inline]
+ __kasan_kmalloc+0xa5/0xb0 mm/kasan/common.c:380
+ kmalloc include/linux/slab.h:553 [inline]
+ kzalloc include/linux/slab.h:689 [inline]
+ vgem_gem_create_object+0x3c/0xb0 drivers/gpu/drm/vgem/vgem_drv.c:98
+ __drm_gem_shmem_create+0x80/0x480 drivers/gpu/drm/drm_gem_shmem_helper.c:62
+ drm_gem_shmem_create drivers/gpu/drm/drm_gem_shmem_helper.c:127 [inline]
+ drm_gem_shmem_create_with_handle drivers/gpu/drm/drm_gem_shmem_helper.c:424 [inline]
+ drm_gem_shmem_dumb_create+0x140/0x380 drivers/gpu/drm/drm_gem_shmem_helper.c:534
+ drm_mode_create_dumb+0x270/0x300 drivers/gpu/drm/drm_dumb_buffers.c:96
+ drm_ioctl_kernel+0x281/0x4e0 drivers/gpu/drm/drm_ioctl.c:788
+ drm_ioctl+0x51a/0x980 drivers/gpu/drm/drm_ioctl.c:891
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:870 [inline]
+ __se_sys_ioctl fs/ioctl.c:856 [inline]
+ __x64_sys_ioctl+0x197/0x210 fs/ioctl.c:856
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Freed by task 9429:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2e/0x40 mm/kasan/generic.c:511
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x160/0x1c0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ slab_free_hook mm/slub.c:1724 [inline]
+ slab_free_freelist_hook+0x8b/0x1c0 mm/slub.c:1750
+ slab_free mm/slub.c:3661 [inline]
+ __kmem_cache_free+0xaf/0x3b0 mm/slub.c:3674
+ drm_gem_object_free drivers/gpu/drm/drm_gem.c:961 [inline]
+ kref_put include/linux/kref.h:65 [inline]
+ __drm_gem_object_put include/drm/drm_gem.h:430 [inline]
+ drm_gem_object_put include/drm/drm_gem.h:443 [inline]
+ drm_gem_mmap+0x4fa/0x770 drivers/gpu/drm/drm_gem.c:1121
+ call_mmap include/linux/fs.h:2204 [inline]
+ mmap_region+0x6c3/0x1dd0 mm/mmap.c:2622
+ do_mmap+0x831/0xf60 mm/mmap.c:1412
+ vm_mmap_pgoff+0x1af/0x280 mm/util.c:520
+ ksys_mmap_pgoff+0x41f/0x5a0 mm/mmap.c:1458
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Last potentially related work creation:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xbc/0xd0 mm/kasan/generic.c:481
+ call_rcu+0x9d/0x820 kernel/rcu/tree.c:2798
+ sctp_transport_destroy net/sctp/transport.c:171 [inline]
+ sctp_transport_put+0x121/0x180 net/sctp/transport.c:483
+ sctp_association_free+0x4d0/0x7d0 net/sctp/associola.c:381
+ sctp_cmd_delete_tcb net/sctp/sm_sideeffect.c:944 [inline]
+ sctp_cmd_interpreter net/sctp/sm_sideeffect.c:1328 [inline]
+ sctp_side_effects net/sctp/sm_sideeffect.c:1199 [inline]
+ sctp_do_sm+0x33ff/0x5290 net/sctp/sm_sideeffect.c:1170
+ sctp_assoc_bh_rcv+0x38a/0x6c0 net/sctp/associola.c:1053
+ sctp_inq_push+0x1d6/0x270 net/sctp/inqueue.c:80
+ sctp_backlog_rcv+0x19a/0x5b0 net/sctp/input.c:346
+ sk_backlog_rcv include/net/sock.h:1109 [inline]
+ __release_sock+0x133/0x3b0 net/core/sock.c:2906
+ release_sock+0x58/0x1b0 net/core/sock.c:3462
+ sctp_wait_for_connect+0x416/0x5c0 net/sctp/socket.c:9310
+ __sctp_connect+0x9a1/0xc30 net/sctp/socket.c:1245
+ sctp_connect net/sctp/socket.c:4805 [inline]
+ sctp_inet_connect+0x161/0x200 net/sctp/socket.c:4820
+ __sys_connect_file+0x153/0x1a0 net/socket.c:1976
+ __sys_connect+0x165/0x1a0 net/socket.c:1993
+ __do_sys_connect net/socket.c:2003 [inline]
+ __se_sys_connect net/socket.c:2000 [inline]
+ __x64_sys_connect+0x73/0xb0 net/socket.c:2000
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x22/0x40 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xbc/0xd0 mm/kasan/generic.c:481
+ call_rcu+0x9d/0x820 kernel/rcu/tree.c:2798
+ sctp_transport_destroy net/sctp/transport.c:171 [inline]
+ sctp_transport_put+0x121/0x180 net/sctp/transport.c:483
+ sctp_association_free+0x4d0/0x7d0 net/sctp/associola.c:381
+ sctp_cmd_delete_tcb net/sctp/sm_sideeffect.c:944 [inline]
+ sctp_cmd_interpreter net/sctp/sm_sideeffect.c:1328 [inline]
+ sctp_side_effects net/sctp/sm_sideeffect.c:1199 [inline]
+ sctp_do_sm+0x33ff/0x5290 net/sctp/sm_sideeffect.c:1170
+ sctp_assoc_bh_rcv+0x38a/0x6c0 net/sctp/associola.c:1053
+ sctp_inq_push+0x1d6/0x270 net/sctp/inqueue.c:80
+ sctp_backlog_rcv+0x19a/0x5b0 net/sctp/input.c:346
+ sk_backlog_rcv include/net/sock.h:1109 [inline]
+ __release_sock+0x133/0x3b0 net/core/sock.c:2906
+ release_sock+0x58/0x1b0 net/core/sock.c:3462
+ sctp_wait_for_connect+0x416/0x5c0 net/sctp/socket.c:9310
+ __sctp_connect+0x9a1/0xc30 net/sctp/socket.c:1245
+ sctp_connect net/sctp/socket.c:4805 [inline]
+ sctp_inet_connect+0x161/0x200 net/sctp/socket.c:4820
+ __sys_connect_file+0x153/0x1a0 net/socket.c:1976
+ __sys_connect+0x165/0x1a0 net/socket.c:1993
+ __do_sys_connect net/socket.c:2003 [inline]
+ __se_sys_connect net/socket.c:2000 [inline]
+ __x64_sys_connect+0x73/0xb0 net/socket.c:2000
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff88806f383800
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 488 bytes inside of
+ 1024-byte region [ffff88806f383800, ffff88806f383c00)
+
+The buggy address belongs to the physical page:
+page:ffffea0001bce000 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x6f380
+head:ffffea0001bce000 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffffea000082c400 dead000000000002 ffff888012041dc0
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd2a20(GFP_ATOMIC|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 3632, tgid 3625 (syz-fuzzer), ts 128136782354, free_ts 127157131782
+ prep_new_page mm/page_alloc.c:2539 [inline]
+ get_page_from_freelist+0x10b5/0x2d50 mm/page_alloc.c:4291
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5558
+ alloc_pages+0x1aa/0x270 mm/mempolicy.c:2285
+ alloc_slab_page mm/slub.c:1794 [inline]
+ allocate_slab+0x25f/0x350 mm/slub.c:1939
+ new_slab mm/slub.c:1992 [inline]
+ ___slab_alloc+0xa91/0x1400 mm/slub.c:3180
+ __slab_alloc.constprop.0+0x56/0xa0 mm/slub.c:3279
+ slab_alloc_node mm/slub.c:3364 [inline]
+ __kmem_cache_alloc_node+0x199/0x3e0 mm/slub.c:3437
+ __do_kmalloc_node mm/slab_common.c:954 [inline]
+ __kmalloc_node_track_caller+0x4b/0xc0 mm/slab_common.c:975
+ kmalloc_reserve net/core/skbuff.c:437 [inline]
+ __alloc_skb+0xdd/0x300 net/core/skbuff.c:509
+ alloc_skb include/linux/skbuff.h:1267 [inline]
+ __tcp_send_ack.part.0+0x67/0x760 net/ipv4/tcp_output.c:3960
+ __tcp_send_ack net/ipv4/tcp_output.c:3992 [inline]
+ tcp_send_ack+0x81/0xa0 net/ipv4/tcp_output.c:3992
+ __tcp_cleanup_rbuf+0x356/0x470 net/ipv4/tcp.c:1617
+ tcp_recvmsg_locked+0x72c/0x22c0 net/ipv4/tcp.c:2649
+ tcp_recvmsg+0x117/0x620 net/ipv4/tcp.c:2679
+ inet_recvmsg+0x114/0x5e0 net/ipv4/af_inet.c:861
+ sock_recvmsg_nosec net/socket.c:995 [inline]
+ sock_recvmsg net/socket.c:1013 [inline]
+ sock_recvmsg net/socket.c:1009 [inline]
+ sock_read_iter+0x348/0x480 net/socket.c:1086
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1459 [inline]
+ free_pcp_prepare+0x65c/0xd90 mm/page_alloc.c:1509
+ free_unref_page_prepare mm/page_alloc.c:3387 [inline]
+ free_unref_page+0x1d/0x4d0 mm/page_alloc.c:3483
+ skb_free_frag include/linux/skbuff.h:3190 [inline]
+ skb_free_head+0x96/0x110 net/core/skbuff.c:758
+ skb_release_data+0x5f1/0x870 net/core/skbuff.c:789
+ skb_release_all net/core/skbuff.c:854 [inline]
+ napi_consume_skb net/core/skbuff.c:1111 [inline]
+ napi_consume_skb+0x149/0x280 net/core/skbuff.c:1089
+ skb_defer_free_flush net/core/dev.c:6646 [inline]
+ net_rx_action+0x346/0xde0 net/core/dev.c:6667
+ __do_softirq+0x1fb/0xadc kernel/softirq.c:571
+
+Memory state around the buggy address:
+ ffff88806f383880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88806f383900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88806f383980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                          ^
+ ffff88806f383a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88806f383a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

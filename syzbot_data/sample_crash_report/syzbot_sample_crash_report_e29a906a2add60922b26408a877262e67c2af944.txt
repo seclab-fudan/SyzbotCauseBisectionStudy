@@ -1,0 +1,195 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+IPVS: ftp: loaded support on port[0] = 21
+==================================================================
+BUG: KASAN: stack-out-of-bounds in create_huge_pud mm/memory.c:3893 [inline]
+BUG: KASAN: stack-out-of-bounds in __handle_mm_fault+0x3aa3/0x4460 mm/memory.c:4041
+------------[ cut here ]------------
+Read of size 8 at addr ffff8801bc61c010 by task syz-executor300/4452
+
+do_IRQ(): syz-executor300 has overflown the kernel stack (cur:ffff8801be608000,sp:ffff8801ba769dd8,irq stk top-bottom:ffff8801daf00080-ffff8801daf08000,exception stk top-bottom:fffffe0000038080-fffffe0000042000,ip:lock_release+0x4f5/0xa30)
+CPU: 0 PID: 4452 Comm: syz-executor300 Not tainted 4.18.0-rc3+ #58
+WARNING: CPU: 1 PID: 4519 at arch/x86/kernel/irq_64.c:63 stack_overflow_check arch/x86/kernel/irq_64.c:60 [inline]
+WARNING: CPU: 1 PID: 4519 at arch/x86/kernel/irq_64.c:63 handle_irq+0x1fb/0x2e7 arch/x86/kernel/irq_64.c:72
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Kernel panic - not syncing: panic_on_warn set ...
+
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+ create_huge_pud mm/memory.c:3893 [inline]
+ __handle_mm_fault+0x3aa3/0x4460 mm/memory.c:4041
+ handle_mm_fault+0x53e/0xc80 mm/memory.c:4133
+ __do_page_fault+0x620/0xe50 arch/x86/mm/fault.c:1396
+ do_page_fault+0xf6/0x8c0 arch/x86/mm/fault.c:1471
+ page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1160
+RIP: 0033:0x4762d0
+Code: Bad RIP value.
+RSP: 002b:00007ffe1c597258 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000030 RCX: 00000000004762d0
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007ffe1c597260
+RBP: 0000000000000030 R08: 0000000000000001 R09: 0000000000f4b940
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000000000a
+R13: 000000000000aa6a R14: 0000000000000000 R15: 0000000000000000
+
+CPU: 1 PID: 4519 Comm: syz-executor300 Not tainted 4.18.0-rc3+ #58
+The buggy address belongs to the page:
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+page:ffffea0006f18700 count:1 mapcount:0 mapping:0000000000000000 index:0x0
+Call Trace:
+ <IRQ>
+flags: 0x2fffc0000000000()
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+raw: 02fffc0000000000 dead000000000100 0000000000000000 0000000000000000
+raw: 0000000000000000 ffff8801cd6259a0 00000001ffffffff 0000000000000000
+ panic+0x238/0x4e7 kernel/panic.c:184
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801bc61bf00: f8 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 00 00 00 00
+ ffff8801bc61bf80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ __warn.cold.8+0x163/0x1ba kernel/panic.c:536
+>ffff8801bc61c000: 00 f1 f1 f1 f1 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2
+                         ^
+ ffff8801bc61c080: f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2 f8 f2 f2
+ report_bug+0x252/0x2d0 lib/bug.c:186
+ ffff8801bc61c100: f2 f2 f2 f2 f2 00 f2 f2 f2 00 00 00 00 00 00 00
+ fixup_bug arch/x86/kernel/traps.c:178 [inline]
+ do_error_trap+0x1fc/0x4d0 arch/x86/kernel/traps.c:296
+==================================================================
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:316
+CPU: 0 PID: 4452 Comm: syz-executor300 Tainted: G    B             4.18.0-rc3+ #58
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:992
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:stack_overflow_check arch/x86/kernel/irq_64.c:60 [inline]
+RIP: 0010:handle_irq+0x1fb/0x2e7 arch/x86/kernel/irq_64.c:72
+RIP: 0010:__read_once_size include/linux/compiler.h:188 [inline]
+RIP: 0010:compound_head include/linux/page-flags.h:142 [inline]
+RIP: 0010:PageLocked include/linux/page-flags.h:272 [inline]
+RIP: 0010:pmd_trans_migrating+0x13f/0x250 mm/migrate.c:1940
+Code: 00 
+Code: 
+00 ff 
+ff 
+b6 
+48 b8 
+80 00 
+00 
+00 00 
+00 00 
+48 
+00 00 
+c7 
+ea ff 
+c7 
+ff 4c 
+80 bc 
+21 f3 
+e4 87 
+48 c1 
+41 54 
+eb 06 
+41 
+48 01 
+55 65 
+c3 48 
+48 8b 
+b8 00 
+04 25 
+00 
+40 ee 
+00 00 
+01 00 
+00 fc 
+48 
+ff df 
+05 
+48 8d 
+68 06 
+7b 
+00 
+08 
+00 48 
+48 89 
+89 c6 
+fa 
+e8 85 
+48 c1 
+b3 
+ea 03 
+1c 
+<80> 3c 
+00 <0f> 
+02 00 
+0b 
+0f 85 
+48 83 
+e1 00 
+c4 
+00 00 
+18 e9 
+4d 8d 
+3f ff 
+75 c0 
+ff ff 
+4c 8b 
+48 
+7b 08 
+89 75 
+48 
+e0 
+b8 
+e8 41 
+00 00 
+ba 8f 
+00 48 
+RSP: 0000:ffff8801ad4b7538 EFLAGS: 00010202
+8b 
+RAX: dffffc0000000000 RBX: 000029fffe228000 RCX: ffffffff81bb92f6
+RDX: 0000053fffc45001 RSI: ffffffff81bb9316 RDI: 000029fffe228008
+RSP: 0018:ffff8801daf07f58 EFLAGS: 00010082
+RBP: ffff8801ad4b7600 R08: ffff8801ad556040 R09: ffffed0039ac4b34
+R10: ffffed0039ac4b34 R11: ffff8801cd6259a3 R12: 1ffff10035a96ea7
+RAX: 0000000000000000 RBX: ffff8801ce23e900 RCX: 0000000000000000
+RDX: 0000000000010000 RSI: ffffffff81631851 RDI: 0000000000000001
+R13: ffff8801ad4b75d8 R14: ffffffff88beff90 R15: 0000000000000000
+RBP: ffff8801daf07fb0 R08: ffff8801d8d4c780 R09: ffffed003b5e3ec2
+FS:  0000000000f4b940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+R10: ffffed003b5e3ec2 R11: ffff8801daf1f617 R12: fffffe0000042000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000004762a6 CR3: 00000001c69b0000 CR4: 00000000001406f0
+R13: fffffe0000038080 R14: 0000000000000026 R15: 0000000000000000
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ do_IRQ+0x78/0x190 arch/x86/kernel/irq.c:245
+ common_interrupt+0xf/0xf arch/x86/entry/entry_64.S:642
+ </IRQ>
+ do_huge_pmd_numa_page+0x3d3/0x1c30 mm/huge_memory.c:1481
+ __handle_mm_fault+0x1b82/0x4460 mm/memory.c:4083
+ handle_mm_fault+0x53e/0xc80 mm/memory.c:4133
+ __do_page_fault+0x620/0xe50 arch/x86/mm/fault.c:1396
+ do_page_fault+0xf6/0x8c0 arch/x86/mm/fault.c:1471
+ page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1160
+RIP: 0033:0x4762d0
+Code: Bad RIP value.
+RSP: 002b:00007ffe1c597258 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000030 RCX: 00000000004762d0
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00007ffe1c597260
+RBP: 0000000000000030 R08: 0000000000000001 R09: 0000000000f4b940
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000000000a
+R13: 000000000000aa6a R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

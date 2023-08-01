@@ -1,0 +1,85 @@
+WARNING: CPU: 0 PID: 5 at kernel/bpf/core.c:851 bpf_jit_free+0x157/0x1b0
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 5 Comm: kworker/0:0 Not tainted 5.2.0+ #41
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events bpf_prog_free_deferred
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ panic+0x2dc/0x755 kernel/panic.c:219
+BUG: unable to handle page fault for address: fffffbfff4001000
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 21ffee067 P4D 21ffee067 PUD 21ffed067 PMD 9fb75067 PTE 800000008e3b6163
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 5 Comm: kworker/0:0 Not tainted 5.2.0+ #41
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events bpf_prog_free_deferred
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:537 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:600 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find kernel/bpf/core.c:674 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x1a0/0x2c0 kernel/bpf/core.c:667
+Code: 75 07 e8 f3 d3 f4 ff 0f 0b e8 ec d3 f4 ff 48 89 de 4c 89 f7 e8 01 d5 f4 ff 49 39 de 72 71 e8 d7 d3 f4 ff 48 89 d8 48 c1 e8 03 <42> 0f b6 04 28 84 c0 74 08 3c 03 0f 8e e6 00 00 00 8b 33 4c 89 f7
+RSP: 0018:ffff8880a988f850 EFLAGS: 00010806
+RAX: 1ffffffff4001000 RBX: ffffffffa0008000 RCX: ffffffff817d778f
+RDX: 0000000000000000 RSI: ffffffff817d7799 RDI: 0000000000000006
+RBP: ffff8880a988f890 R08: ffff8880a9876140 R09: ffffed1015d06c84
+R10: ffffed1015d06c83 R11: ffff8880ae83641b R12: ffff8880909be538
+R13: dffffc0000000000 R14: ffffffffffffffff R15: ffff8880909be538
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffbfff4001000 CR3: 00000000a8f2b000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ is_bpf_text_address+0x78/0x170 kernel/bpf/core.c:709
+ kernel_text_address+0x73/0xf0 kernel/extable.c:140
+ __kernel_text_address+0xd/0x40 kernel/extable.c:95
+ show_trace_log_lvl+0x1cd/0x28c arch/x86/kernel/dumpstack.c:232
+ show_stack+0x39/0x3b arch/x86/kernel/dumpstack.c:293
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ panic+0x2dc/0x755 kernel/panic.c:219
+ __warn.cold+0x20/0x4c kernel/panic.c:576
+ report_bug+0x263/0x2b0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:179 [inline]
+ fixup_bug arch/x86/kernel/traps.c:174 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:272
+ do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:291
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:1008
+RIP: 0010:bpf_jit_free+0x157/0x1b0
+Code: 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 5d 48 b8 00 02 00 00 00 00 ad de 48 39 43 70 0f 84 05 ff ff ff e8 69 77 f4 ff <0f> 0b e9 f9 fe ff ff e8 ed 5c 2e 00 e9 d9 fe ff ff 48 89 7d e0 e8
+RSP: 0018:ffff8880a988fcb0 EFLAGS: 00010293
+RAX: ffff8880a9876140 RBX: ffff8880909be500 RCX: ffffffff817c9a1d
+RDX: 0000000000000000 RSI: ffffffff817dd407 RDI: ffff8880909be570
+RBP: ffff8880a988fcd0 R08: 1ffffffff1511720 R09: fffffbfff1511721
+R10: fffffbfff1511720 R11: ffffffff8a88b907 R12: ffffc90001933000
+R13: ffff8880909be568 R14: ffff8880a9807200 R15: ffff8880ae834d80
+ bpf_prog_free_deferred+0x27a/0x350 kernel/bpf/core.c:1982
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Modules linked in:
+CR2: fffffbfff4001000
+---[ end trace 2ae9d5883da3bc8c ]---
+RIP: 0010:bpf_get_prog_addr_region kernel/bpf/core.c:537 [inline]
+RIP: 0010:bpf_tree_comp kernel/bpf/core.c:600 [inline]
+RIP: 0010:__lt_find include/linux/rbtree_latch.h:115 [inline]
+RIP: 0010:latch_tree_find include/linux/rbtree_latch.h:208 [inline]
+RIP: 0010:bpf_prog_kallsyms_find kernel/bpf/core.c:674 [inline]
+RIP: 0010:bpf_prog_kallsyms_find+0x1a0/0x2c0 kernel/bpf/core.c:667
+Code: 75 07 e8 f3 d3 f4 ff 0f 0b e8 ec d3 f4 ff 48 89 de 4c 89 f7 e8 01 d5 f4 ff 49 39 de 72 71 e8 d7 d3 f4 ff 48 89 d8 48 c1 e8 03 <42> 0f b6 04 28 84 c0 74 08 3c 03 0f 8e e6 00 00 00 8b 33 4c 89 f7
+RSP: 0018:ffff8880a988f850 EFLAGS: 00010806
+RAX: 1ffffffff4001000 RBX: ffffffffa0008000 RCX: ffffffff817d778f
+RDX: 0000000000000000 RSI: ffffffff817d7799 RDI: 0000000000000006
+RBP: ffff8880a988f890 R08: ffff8880a9876140 R09: ffffed1015d06c84
+R10: ffffed1015d06c83 R11: ffff8880ae83641b R12: ffff8880909be538
+R13: dffffc0000000000 R14: ffffffffffffffff R15: ffff8880909be538
+FS:  0000000000000000(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffbfff4001000 CR3: 00000000a8f2b000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

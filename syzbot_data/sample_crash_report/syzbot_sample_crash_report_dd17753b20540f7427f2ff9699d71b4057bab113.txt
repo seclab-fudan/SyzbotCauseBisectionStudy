@@ -1,0 +1,78 @@
+------------[ cut here ]------------
+HSR: Could not send supervision frame
+WARNING: CPU: 0 PID: 111 at net/hsr/hsr_device.c:294 send_hsr_supervision_frame+0x5fe/0x840 net/hsr/hsr_device.c:294
+Modules linked in:
+CPU: 0 PID: 111 Comm: kswapd0 Not tainted 6.3.0-rc6-syzkaller-00035-g0bcc40255504 #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+RIP: 0010:send_hsr_supervision_frame+0x5fe/0x840 net/hsr/hsr_device.c:294
+Code: 04 31 ff 89 de e8 b2 41 a3 f7 84 db 0f 85 01 ff ff ff e8 95 45 a3 f7 48 c7 c7 e0 62 87 8b c6 05 d9 6a 82 04 01 e8 72 ca 6b f7 <0f> 0b e9 e2 fe ff ff e8 76 45 a3 f7 41 be 3c 00 00 00 ba 01 00 00
+RSP: 0000:ffffc90000007c70 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000100
+RDX: ffff888019186100 RSI: ffffffff814a8287 RDI: 0000000000000001
+RBP: ffffc90000007cd0 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000001 R12: ffff88801be9a680
+R13: 0000000000000000 R14: 0000000000000017 R15: 0000000000000001
+FS:  0000000000000000(0000) GS:ffff88802c600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f41a1b719fb CR3: 0000000023610000 CR4: 0000000000150ef0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ hsr_announce+0x10d/0x370 net/hsr/hsr_device.c:382
+ call_timer_fn+0x1a0/0x580 kernel/time/timer.c:1700
+ expire_timers+0x29b/0x4b0 kernel/time/timer.c:1751
+ __run_timers kernel/time/timer.c:2022 [inline]
+ __run_timers kernel/time/timer.c:1995 [inline]
+ run_timer_softirq+0x326/0x910 kernel/time/timer.c:2035
+ __do_softirq+0x1d4/0x905 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x114/0x190 kernel/softirq.c:650
+ irq_exit_rcu+0x9/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x97/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:152 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0x3c/0x70 kernel/locking/spinlock.c:194
+Code: 74 24 10 e8 16 98 61 f7 48 89 ef e8 ae 04 62 f7 81 e3 00 02 00 00 75 25 9c 58 f6 c4 02 75 2d 48 85 db 74 01 fb bf 01 00 00 00 <e8> 8f 3c 54 f7 65 8b 05 60 88 01 76 85 c0 74 0a 5b 5d c3 e8 bc 53
+RSP: 0000:ffffc90000f57ce8 EFLAGS: 00000206
+RAX: 0000000000000006 RBX: 0000000000000200 RCX: 1ffffffff1cecc89
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000001
+RBP: ffff88803fffebd8 R08: 0000000000000001 R09: 0000000000000001
+R10: fffffbfff1ced292 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000003 R15: 0000000000000246
+ spin_unlock_irqrestore include/linux/spinlock.h:405 [inline]
+ __wake_up_common_lock+0xe2/0x140 kernel/sched/wait.c:140
+ prepare_kswapd_sleep mm/vmscan.c:7220 [inline]
+ kswapd_try_to_sleep mm/vmscan.c:7605 [inline]
+ kswapd+0x445/0xd60 mm/vmscan.c:7681
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+----------------
+Code disassembly (best guess), 1 bytes skipped:
+   0:	24 10                	and    $0x10,%al
+   2:	e8 16 98 61 f7       	callq  0xf761981d
+   7:	48 89 ef             	mov    %rbp,%rdi
+   a:	e8 ae 04 62 f7       	callq  0xf76204bd
+   f:	81 e3 00 02 00 00    	and    $0x200,%ebx
+  15:	75 25                	jne    0x3c
+  17:	9c                   	pushfq
+  18:	58                   	pop    %rax
+  19:	f6 c4 02             	test   $0x2,%ah
+  1c:	75 2d                	jne    0x4b
+  1e:	48 85 db             	test   %rbx,%rbx
+  21:	74 01                	je     0x24
+  23:	fb                   	sti
+  24:	bf 01 00 00 00       	mov    $0x1,%edi
+* 29:	e8 8f 3c 54 f7       	callq  0xf7543cbd <-- trapping instruction
+  2e:	65 8b 05 60 88 01 76 	mov    %gs:0x76018860(%rip),%eax        # 0x76018895
+  35:	85 c0                	test   %eax,%eax
+  37:	74 0a                	je     0x43
+  39:	5b                   	pop    %rbx
+  3a:	5d                   	pop    %rbp
+  3b:	c3                   	retq
+  3c:	e8                   	.byte 0xe8
+  3d:	bc                   	.byte 0xbc
+  3e:	53                   	push   %rbx

@@ -1,0 +1,116 @@
+==================================================================
+BUG: KASAN: use-after-free in tipc_sk_filter_rcv+0x2166/0x34f0 net/tipc/socket.c:2167
+Read of size 4 at addr ffff8880900732b4 by task syz-executor226/7876
+
+CPU: 1 PID: 7876 Comm: syz-executor226 Not tainted 5.0.0+ #101
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:131
+ tipc_sk_filter_rcv+0x2166/0x34f0 net/tipc/socket.c:2167
+ tipc_sk_enqueue net/tipc/socket.c:2254 [inline]
+ tipc_sk_rcv+0xc45/0x25a0 net/tipc/socket.c:2305
+ tipc_node_xmit+0x296/0x640 net/tipc/node.c:1402
+ tipc_node_xmit_skb+0x10f/0x190 net/tipc/node.c:1451
+ tipc_sk_send_ack+0x40e/0x4e0 net/tipc/socket.c:1678
+ tipc_recvstream+0x8e3/0xa10 net/tipc/socket.c:1924
+ sock_recvmsg_nosec net/socket.c:881 [inline]
+ sock_recvmsg net/socket.c:888 [inline]
+ sock_recvmsg+0xd0/0x110 net/socket.c:884
+ ___sys_recvmsg+0x273/0x5a0 net/socket.c:2422
+ __sys_recvmsg+0x102/0x1d0 net/socket.c:2471
+ __do_sys_recvmsg net/socket.c:2481 [inline]
+ __se_sys_recvmsg net/socket.c:2478 [inline]
+ __x64_sys_recvmsg+0x78/0xb0 net/socket.c:2478
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x445879
+Code: e8 bc b7 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 2b 12 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fbe925c8db8 EFLAGS: 00000246 ORIG_RAX: 000000000000002f
+RAX: ffffffffffffffda RBX: 00000000006dac28 RCX: 0000000000445879
+RDX: 0000000000003f00 RSI: 0000000020000200 RDI: 0000000000000003
+RBP: 00000000006dac20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dac2c
+R13: 00007fff8c8d10ff R14: 00007fbe925c99c0 R15: 20c49ba5e353f7cf
+
+Allocated by task 7876:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:511
+ __do_kmalloc_node mm/slab.c:3686 [inline]
+ __kmalloc_node_track_caller+0x4e/0x70 mm/slab.c:3700
+ __kmalloc_reserve.isra.0+0x40/0xf0 net/core/skbuff.c:140
+ __alloc_skb+0x10b/0x5e0 net/core/skbuff.c:208
+ alloc_skb_fclone include/linux/skbuff.h:1107 [inline]
+ tipc_buf_acquire+0x2f/0x100 net/tipc/msg.c:66
+ tipc_msg_create+0x38/0x270 net/tipc/msg.c:98
+ tipc_sk_send_ack+0x19b/0x4e0 net/tipc/socket.c:1664
+ tipc_recvstream+0x8e3/0xa10 net/tipc/socket.c:1924
+ sock_recvmsg_nosec net/socket.c:881 [inline]
+ sock_recvmsg net/socket.c:888 [inline]
+ sock_recvmsg+0xd0/0x110 net/socket.c:884
+ ___sys_recvmsg+0x273/0x5a0 net/socket.c:2422
+ __sys_recvmsg+0x102/0x1d0 net/socket.c:2471
+ __do_sys_recvmsg net/socket.c:2481 [inline]
+ __se_sys_recvmsg net/socket.c:2478 [inline]
+ __x64_sys_recvmsg+0x78/0xb0 net/socket.c:2478
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7876:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3821
+ skb_free_head+0x93/0xb0 net/core/skbuff.c:557
+ skb_release_data+0x576/0x7a0 net/core/skbuff.c:577
+ skb_release_all+0x4d/0x60 net/core/skbuff.c:631
+ __kfree_skb net/core/skbuff.c:645 [inline]
+ kfree_skb net/core/skbuff.c:663 [inline]
+ kfree_skb+0xe8/0x390 net/core/skbuff.c:657
+ tipc_sk_conn_proto_rcv net/tipc/socket.c:1268 [inline]
+ tipc_sk_proto_rcv net/tipc/socket.c:1986 [inline]
+ tipc_sk_filter_rcv+0x241b/0x34f0 net/tipc/socket.c:2162
+ tipc_sk_enqueue net/tipc/socket.c:2254 [inline]
+ tipc_sk_rcv+0xc45/0x25a0 net/tipc/socket.c:2305
+ tipc_node_xmit+0x296/0x640 net/tipc/node.c:1402
+ tipc_node_xmit_skb+0x10f/0x190 net/tipc/node.c:1451
+ tipc_sk_send_ack+0x40e/0x4e0 net/tipc/socket.c:1678
+ tipc_recvstream+0x8e3/0xa10 net/tipc/socket.c:1924
+ sock_recvmsg_nosec net/socket.c:881 [inline]
+ sock_recvmsg net/socket.c:888 [inline]
+ sock_recvmsg+0xd0/0x110 net/socket.c:884
+ ___sys_recvmsg+0x273/0x5a0 net/socket.c:2422
+ __sys_recvmsg+0x102/0x1d0 net/socket.c:2471
+ __do_sys_recvmsg net/socket.c:2481 [inline]
+ __se_sys_recvmsg net/socket.c:2478 [inline]
+ __x64_sys_recvmsg+0x78/0xb0 net/socket.c:2478
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888090073200
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 180 bytes inside of
+ 1024-byte region [ffff888090073200, ffff888090073600)
+The buggy address belongs to the page:
+page:ffffea0002401c80 count:1 mapcount:0 mapping:ffff88812c3f0ac0 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea00025a2c08 ffff88812c3f1848 ffff88812c3f0ac0
+raw: 0000000000000000 ffff888090072000 0000000100000007 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888090073180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888090073200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888090073280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                     ^
+ ffff888090073300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888090073380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

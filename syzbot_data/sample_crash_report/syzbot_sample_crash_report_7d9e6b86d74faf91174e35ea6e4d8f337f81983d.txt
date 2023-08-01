@@ -1,0 +1,76 @@
+==================================================================
+BUG: KASAN: use-after-free in tipc_group_is_open+0x3a/0x40 net/tipc/group.c:106
+Read of size 1 at addr ffff8801d89f7378 by task syzkaller275009/3704
+
+CPU: 0 PID: 3704 Comm: syzkaller275009 Not tainted 4.15.0-rc7+ #190
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:427
+ tipc_group_is_open+0x3a/0x40 net/tipc/group.c:106
+ tipc_poll+0x364/0x4d0 net/tipc/socket.c:740
+ sock_poll+0x141/0x320 net/socket.c:1111
+ do_pollfd fs/select.c:822 [inline]
+ do_poll fs/select.c:872 [inline]
+ do_sys_poll+0x715/0x10b0 fs/select.c:966
+ SYSC_poll fs/select.c:1024 [inline]
+ SyS_poll+0x10d/0x450 fs/select.c:1012
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x446129
+RSP: 002b:00007f0f2df96db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000007
+RAX: ffffffffffffffda RBX: 00000000006dbc54 RCX: 0000000000446129
+RDX: 0000000000007fff RSI: 000000000000000a RDI: 0000000020ef5000
+RBP: 00000000006dbc50 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffc07e2923f R14: 00007f0f2df979c0 R15: 0000000000000007
+
+Allocated by task 3702:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kmem_cache_alloc_trace+0x136/0x750 mm/slab.c:3610
+ kmalloc include/linux/slab.h:499 [inline]
+ kzalloc include/linux/slab.h:688 [inline]
+ tipc_group_create+0x144/0x900 net/tipc/group.c:180
+ tipc_sk_join net/tipc/socket.c:2762 [inline]
+ tipc_setsockopt+0x274/0xce0 net/tipc/socket.c:2877
+ SYSC_setsockopt net/socket.c:1823 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1802
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+Freed by task 3702:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ tipc_group_delete+0x2c8/0x3d0 net/tipc/group.c:234
+ tipc_sk_join net/tipc/socket.c:2775 [inline]
+ tipc_setsockopt+0xaa9/0xce0 net/tipc/socket.c:2877
+ SYSC_setsockopt net/socket.c:1823 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1802
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+The buggy address belongs to the object at ffff8801d89f7300
+ which belongs to the cache kmalloc-128 of size 128
+The buggy address is located 120 bytes inside of
+ 128-byte region [ffff8801d89f7300, ffff8801d89f7380)
+The buggy address belongs to the page:
+page:ffffea0007627dc0 count:1 mapcount:0 mapping:ffff8801d89f7000 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d89f7000 0000000000000000 0000000100000015
+raw: ffffea0007622720 ffffea0007627ce0 ffff8801dac00640 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d89f7200: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8801d89f7280: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8801d89f7300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                                ^
+ ffff8801d89f7380: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+ ffff8801d89f7400: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+==================================================================

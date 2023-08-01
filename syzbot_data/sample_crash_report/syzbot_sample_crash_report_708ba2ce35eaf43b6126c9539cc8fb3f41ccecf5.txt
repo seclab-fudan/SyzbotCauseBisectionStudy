@@ -1,0 +1,63 @@
+=====================================================
+BUG: KMSAN: uninit-value in batadv_tt_hash_find+0x368/0x8a0 net/batman-adv/translation-table.c:144
+CPU: 0 PID: 1628 Comm: syz-executor.3 Not tainted 5.8.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:121
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ batadv_tt_hash_find+0x368/0x8a0 net/batman-adv/translation-table.c:144
+ batadv_tt_global_hash_find net/batman-adv/translation-table.c:203 [inline]
+ batadv_transtable_search+0x2b8/0xbb0 net/batman-adv/translation-table.c:2618
+ batadv_send_skb_via_tt_generic+0x181/0x290 net/batman-adv/send.c:423
+ batadv_send_skb_via_tt net/batman-adv/send.h:82 [inline]
+ batadv_interface_tx+0x1b64/0x2970 net/batman-adv/soft-interface.c:379
+ __netdev_start_xmit include/linux/netdevice.h:4611 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4625 [inline]
+ xmit_one+0x3cf/0x750 net/core/dev.c:3556
+ dev_hard_start_xmit net/core/dev.c:3572 [inline]
+ __dev_queue_xmit+0x3aad/0x4470 net/core/dev.c:4131
+ dev_queue_xmit+0x4b/0x60 net/core/dev.c:4164
+ neigh_hh_output include/net/neighbour.h:498 [inline]
+ neigh_output include/net/neighbour.h:507 [inline]
+ ip_finish_output2+0x2443/0x2930 net/ipv4/ip_output.c:228
+ ip_do_fragment+0x367f/0x3b50 net/ipv4/ip_output.c:849
+ ip_fragment+0x341/0x4e0 net/ipv4/ip_output.c:585
+ __ip_finish_output+0xf83/0xfd0 net/ipv4/ip_output.c:304
+ ip_finish_output+0x14b/0x4b0 net/ipv4/ip_output.c:316
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip_mc_output+0x10d9/0x1260 net/ipv4/ip_output.c:415
+ dst_output include/net/dst.h:443 [inline]
+ ip_local_out net/ipv4/ip_output.c:125 [inline]
+ ip_send_skb+0x19a/0x3f0 net/ipv4/ip_output.c:1560
+ udp_send_skb+0x130c/0x1bc0 net/ipv4/udp.c:894
+ udp_sendmsg+0x4162/0x4980 net/ipv4/udp.c:1181
+ inet_sendmsg+0x15b/0x1d0 net/ipv4/af_inet.c:814
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg net/socket.c:672 [inline]
+ ____sys_sendmsg+0xc82/0x1240 net/socket.c:2352
+ ___sys_sendmsg net/socket.c:2406 [inline]
+ __sys_sendmmsg+0x808/0xf70 net/socket.c:2489
+ __compat_sys_sendmmsg net/compat.c:480 [inline]
+ __do_compat_sys_sendmmsg net/compat.c:487 [inline]
+ __se_compat_sys_sendmmsg+0xcd/0xf0 net/compat.c:484
+ __ia32_compat_sys_sendmmsg+0x56/0x70 net/compat.c:484
+ do_syscall_32_irqs_on arch/x86/entry/common.c:430 [inline]
+ __do_fast_syscall_32+0x2af/0x480 arch/x86/entry/common.c:477
+ do_fast_syscall_32+0x6b/0xd0 arch/x86/entry/common.c:505
+ do_SYSENTER_32+0x73/0x90 arch/x86/entry/common.c:554
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+RIP: 0023:0xf7f15549
+Code: Bad RIP value.
+RSP: 002b:00000000f550f0cc EFLAGS: 00000296 ORIG_RAX: 0000000000000159
+RAX: ffffffffffffffda RBX: 0000000000000005 RCX: 0000000020007f80
+RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Local variable ----chaddr@batadv_interface_tx created at:
+ batadv_interface_tx+0x66/0x2970 net/batman-adv/soft-interface.c:192
+ batadv_interface_tx+0x66/0x2970 net/batman-adv/soft-interface.c:192
+=====================================================

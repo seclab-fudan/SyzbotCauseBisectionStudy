@@ -1,0 +1,93 @@
+netlink: 5 bytes leftover after parsing attributes in process `syz-executor2'.
+==================================================================
+BUG: KASAN: use-after-free in fib6_lookup_1+0x992/0xa20 net/ipv6/ip6_fib.c:1346
+Read of size 4 at addr ffff8801d062b7a8 by task syz-executor5/22832
+
+CPU: 0 PID: 22832 Comm: syz-executor5 Not tainted 4.15.0-rc7+ #189
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ fib6_lookup_1+0x992/0xa20 net/ipv6/ip6_fib.c:1346
+ fib6_lookup+0x1cc/0x290 net/ipv6/ip6_fib.c:1392
+ fib6_backtrack+0xe7/0x260 net/ipv6/route.c:890
+ ip6_pol_route+0x700/0x3770 net/ipv6/route.c:1670
+ ip6_pol_route_output+0x4c/0x60 net/ipv6/route.c:1859
+ fib6_rule_lookup+0x1e6/0x5f0 net/ipv6/fib6_rules.c:87
+ ip6_route_output_flags+0x1f1/0x2b0 net/ipv6/route.c:1887
+ ip6_dst_lookup_tail+0xcea/0x18b0 net/ipv6/ip6_output.c:992
+ ip6_dst_lookup_flow+0xc8/0x270 net/ipv6/ip6_output.c:1093
+ ip6_datagram_dst_update+0x734/0x1480 net/ipv6/datagram.c:91
+ __ip6_datagram_connect+0x541/0xf80 net/ipv6/datagram.c:251
+ ip6_datagram_connect+0x2f/0x50 net/ipv6/datagram.c:273
+ inet_dgram_connect+0x16b/0x1f0 net/ipv4/af_inet.c:542
+ SYSC_connect+0x213/0x4a0 net/socket.c:1613
+ SyS_connect+0x24/0x30 net/socket.c:1594
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+RIP: 0033:0x452cf9
+RSP: 002b:00007f3437ff5c58 EFLAGS: 00000212 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 000000000071bea0 RCX: 0000000000452cf9
+RDX: 000000000000001c RSI: 00000000201c2fe4 RDI: 0000000000000013
+RBP: 0000000000000489 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f4d78
+R13: 00000000ffffffff R14: 00007f3437ff66d4 R15: 0000000000000000
+
+Allocated by task 14789:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3544
+ dst_alloc+0x11f/0x1a0 net/core/dst.c:104
+ __ip6_dst_alloc+0x35/0x90 net/ipv6/route.c:361
+ ip6_dst_alloc+0x29/0xb0 net/ipv6/route.c:376
+ ip6_route_info_create+0x4ff/0x2e20 net/ipv6/route.c:2538
+ ip6_route_add+0xa2/0x190 net/ipv6/route.c:2779
+ ipv6_route_ioctl+0x4db/0x6b0 net/ipv6/route.c:3299
+ inet6_ioctl+0xef/0x1e0 net/ipv6/af_inet6.c:520
+ sock_do_ioctl+0x65/0xb0 net/socket.c:958
+ sock_ioctl+0x2c2/0x440 net/socket.c:1055
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ do_vfs_ioctl+0x1b1/0x1520 fs/ioctl.c:686
+ SYSC_ioctl fs/ioctl.c:701 [inline]
+ SyS_ioctl+0x8f/0xc0 fs/ioctl.c:692
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+Freed by task 19911:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3746
+ dst_destroy+0x257/0x370 net/core/dst.c:140
+ dst_destroy_rcu+0x16/0x20 net/core/dst.c:153
+ __rcu_reclaim kernel/rcu/rcu.h:195 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2758 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:3012 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2979 [inline]
+ rcu_process_callbacks+0xd6c/0x17f0 kernel/rcu/tree.c:2996
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801d062b6c0
+ which belongs to the cache ip6_dst_cache of size 320
+The buggy address is located 232 bytes inside of
+ 320-byte region [ffff8801d062b6c0, ffff8801d062b800)
+The buggy address belongs to the page:
+page:ffffea0007418ac0 count:1 mapcount:0 mapping:ffff8801d062b0c0 index:0xffff8801d062be40
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d062b0c0 ffff8801d062be40 0000000100000006
+raw: ffffea00073d9d60 ffffea0007473ee0 ffff8801d32d0540 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d062b680: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+ ffff8801d062b700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8801d062b780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                  ^
+ ffff8801d062b800: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+ ffff8801d062b880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

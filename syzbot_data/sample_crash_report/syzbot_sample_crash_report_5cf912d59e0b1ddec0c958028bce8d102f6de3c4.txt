@@ -1,0 +1,133 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in memcmp+0xa6/0xb0 lib/string.c:904
+Read of size 1 at addr ffff8881d175bed6 by task kworker/0:3/2746
+
+CPU: 0 PID: 2746 Comm: kworker/0:3 Not tainted 5.3.0-rc5+ #28
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: usb_hub_wq hub_event
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description+0x6a/0x32c mm/kasan/report.c:351
+ __kasan_report.cold+0x1a/0x33 mm/kasan/report.c:482
+ kasan_report+0xe/0x12 mm/kasan/common.c:612
+ memcmp+0xa6/0xb0 lib/string.c:904
+ memcmp include/linux/string.h:400 [inline]
+ descriptors_changed drivers/usb/core/hub.c:5579 [inline]
+ usb_reset_and_verify_device+0x564/0x1300 drivers/usb/core/hub.c:5729
+ usb_reset_device+0x4c1/0x920 drivers/usb/core/hub.c:5898
+ rt2x00usb_probe+0x53/0x7af drivers/net/wireless/ralink/rt2x00/rt2x00usb.c:806
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x101/0x1b0 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2165
+ usb_set_configuration+0xdf6/0x1670 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x101/0x1b0 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2165
+ usb_new_device.cold+0x6a4/0xe79 drivers/usb/core/hub.c:2536
+ hub_port_connect drivers/usb/core/hub.c:5098 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x1b5c/0x3640 drivers/usb/core/hub.c:5441
+ process_one_work+0x92b/0x1530 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 2746:
+ save_stack+0x1b/0x80 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:487 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:460
+ kmalloc include/linux/slab.h:557 [inline]
+ kzalloc include/linux/slab.h:748 [inline]
+ usb_get_bos_descriptor+0x1fd/0x8f2 drivers/usb/core/config.c:955
+ hub_port_init+0x169a/0x2d30 drivers/usb/core/hub.c:4837
+ usb_reset_and_verify_device+0x3aa/0x1300 drivers/usb/core/hub.c:5720
+ usb_reset_device+0x4c1/0x920 drivers/usb/core/hub.c:5898
+ rt2x00usb_probe+0x53/0x7af drivers/net/wireless/ralink/rt2x00/rt2x00usb.c:806
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x101/0x1b0 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2165
+ usb_set_configuration+0xdf6/0x1670 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x101/0x1b0 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:454
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:514
+ device_add+0xae6/0x16f0 drivers/base/core.c:2165
+ usb_new_device.cold+0x6a4/0xe79 drivers/usb/core/hub.c:2536
+ hub_port_connect drivers/usb/core/hub.c:5098 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5213 [inline]
+ port_event drivers/usb/core/hub.c:5359 [inline]
+ hub_event+0x1b5c/0x3640 drivers/usb/core/hub.c:5441
+ process_one_work+0x92b/0x1530 kernel/workqueue.c:2269
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2415
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 1751:
+ save_stack+0x1b/0x80 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_slab_free+0x130/0x180 mm/kasan/common.c:449
+ slab_free_hook mm/slub.c:1423 [inline]
+ slab_free_freelist_hook mm/slub.c:1474 [inline]
+ slab_free mm/slub.c:3016 [inline]
+ kfree+0xe4/0x2f0 mm/slub.c:3957
+ __vunmap+0x6d5/0x930 mm/vmalloc.c:2258
+ __vfree+0x3c/0xd0 mm/vmalloc.c:2299
+ vfree+0x5a/0x90 mm/vmalloc.c:2329
+ copy_entries_to_user net/ipv4/netfilter/ip_tables.c:867 [inline]
+ get_entries net/ipv4/netfilter/ip_tables.c:1024 [inline]
+ do_ipt_get_ctl+0x6a0/0x890 net/ipv4/netfilter/ip_tables.c:1700
+ nf_sockopt net/netfilter/nf_sockopt.c:104 [inline]
+ nf_getsockopt+0x72/0xd0 net/netfilter/nf_sockopt.c:122
+ ip_getsockopt net/ipv4/ip_sockglue.c:1576 [inline]
+ ip_getsockopt+0x165/0x1c0 net/ipv4/ip_sockglue.c:1556
+ tcp_getsockopt net/ipv4/tcp.c:3662 [inline]
+ tcp_getsockopt+0x86/0xd0 net/ipv4/tcp.c:3656
+ __sys_getsockopt+0x135/0x210 net/socket.c:2129
+ __do_sys_getsockopt net/socket.c:2144 [inline]
+ __se_sys_getsockopt net/socket.c:2141 [inline]
+ __x64_sys_getsockopt+0xba/0x150 net/socket.c:2141
+ do_syscall_64+0xb7/0x580 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8881d175bea0
+ which belongs to the cache kmalloc-64 of size 64
+The buggy address is located 54 bytes inside of
+ 64-byte region [ffff8881d175bea0, ffff8881d175bee0)
+The buggy address belongs to the page:
+page:ffffea000745d6c0 refcount:1 mapcount:0 mapping:ffff8881da003180 index:0x0
+flags: 0x200000000000200(slab)
+raw: 0200000000000200 ffffea00075eda00 0000000300000003 ffff8881da003180
+raw: 0000000000000000 00000000802a002a 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881d175bd80: fb fb fb fb fb fb fb fb fc fc fc fc fb fb fb fb
+ ffff8881d175be00: fb fb fb fb fc fc fc fc fb fb fb fb fb fb fb fb
+>ffff8881d175be80: fc fc fc fc 00 00 00 00 00 00 06 fc fc fc fc fc
+                                                 ^
+ ffff8881d175bf00: 00 00 00 00 00 00 fc fc fc fc fc fc fb fb fb fb
+ ffff8881d175bf80: fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

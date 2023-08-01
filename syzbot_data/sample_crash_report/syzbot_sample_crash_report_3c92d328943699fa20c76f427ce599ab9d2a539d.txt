@@ -1,0 +1,88 @@
+IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+==================================================================
+BUG: KASAN: slab-out-of-bounds in _decode_session6+0x1331/0x14e0 net/ipv6/xfrm6_policy.c:161
+Read of size 1 at addr ffff8801d4a67f07 by task syz-executor092/4673
+
+CPU: 1 PID: 4673 Comm: syz-executor092 Not tainted 4.19.0-rc2+ #223
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x30d mm/kasan/report.c:412
+ __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
+ _decode_session6+0x1331/0x14e0 net/ipv6/xfrm6_policy.c:161
+ __xfrm_decode_session+0x71/0x140 net/xfrm/xfrm_policy.c:2299
+ xfrm_decode_session include/net/xfrm.h:1232 [inline]
+ vti6_tnl_xmit+0x3fc/0x1bb1 net/ipv6/ip6_vti.c:542
+ __netdev_start_xmit include/linux/netdevice.h:4287 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4296 [inline]
+ xmit_one net/core/dev.c:3216 [inline]
+ dev_hard_start_xmit+0x272/0xc10 net/core/dev.c:3232
+ __dev_queue_xmit+0x2ab2/0x3870 net/core/dev.c:3802
+ dev_queue_xmit+0x17/0x20 net/core/dev.c:3835
+ __bpf_tx_skb net/core/filter.c:2012 [inline]
+ __bpf_redirect_common net/core/filter.c:2050 [inline]
+ __bpf_redirect+0x5b7/0xae0 net/core/filter.c:2057
+ ____bpf_clone_redirect net/core/filter.c:2090 [inline]
+ bpf_clone_redirect+0x2f6/0x490 net/core/filter.c:2062
+ bpf_prog_c39d1ba309a769f7+0xe9e/0x1000
+
+Allocated by task 4673:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc_node mm/slab.c:3682 [inline]
+ __kmalloc_node_track_caller+0x47/0x70 mm/slab.c:3696
+ __kmalloc_reserve.isra.41+0x3a/0xe0 net/core/skbuff.c:137
+ pskb_expand_head+0x230/0x10e0 net/core/skbuff.c:1463
+ skb_ensure_writable+0x3dd/0x640 net/core/skbuff.c:5129
+ __bpf_try_make_writable net/core/filter.c:1633 [inline]
+ bpf_try_make_writable net/core/filter.c:1639 [inline]
+ bpf_try_make_head_writable net/core/filter.c:1647 [inline]
+ ____bpf_clone_redirect net/core/filter.c:2084 [inline]
+ bpf_clone_redirect+0x14a/0x490 net/core/filter.c:2062
+ bpf_prog_c39d1ba309a769f7+0xe9e/0x1000
+
+Freed by task 3286:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x210 mm/slab.c:3813
+ load_elf_binary+0x2569/0x5610 fs/binfmt_elf.c:1118
+ search_binary_handler+0x17d/0x570 fs/exec.c:1653
+ exec_binprm fs/exec.c:1695 [inline]
+ __do_execve_file.isra.35+0x15ff/0x2460 fs/exec.c:1819
+ do_execveat_common fs/exec.c:1866 [inline]
+ do_execve fs/exec.c:1883 [inline]
+ __do_sys_execve fs/exec.c:1964 [inline]
+ __se_sys_execve fs/exec.c:1959 [inline]
+ __x64_sys_execve+0x8f/0xc0 fs/exec.c:1959
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8801d4a67d00
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 7 bytes to the right of
+ 512-byte region [ffff8801d4a67d00, ffff8801d4a67f00)
+The buggy address belongs to the page:
+page:ffffea00075299c0 count:1 mapcount:0 mapping:ffff8801dac00940 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0007529988 ffffea0007529a48 ffff8801dac00940
+raw: 0000000000000000 ffff8801d4a67080 0000000100000006 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d4a67e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8801d4a67e80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801d4a67f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                   ^
+ ffff8801d4a67f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801d4a68000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,57 @@
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffff80
+raw: ffffea0006b29220 ffff88021fffac18 0000000000000003 0000000000000000
+page dumped because: VM_BUG_ON_PAGE(page_ref_count(page) <= 0)
+------------[ cut here ]------------
+kernel BUG at include/linux/mm.h:853!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 4545 Comm: syz-executor492 Not tainted 4.17.0-rc7+ #82
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:get_page include/linux/mm.h:853 [inline]
+RIP: 0010:do_tcp_sendpages+0x1879/0x1e60 net/ipv4/tcp.c:1002
+RSP: 0018:ffff8801c2a06f88 EFLAGS: 00010203
+RAX: 0000000000000000 RBX: ffff8801d972d580 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81a66c25 RDI: ffffed0038540de0
+RBP: ffff8801c2a071e8 R08: ffff8801b11d2480 R09: 0000000000000006
+R10: ffff8801b11d2480 R11: 0000000000000000 R12: 000000000000301d
+R13: ffffea0006b2621c R14: ffff8801ae5a6040 R15: dffffc0000000000
+FS:  0000000000000000(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020008000 CR3: 0000000008c6a000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ tls_push_sg+0x25b/0x860 net/tls/tls_main.c:126
+ tls_push_record+0xae5/0x13e0 net/tls/tls_sw.c:266
+ tls_sw_push_pending_record+0x22/0x30 net/tls/tls_sw.c:276
+ tls_handle_open_record net/tls/tls_main.c:164 [inline]
+ tls_sk_proto_close+0x734/0xad0 net/tls/tls_main.c:264
+ inet_release+0x104/0x1f0 net/ipv4/af_inet.c:427
+ inet6_release+0x50/0x70 net/ipv6/af_inet6.c:459
+ sock_release+0x96/0x1b0 net/socket.c:594
+ sock_close+0x16/0x20 net/socket.c:1149
+ __fput+0x34d/0x890 fs/file_table.c:209
+ ____fput+0x15/0x20 fs/file_table.c:243
+ task_work_run+0x1e4/0x290 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x1aee/0x2730 kernel/exit.c:865
+ do_group_exit+0x16f/0x430 kernel/exit.c:968
+ __do_sys_exit_group kernel/exit.c:979 [inline]
+ __se_sys_exit_group kernel/exit.c:977 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:977
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x43f368
+RSP: 002b:00007ffd03500578 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 000000000043f368
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004bf448 R08: 00000000000000e7 R09: ffffffffffffffd0
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006d1180 R14: 0000000000000000 R15: 0000000000000000
+Code: ff ff 41 89 86 cc 08 00 00 e8 e4 07 05 00 e9 2c eb ff ff e8 ca 4b 27 fb 48 8b bd b8 fd ff ff 48 c7 c6 40 0c 54 88 e8 77 72 54 fb <0f> 0b 48 89 85 b8 fd ff ff e8 a9 4b 27 fb 48 8b 85 b8 fd ff ff 
+RIP: get_page include/linux/mm.h:853 [inline] RSP: ffff8801c2a06f88
+RIP: do_tcp_sendpages+0x1879/0x1e60 net/ipv4/tcp.c:1002 RSP: ffff8801c2a06f88
+---[ end trace 500a6e4fab99629c ]---

@@ -1,0 +1,90 @@
+device lo left promiscuous mode
+kernel msg: ebtables bug: please report to author: Wrong nr of counters
+device lo entered promiscuous mode
+device lo left promiscuous mode
+INFO: task syz-executor2:22892 blocked for more than 120 seconds.
+      Not tainted 4.18.0-rc3+ #130
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor2   D22200 22892   4525 0x80000006
+Call Trace:
+ context_switch kernel/sched/core.c:2862 [inline]
+ __schedule+0x87c/0x1ed0 kernel/sched/core.c:3504
+ schedule+0xfb/0x450 kernel/sched/core.c:3548
+ schedule_timeout+0x1cc/0x260 kernel/time/timer.c:1777
+ do_wait_for_common kernel/sched/completion.c:83 [inline]
+ __wait_for_common kernel/sched/completion.c:104 [inline]
+ wait_for_common kernel/sched/completion.c:115 [inline]
+ wait_for_completion+0x430/0x8d0 kernel/sched/completion.c:136
+ __wait_rcu_gp+0x257/0x350 kernel/rcu/update.c:366
+ synchronize_sched.part.63+0x104/0x120 kernel/rcu/tree.c:3097
+ synchronize_sched+0x76/0xf0 kernel/rcu/tree.c:3098
+ synchronize_rcu include/linux/rcupdate.h:94 [inline]
+ namespace_unlock+0x1bb/0x210 fs/namespace.c:1424
+ drop_collected_mounts+0x85/0x90 fs/namespace.c:1848
+ put_mnt_ns+0x69/0x90 fs/namespace.c:3297
+ free_nsproxy+0x46/0x220 kernel/nsproxy.c:176
+ switch_task_namespaces+0xb8/0xd0 kernel/nsproxy.c:229
+ exit_task_namespaces+0x17/0x20 kernel/nsproxy.c:234
+ do_exit+0x1b03/0x2750 kernel/exit.c:864
+ do_group_exit+0x177/0x440 kernel/exit.c:968
+ get_signal+0x88e/0x1970 kernel/signal.c:2468
+ do_signal+0x9c/0x21c0 arch/x86/kernel/signal.c:816
+ exit_to_usermode_loop+0x2e0/0x370 arch/x86/entry/common.c:162
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455ab9
+Code: e0 1f 48 89 04 24 e8 b6 6f fd ff e8 81 6a fd ff e8 5c 68 fd ff 48 8d 05 14 65 48 00 48 89 04 24 48 c7 44 24 08 1d 00 00 00 e8 <13> 5e fd ff 0f 0b e8 8c 44 00 00 e9 07 f0 ff ff cc cc cc cc cc cc 
+RSP: 002b:00007f31d7720c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 00007f31d77216d4 RCX: 0000000000455ab9
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000013
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000004eaab2 R14: 00000000004c8820 R15: 0000000000000000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/900:
+ #0: 00000000851b4a8a (rcu_read_lock){....}, at: debug_show_all_locks+0xd0/0x428 kernel/locking/lockdep.c:4461
+1 lock held by rsyslogd/4381:
+ #0: 00000000e3a70e98 (&f->f_pos_lock){+.+.}, at: __fdget_pos+0x1bb/0x200 fs/file.c:766
+2 locks held by getty/4472:
+ #0: 00000000f0d5fddc (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000666586a1 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1ce0 drivers/tty/n_tty.c:2140
+2 locks held by getty/4473:
+ #0: 0000000049f370c7 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000392a799d (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1ce0 drivers/tty/n_tty.c:2140
+2 locks held by getty/4474:
+ #0: 000000003505e580 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000e03a7bf1 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1ce0 drivers/tty/n_tty.c:2140
+2 locks held by getty/4475:
+ #0: 000000000b070761 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000178895a1 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1ce0 drivers/tty/n_tty.c:2140
+2 locks held by getty/4476:
+ #0: 00000000a9c4ac0c (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 0000000087ae9572 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1ce0 drivers/tty/n_tty.c:2140
+2 locks held by getty/4477:
+ #0: 00000000398d22ec (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000fe73eb28 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1ce0 drivers/tty/n_tty.c:2140
+2 locks held by getty/4478:
+ #0: 0000000062b531bc (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+ #1: 00000000a4d16f5a (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x335/0x1ce0 drivers/tty/n_tty.c:2140
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 900 Comm: khungtaskd Not tainted 4.18.0-rc3+ #130
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.4+0x19/0xce lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x151/0x192 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:138 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:196 [inline]
+ watchdog+0x9c4/0xf80 kernel/hung_task.c:252
+ kthread+0x345/0x410 kernel/kthread.c:240
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0 skipped: idling at native_safe_halt+0x6/0x10 arch/x86/include/asm/irqflags.h:54

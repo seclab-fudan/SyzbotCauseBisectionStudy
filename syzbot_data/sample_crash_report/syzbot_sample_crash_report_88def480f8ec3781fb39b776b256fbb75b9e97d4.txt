@@ -1,0 +1,83 @@
+BUG: KASAN: wild-memory-access in memcpy include/linux/string.h:339 [inline]
+BUG: KASAN: wild-memory-access in skb_copy_ubufs+0xc51/0x1940 net/core/skbuff.c:1229
+Read of size 4096 at addr 29f997dd42ad3b56 by task syzkaller656520/25772
+
+CPU: 1 PID: 25772 Comm: syzkaller656520 Not tainted 4.13.0-rc5-next-20170816+ #4
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ kasan_report_error mm/kasan/report.c:349 [inline]
+ kasan_report+0x12e/0x340 mm/kasan/report.c:409
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x23/0x50 mm/kasan/kasan.c:302
+ memcpy include/linux/string.h:339 [inline]
+ skb_copy_ubufs+0xc51/0x1940 net/core/skbuff.c:1229
+ skb_orphan_frags_rx include/linux/skbuff.h:2548 [inline]
+ deliver_skb net/core/dev.c:1856 [inline]
+ __netif_receive_skb_core+0x24a2/0x33d0 net/core/dev.c:4329
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4456
+ netif_receive_skb_internal+0x10b/0x5e0 net/core/dev.c:4527
+ netif_receive_skb+0xae/0x390 net/core/dev.c:4551
+ tun_rx_batched.isra.43+0x5e7/0x860 drivers/net/tun.c:1221
+ tun_get_user+0x11dd/0x2150 drivers/net/tun.c:1542
+ tun_chr_write_iter+0xd8/0x190 drivers/net/tun.c:1568
+ call_write_iter include/linux/fs.h:1742 [inline]
+ new_sync_write fs/read_write.c:457 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:470
+ vfs_write+0x189/0x510 fs/read_write.c:518
+ SYSC_write fs/read_write.c:565 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:557
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x406811
+RSP: 002b:00007fbe734f8dc0 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000406811
+RDX: 000000000000002e RSI: 00000000209cbfd2 RDI: 0000000000000003
+RBP: 0000000000000086 R08: 00007fbe734f9700 R09: 00007fbe734f9700
+R10: 00007fbe734f99d0 R11: 0000000000000293 R12: 0000000000000000
+R13: 00007ffe2760349f R14: 00007fbe734f99c0 R15: 0000000000000000
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 1 PID: 25772 Comm: syzkaller656520 Tainted: G    B           4.13.0-rc5-next-20170816+ #4
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ panic+0x1e4/0x417 kernel/panic.c:180
+ kasan_end_report+0x50/0x50 mm/kasan/report.c:176
+ kasan_report_error mm/kasan/report.c:356 [inline]
+ kasan_report+0x137/0x340 mm/kasan/report.c:409
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+ memcpy+0x23/0x50 mm/kasan/kasan.c:302
+ memcpy include/linux/string.h:339 [inline]
+ skb_copy_ubufs+0xc51/0x1940 net/core/skbuff.c:1229
+ skb_orphan_frags_rx include/linux/skbuff.h:2548 [inline]
+ deliver_skb net/core/dev.c:1856 [inline]
+ __netif_receive_skb_core+0x24a2/0x33d0 net/core/dev.c:4329
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4456
+ netif_receive_skb_internal+0x10b/0x5e0 net/core/dev.c:4527
+ netif_receive_skb+0xae/0x390 net/core/dev.c:4551
+ tun_rx_batched.isra.43+0x5e7/0x860 drivers/net/tun.c:1221
+ tun_get_user+0x11dd/0x2150 drivers/net/tun.c:1542
+ tun_chr_write_iter+0xd8/0x190 drivers/net/tun.c:1568
+ call_write_iter include/linux/fs.h:1742 [inline]
+ new_sync_write fs/read_write.c:457 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:470
+ vfs_write+0x189/0x510 fs/read_write.c:518
+ SYSC_write fs/read_write.c:565 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:557
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x406811
+RSP: 002b:00007fbe734f8dc0 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000406811
+RDX: 000000000000002e RSI: 00000000209cbfd2 RDI: 0000000000000003
+RBP: 0000000000000086 R08: 00007fbe734f9700 R09: 00007fbe734f9700
+R10: 00007fbe734f99d0 R11: 0000000000000293 R12: 0000000000000000
+R13: 00007ffe2760349f R14: 00007fbe734f99c0 R15: 0000000000000000
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

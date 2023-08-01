@@ -1,0 +1,59 @@
+BTRFS info (device loop3): using crc32c (crc32c-generic) checksum algorithm
+BTRFS info (device loop3): using free space tree
+BTRFS info (device loop3): enabling ssd optimizations
+BTRFS info (device loop3): auto enabling async discard
+=====================================================
+BUG: KMSAN: uninit-value in extent_fiemap+0x2ecf/0x5e30 fs/btrfs/extent_io.c:3408
+ extent_fiemap+0x2ecf/0x5e30 fs/btrfs/extent_io.c:3408
+ btrfs_fiemap+0x210/0x260 fs/btrfs/inode.c:7830
+ ioctl_fiemap fs/ioctl.c:219 [inline]
+ do_vfs_ioctl+0x2f30/0x3cf0 fs/ioctl.c:810
+ __do_compat_sys_ioctl fs/ioctl.c:962 [inline]
+ __se_compat_sys_ioctl+0x6e3/0x1000 fs/ioctl.c:910
+ __ia32_compat_sys_ioctl+0x93/0xd0 fs/ioctl.c:910
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Uninit was stored to memory at:
+ read_extent_buffer fs/btrfs/extent_io.c:4652 [inline]
+ btrfs_item_key fs/btrfs/accessors.h:489 [inline]
+ btrfs_item_key_to_cpu fs/btrfs/accessors.h:603 [inline]
+ extent_fiemap+0x206b/0x5e30 fs/btrfs/extent_io.c:3407
+ btrfs_fiemap+0x210/0x260 fs/btrfs/inode.c:7830
+ ioctl_fiemap fs/ioctl.c:219 [inline]
+ do_vfs_ioctl+0x2f30/0x3cf0 fs/ioctl.c:810
+ __do_compat_sys_ioctl fs/ioctl.c:962 [inline]
+ __se_compat_sys_ioctl+0x6e3/0x1000 fs/ioctl.c:910
+ __ia32_compat_sys_ioctl+0x93/0xd0 fs/ioctl.c:910
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Uninit was created at:
+ __alloc_pages+0x9f6/0xe90 mm/page_alloc.c:5614
+ __alloc_pages_bulk+0x1ad/0x20d0 mm/page_alloc.c:5539
+ alloc_pages_bulk_array include/linux/gfp.h:201 [inline]
+ btrfs_alloc_page_array fs/btrfs/extent_io.c:852 [inline]
+ btrfs_clone_extent_buffer+0x445/0x11e0 fs/btrfs/extent_io.c:3745
+ fiemap_search_slot fs/btrfs/extent_io.c:3135 [inline]
+ extent_fiemap+0x1cbb/0x5e30 fs/btrfs/extent_io.c:3382
+ btrfs_fiemap+0x210/0x260 fs/btrfs/inode.c:7830
+ ioctl_fiemap fs/ioctl.c:219 [inline]
+ do_vfs_ioctl+0x2f30/0x3cf0 fs/ioctl.c:810
+ __do_compat_sys_ioctl fs/ioctl.c:962 [inline]
+ __se_compat_sys_ioctl+0x6e3/0x1000 fs/ioctl.c:910
+ __ia32_compat_sys_ioctl+0x93/0xd0 fs/ioctl.c:910
+ do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+ __do_fast_syscall_32+0xa2/0x100 arch/x86/entry/common.c:178
+ do_fast_syscall_32+0x37/0x80 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+CPU: 1 PID: 6072 Comm: syz-executor.3 Not tainted 6.3.0-rc3-syzkaller-g90ea0df61c98 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+=====================================================

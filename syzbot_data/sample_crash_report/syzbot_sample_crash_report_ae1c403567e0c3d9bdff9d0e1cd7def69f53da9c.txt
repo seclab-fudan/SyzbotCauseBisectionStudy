@@ -1,0 +1,105 @@
+==================================================================
+BUG: KASAN: use-after-free in fuse_request_end+0x825/0x990 fs/fuse/dev.c:279
+Read of size 8 at addr ffff8880a19e3068 by task syz-executor.0/9292
+
+CPU: 0 PID: 9292 Comm: syz-executor.0 Not tainted 5.4.0-rc4+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:634
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ fuse_request_end+0x825/0x990 fs/fuse/dev.c:279
+ fuse_dev_do_read.isra.0+0x115b/0x1df0 fs/fuse/dev.c:1295
+ fuse_dev_read+0x165/0x200 fs/fuse/dev.c:1328
+ call_read_iter include/linux/fs.h:1889 [inline]
+ new_sync_read+0x4d7/0x800 fs/read_write.c:414
+ __vfs_read+0xe1/0x110 fs/read_write.c:427
+ vfs_read+0x1f0/0x440 fs/read_write.c:461
+ ksys_read+0x14f/0x290 fs/read_write.c:587
+ __do_sys_read fs/read_write.c:597 [inline]
+ __se_sys_read fs/read_write.c:595 [inline]
+ __x64_sys_read+0x73/0xb0 fs/read_write.c:595
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x459ef9
+Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f8a636fbc78 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000459ef9
+RDX: 00000000fffffed0 RSI: 00000000200030c0 RDI: 0000000000000003
+RBP: 000000000075bfc8 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f8a636fc6d4
+R13: 00000000004c76e7 R14: 00000000004dd1d0 R15: 00000000ffffffff
+
+Allocated by task 9292:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ __kasan_kmalloc mm/kasan/common.c:510 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:483
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:524
+ kmem_cache_alloc_trace+0x158/0x790 mm/slab.c:3550
+ kmalloc include/linux/slab.h:556 [inline]
+ kzalloc include/linux/slab.h:690 [inline]
+ fuse_send_init+0x48/0x440 fs/fuse/inode.c:974
+ fuse_fill_super+0x2a6/0x3a0 fs/fuse/inode.c:1257
+ vfs_get_super+0x13e/0x2e0 fs/super.c:1189
+ get_tree_nodev+0x23/0x30 fs/super.c:1219
+ fuse_get_tree+0x12e/0x190 fs/fuse/inode.c:1282
+ vfs_get_tree+0x8e/0x300 fs/super.c:1545
+ do_new_mount fs/namespace.c:2823 [inline]
+ do_mount+0x143d/0x1d10 fs/namespace.c:3143
+ ksys_mount+0xdb/0x150 fs/namespace.c:3352
+ __do_sys_mount fs/namespace.c:3366 [inline]
+ __se_sys_mount fs/namespace.c:3363 [inline]
+ __x64_sys_mount+0xbe/0x150 fs/namespace.c:3363
+ do_syscall_64+0xfa/0x760 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 9290:
+ save_stack+0x23/0x90 mm/kasan/common.c:69
+ set_track mm/kasan/common.c:77 [inline]
+ kasan_set_free_info mm/kasan/common.c:332 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:471
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:480
+ __cache_free mm/slab.c:3425 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3756
+ process_init_reply+0xfb/0x1620 fs/fuse/inode.c:964
+ fuse_request_end+0x388/0x990 fs/fuse/dev.c:326
+ end_requests+0x16c/0x240 fs/fuse/dev.c:2049
+ fuse_abort_conn+0xa4d/0xdb0 fs/fuse/dev.c:2144
+ fuse_sb_destroy+0xa3/0x120 fs/fuse/inode.c:1325
+ fuse_kill_sb_anon+0x16/0x30 fs/fuse/inode.c:1336
+ deactivate_locked_super+0x95/0x100 fs/super.c:335
+ deactivate_super fs/super.c:366 [inline]
+ deactivate_super+0x1b2/0x1d0 fs/super.c:362
+ cleanup_mnt+0x351/0x4c0 fs/namespace.c:1102
+ __cleanup_mnt+0x16/0x20 fs/namespace.c:1109
+ task_work_run+0x145/0x1c0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x316/0x380 arch/x86/entry/common.c:163
+ prepare_exit_to_usermode arch/x86/entry/common.c:194 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:274 [inline]
+ do_syscall_64+0x65f/0x760 arch/x86/entry/common.c:300
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8880a19e3000
+ which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 104 bytes inside of
+ 192-byte region [ffff8880a19e3000, ffff8880a19e30c0)
+The buggy address belongs to the page:
+page:ffffea00028678c0 refcount:1 mapcount:0 mapping:ffff8880aa400000 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea000286b008 ffffea00028538c8 ffff8880aa400000
+raw: 0000000000000000 ffff8880a19e3000 0000000100000010 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a19e2f00: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+ ffff8880a19e2f80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+>ffff8880a19e3000: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                          ^
+ ffff8880a19e3080: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff8880a19e3100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

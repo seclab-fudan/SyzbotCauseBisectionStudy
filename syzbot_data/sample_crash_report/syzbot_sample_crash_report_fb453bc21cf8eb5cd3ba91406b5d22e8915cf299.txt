@@ -1,0 +1,82 @@
+=====================================================
+BUG: KMSAN: uninit-value in sctp_inq_pop+0x159f/0x1910 net/sctp/inqueue.c:205
+ sctp_inq_pop+0x159f/0x1910 net/sctp/inqueue.c:205
+ sctp_assoc_bh_rcv+0x1a3/0xc40 net/sctp/associola.c:999
+ sctp_inq_push+0x238/0x2b0 net/sctp/inqueue.c:80
+ sctp_backlog_rcv+0x3f1/0xe40 net/sctp/input.c:346
+ sk_backlog_rcv include/net/sock.h:1047 [inline]
+ __release_sock+0x1ff/0x560 net/core/sock.c:2849
+ release_sock+0x67/0x1d0 net/core/sock.c:3404
+ sctp_wait_for_connect+0x4a0/0x860 net/sctp/socket.c:9314
+ sctp_sendmsg_to_asoc+0x179c/0x19e0 net/sctp/socket.c:1881
+ sctp_sendmsg+0x3836/0x4ce0 net/sctp/socket.c:2027
+ inet_sendmsg+0x101/0x180 net/ipv4/af_inet.c:819
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x7ea/0xa60 net/socket.c:2119
+ __do_sys_sendto net/socket.c:2131 [inline]
+ __se_sys_sendto net/socket.c:2127 [inline]
+ __x64_sys_sendto+0x121/0x1c0 net/socket.c:2127
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was stored to memory at:
+ sctp_inq_pop+0x1522/0x1910 net/sctp/inqueue.c:201
+ sctp_assoc_bh_rcv+0x1a3/0xc40 net/sctp/associola.c:999
+ sctp_inq_push+0x238/0x2b0 net/sctp/inqueue.c:80
+ sctp_backlog_rcv+0x3f1/0xe40 net/sctp/input.c:346
+ sk_backlog_rcv include/net/sock.h:1047 [inline]
+ __release_sock+0x1ff/0x560 net/core/sock.c:2849
+ release_sock+0x67/0x1d0 net/core/sock.c:3404
+ sctp_wait_for_connect+0x4a0/0x860 net/sctp/socket.c:9314
+ sctp_sendmsg_to_asoc+0x179c/0x19e0 net/sctp/socket.c:1881
+ sctp_sendmsg+0x3836/0x4ce0 net/sctp/socket.c:2027
+ inet_sendmsg+0x101/0x180 net/ipv4/af_inet.c:819
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x7ea/0xa60 net/socket.c:2119
+ __do_sys_sendto net/socket.c:2131 [inline]
+ __se_sys_sendto net/socket.c:2127 [inline]
+ __x64_sys_sendto+0x121/0x1c0 net/socket.c:2127
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slab.h:755 [inline]
+ slab_alloc_node mm/slub.c:3258 [inline]
+ __kmalloc_node_track_caller+0x86c/0x1230 mm/slub.c:4994
+ kmalloc_reserve net/core/skbuff.c:354 [inline]
+ __alloc_skb+0x34a/0xd70 net/core/skbuff.c:426
+ alloc_skb include/linux/skbuff.h:1426 [inline]
+ sctp_packet_pack net/sctp/output.c:472 [inline]
+ sctp_packet_transmit+0x16e4/0x4080 net/sctp/output.c:621
+ sctp_outq_flush_transports net/sctp/outqueue.c:1170 [inline]
+ sctp_outq_flush+0x19a1/0x6090 net/sctp/outqueue.c:1218
+ sctp_outq_uncork+0x96/0xb0 net/sctp/outqueue.c:761
+ sctp_side_effects net/sctp/sm_sideeffect.c:1199 [inline]
+ sctp_do_sm+0x9503/0x9b90 net/sctp/sm_sideeffect.c:1170
+ sctp_assoc_bh_rcv+0x8f8/0xc40 net/sctp/associola.c:1053
+ sctp_inq_push+0x238/0x2b0 net/sctp/inqueue.c:80
+ sctp_backlog_rcv+0x3f1/0xe40 net/sctp/input.c:346
+ sk_backlog_rcv include/net/sock.h:1047 [inline]
+ __release_sock+0x1ff/0x560 net/core/sock.c:2849
+ release_sock+0x67/0x1d0 net/core/sock.c:3404
+ sctp_wait_for_connect+0x4a0/0x860 net/sctp/socket.c:9314
+ sctp_sendmsg_to_asoc+0x179c/0x19e0 net/sctp/socket.c:1881
+ sctp_sendmsg+0x3836/0x4ce0 net/sctp/socket.c:2027
+ inet_sendmsg+0x101/0x180 net/ipv4/af_inet.c:819
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x7ea/0xa60 net/socket.c:2119
+ __do_sys_sendto net/socket.c:2131 [inline]
+ __se_sys_sendto net/socket.c:2127 [inline]
+ __x64_sys_sendto+0x121/0x1c0 net/socket.c:2127
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+CPU: 0 PID: 3488 Comm: syz-executor140 Not tainted 5.19.0-syzkaller-32655-g1b070a5d1a2c #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+=====================================================

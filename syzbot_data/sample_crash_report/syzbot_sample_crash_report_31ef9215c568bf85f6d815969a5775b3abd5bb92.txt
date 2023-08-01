@@ -1,0 +1,75 @@
+==================================================================
+BUG: KCSAN: data-race in sit_tunnel_xmit / sit_tunnel_xmit
+
+read-write to 0xffff8881467b7158 of 8 bytes by task 15381 on cpu 0:
+ sit_tunnel_xmit+0x1be/0x1410
+ __netdev_start_xmit include/linux/netdevice.h:4840 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4854 [inline]
+ xmit_one+0xc0/0x2a0 net/core/dev.c:3590
+ dev_hard_start_xmit+0x72/0x120 net/core/dev.c:3606
+ __dev_queue_xmit+0x91c/0x11c0 net/core/dev.c:4256
+ dev_queue_xmit include/linux/netdevice.h:3008 [inline]
+ neigh_connected_output+0x25c/0x2d0 net/core/neighbour.c:1600
+ neigh_output include/net/neighbour.h:546 [inline]
+ ip6_finish_output2+0xa12/0xc30 net/ipv6/ip6_output.c:134
+ __ip6_finish_output net/ipv6/ip6_output.c:195 [inline]
+ ip6_finish_output+0x395/0x4f0 net/ipv6/ip6_output.c:206
+ NF_HOOK_COND include/linux/netfilter.h:291 [inline]
+ ip6_output+0x10e/0x210 net/ipv6/ip6_output.c:227
+ dst_output include/net/dst.h:445 [inline]
+ ip6_local_out+0x60/0x80 net/ipv6/output_core.c:161
+ ip6_send_skb+0x43/0xf0 net/ipv6/ip6_output.c:1971
+ udp_v6_send_skb+0x7ab/0xc00 net/ipv6/udp.c:1286
+ udpv6_sendmsg+0x1297/0x14a0 net/ipv6/udp.c:1578
+ inet6_sendmsg+0x5f/0x80 net/ipv6/af_inet6.c:665
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0x38f/0x500 net/socket.c:2482
+ ___sys_sendmsg net/socket.c:2536 [inline]
+ __sys_sendmmsg+0x27c/0x4a0 net/socket.c:2622
+ __do_sys_sendmmsg net/socket.c:2651 [inline]
+ __se_sys_sendmmsg net/socket.c:2648 [inline]
+ __x64_sys_sendmmsg+0x53/0x60 net/socket.c:2648
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+read-write to 0xffff8881467b7158 of 8 bytes by task 15365 on cpu 1:
+ sit_tunnel_xmit+0x1be/0x1410
+ __netdev_start_xmit include/linux/netdevice.h:4840 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4854 [inline]
+ xmit_one+0xc0/0x2a0 net/core/dev.c:3590
+ dev_hard_start_xmit+0x72/0x120 net/core/dev.c:3606
+ __dev_queue_xmit+0x91c/0x11c0 net/core/dev.c:4256
+ dev_queue_xmit include/linux/netdevice.h:3008 [inline]
+ neigh_connected_output+0x25c/0x2d0 net/core/neighbour.c:1600
+ neigh_output include/net/neighbour.h:546 [inline]
+ ip6_finish_output2+0xa12/0xc30 net/ipv6/ip6_output.c:134
+ __ip6_finish_output net/ipv6/ip6_output.c:195 [inline]
+ ip6_finish_output+0x395/0x4f0 net/ipv6/ip6_output.c:206
+ NF_HOOK_COND include/linux/netfilter.h:291 [inline]
+ ip6_output+0x10e/0x210 net/ipv6/ip6_output.c:227
+ dst_output include/net/dst.h:445 [inline]
+ ip6_local_out+0x60/0x80 net/ipv6/output_core.c:161
+ ip6_send_skb+0x43/0xf0 net/ipv6/ip6_output.c:1971
+ udp_v6_send_skb+0x7ab/0xc00 net/ipv6/udp.c:1286
+ udpv6_sendmsg+0x1297/0x14a0 net/ipv6/udp.c:1578
+ inet6_sendmsg+0x5f/0x80 net/ipv6/af_inet6.c:665
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ ____sys_sendmsg+0x38f/0x500 net/socket.c:2482
+ ___sys_sendmsg net/socket.c:2536 [inline]
+ __sys_sendmmsg+0x27c/0x4a0 net/socket.c:2622
+ __do_sys_sendmmsg net/socket.c:2651 [inline]
+ __se_sys_sendmmsg net/socket.c:2648 [inline]
+ __x64_sys_sendmmsg+0x53/0x60 net/socket.c:2648
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x2b/0x70 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+value changed: 0x0000000000000653 -> 0x0000000000000654
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 15365 Comm: syz-executor.0 Not tainted 6.1.0-syzkaller-dirty #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+==================================================================

@@ -1,0 +1,59 @@
+==================================================================
+BUG: KMSAN: kernel-infoleak in __copy_to_user include/linux/uaccess.h:121 [inline]
+BUG: KMSAN: kernel-infoleak in __kvm_write_guest_page arch/x86/kvm/../../../virt/kvm/kvm_main.c:1849 [inline]
+BUG: KMSAN: kernel-infoleak in kvm_vcpu_write_guest_page+0x39a/0x510 arch/x86/kvm/../../../virt/kvm/kvm_main.c:1870
+CPU: 0 PID: 7918 Comm: syz-executor542 Not tainted 4.19.0+ #77
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x32d/0x480 lib/dump_stack.c:113
+ kmsan_report+0x1a2/0x2e0 mm/kmsan/kmsan.c:911
+ kmsan_internal_check_memory+0x34c/0x430 mm/kmsan/kmsan.c:991
+ kmsan_copy_to_user+0x85/0xe0 mm/kmsan/kmsan_hooks.c:552
+ __copy_to_user include/linux/uaccess.h:121 [inline]
+ __kvm_write_guest_page arch/x86/kvm/../../../virt/kvm/kvm_main.c:1849 [inline]
+ kvm_vcpu_write_guest_page+0x39a/0x510 arch/x86/kvm/../../../virt/kvm/kvm_main.c:1870
+ nested_release_vmcs12 arch/x86/kvm/vmx.c:8441 [inline]
+ handle_vmptrld+0x2384/0x26b0 arch/x86/kvm/vmx.c:8907
+ vmx_handle_exit+0x1e81/0xbac0 arch/x86/kvm/vmx.c:10128
+ vcpu_enter_guest arch/x86/kvm/x86.c:7667 [inline]
+ vcpu_run arch/x86/kvm/x86.c:7730 [inline]
+ kvm_arch_vcpu_ioctl_run+0xac32/0x11d80 arch/x86/kvm/x86.c:7930
+ kvm_vcpu_ioctl+0xfb1/0x1f90 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2590
+ do_vfs_ioctl+0xf77/0x2d30 fs/ioctl.c:46
+ ksys_ioctl fs/ioctl.c:702 [inline]
+ __do_sys_ioctl fs/ioctl.c:709 [inline]
+ __se_sys_ioctl+0x1da/0x270 fs/ioctl.c:707
+ __x64_sys_ioctl+0x4a/0x70 fs/ioctl.c:707
+ do_syscall_64+0xcf/0x110 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x44b6e9
+Code: e8 dc e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 2b ff fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f096b292ce8 EFLAGS: 00000206 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000006e3c48 RCX: 000000000044b6e9
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000005
+RBP: 00000000006e3c40 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000206 R12: 00000000006e3c4c
+R13: 00007ffd978aeb2f R14: 00007f096b2939c0 R15: 00000000006e3d4c
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:252 [inline]
+ kmsan_internal_poison_shadow+0xc8/0x1e0 mm/kmsan/kmsan.c:177
+ kmsan_kmalloc+0x98/0x110 mm/kmsan/kmsan_hooks.c:104
+ __kmalloc+0x14c/0x4d0 mm/slub.c:3789
+ kmalloc include/linux/slab.h:518 [inline]
+ enter_vmx_operation+0x980/0x1a90 arch/x86/kvm/vmx.c:8278
+ vmx_set_nested_state+0xc3a/0x1530 arch/x86/kvm/vmx.c:14045
+ kvm_arch_vcpu_ioctl+0x4fc9/0x73a0 arch/x86/kvm/x86.c:4057
+ kvm_vcpu_ioctl+0xca3/0x1f90 arch/x86/kvm/../../../virt/kvm/kvm_main.c:2742
+ do_vfs_ioctl+0xf77/0x2d30 fs/ioctl.c:46
+ ksys_ioctl fs/ioctl.c:702 [inline]
+ __do_sys_ioctl fs/ioctl.c:709 [inline]
+ __se_sys_ioctl+0x1da/0x270 fs/ioctl.c:707
+ __x64_sys_ioctl+0x4a/0x70 fs/ioctl.c:707
+ do_syscall_64+0xcf/0x110 arch/x86/entry/common.c:291
+ entry_SYSCALL_64_after_hwframe+0x63/0xe7
+
+Bytes 1000-4095 of 4096 are uninitialized
+Memory access of size 4096 starts at ffff8801b5157000
+==================================================================

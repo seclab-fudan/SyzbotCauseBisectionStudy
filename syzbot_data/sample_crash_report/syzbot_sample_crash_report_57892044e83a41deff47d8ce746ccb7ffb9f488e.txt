@@ -1,0 +1,154 @@
+WARNING: possible circular locking dependency detected
+6.2.0-rc8-syzkaller #0 Not tainted
+------------------------------------------------------
+kswapd1/111 is trying to acquire lock:
+ffff88806914b130 (&nm_i->nat_tree_lock){++++}-{3:3}, at: f2fs_down_read fs/f2fs/f2fs.h:2188 [inline]
+ffff88806914b130 (&nm_i->nat_tree_lock){++++}-{3:3}, at: f2fs_get_node_info+0x1ac/0x1070 fs/f2fs/node.c:564
+
+but task is already holding lock:
+ffffffff8c8d7080 (fs_reclaim){+.+.}-{0:0}, at: try_to_freeze include/linux/freezer.h:56 [inline]
+ffffffff8c8d7080 (fs_reclaim){+.+.}-{0:0}, at: try_to_freeze include/linux/freezer.h:51 [inline]
+ffffffff8c8d7080 (fs_reclaim){+.+.}-{0:0}, at: balance_pgdat+0xb88/0x1530 mm/vmscan.c:7165
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (fs_reclaim){+.+.}-{0:0}:
+       __fs_reclaim_acquire mm/page_alloc.c:4674 [inline]
+       fs_reclaim_acquire+0x11d/0x160 mm/page_alloc.c:4688
+       might_alloc include/linux/sched/mm.h:271 [inline]
+       prepare_alloc_pages+0x159/0x570 mm/page_alloc.c:5320
+       __alloc_pages+0x149/0x5b0 mm/page_alloc.c:5538
+       __folio_alloc+0x16/0x40 mm/page_alloc.c:5581
+       vma_alloc_folio+0x155/0x870 mm/mempolicy.c:2248
+       alloc_page_vma include/linux/gfp.h:284 [inline]
+       do_anonymous_page mm/memory.c:4074 [inline]
+       handle_pte_fault mm/memory.c:4929 [inline]
+       __handle_mm_fault+0x1822/0x3c90 mm/memory.c:5073
+       handle_mm_fault+0x1b6/0x850 mm/memory.c:5219
+       do_user_addr_fault+0x475/0x1210 arch/x86/mm/fault.c:1428
+       handle_page_fault arch/x86/mm/fault.c:1519 [inline]
+       exc_page_fault+0x98/0x170 arch/x86/mm/fault.c:1575
+       asm_exc_page_fault+0x26/0x30 arch/x86/include/asm/idtentry.h:570
+       copy_user_short_string+0xd/0x40 arch/x86/lib/copy_user_64.S:232
+       copy_user_generic arch/x86/include/asm/uaccess_64.h:37 [inline]
+       raw_copy_to_user arch/x86/include/asm/uaccess_64.h:58 [inline]
+       _copy_to_user lib/usercopy.c:34 [inline]
+       _copy_to_user+0x127/0x150 lib/usercopy.c:27
+       copy_to_user include/linux/uaccess.h:169 [inline]
+       f2fs_ioc_get_encryption_pwsalt+0x2b2/0x370 fs/f2fs/file.c:2365
+       __f2fs_ioctl+0x29f1/0xaaf0 fs/f2fs/file.c:4169
+       f2fs_compat_ioctl+0x399/0x630 fs/f2fs/file.c:4867
+       __do_compat_sys_ioctl+0x255/0x2b0 fs/ioctl.c:968
+       do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+       __do_fast_syscall_32+0x65/0xf0 arch/x86/entry/common.c:178
+       do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+       entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+-> #1 (&sbi->sb_lock
+){++++}-{3:3}:
+       down_write+0x94/0x220 kernel/locking/rwsem.c:1562
+       f2fs_down_write fs/f2fs/f2fs.h:2213 [inline]
+       f2fs_handle_error+0x8e/0x200 fs/f2fs/super.c:3926
+       f2fs_check_nid_range.part.0+0x4d/0x60 fs/f2fs/node.c:39
+       f2fs_check_nid_range fs/f2fs/node.c:2278 [inline]
+       add_free_nid.isra.0+0x781/0x940 fs/f2fs/node.c:2285
+       scan_nat_page fs/f2fs/node.c:2387 [inline]
+       __f2fs_build_free_nids+0x5b5/0xe10 fs/f2fs/node.c:2493
+       f2fs_build_free_nids fs/f2fs/node.c:2531 [inline]
+       f2fs_build_node_manager+0x2007/0x2fb0 fs/f2fs/node.c:3316
+       f2fs_fill_super+0x3ade/0x7680 fs/f2fs/super.c:4334
+       mount_bdev+0x351/0x410 fs/super.c:1359
+       legacy_get_tree+0x109/0x220 fs/fs_context.c:610
+       vfs_get_tree+0x8d/0x2f0 fs/super.c:1489
+       do_new_mount fs/namespace.c:3145 [inline]
+       path_mount+0x132a/0x1e20 fs/namespace.c:3475
+       do_mount fs/namespace.c:3488 [inline]
+       __do_sys_mount fs/namespace.c:3697 [inline]
+       __se_sys_mount fs/namespace.c:3674 [inline]
+       __ia32_sys_mount+0x282/0x300 fs/namespace.c:3674
+       do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
+       __do_fast_syscall_32+0x65/0xf0 arch/x86/entry/common.c:178
+       do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+       entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+-> #0 (&nm_i->nat_tree_lock){++++}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3097 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+       validate_chain kernel/locking/lockdep.c:3831 [inline]
+       __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5055
+       lock_acquire kernel/locking/lockdep.c:5668 [inline]
+       lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+       down_read+0x9c/0x450 kernel/locking/rwsem.c:1509
+       f2fs_down_read fs/f2fs/f2fs.h:2188 [inline]
+       f2fs_get_node_info+0x1ac/0x1070 fs/f2fs/node.c:564
+       __write_node_page+0x89f/0x2140 fs/f2fs/node.c:1616
+       f2fs_write_node_page+0x2c/0x40 fs/f2fs/node.c:1725
+       pageout+0x38a/0xa70 mm/vmscan.c:1298
+       shrink_folio_list+0x2bf3/0x3a60 mm/vmscan.c:1947
+       shrink_inactive_list mm/vmscan.c:2526 [inline]
+       shrink_list mm/vmscan.c:2767 [inline]
+       shrink_lruvec+0xd0e/0x27a0 mm/vmscan.c:5954
+       shrink_node_memcgs mm/vmscan.c:6141 [inline]
+       shrink_node+0x8f2/0x1f40 mm/vmscan.c:6172
+       kswapd_shrink_node mm/vmscan.c:6961 [inline]
+       balance_pgdat+0x8f5/0x1530 mm/vmscan.c:7151
+       kswapd+0x70b/0xfc0 mm/vmscan.c:7411
+       kthread+0x2e8/0x3a0 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+other info that might help us debug this:
+
+Chain exists of:
+  &nm_i->nat_tree_lock --> &sbi->sb_lock --> fs_reclaim
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(fs_reclaim);
+                               lock(&sbi->sb_lock);
+                               lock(fs_reclaim);
+  lock(&nm_i->nat_tree_lock);
+
+ *** DEADLOCK ***
+
+1 lock held by kswapd1/111:
+ #0: ffffffff8c8d7080 (fs_reclaim){+.+.}-{0:0}, at: try_to_freeze include/linux/freezer.h:56 [inline]
+ #0: ffffffff8c8d7080 (fs_reclaim){+.+.}-{0:0}, at: try_to_freeze include/linux/freezer.h:51 [inline]
+ #0: ffffffff8c8d7080 (fs_reclaim){+.+.}-{0:0}, at: balance_pgdat+0xb88/0x1530 mm/vmscan.c:7165
+
+stack backtrace:
+CPU: 1 PID: 111 Comm: kswapd1 Not tainted 6.2.0-rc8-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2177
+ check_prev_add kernel/locking/lockdep.c:3097 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain kernel/locking/lockdep.c:3831 [inline]
+ __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5055
+ lock_acquire kernel/locking/lockdep.c:5668 [inline]
+ lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+ down_read+0x9c/0x450 kernel/locking/rwsem.c:1509
+ f2fs_down_read fs/f2fs/f2fs.h:2188 [inline]
+ f2fs_get_node_info+0x1ac/0x1070 fs/f2fs/node.c:564
+ __write_node_page+0x89f/0x2140 fs/f2fs/node.c:1616
+ f2fs_write_node_page+0x2c/0x40 fs/f2fs/node.c:1725
+ pageout+0x38a/0xa70 mm/vmscan.c:1298
+ shrink_folio_list+0x2bf3/0x3a60 mm/vmscan.c:1947
+ shrink_inactive_list mm/vmscan.c:2526 [inline]
+ shrink_list mm/vmscan.c:2767 [inline]
+ shrink_lruvec+0xd0e/0x27a0 mm/vmscan.c:5954
+ shrink_node_memcgs mm/vmscan.c:6141 [inline]
+ shrink_node+0x8f2/0x1f40 mm/vmscan.c:6172
+ kswapd_shrink_node mm/vmscan.c:6961 [inline]
+ balance_pgdat+0x8f5/0x1530 mm/vmscan.c:7151
+ kswapd+0x70b/0xfc0 mm/vmscan.c:7411
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>

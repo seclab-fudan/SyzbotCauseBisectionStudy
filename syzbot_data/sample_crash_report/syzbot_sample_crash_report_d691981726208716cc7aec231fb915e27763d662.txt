@@ -1,0 +1,90 @@
+==================================================================
+BUG: KASAN: use-after-free in sk_psock_unlink+0x370/0x440 net/core/sock_map.c:1000
+Read of size 4 at addr ffff88809fac7c18 by task syz-executor.0/21304
+
+CPU: 1 PID: 21304 Comm: syz-executor.0 Not tainted 5.5.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:639
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/generic_report.c:134
+ sk_psock_unlink+0x370/0x440 net/core/sock_map.c:1000
+ tcp_bpf_remove+0x21/0x50 net/ipv4/tcp_bpf.c:539
+ tcp_bpf_close+0x130/0x390 net/ipv4/tcp_bpf.c:579
+ inet_release+0xed/0x200 net/ipv4/af_inet.c:427
+ inet6_release+0x53/0x80 net/ipv6/af_inet6.c:470
+ __sock_release+0xce/0x280 net/socket.c:592
+ sock_close+0x1e/0x30 net/socket.c:1270
+ __fput+0x2ff/0x890 fs/file_table.c:280
+ ____fput+0x16/0x20 fs/file_table.c:313
+ task_work_run+0x145/0x1c0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x316/0x380 arch/x86/entry/common.c:164
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:278 [inline]
+ do_syscall_64+0x676/0x790 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x414b91
+Code: 75 14 b8 03 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 04 1b 00 00 c3 48 83 ec 08 e8 0a fc ff ff 48 89 04 24 b8 03 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 53 fc ff ff 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007ffd563b6120 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000006 RCX: 0000000000414b91
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000005
+RBP: 0000000000000001 R08: ffffffffffffffff R09: ffffffffffffffff
+R10: 00007ffd563b6200 R11: 0000000000000293 R12: 000000000075bf20
+R13: 00000000000471f2 R14: 00000000007610a8 R15: 000000000075bf2c
+
+Allocated by task 21306:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:513 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:527
+ kmem_cache_alloc_trace+0x158/0x790 mm/slab.c:3551
+ kmalloc include/linux/slab.h:556 [inline]
+ kzalloc include/linux/slab.h:670 [inline]
+ sock_hash_alloc net/core/sock_map.c:809 [inline]
+ sock_hash_alloc+0x1e3/0x5b0 net/core/sock_map.c:793
+ find_and_alloc_map kernel/bpf/syscall.c:123 [inline]
+ map_create kernel/bpf/syscall.c:654 [inline]
+ __do_sys_bpf+0x478/0x3810 kernel/bpf/syscall.c:3012
+ __se_sys_bpf kernel/bpf/syscall.c:2989 [inline]
+ __x64_sys_bpf+0x73/0xb0 kernel/bpf/syscall.c:2989
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 2749:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:335 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:474
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:483
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ sock_hash_free+0x322/0x490 net/core/sock_map.c:872
+ bpf_map_free_deferred+0xb3/0x100 kernel/bpf/syscall.c:327
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2264
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2410
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the object at ffff88809fac7c00
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 24 bytes inside of
+ 512-byte region [ffff88809fac7c00, ffff88809fac7e00)
+The buggy address belongs to the page:
+page:ffffea00027eb1c0 refcount:1 mapcount:0 mapping:ffff8880aa400a80 index:0xffff88809fac7400
+raw: 00fffe0000000200 ffffea00029fd748 ffffea000277f608 ffff8880aa400a80
+raw: ffff88809fac7400 ffff88809fac7000 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809fac7b00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88809fac7b80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88809fac7c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff88809fac7c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88809fac7d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

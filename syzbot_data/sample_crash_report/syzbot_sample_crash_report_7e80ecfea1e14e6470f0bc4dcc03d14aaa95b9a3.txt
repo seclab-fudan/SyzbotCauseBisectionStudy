@@ -1,0 +1,33 @@
+audit: type=1400 audit(1546649322.173:36): avc:  denied  { map } for  pid=8448 comm="syz-executor143" path="/root/syz-executor143774722" dev="sda1" ino=16484 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: stack-out-of-bounds in idle_balance kernel/sched/fair.c:9896 [inline]
+BUG: KASAN: stack-out-of-bounds in pick_next_task_fair+0x180c/0x1c20 kernel/sched/fair.c:7016
+PANIC: double fault, error_code: 0x0
+Read of size 8 at addr ffff8880a9bfbcc0 by task syz-executor143/8448
+
+CPU: 1 PID: 8448 Comm: syz-executor143 Not tainted 4.20.0+ #9
+CPU: 0 PID: 8454 Comm: syz-executor143 Not tainted 4.20.0+ #9
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+RIP: 0010:udp6_lib_lookup2+0x61/0xb20 net/ipv6/udp.c:163
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+Code: ff ff ff 48 89 8d 10 ff ff ff 44 89 8d dc fe ff ff 48 89 85 d0 fe ff ff 48 8d 85 18 ff ff ff 48 c1 e8 03 66 89 95 f0 fe ff ff <48> 89 85 c0 fe ff ff 4c 01 e0 48 c7 85 18 ff ff ff b3 8a b5 41 48
+RSP: 0018:ffff8880a9587ff0 EFLAGS: 00010a06
+RAX: 1ffff110152b100a RBX: ffffc900011cd0f0 RCX: ffff8880a46852d0
+RDX: 000000000000244e RSI: ffff8880a46852e0 RDI: ffffffff8a307a40
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+RBP: ffff8880a9588138 R08: 00000000000099c3 R09: 0000000000000001
+R10: ffffed1015cc5b8f R11: ffff8880ae62dc7b R12: dffffc0000000000
+R13: 000000000000244e R14: 00000000000099c3 R15: 000000000000244e
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+FS:  00007f0381328700(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+CR2: ffff8880a9587fe8 CR3: 0000000091cb4000 CR4: 00000000001406f0
+ idle_balance kernel/sched/fair.c:9896 [inline]
+ pick_next_task_fair+0x180c/0x1c20 kernel/sched/fair.c:7016
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:

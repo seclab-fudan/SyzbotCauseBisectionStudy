@@ -1,0 +1,69 @@
+rcu: INFO: rcu_preempt self-detected stall on CPU
+rcu: 	1-....: (10500 ticks this GP) idle=dee/1/0x4000000000000002 softirq=16522/16522 fqs=5250 
+	(t=10502 jiffies g=9577 q=109)
+NMI backtrace for cpu 1
+CPU: 1 PID: 10037 Comm: syz-executor505 Not tainted 5.5.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x70/0xb2 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x23b/0x28b lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:164 [inline]
+ rcu_dump_cpu_stacks+0x183/0x1cf kernel/rcu/tree_stall.h:254
+ print_cpu_stall kernel/rcu/tree_stall.h:455 [inline]
+ check_cpu_stall kernel/rcu/tree_stall.h:529 [inline]
+ rcu_pending kernel/rcu/tree.c:2827 [inline]
+ rcu_sched_clock_irq.cold+0x509/0xc0d kernel/rcu/tree.c:2271
+ update_process_times+0x2d/0x70 kernel/time/timer.c:1726
+ tick_sched_handle+0xa2/0x190 kernel/time/tick-sched.c:171
+ tick_sched_timer+0x53/0x140 kernel/time/tick-sched.c:1314
+ __run_hrtimer kernel/time/hrtimer.c:1517 [inline]
+ __hrtimer_run_queues+0x364/0xe40 kernel/time/hrtimer.c:1579
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1641
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1110 [inline]
+ smp_apic_timer_interrupt+0x160/0x610 arch/x86/kernel/apic/apic.c:1135
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:arch_local_irq_disable arch/x86/include/asm/paravirt.h:757 [inline]
+RIP: 0010:arch_local_irq_save arch/x86/include/asm/paravirt.h:770 [inline]
+RIP: 0010:lock_is_held_type+0xb3/0x320 kernel/locking/lockdep.c:4517
+Code: 0f 84 0a 02 00 00 9c 58 0f 1f 44 00 00 48 ba 00 00 00 00 00 fc ff df 48 89 45 c0 48 c7 c0 a0 33 93 89 48 c1 e8 03 80 3c 10 00 <0f> 85 42 02 00 00 48 83 3d 4f 02 39 08 00 0f 84 d4 01 00 00 fa 66
+RSP: 0018:ffffc9000204eeb8 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 1ffffffff1326674 RBX: ffff8880a11c6100 RCX: ffffffff86767ccb
+RDX: dffffc0000000000 RSI: 00000000ffffffff RDI: ffff88808f906c94
+RBP: ffffc9000204ef00 R08: ffff88808f906400 R09: ffffc9000204ef28
+R10: fffff52000409de7 R11: ffffc9000204ef3f R12: ffff88808f906400
+R13: 00000000bfffffff R14: ffff8880a6bd9a38 R15: ffffc9000204f030
+ lock_is_held include/linux/lockdep.h:361 [inline]
+ hash_ip4_del+0xa3a/0xce0 net/netfilter/ipset/ip_set_hash_gen.h:847
+ hash_ip4_uadt+0x546/0x7a0 net/netfilter/ipset/ip_set_hash_ip.c:151
+ call_ad+0x1a0/0x5a0 net/netfilter/ipset/ip_set_core.c:1716
+ ip_set_ad.isra.0+0x572/0xb20 net/netfilter/ipset/ip_set_core.c:1804
+ ip_set_udel+0x3a/0x50 net/netfilter/ipset/ip_set_core.c:1838
+ nfnetlink_rcv_msg+0xcf2/0xfb0 net/netfilter/nfnetlink.c:229
+ netlink_rcv_skb+0x177/0x450 net/netlink/af_netlink.c:2477
+ nfnetlink_rcv+0x1ba/0x460 net/netfilter/nfnetlink.c:563
+ netlink_unicast_kernel net/netlink/af_netlink.c:1302 [inline]
+ netlink_unicast+0x58c/0x7d0 net/netlink/af_netlink.c:1328
+ netlink_sendmsg+0x91c/0xea0 net/netlink/af_netlink.c:1917
+ sock_sendmsg_nosec net/socket.c:639 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:659
+ ____sys_sendmsg+0x753/0x880 net/socket.c:2330
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2384
+ __sys_sendmsg+0x105/0x1d0 net/socket.c:2417
+ __do_sys_sendmsg net/socket.c:2426 [inline]
+ __se_sys_sendmsg net/socket.c:2424 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2424
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440509
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fff17b4c978 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440509
+RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000004
+RBP: 00000000006ca018 R08: 0000000000000018 R09: 00000000004002c8
+R10: 0000000000000001 R11: 0000000000000246 R12: 0000000000401d90
+R13: 0000000000401e20 R14: 0000000000000000 R15: 0000000000000000

@@ -1,0 +1,36 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc2-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+no locks held by syz-executor.3/13710.
+
+stack backtrace:
+CPU: 0 PID: 13710 Comm: syz-executor.3 Not tainted 5.13.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ __might_fault+0x6e/0x180 mm/memory.c:5067
+ _copy_from_user+0x27/0x180 lib/usercopy.c:13
+ copy_from_user include/linux/uaccess.h:192 [inline]
+ get_timespec64+0x75/0x220 kernel/time/time.c:787
+ __do_sys_clock_nanosleep kernel/time/posix-timers.c:1257 [inline]
+ __se_sys_clock_nanosleep kernel/time/posix-timers.c:1245 [inline]
+ __x64_sys_clock_nanosleep+0x1bb/0x430 kernel/time/posix-timers.c:1245
+ do_syscall_64+0x3a/0xb0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x48a7a1
+Code: 24 0c 89 3c 24 48 89 4c 24 18 e8 aa e7 ff ff 4c 8b 54 24 18 48 8b 54 24 10 41 89 c0 8b 74 24 0c 8b 3c 24 b8 e6 00 00 00 0f 05 <44> 89 c7 48 89 04 24 e8 e3 e7 ff ff 48 8b 04 24 eb 97 66 2e 0f 1f
+RSP: 002b:00007ffc76666ad0 EFLAGS: 00000293 ORIG_RAX: 00000000000000e6
+RAX: ffffffffffffffda RBX: 000000000000016a RCX: 000000000048a7a1
+RDX: 00007ffc76666b10 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 00007ffc76666bac R08: 0000000000000000 R09: 00007ffc76752080
+R10: 0000000000000000 R11: 0000000000000293 R12: 0000000000000032
+R13: 000000000005ea86 R14: 0000000000000001 R15: 00007ffc76666c10

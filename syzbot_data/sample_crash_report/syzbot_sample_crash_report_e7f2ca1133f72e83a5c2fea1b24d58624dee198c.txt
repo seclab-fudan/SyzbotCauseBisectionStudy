@@ -1,0 +1,70 @@
+=====================================================
+BUG: KMSAN: uninit-value in btrfs_clean_tree_block+0x245/0x2d0 fs/btrfs/disk-io.c:959
+ btrfs_clean_tree_block+0x245/0x2d0 fs/btrfs/disk-io.c:959
+ btrfs_init_new_buffer fs/btrfs/extent-tree.c:4899 [inline]
+ btrfs_alloc_tree_block+0x800/0x1ea0 fs/btrfs/extent-tree.c:4976
+ __btrfs_cow_block+0x580/0x1cd0 fs/btrfs/ctree.c:417
+ btrfs_cow_block+0x7ca/0x9d0 fs/btrfs/ctree.c:572
+ commit_cowonly_roots+0x1b2/0x1110 fs/btrfs/transaction.c:1285
+ btrfs_commit_transaction+0x2241/0x5980 fs/btrfs/transaction.c:2366
+ btrfs_commit_super+0x138/0x180 fs/btrfs/disk-io.c:4426
+ close_ctree+0x377/0x9f1 fs/btrfs/disk-io.c:4550
+ btrfs_put_super+0x38/0x50 fs/btrfs/super.c:392
+ generic_shutdown_super+0x184/0x570 fs/super.c:491
+ kill_anon_super+0x39/0x70 fs/super.c:1085
+ btrfs_kill_super+0x39/0x60 fs/btrfs/super.c:2440
+ deactivate_locked_super+0xb1/0x120 fs/super.c:332
+ deactivate_super+0x13a/0x150 fs/super.c:363
+ cleanup_mnt+0x703/0x780 fs/namespace.c:1186
+ __cleanup_mnt+0x1e/0x30 fs/namespace.c:1193
+ task_work_run+0x13c/0x280 kernel/task_work.c:177
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop+0x2a9/0x320 kernel/entry/common.c:171
+ exit_to_user_mode_prepare+0x16e/0x220 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x23/0x40 kernel/entry/common.c:296
+ __do_fast_syscall_32+0xb1/0x100 arch/x86/entry/common.c:181
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+Uninit was created at:
+ __alloc_pages+0x9f1/0xe80 mm/page_alloc.c:5556
+ alloc_pages+0xaae/0xd80 mm/mempolicy.c:2270
+ folio_alloc+0x3e/0x120 mm/mempolicy.c:2280
+ filemap_alloc_folio mm/filemap.c:970 [inline]
+ __filemap_get_folio+0xe59/0x1b00 mm/filemap.c:1970
+ pagecache_get_page+0x4a/0x4d0 mm/folio-compat.c:104
+ find_or_create_page include/linux/pagemap.h:613 [inline]
+ alloc_extent_buffer+0x731/0x2770 fs/btrfs/extent_io.c:6207
+ btrfs_find_create_tree_block+0x42/0x50 fs/btrfs/disk-io.c:920
+ btrfs_init_new_buffer fs/btrfs/extent-tree.c:4860 [inline]
+ btrfs_alloc_tree_block+0x36d/0x1ea0 fs/btrfs/extent-tree.c:4976
+ __btrfs_cow_block+0x580/0x1cd0 fs/btrfs/ctree.c:417
+ btrfs_cow_block+0x7ca/0x9d0 fs/btrfs/ctree.c:572
+ commit_cowonly_roots+0x1b2/0x1110 fs/btrfs/transaction.c:1285
+ btrfs_commit_transaction+0x2241/0x5980 fs/btrfs/transaction.c:2366
+ btrfs_commit_super+0x138/0x180 fs/btrfs/disk-io.c:4426
+ close_ctree+0x377/0x9f1 fs/btrfs/disk-io.c:4550
+ btrfs_put_super+0x38/0x50 fs/btrfs/super.c:392
+ generic_shutdown_super+0x184/0x570 fs/super.c:491
+ kill_anon_super+0x39/0x70 fs/super.c:1085
+ btrfs_kill_super+0x39/0x60 fs/btrfs/super.c:2440
+ deactivate_locked_super+0xb1/0x120 fs/super.c:332
+ deactivate_super+0x13a/0x150 fs/super.c:363
+ cleanup_mnt+0x703/0x780 fs/namespace.c:1186
+ __cleanup_mnt+0x1e/0x30 fs/namespace.c:1193
+ task_work_run+0x13c/0x280 kernel/task_work.c:177
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop+0x2a9/0x320 kernel/entry/common.c:171
+ exit_to_user_mode_prepare+0x16e/0x220 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x23/0x40 kernel/entry/common.c:296
+ __do_fast_syscall_32+0xb1/0x100 arch/x86/entry/common.c:181
+ do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
+ do_SYSENTER_32+0x1b/0x20 arch/x86/entry/common.c:246
+ entry_SYSENTER_compat_after_hwframe+0x70/0x82
+
+CPU: 0 PID: 3511 Comm: syz-executor.3 Not tainted 6.0.0-rc5-syzkaller-48543-g968c2729e576 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/11/2022
+=====================================================

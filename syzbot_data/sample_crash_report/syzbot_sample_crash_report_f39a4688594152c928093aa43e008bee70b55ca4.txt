@@ -1,0 +1,80 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in sctp_send_reset_streams+0xb03/0xc10 net/sctp/stream.c:323
+Read of size 2 at addr ffff8801d8bc84c8 by task syzkaller012611/3087
+
+CPU: 0 PID: 3087 Comm: syzkaller012611 Not tainted 4.15.0-rc2+ #207
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load2_noabort+0x14/0x20 mm/kasan/report.c:428
+ sctp_send_reset_streams+0xb03/0xc10 net/sctp/stream.c:323
+ sctp_setsockopt_reset_streams net/sctp/socket.c:3905 [inline]
+ sctp_setsockopt+0x70d/0x5d50 net/sctp/socket.c:4195
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+ SYSC_setsockopt net/socket.c:1851 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1830
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x445659
+RSP: 002b:00007f185ec6cdc8 EFLAGS: 00000202 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000445659
+RDX: 0000000000000077 RSI: 0000000000000084 RDI: 0000000000000004
+RBP: 0000000000000000 R08: 0000000000000008 R09: 00007f185ec6d700
+R10: 0000000020b24000 R11: 0000000000000202 R12: 0000000000000000
+R13: 00007ffdfc7e9fef R14: 00007f185ec6d9c0 R15: 0000000000000000
+
+Allocated by task 3087:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc mm/slab.c:3711 [inline]
+ __kmalloc_track_caller+0x15e/0x760 mm/slab.c:3726
+ memdup_user+0x2c/0x90 mm/util.c:164
+ sctp_setsockopt_reset_streams net/sctp/socket.c:3897 [inline]
+ sctp_setsockopt+0x6a6/0x5d50 net/sctp/socket.c:4195
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+ SYSC_setsockopt net/socket.c:1851 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1830
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 1:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3491 [inline]
+ kfree+0xca/0x250 mm/slab.c:3806
+ kobject_uevent_env+0x248/0xbc0 lib/kobject_uevent.c:541
+ kobject_uevent+0x1f/0x30 lib/kobject_uevent.c:558
+ kernel_add_sysfs_param kernel/params.c:798 [inline]
+ param_sysfs_builtin kernel/params.c:833 [inline]
+ param_sysfs_init+0x3f9/0x474 kernel/params.c:954
+ do_one_initcall+0x9e/0x330 init/main.c:826
+ do_initcall_level init/main.c:892 [inline]
+ do_initcalls init/main.c:900 [inline]
+ do_basic_setup init/main.c:918 [inline]
+ kernel_init_freeable+0x469/0x521 init/main.c:1066
+ kernel_init+0x13/0x172 init/main.c:993
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:441
+
+The buggy address belongs to the object at ffff8801d8bc84c0
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 8 bytes inside of
+ 32-byte region [ffff8801d8bc84c0, ffff8801d8bc84e0)
+The buggy address belongs to the page:
+page:00000000ea2ff4c3 count:1 mapcount:0 mapping:0000000075381a1b index:0xffff8801d8bc8fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d8bc8000 ffff8801d8bc8fc1 000000010000003b
+raw: ffffea00076334a0 ffff8801db001240 ffff8801db0001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d8bc8380: fb fb fb fb fc fc fc fc 00 00 fc fc fc fc fc fc
+ ffff8801d8bc8400: 00 05 fc fc fc fc fc fc 00 05 fc fc fc fc fc fc
+>ffff8801d8bc8480: fb fb fb fb fc fc fc fc 00 fc fc fc fc fc fc fc
+                                              ^
+ ffff8801d8bc8500: fb fb fb fb fc fc fc fc 00 00 00 00 fc fc fc fc
+ ffff8801d8bc8580: 00 02 fc fc fc fc fc fc 00 02 fc fc fc fc fc fc
+==================================================================

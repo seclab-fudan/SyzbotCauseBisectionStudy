@@ -1,0 +1,110 @@
+==================================================================
+BUG: KCSAN: data-race in tick_do_update_jiffies64 / tick_do_update_jiffies64
+
+write to 0xffffffff8624d7c8 of 8 bytes by interrupt on cpu 1:
+ tick_do_update_jiffies64+0x100/0x250 kernel/time/tick-sched.c:73
+ tick_sched_do_timer+0xd4/0xe0 kernel/time/tick-sched.c:138
+ tick_sched_timer+0x43/0xe0 kernel/time/tick-sched.c:1303
+ __run_hrtimer kernel/time/hrtimer.c:1517 [inline]
+ __hrtimer_run_queues+0x274/0x5f0 kernel/time/hrtimer.c:1579
+ hrtimer_interrupt+0x22a/0x480 kernel/time/hrtimer.c:1641
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1110 [inline]
+ smp_apic_timer_interrupt+0xdc/0x280 arch/x86/kernel/apic/apic.c:1135
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ get_current arch/x86/include/asm/current.h:15 [inline]
+ __sanitizer_cov_trace_pc+0xd/0x50 kernel/kcov.c:186
+ __read_once_size+0x34/0xe0 include/linux/compiler.h:232
+ ipt_do_table+0x200/0xe60 net/ipv4/netfilter/ip_tables.c:261
+ iptable_security_hook+0x4a/0x60 net/ipv4/netfilter/iptable_security.c:43
+ nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
+ nf_hook_slow+0x83/0x160 net/netfilter/core.c:512
+ nf_hook include/linux/netfilter.h:262 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ip_local_deliver+0x1e5/0x210 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:442 [inline]
+ ip_sublist_rcv_finish+0xf8/0x140 net/ipv4/ip_input.c:549
+ ip_list_rcv_finish net/ipv4/ip_input.c:599 [inline]
+ ip_sublist_rcv+0x418/0x550 net/ipv4/ip_input.c:607
+ ip_list_rcv+0x2f5/0x322 net/ipv4/ip_input.c:642
+ __netif_receive_skb_list_ptype net/core/dev.c:5193 [inline]
+ __netif_receive_skb_list_ptype net/core/dev.c:5182 [inline]
+ __netif_receive_skb_list_core+0x350/0x5c0 net/core/dev.c:5241
+ __netif_receive_skb_list net/core/dev.c:5293 [inline]
+ netif_receive_skb_list_internal+0x5d8/0x830 net/core/dev.c:5388
+ gro_normal_list.part.0+0x3a/0xb0 net/core/dev.c:5810
+ gro_normal_list net/core/dev.c:5823 [inline]
+ gro_normal_one+0x162/0x170 net/core/dev.c:5822
+ napi_skb_finish net/core/dev.c:5838 [inline]
+ napi_gro_receive+0x288/0x300 net/core/dev.c:5870
+ receive_buf+0x284/0x30b0 drivers/net/virtio_net.c:1061
+ virtnet_receive drivers/net/virtio_net.c:1323 [inline]
+ virtnet_poll+0x436/0x7d0 drivers/net/virtio_net.c:1428
+ napi_poll net/core/dev.c:6532 [inline]
+ net_rx_action+0x3ae/0xa90 net/core/dev.c:6600
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ run_ksoftirqd+0x46/0x60 kernel/softirq.c:603
+ smpboot_thread_fn+0x37d/0x4a0 kernel/smpboot.c:165
+ kthread+0x1d4/0x200 drivers/block/aoe/aoecmd.c:1253
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:352
+
+read to 0xffffffff8624d7c8 of 8 bytes by interrupt on cpu 0:
+ tick_do_update_jiffies64+0x2b/0x250 kernel/time/tick-sched.c:62
+ tick_sched_do_timer+0xd4/0xe0 kernel/time/tick-sched.c:138
+ tick_sched_timer+0x43/0xe0 kernel/time/tick-sched.c:1303
+ __run_hrtimer kernel/time/hrtimer.c:1517 [inline]
+ __hrtimer_run_queues+0x274/0x5f0 kernel/time/hrtimer.c:1579
+ hrtimer_interrupt+0x22a/0x480 kernel/time/hrtimer.c:1641
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1110 [inline]
+ smp_apic_timer_interrupt+0xdc/0x280 arch/x86/kernel/apic/apic.c:1135
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ matching_access kernel/kcsan/encoding.h:90 [inline]
+ find_watchpoint kernel/kcsan/core.c:123 [inline]
+ check_access kernel/kcsan/core.c:516 [inline]
+ __tsan_read8+0x2b/0x100 kernel/kcsan/core.c:659
+ nf_reset_ct include/linux/skbuff.h:4195 [inline]
+ packet_rcv_spkt+0x187/0x310 net/packet/af_packet.c:1830
+ dev_queue_xmit_nit+0x5d3/0x5e0 net/core/dev.c:2221
+ xmit_one net/core/dev.c:3416 [inline]
+ dev_hard_start_xmit+0x3f5/0x430 net/core/dev.c:3436
+ sch_direct_xmit+0x2b3/0x900 net/sched/sch_generic.c:313
+ __dev_xmit_skb net/core/dev.c:3621 [inline]
+ __dev_queue_xmit+0x13e2/0x1ba0 net/core/dev.c:3982
+ dev_queue_xmit+0x21/0x30 net/core/dev.c:4046
+ neigh_hh_output include/net/neighbour.h:500 [inline]
+ neigh_output include/net/neighbour.h:509 [inline]
+ ip_finish_output2+0x89b/0xea0 net/ipv4/ip_output.c:228
+ __ip_finish_output net/ipv4/ip_output.c:308 [inline]
+ __ip_finish_output+0x23a/0x490 net/ipv4/ip_output.c:290
+ ip_finish_output+0x41/0x160 net/ipv4/ip_output.c:318
+ NF_HOOK_COND include/linux/netfilter.h:296 [inline]
+ ip_output+0xfe/0x230 net/ipv4/ip_output.c:432
+ dst_output include/net/dst.h:436 [inline]
+ ip_local_out+0x74/0x90 net/ipv4/ip_output.c:125
+ __ip_queue_xmit+0x3a8/0xa40 net/ipv4/ip_output.c:532
+ ip_queue_xmit+0x45/0x60 include/net/ip.h:237
+ __tcp_transmit_skb+0xea3/0x1df0 net/ipv4/tcp_output.c:1170
+ __tcp_send_ack+0x246/0x300 net/ipv4/tcp_output.c:3697
+ tcp_send_ack+0x34/0x40 net/ipv4/tcp_output.c:3703
+ tcp_cleanup_rbuf+0x130/0x360 net/ipv4/tcp.c:1578
+ tcp_recvmsg+0x687/0x1c90 net/ipv4/tcp.c:2184
+ inet_recvmsg+0xbb/0x250 net/ipv4/af_inet.c:838
+ sock_recvmsg_nosec net/socket.c:873 [inline]
+ sock_recvmsg net/socket.c:891 [inline]
+ sock_recvmsg+0x92/0xb0 net/socket.c:887
+ sock_read_iter+0x15f/0x1e0 net/socket.c:969
+ call_read_iter include/linux/fs.h:1896 [inline]
+ new_sync_read+0x4b1/0x4f0 fs/read_write.c:414
+ __vfs_read+0xb1/0xc0 fs/read_write.c:427
+ vfs_read fs/read_write.c:461 [inline]
+ vfs_read+0x143/0x2c0 fs/read_write.c:446
+ ksys_read+0x17b/0x1b0 fs/read_write.c:587
+ __do_sys_read fs/read_write.c:597 [inline]
+ __se_sys_read fs/read_write.c:595 [inline]
+ __x64_sys_read+0x4c/0x60 fs/read_write.c:595
+ do_syscall_64+0xcc/0x3a0 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 7982 Comm: syz-fuzzer Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

@@ -1,0 +1,106 @@
+R13: 00007efdf01d9bc8 R14: 00000000004b767a R15: 0000000000000000
+==================================================================
+BUG: KASAN: double-free or invalid-free in kvm_arch_vcpu_uninit+0x51/0x1d0 arch/x86/kvm/x86.c:8139
+
+CPU: 1 PID: 12673 Comm: syz-executor3 Not tainted 4.15.0-rc7+ #254
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_double_free+0x55/0x80 mm/kasan/report.c:333
+ kasan_slab_free+0xa3/0xc0 mm/kasan/kasan.c:514
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ kvm_arch_vcpu_uninit+0x51/0x1d0 arch/x86/kvm/x86.c:8139
+ kvm_vcpu_uninit+0x44/0x90 arch/x86/kvm/../../../virt/kvm/kvm_main.c:318
+ vmx_free_vcpu+0x1ce/0x280 arch/x86/kvm/vmx.c:9590
+ kvm_arch_vcpu_free arch/x86/kvm/x86.c:7761 [inline]
+ kvm_free_vcpus arch/x86/kvm/x86.c:8213 [inline]
+ kvm_arch_destroy_vm+0x4b4/0x990 arch/x86/kvm/x86.c:8312
+ kvm_destroy_vm arch/x86/kvm/../../../virt/kvm/kvm_main.c:734 [inline]
+ kvm_put_kvm+0x695/0xdf0 arch/x86/kvm/../../../virt/kvm/kvm_main.c:755
+ kvm_vm_release+0x42/0x50 arch/x86/kvm/../../../virt/kvm/kvm_main.c:766
+ __fput+0x327/0x7e0 fs/file_table.c:210
+ ____fput+0x15/0x20 fs/file_table.c:244
+ task_work_run+0x199/0x270 kernel/task_work.c:113
+ exit_task_work include/linux/task_work.h:22 [inline]
+ do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+ do_group_exit+0x149/0x400 kernel/exit.c:968
+ get_signal+0x73f/0x16c0 kernel/signal.c:2335
+ do_signal+0x90/0x1eb0 arch/x86/kernel/signal.c:809
+ exit_to_usermode_loop+0x214/0x310 arch/x86/entry/common.c:158
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath+0x490/0x550 arch/x86/entry/common.c:264
+ entry_SYSCALL_64_fastpath+0x98/0x9a
+RIP: 0033:0x452ac9
+RSP: 002b:00007efdf01d9c58 EFLAGS: 00000212 ORIG_RAX: 0000000000000010
+RAX: fffffffffffffff4 RBX: 000000000071bea0 RCX: 0000000000452ac9
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000016
+RBP: 0000000000000227 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000212 R12: 00000000006f1448
+R13: 0000000000000017 R14: 00007efdf01da6d4 R15: ffffffffffffffff
+
+Allocated by task 12690:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc mm/slab.c:3708 [inline]
+ __kmalloc+0x162/0x760 mm/slab.c:3717
+ kmalloc include/linux/slab.h:504 [inline]
+ kzalloc include/linux/slab.h:688 [inline]
+ __crypto_alloc_tfm+0xd0/0x4e0 crypto/api.c:359
+ crypto_spawn_tfm+0x73/0xd0 crypto/algapi.c:687
+ crypto_spawn_cipher include/crypto/algapi.h:311 [inline]
+ crypto_pcbc_init_tfm+0x46/0xb0 crypto/pcbc.c:194
+ crypto_skcipher_init_tfm+0x28c/0x840 crypto/skcipher.c:841
+ crypto_create_tfm+0xdf/0x2e0 crypto/api.c:462
+ crypto_alloc_tfm+0x10e/0x2f0 crypto/api.c:540
+ crypto_alloc_skcipher+0x2c/0x40 crypto/skcipher.c:927
+ skcipher_bind+0x6c/0xe0 crypto/algif_skcipher.c:324
+ alg_bind+0x1ab/0x440 crypto/af_alg.c:179
+ SYSC_bind+0x1c3/0x410 net/socket.c:1454
+ SyS_bind+0x24/0x30 net/socket.c:1440
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+Freed by task 12690:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ kzfree+0x28/0x30 mm/slab_common.c:1482
+ crypto_destroy_tfm+0x140/0x2e0 crypto/api.c:581
+ crypto_free_tfm include/linux/crypto.h:641 [inline]
+ crypto_free_cipher include/linux/crypto.h:1461 [inline]
+ crypto_pcbc_exit_tfm+0x34/0x40 crypto/pcbc.c:206
+ crypto_skcipher_exit_tfm+0x53/0x70 crypto/skcipher.c:816
+ crypto_exit_ops crypto/api.c:315 [inline]
+ crypto_destroy_tfm+0xb9/0x2e0 crypto/api.c:579
+ crypto_free_skcipher include/crypto/skcipher.h:212 [inline]
+ skcipher_release+0x30/0x50 crypto/algif_skcipher.c:339
+ alg_do_release crypto/af_alg.c:119 [inline]
+ alg_bind+0x27b/0x440 crypto/af_alg.c:200
+ SYSC_bind+0x1c3/0x410 net/socket.c:1454
+ SyS_bind+0x24/0x30 net/socket.c:1440
+ entry_SYSCALL_64_fastpath+0x23/0x9a
+
+The buggy address belongs to the object at ffff8801d62b8d80
+ which belongs to the cache kmalloc-1024 of size 1024
+The buggy address is located 0 bytes inside of
+ 1024-byte region [ffff8801d62b8d80, ffff8801d62b9180)
+The buggy address belongs to the page:
+page:ffffea000758ae00 count:1 mapcount:0 mapping:ffff8801d62b8000 index:0x0 compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffff8801d62b8000 0000000000000000 0000000100000007
+raw: ffffea0007112ca0 ffffea0006fb3fa0 ffff8801dac00ac0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d62b8c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d62b8d00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801d62b8d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff8801d62b8e00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d62b8e80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

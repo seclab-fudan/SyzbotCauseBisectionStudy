@@ -1,0 +1,117 @@
+INFO: task syz-executor541:8453 blocked for more than 143 seconds.
+      Not tainted 5.11.0-rc7-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor541 state:D stack:25216 pid: 8453 ppid:  8451 flags:0x00004004
+Call Trace:
+ context_switch kernel/sched/core.c:4327 [inline]
+ __schedule+0x90c/0x21a0 kernel/sched/core.c:5078
+ schedule+0xcf/0x270 kernel/sched/core.c:5157
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:5216
+ __mutex_lock_common kernel/locking/mutex.c:1033 [inline]
+ __mutex_lock+0x81a/0x1110 kernel/locking/mutex.c:1103
+ tcf_action_init_1+0x743/0x990 net/sched/act_api.c:988
+ tcf_action_init+0x265/0x4b0 net/sched/act_api.c:1063
+ tcf_action_add+0xd9/0x360 net/sched/act_api.c:1476
+ tc_ctl_action+0x33a/0x440 net/sched/act_api.c:1530
+ rtnetlink_rcv_msg+0x44e/0xad0 net/core/rtnetlink.c:5553
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2494
+ netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1330
+ netlink_sendmsg+0x856/0xd90 net/netlink/af_netlink.c:1919
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:672
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2345
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2399
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2432
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x446b19
+RSP: 002b:00007f6c74c20208 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004cb428 RCX: 0000000000446b19
+RDX: 0000000000000000 RSI: 0000000020002980 RDI: 0000000000000003
+RBP: 00000000004cb420 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004cb42c
+R13: 00007ffc49ded21f R14: 00007f6c74c20300 R15: 0000000000022000
+
+Showing all locks held in the system:
+3 locks held by kworker/1:1/34:
+ #0: ffff8880230ca538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff8880230ca538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: atomic64_set include/asm-generic/atomic-instrumented.h:856 [inline]
+ #0: ffff8880230ca538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: atomic_long_set include/asm-generic/atomic-long.h:41 [inline]
+ #0: ffff8880230ca538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:616 [inline]
+ #0: ffff8880230ca538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:643 [inline]
+ #0: ffff8880230ca538 ((wq_completion)ipv6_addrconf){+.+.}-{0:0}, at: process_one_work+0x871/0x15f0 kernel/workqueue.c:2246
+ #1: ffffc90000e37da8 ((addr_chk_work).work){+.+.}-{0:0}, at: process_one_work+0x8a5/0x15f0 kernel/workqueue.c:2250
+ #2: ffffffff8d45c228 (rtnl_mutex){+.+.}-{3:3}, at: addrconf_verify_work+0xa/0x20 net/ipv6/addrconf.c:4570
+1 lock held by khungtaskd/1620:
+ #0: ffffffff8bd73da0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6259
+1 lock held by in:imklog/8163:
+ #0: ffff888013a36170 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:947
+1 lock held by syz-executor541/8453:
+ #0: ffffffff8d45c228 (rtnl_mutex){+.+.}-{3:3}, at: tcf_action_init_1+0x743/0x990 net/sched/act_api.c:988
+1 lock held by syz-executor541/8455:
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1620 Comm: khungtaskd Not tainted 5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ nmi_cpu_backtrace.cold+0x44/0xd7 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1b3/0x230 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:209 [inline]
+ watchdog+0xd43/0xfa0 kernel/hung_task.c:294
+ kthread+0x3b1/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 8455 Comm: syz-executor541 Not tainted 5.11.0-rc7-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__lock_acquire+0x1e8/0x54f0 kernel/locking/lockdep.c:4742
+Code: 4c 8d 14 92 49 c1 e2 03 85 d2 74 47 4a 8d 54 16 d8 48 b9 00 00 00 00 00 fc ff df 48 8d 7a 20 48 89 fe 48 c1 ee 03 0f b6 0c 0e <84> c9 74 09 80 f9 03 0f 8e ca 3b 00 00 0f b7 4a 20 81 e1 ff 1f 00
+RSP: 0018:ffffc90001736b70 EFLAGS: 00000806
+RAX: 0000000000000003 RBX: 0000000000000001 RCX: 0000000000000000
+RDX: ffff8880265daa88 RSI: 1ffff11004cbb555 RDI: ffff8880265daaa8
+RBP: ffff8880265da100 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000028 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff888023874068 R15: 0000000000000000
+FS:  00007f6c74bff700(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fc4efd5a000 CR3: 000000001af15000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ lock_acquire kernel/locking/lockdep.c:5442 [inline]
+ lock_acquire+0x1a8/0x720 kernel/locking/lockdep.c:5407
+ __mutex_lock_common kernel/locking/mutex.c:956 [inline]
+ __mutex_lock+0x134/0x1110 kernel/locking/mutex.c:1103
+ tcf_idr_check_alloc+0x78/0x3b0 net/sched/act_api.c:549
+ tcf_connmark_init+0x2de/0x910 net/sched/act_connmark.c:124
+ tcf_action_init_1+0x63b/0x990 net/sched/act_api.c:1010
+ tcf_action_init+0x265/0x4b0 net/sched/act_api.c:1063
+ tcf_action_add+0xd9/0x360 net/sched/act_api.c:1476
+ tc_ctl_action+0x33a/0x440 net/sched/act_api.c:1530
+ rtnetlink_rcv_msg+0x44e/0xad0 net/core/rtnetlink.c:5553
+ netlink_rcv_skb+0x153/0x420 net/netlink/af_netlink.c:2494
+ netlink_unicast_kernel net/netlink/af_netlink.c:1304 [inline]
+ netlink_unicast+0x533/0x7d0 net/netlink/af_netlink.c:1330
+ netlink_sendmsg+0x856/0xd90 net/netlink/af_netlink.c:1919
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:672
+ ____sys_sendmsg+0x6e8/0x810 net/socket.c:2345
+ ___sys_sendmsg+0xf3/0x170 net/socket.c:2399
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2432
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x446b19
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 11 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f6c74bff208 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004cb438 RCX: 0000000000446b19
+RDX: 0000000000000000 RSI: 0000000020002980 RDI: 0000000000000004
+RBP: 00000000004cb430 R08: 0000000000000004 R09: 0000000000000000
+R10: 0000000000000004 R11: 0000000000000246 R12: 00000000004cb43c
+R13: 00007ffc49ded21f R14: 00007f6c74bff300 R15: 0000000000022000
+INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 1.226 msecs

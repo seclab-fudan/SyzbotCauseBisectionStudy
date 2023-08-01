@@ -1,0 +1,76 @@
+------------[ cut here ]------------
+VFS: brelse: Trying to free free buffer
+WARNING: CPU: 0 PID: 0 at fs/buffer.c:1145 __brelse fs/buffer.c:1145 [inline]
+WARNING: CPU: 0 PID: 0 at fs/buffer.c:1145 __brelse+0x67/0xa0 fs/buffer.c:1139
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 6.1.0-rc5-syzkaller-00008-ge01d50cbd6ee #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:__brelse fs/buffer.c:1145 [inline]
+RIP: 0010:__brelse+0x67/0xa0 fs/buffer.c:1139
+Code: 7c 04 84 d2 75 4e 44 8b 63 60 31 ff 44 89 e6 e8 af 12 95 ff 45 85 e4 75 1c e8 d5 15 95 ff 48 c7 c7 a0 c6 fc 89 e8 50 29 62 07 <0f> 0b 5b 5d 41 5c e9 be 15 95 ff e8 b9 15 95 ff be 04 00 00 00 48
+RSP: 0018:ffffc90000007f40 EFLAGS: 00010082
+RAX: 0000000000000000 RBX: ffff888070cc90e8 RCX: 0000000000000000
+RDX: ffffffff8bcbc9c0 RSI: ffffffff81622b98 RDI: fffff52000000fda
+RBP: ffff888070cc9148 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000080010002 R11: 0000000000000000 R12: 0000000000000000
+R13: dffffc0000000000 R14: ffff8880b9a35fc0 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000561499cb4318 CR3: 0000000079fd9000 CR4: 0000000000350ef0
+Call Trace:
+ <IRQ>
+ brelse include/linux/buffer_head.h:326 [inline]
+ __invalidate_bh_lrus fs/buffer.c:1380 [inline]
+ invalidate_bh_lru+0x99/0x150 fs/buffer.c:1393
+ __flush_smp_call_function_queue+0x205/0x9a0 kernel/smp.c:630
+ __sysvec_call_function_single+0xca/0x4d0 arch/x86/kernel/smp.c:248
+ sysvec_call_function_single+0x8e/0xc0 arch/x86/kernel/smp.c:243
+ </IRQ>
+ <TASK>
+ asm_sysvec_call_function_single+0x16/0x20 arch/x86/include/asm/idtentry.h:657
+RIP: 0010:native_save_fl arch/x86/include/asm/irqflags.h:29 [inline]
+RIP: 0010:arch_local_save_flags arch/x86/include/asm/irqflags.h:70 [inline]
+RIP: 0010:arch_irqs_disabled arch/x86/include/asm/irqflags.h:130 [inline]
+RIP: 0010:acpi_safe_halt drivers/acpi/processor_idle.c:113 [inline]
+RIP: 0010:acpi_idle_do_entry+0x1fd/0x2a0 drivers/acpi/processor_idle.c:572
+Code: 89 de e8 86 93 ea f7 84 db 75 ac e8 ed 96 ea f7 e8 48 0e f1 f7 eb 0c e8 e1 96 ea f7 0f 00 2d ba 93 c2 00 e8 d5 96 ea f7 fb f4 <9c> 5b 81 e3 00 02 00 00 fa 31 ff 48 89 de e8 b0 93 ea f7 48 85 db
+RSP: 0018:ffffffff8bc07d28 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffffffff8bcbc9c0 RSI: ffffffff899215ab RDI: 0000000000000000
+RBP: ffff888017601864 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000001
+R13: ffff888017601800 R14: ffff888017601864 R15: ffff888145fe4004
+ acpi_idle_enter+0x364/0x500 drivers/acpi/processor_idle.c:709
+ cpuidle_enter_state+0x1ab/0xd30 drivers/cpuidle/cpuidle.c:239
+ cpuidle_enter+0x4a/0xa0 drivers/cpuidle/cpuidle.c:356
+ call_cpuidle kernel/sched/idle.c:155 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:236 [inline]
+ do_idle+0x3f7/0x590 kernel/sched/idle.c:303
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:400
+ rest_init+0x169/0x270 init/main.c:729
+ arch_call_rest_init+0xf/0x14 init/main.c:890
+ start_kernel+0x478/0x499 init/main.c:1145
+ secondary_startup_64_no_verify+0xce/0xdb
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	89 de                	mov    %ebx,%esi
+   2:	e8 86 93 ea f7       	callq  0xf7ea938d
+   7:	84 db                	test   %bl,%bl
+   9:	75 ac                	jne    0xffffffb7
+   b:	e8 ed 96 ea f7       	callq  0xf7ea96fd
+  10:	e8 48 0e f1 f7       	callq  0xf7f10e5d
+  15:	eb 0c                	jmp    0x23
+  17:	e8 e1 96 ea f7       	callq  0xf7ea96fd
+  1c:	0f 00 2d ba 93 c2 00 	verw   0xc293ba(%rip)        # 0xc293dd
+  23:	e8 d5 96 ea f7       	callq  0xf7ea96fd
+  28:	fb                   	sti
+  29:	f4                   	hlt
+* 2a:	9c                   	pushfq <-- trapping instruction
+  2b:	5b                   	pop    %rbx
+  2c:	81 e3 00 02 00 00    	and    $0x200,%ebx
+  32:	fa                   	cli
+  33:	31 ff                	xor    %edi,%edi
+  35:	48 89 de             	mov    %rbx,%rsi
+  38:	e8 b0 93 ea f7       	callq  0xf7ea93ed
+  3d:	48 85 db             	test   %rbx,%rbx

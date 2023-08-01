@@ -1,0 +1,37 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc3-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-sched read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+no locks held by systemd-udevd/4849.
+
+stack backtrace:
+CPU: 1 PID: 4849 Comm: systemd-udevd Not tainted 5.13.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x266/0x2c0 kernel/sched/core.c:8304
+ __fput+0xf9/0x920 fs/file_table.c:264
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:174 [inline]
+ exit_to_user_mode_prepare+0x272/0x280 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:301
+ do_syscall_64+0x47/0xb0 arch/x86/entry/common.c:57
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f664dd4ba07
+Code: 2e 00 f7 d8 bf ff ff ff ff 64 89 02 eb d0 0f 1f 44 00 00 48 85 ff 74 3b 53 8b 1f e8 3b bf f6 ff 48 63 fb b8 03 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 09 5b c3 0f 1f 80 00 00 00 00 48 8b 15 59 54
+RSP: 002b:00007fffefe75b00 EFLAGS: 00000202
+ ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 000000000000000f RCX: 00007f664dd4ba07
+RDX: 00007f664e031b58 RSI: 0000000000000000 RDI: 000000000000000f
+RBP: 00007f664ef01710 R08: 000055c17cd49fe0 R09: 0000000000008040
+R10: 00007f664e031b58 R11: 0000000000000202 R12: 0000000000000000
+R13: 000055c17cd31c60 R14: 00000000000000ff R15: 000055c17cd31c60

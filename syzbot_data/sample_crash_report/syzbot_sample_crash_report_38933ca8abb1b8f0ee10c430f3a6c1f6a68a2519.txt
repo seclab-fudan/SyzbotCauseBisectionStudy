@@ -1,0 +1,33 @@
+=====================================================
+BUG: KMSAN: uninit-value in memcmp lib/string.c:765 [inline]
+BUG: KMSAN: uninit-value in bcmp+0xbf/0x1c0 lib/string.c:797
+ memcmp lib/string.c:765 [inline]
+ bcmp+0xbf/0x1c0 lib/string.c:797
+ ____sys_sendmsg+0x7f3/0xe90 net/socket.c:2477
+ ___sys_sendmsg+0x2a1/0x3f0 net/socket.c:2536
+ __sys_sendmmsg+0x40d/0xa40 net/socket.c:2622
+ __do_sys_sendmmsg net/socket.c:2651 [inline]
+ __se_sys_sendmmsg net/socket.c:2648 [inline]
+ __x64_sys_sendmmsg+0xb8/0x120 net/socket.c:2648
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Uninit was stored to memory at:
+ ____sys_sendmsg+0xc46/0xe90 net/socket.c:2490
+ ___sys_sendmsg+0x2a1/0x3f0 net/socket.c:2536
+ __sys_sendmmsg+0x40d/0xa40 net/socket.c:2622
+ __do_sys_sendmmsg net/socket.c:2651 [inline]
+ __se_sys_sendmmsg net/socket.c:2648 [inline]
+ __x64_sys_sendmmsg+0xb8/0x120 net/socket.c:2648
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Local variable sin created at:
+ udpv6_sendmsg+0x56/0x4440 net/ipv6/udp.c:1298
+ inet6_sendmsg+0x101/0x180 net/ipv6/af_inet6.c:653
+
+CPU: 1 PID: 3487 Comm: syz-executor289 Not tainted 6.0.0-rc5-syzkaller-48539-g523d2ce66d07 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+=====================================================

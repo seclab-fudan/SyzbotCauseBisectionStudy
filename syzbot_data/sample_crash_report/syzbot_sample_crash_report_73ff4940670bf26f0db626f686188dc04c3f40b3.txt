@@ -1,0 +1,52 @@
+------------[ cut here ]------------
+VFS: brelse: Trying to free free buffer
+WARNING: CPU: 0 PID: 5068 at fs/buffer.c:1145 __brelse fs/buffer.c:1145 [inline]
+WARNING: CPU: 0 PID: 5068 at fs/buffer.c:1145 brelse+0x78/0xa0 include/linux/buffer_head.h:326
+Modules linked in:
+CPU: 0 PID: 5068 Comm: syz-executor243 Not tainted 6.2.0-rc3-syzkaller-00008-g1fe4fd6f5cad #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:__brelse fs/buffer.c:1145 [inline]
+RIP: 0010:brelse+0x78/0xa0 include/linux/buffer_head.h:326
+Code: df be 04 00 00 00 e8 f7 fe df ff f0 ff 0b eb 1c e8 ad 53 8a ff eb 15 e8 a6 53 8a ff 48 c7 c7 80 55 fe 8a 31 c0 e8 68 43 51 ff <0f> 0b 5b 5d c3 89 d9 80 e1 07 80 c1 03 38 c1 7c af 48 89 df e8 ff
+RSP: 0018:ffffc90003d9f968 EFLAGS: 00010046
+RAX: 96e1635ab0e62d00 RBX: ffff88807215cd10 RCX: ffff88802a139d40
+RDX: 0000000000000000 RSI: 0000000080000002 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffff816f2c9d R09: ffffed1017304f5b
+R10: ffffed1017304f5b R11: 1ffff11017304f5a R12: ffff8880b9836110
+R13: 0000000000000000 R14: ffff8880b98360f8 R15: dffffc0000000000
+FS:  00005555555cb300(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005555555d4628 CR3: 0000000026e1e000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __invalidate_bh_lrus+0xe4/0x3c0 fs/buffer.c:1380
+ invalidate_bh_lru+0x66/0xb0 fs/buffer.c:1393
+ smp_call_function_many_cond+0xcb2/0x13d0 kernel/smp.c:978
+ on_each_cpu_cond_mask+0x3b/0x80 kernel/smp.c:1155
+ kill_bdev block/bdev.c:75 [inline]
+ blkdev_flush_mapping+0x149/0x2c0 block/bdev.c:662
+ blkdev_put_whole block/bdev.c:693 [inline]
+ blkdev_put+0x4a5/0x730 block/bdev.c:953
+ deactivate_locked_super+0xa7/0xf0 fs/super.c:332
+ cleanup_mnt+0x494/0x520 fs/namespace.c:1291
+ task_work_run+0x243/0x300 kernel/task_work.c:179
+ ptrace_notify+0x29a/0x340 kernel/signal.c:2354
+ ptrace_report_syscall include/linux/ptrace.h:411 [inline]
+ ptrace_report_syscall_exit include/linux/ptrace.h:473 [inline]
+ syscall_exit_work+0x8c/0xe0 kernel/entry/common.c:251
+ syscall_exit_to_user_mode_prepare+0x63/0xc0 kernel/entry/common.c:278
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:283 [inline]
+ syscall_exit_to_user_mode+0xa/0x60 kernel/entry/common.c:296
+ do_syscall_64+0x49/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f0db0971d97
+Code: 07 00 48 83 c4 08 5b 5d c3 66 2e 0f 1f 84 00 00 00 00 00 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 b8 a6 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd443f9ea8 EFLAGS: 00000202 ORIG_RAX: 00000000000000a6
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00007f0db0971d97
+RDX: 00007ffd443f9f69 RSI: 000000000000000a RDI: 00007ffd443f9f60
+RBP: 00007ffd443f9f60 R08: 00000000ffffffff R09: 00007ffd443f9d40
+R10: 00005555555cc653 R11: 0000000000000202 R12: 00007ffd443fafe0
+R13: 00005555555cc5f0 R14: 00007ffd443f9ed0 R15: 0000000000000008
+ </TASK>

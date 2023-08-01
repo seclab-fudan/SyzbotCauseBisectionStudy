@@ -1,0 +1,133 @@
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: use-after-free in test_and_set_bit include/asm-generic/bitops/instrumented-atomic.h:70 [inline]
+BUG: KASAN: use-after-free in try_to_grab_pending.part.0+0x26/0x770 kernel/workqueue.c:1257
+Write of size 8 at addr ffff8881434b5390 by task syz-executor.0/10631
+
+CPU: 1 PID: 10631 Comm: syz-executor.0 Not tainted 5.12.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ print_address_description.constprop.0.cold+0x5b/0x2f8 mm/kasan/report.c:232
+ __kasan_report mm/kasan/report.c:399 [inline]
+ kasan_report.cold+0x7c/0xd8 mm/kasan/report.c:416
+ check_region_inline mm/kasan/generic.c:180 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:186
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ test_and_set_bit include/asm-generic/bitops/instrumented-atomic.h:70 [inline]
+ try_to_grab_pending.part.0+0x26/0x770 kernel/workqueue.c:1257
+ try_to_grab_pending+0xa1/0xd0 kernel/workqueue.c:1310
+ __cancel_work_timer+0xa6/0x570 kernel/workqueue.c:3098
+ sk_psock_stop+0x3ab/0x4d0 net/core/skmsg.c:757
+ sock_map_close+0x172/0x390 net/core/sock_map.c:1534
+ inet_release+0x12e/0x280 net/ipv4/af_inet.c:431
+ __sock_release+0xcd/0x280 net/socket.c:599
+ sock_close+0x18/0x20 net/socket.c:1258
+ __fput+0x288/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:140
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:174 [inline]
+ exit_to_user_mode_prepare+0x249/0x250 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x466459
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ff5efe9d188 EFLAGS: 00000246 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 000000000056bf60 RCX: 0000000000466459
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000005
+RBP: 00000000004bf9fb R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056bf60
+R13: 00007ffe6f05b11f R14: 00007ff5efe9d300 R15: 0000000000022000
+
+Allocated by task 10631:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:427 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:506 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:465 [inline]
+ __kasan_kmalloc+0x99/0xc0 mm/kasan/common.c:515
+ kmalloc_node include/linux/slab.h:572 [inline]
+ kzalloc_node include/linux/slab.h:695 [inline]
+ sk_psock_init+0xaf/0x730 net/core/skmsg.c:668
+ sock_map_link+0xbf4/0x1020 net/core/sock_map.c:286
+ sock_hash_update_common+0xe2/0xa60 net/core/sock_map.c:993
+ sock_map_update_elem_sys+0x561/0x680 net/core/sock_map.c:596
+ bpf_map_update_value.isra.0+0x36b/0x8d0 kernel/bpf/syscall.c:167
+ map_update_elem kernel/bpf/syscall.c:1129 [inline]
+ __do_sys_bpf+0x2d6e/0x4f40 kernel/bpf/syscall.c:4384
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 3785:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:46
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:357
+ ____kasan_slab_free mm/kasan/common.c:360 [inline]
+ ____kasan_slab_free mm/kasan/common.c:325 [inline]
+ __kasan_slab_free+0xf5/0x130 mm/kasan/common.c:367
+ kasan_slab_free include/linux/kasan.h:199 [inline]
+ slab_free_hook mm/slub.c:1562 [inline]
+ slab_free_freelist_hook+0x92/0x210 mm/slub.c:1600
+ slab_free mm/slub.c:3161 [inline]
+ kfree+0xe5/0x7f0 mm/slub.c:4213
+ process_one_work+0x98d/0x1600 kernel/workqueue.c:2275
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
+ kthread+0x3b1/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Last potentially related work creation:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_record_aux_stack+0xe5/0x110 mm/kasan/generic.c:345
+ insert_work+0x48/0x370 kernel/workqueue.c:1331
+ __queue_work+0x5c1/0xf00 kernel/workqueue.c:1497
+ rcu_work_rcufn+0x58/0x80 kernel/workqueue.c:1733
+ rcu_do_batch kernel/rcu/tree.c:2559 [inline]
+ rcu_core+0x74a/0x12f0 kernel/rcu/tree.c:2794
+ __do_softirq+0x29b/0x9f6 kernel/softirq.c:345
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_record_aux_stack+0xe5/0x110 mm/kasan/generic.c:345
+ __call_rcu kernel/rcu/tree.c:3039 [inline]
+ call_rcu+0xb1/0x740 kernel/rcu/tree.c:3114
+ queue_rcu_work+0x82/0xa0 kernel/workqueue.c:1753
+ sk_psock_put include/linux/skmsg.h:446 [inline]
+ sock_map_unref+0x109/0x190 net/core/sock_map.c:182
+ sock_hash_delete_from_link net/core/sock_map.c:918 [inline]
+ sock_map_unlink net/core/sock_map.c:1480 [inline]
+ sock_map_remove_links+0x389/0x530 net/core/sock_map.c:1492
+ sock_map_close+0x12f/0x390 net/core/sock_map.c:1532
+ inet_release+0x12e/0x280 net/ipv4/af_inet.c:431
+ __sock_release+0xcd/0x280 net/socket.c:599
+ sock_close+0x18/0x20 net/socket.c:1258
+ __fput+0x288/0x920 fs/file_table.c:280
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:140
+ tracehook_notify_resume include/linux/tracehook.h:189 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:174 [inline]
+ exit_to_user_mode_prepare+0x249/0x250 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff8881434b5000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 912 bytes inside of
+ 2048-byte region [ffff8881434b5000, ffff8881434b5800)
+The buggy address belongs to the page:
+page:ffffea00050d2c00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1434b0
+head:ffffea00050d2c00 order:3 compound_mapcount:0 compound_pincount:0
+flags: 0x57ff00000010200(slab|head)
+raw: 057ff00000010200 dead000000000100 dead000000000122 ffff888010842000
+raw: 0000000000000000 0000000080080008 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881434b5280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881434b5300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8881434b5380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                         ^
+ ffff8881434b5400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8881434b5480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

@@ -1,0 +1,145 @@
+audit: type=1800 audit(1550843132.995:30): pid=7392 uid=0 auid=4294967295 ses=4294967295 subj=_ op=collect_data cause=failed(directio) comm="startpar" name="rmnologin" dev="sda1" ino=2423 res=0
+hrtimer: interrupt took 45763 ns
+======================================================
+WARNING: possible circular locking dependency detected
+5.0.0-rc7+ #82 Not tainted
+------------------------------------------------------
+syz-executor443/7546 is trying to acquire lock:
+000000002c294172 (&mm->mmap_sem){++++}, at: do_user_addr_fault arch/x86/mm/fault.c:1426 [inline]
+000000002c294172 (&mm->mmap_sem){++++}, at: __do_page_fault+0x9c2/0xd60 arch/x86/mm/fault.c:1541
+
+but task is already holding lock:
+00000000aff3c791 (&sb->s_type->i_mutex_key#11){+.+.}, at: inode_lock include/linux/fs.h:757 [inline]
+00000000aff3c791 (&sb->s_type->i_mutex_key#11){+.+.}, at: generic_file_write_iter+0xdf/0x610 mm/filemap.c:3358
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&sb->s_type->i_mutex_key#11){+.+.}:
+       down_write+0x38/0x90 kernel/locking/rwsem.c:70
+       inode_lock include/linux/fs.h:757 [inline]
+       shmem_fallocate+0x15a/0xc60 mm/shmem.c:2633
+       ashmem_shrink_scan drivers/staging/android/ashmem.c:455 [inline]
+       ashmem_shrink_scan+0x1d7/0x4f0 drivers/staging/android/ashmem.c:439
+       ashmem_ioctl+0x2f0/0x11a0 drivers/staging/android/ashmem.c:797
+       vfs_ioctl fs/ioctl.c:46 [inline]
+       file_ioctl fs/ioctl.c:509 [inline]
+       do_vfs_ioctl+0xd6e/0x1390 fs/ioctl.c:696
+       ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+       __do_sys_ioctl fs/ioctl.c:720 [inline]
+       __se_sys_ioctl fs/ioctl.c:718 [inline]
+       __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+       do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #1 (ashmem_mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+       __mutex_lock+0xf7/0x1310 kernel/locking/mutex.c:1072
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+       ashmem_mmap+0x55/0x520 drivers/staging/android/ashmem.c:361
+       call_mmap include/linux/fs.h:1868 [inline]
+       mmap_region+0xc37/0x1760 mm/mmap.c:1786
+       do_mmap+0x8e2/0x1080 mm/mmap.c:1559
+       do_mmap_pgoff include/linux/mm.h:2379 [inline]
+       vm_mmap_pgoff+0x1c5/0x230 mm/util.c:350
+       ksys_mmap_pgoff+0x4aa/0x630 mm/mmap.c:1609
+       __do_sys_mmap arch/x86/kernel/sys_x86_64.c:100 [inline]
+       __se_sys_mmap arch/x86/kernel/sys_x86_64.c:91 [inline]
+       __x64_sys_mmap+0xe9/0x1b0 arch/x86/kernel/sys_x86_64.c:91
+       do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 (&mm->mmap_sem){++++}:
+       lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:3841
+       down_read+0x3b/0x90 kernel/locking/rwsem.c:24
+       do_user_addr_fault arch/x86/mm/fault.c:1426 [inline]
+       __do_page_fault+0x9c2/0xd60 arch/x86/mm/fault.c:1541
+       do_page_fault+0x71/0x581 arch/x86/mm/fault.c:1572
+       page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1143
+       fault_in_pages_readable include/linux/pagemap.h:611 [inline]
+       iov_iter_fault_in_readable+0x377/0x450 lib/iov_iter.c:425
+       generic_perform_write+0x195/0x530 mm/filemap.c:3198
+       __generic_file_write_iter+0x25e/0x630 mm/filemap.c:3333
+       generic_file_write_iter+0x360/0x610 mm/filemap.c:3361
+       call_write_iter include/linux/fs.h:1863 [inline]
+       new_sync_write fs/read_write.c:474 [inline]
+       __vfs_write+0x613/0x8e0 fs/read_write.c:487
+       vfs_write+0x20c/0x580 fs/read_write.c:549
+       ksys_write+0xea/0x1f0 fs/read_write.c:598
+       __do_sys_write fs/read_write.c:610 [inline]
+       __se_sys_write fs/read_write.c:607 [inline]
+       __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+       do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+  &mm->mmap_sem --> ashmem_mutex --> &sb->s_type->i_mutex_key#11
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&sb->s_type->i_mutex_key#11);
+                               lock(ashmem_mutex);
+                               lock(&sb->s_type->i_mutex_key#11);
+  lock(&mm->mmap_sem);
+
+ *** DEADLOCK ***
+
+2 locks held by syz-executor443/7546:
+ #0: 000000003fdabbab (sb_writers#5){.+.+}, at: file_start_write include/linux/fs.h:2816 [inline]
+ #0: 000000003fdabbab (sb_writers#5){.+.+}, at: vfs_write+0x429/0x580 fs/read_write.c:548
+ #1: 00000000aff3c791 (&sb->s_type->i_mutex_key#11){+.+.}, at: inode_lock include/linux/fs.h:757 [inline]
+ #1: 00000000aff3c791 (&sb->s_type->i_mutex_key#11){+.+.}, at: generic_file_write_iter+0xdf/0x610 mm/filemap.c:3358
+
+stack backtrace:
+CPU: 1 PID: 7546 Comm: syz-executor443 Not tainted 5.0.0-rc7+ #82
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_circular_bug.isra.0.cold+0x1cc/0x28f kernel/locking/lockdep.c:1224
+ check_prev_add kernel/locking/lockdep.c:1866 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1979 [inline]
+ validate_chain kernel/locking/lockdep.c:2350 [inline]
+ __lock_acquire+0x2f00/0x4700 kernel/locking/lockdep.c:3338
+ lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:3841
+ down_read+0x3b/0x90 kernel/locking/rwsem.c:24
+ do_user_addr_fault arch/x86/mm/fault.c:1426 [inline]
+ __do_page_fault+0x9c2/0xd60 arch/x86/mm/fault.c:1541
+ do_page_fault+0x71/0x581 arch/x86/mm/fault.c:1572
+ page_fault+0x1e/0x30 arch/x86/entry/entry_64.S:1143
+RIP: 0010:fault_in_pages_readable include/linux/pagemap.h:611 [inline]
+RIP: 0010:iov_iter_fault_in_readable+0x377/0x450 lib/iov_iter.c:425
+Code: 89 f6 41 88 57 e0 e8 b8 2b 47 fe 45 85 f6 74 c1 e9 70 fe ff ff e8 29 2a 47 fe 0f 1f 00 0f ae e8 44 89 f0 48 8b 8d 68 ff ff ff <8a> 11 89 c3 0f 1f 00 41 88 57 d0 31 ff 89 de e8 85 2b 47 fe 85 db
+RSP: 0018:ffff8880a3ed79b8 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000020e3f53f
+RDX: 0000000000000000 RSI: ffffffff8328b757 RDI: 0000000000000007
+RBP: ffff8880a3ed7a58 R08: ffff8880a1796300 R09: fffff94000445f67
+R10: fffff94000445f66 R11: ffffea000222fb37 R12: 0000000000001000
+R13: 0000000000001000 R14: 0000000000000000 R15: ffff8880a3ed7a30
+ generic_perform_write+0x195/0x530 mm/filemap.c:3198
+ __generic_file_write_iter+0x25e/0x630 mm/filemap.c:3333
+ generic_file_write_iter+0x360/0x610 mm/filemap.c:3361
+ call_write_iter include/linux/fs.h:1863 [inline]
+ new_sync_write fs/read_write.c:474 [inline]
+ __vfs_write+0x613/0x8e0 fs/read_write.c:487
+ vfs_write+0x20c/0x580 fs/read_write.c:549
+ ksys_write+0xea/0x1f0 fs/read_write.c:598
+ __do_sys_write fs/read_write.c:610 [inline]
+ __se_sys_write fs/read_write.c:607 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4469a9
+Code: e8 bc b9 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 07 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f7bedf8edb8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000006dcc28 RCX: 00000000004469a9
+RDX: 00000000fffffda2 RSI: 0000000020000540 RDI: 0000000000000005
+RBP: 00000000006dcc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dcc2c
+R13: 00007ffe47da6d2f R14: 00007f7bedf8f9c0 R15: 20c49ba5e353f7cf

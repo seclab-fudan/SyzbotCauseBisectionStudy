@@ -1,0 +1,94 @@
+==================================================================
+BUG: KASAN: out-of-bounds in instrument_atomic_read_write include/linux/instrumented.h:102 [inline]
+BUG: KASAN: out-of-bounds in atomic_dec include/linux/atomic/atomic-instrumented.h:257 [inline]
+BUG: KASAN: out-of-bounds in put_bh include/linux/buffer_head.h:323 [inline]
+BUG: KASAN: out-of-bounds in end_buffer_read_sync+0xc1/0xd0 fs/buffer.c:161
+Write of size 4 at addr ffffc9000b9cf7e0 by task ksoftirqd/0/15
+
+CPU: 0 PID: 15 Comm: ksoftirqd/0 Not tainted 6.3.0-rc1-syzkaller-00274-g134231664868 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:319 [inline]
+ print_report+0x163/0x540 mm/kasan/report.c:430
+ kasan_report+0x176/0x1b0 mm/kasan/report.c:536
+ kasan_check_range+0x283/0x290 mm/kasan/generic.c:187
+ instrument_atomic_read_write include/linux/instrumented.h:102 [inline]
+ atomic_dec include/linux/atomic/atomic-instrumented.h:257 [inline]
+ put_bh include/linux/buffer_head.h:323 [inline]
+ end_buffer_read_sync+0xc1/0xd0 fs/buffer.c:161
+ end_bio_bh_io_sync+0xb7/0x110 fs/buffer.c:2703
+ req_bio_endio block/blk-mq.c:795 [inline]
+ blk_update_request+0x4d7/0xfe0 block/blk-mq.c:927
+ blk_mq_end_request+0x3e/0x70 block/blk-mq.c:1054
+ blk_complete_reqs block/blk-mq.c:1132 [inline]
+ blk_done_softirq+0xfc/0x150 block/blk-mq.c:1137
+ __do_softirq+0x2cf/0x9dc kernel/softirq.c:571
+ run_ksoftirqd+0xc5/0x120 kernel/softirq.c:934
+ smpboot_thread_fn+0x533/0x9f0 kernel/smpboot.c:164
+ kthread+0x270/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+
+The buggy address belongs to the virtual mapping at
+ [ffffc9000b9c8000, ffffc9000b9d1000) created by:
+ copy_process+0x5bd/0x3fc0 kernel/fork.c:2100
+
+The buggy address belongs to the physical page:
+page:ffffea0001e92100 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x7a484
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 0000000000000000 dead000000000122 0000000000000000
+raw: 0000000000000000 0000000000000000 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x102dc2(GFP_HIGHUSER|__GFP_NOWARN|__GFP_ZERO), pid 13807, tgid 13807 (syz-executor180), ts 2029749587795, free_ts 2028831747158
+ prep_new_page mm/page_alloc.c:2552 [inline]
+ get_page_from_freelist+0x3507/0x3690 mm/page_alloc.c:4325
+ __alloc_pages+0x291/0x760 mm/page_alloc.c:5591
+ vm_area_alloc_pages mm/vmalloc.c:2943 [inline]
+ __vmalloc_area_node mm/vmalloc.c:3011 [inline]
+ __vmalloc_node_range+0x959/0x12f0 mm/vmalloc.c:3181
+ alloc_thread_stack_node kernel/fork.c:311 [inline]
+ dup_task_struct+0x3e5/0x750 kernel/fork.c:984
+ copy_process+0x5bd/0x3fc0 kernel/fork.c:2100
+ kernel_clone+0x22f/0x940 kernel/fork.c:2684
+ __do_sys_clone kernel/fork.c:2825 [inline]
+ __se_sys_clone kernel/fork.c:2809 [inline]
+ __x64_sys_clone+0x235/0x280 kernel/fork.c:2809
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1453 [inline]
+ free_pcp_prepare mm/page_alloc.c:1503 [inline]
+ free_unref_page_prepare+0xeb2/0xef0 mm/page_alloc.c:3387
+ free_unref_page_list+0x628/0x8c0 mm/page_alloc.c:3528
+ release_pages+0x219e/0x2470 mm/swap.c:1042
+ tlb_batch_pages_flush mm/mmu_gather.c:97 [inline]
+ tlb_flush_mmu_free mm/mmu_gather.c:292 [inline]
+ tlb_flush_mmu+0x100/0x210 mm/mmu_gather.c:299
+ tlb_finish_mmu+0xd4/0x1f0 mm/mmu_gather.c:391
+ exit_mmap+0x2c9/0x910 mm/mmap.c:3047
+ __mmput+0x115/0x3c0 kernel/fork.c:1209
+ exit_mm+0x227/0x310 kernel/exit.c:563
+ do_exit+0x612/0x2290 kernel/exit.c:856
+ do_group_exit+0x206/0x2c0 kernel/exit.c:1019
+ get_signal+0x1701/0x17e0 kernel/signal.c:2859
+ arch_do_signal_or_restart+0x91/0x670 arch/x86/kernel/signal.c:306
+ exit_to_user_mode_loop+0x6a/0x100 kernel/entry/common.c:168
+ exit_to_user_mode_prepare+0xb1/0x140 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x64/0x2e0 kernel/entry/common.c:296
+ do_syscall_64+0x4d/0xc0 arch/x86/entry/common.c:86
+
+Memory state around the buggy address:
+ ffffc9000b9cf680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffc9000b9cf700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffffc9000b9cf780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+                                                          ^
+ ffffc9000b9cf800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffffc9000b9cf880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

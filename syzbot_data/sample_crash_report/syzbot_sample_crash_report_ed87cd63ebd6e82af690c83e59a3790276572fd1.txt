@@ -1,0 +1,47 @@
+list_del corruption. next->prev should be ffff88012ed59368, but was ffff8801cd53f3b0
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:56!
+invalid opcode: 0000 [#1] SMP KASAN
+CPU: 1 PID: 2133 Comm: kworker/1:2 Not tainted 4.18.0-rc4+ #142
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events p9_poll_workfn
+RIP: 0010:__list_del_entry_valid.cold.1+0x37/0x58 lib/list_debug.c:54
+Code: e8 4a 6e 02 fe 0f 0b 4c 89 ea 48 89 de 48 c7 c7 c0 65 1a 88 e8 36 6e 02 fe 0f 0b 48 89 de 48 c7 c7 e0 66 1a 88 e8 25 6e 02 fe <0f> 0b 48 89 de 48 c7 c7 80 66 1a 88 e8 14 6e 02 fe 0f 0b 90 90 90 
+RSP: 0018:ffff8801cd53f318 EFLAGS: 00010282
+RAX: 0000000000000054 RBX: ffff88012ed59368 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81631821 RDI: 0000000000000001
+RBP: ffff8801cd53f330 R08: ffff8801cd54e680 R09: ffffed003b5e4fc0
+R10: ffffed003b5e4fc0 R11: ffff8801daf27e07 R12: ffff8801cd53f3b0
+R13: ffff8801cd53f3b0 R14: ffff8801cd53f388 R15: 1ffff10039aa7e9e
+FS:  0000000000000000(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 0000000008e6a000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ __list_del_entry include/linux/list.h:117 [inline]
+ list_del include/linux/list.h:125 [inline]
+ p9_conn_cancel+0x8d6/0xd30 net/9p/trans_fd.c:224
+ p9_poll_mux net/9p/trans_fd.c:620 [inline]
+ p9_poll_workfn+0x4b2/0x6d0 net/9p/trans_fd.c:1107
+ process_one_work+0xc73/0x1ba0 kernel/workqueue.c:2153
+ worker_thread+0x189/0x13c0 kernel/workqueue.c:2296
+ kthread+0x345/0x410 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+Modules linked in:
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+---[ end trace 1586ea80a4eed1d0 ]---
+RIP: 0010:__list_del_entry_valid.cold.1+0x37/0x58 lib/list_debug.c:54
+Code: e8 4a 6e 02 fe 0f 0b 4c 89 ea 48 89 de 48 c7 c7 c0 65 1a 88 e8 36 6e 02 fe 0f 0b 48 89 de 48 c7 c7 e0 66 1a 88 e8 25 6e 02 fe <0f> 0b 48 89 de 48 c7 c7 80 66 1a 88 e8 14 6e 02 fe 0f 0b 90 90 90 
+RSP: 0018:ffff8801cd53f318 EFLAGS: 00010282
+RAX: 0000000000000054 RBX: ffff88012ed59368 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff81631821 RDI: 0000000000000001
+RBP: ffff8801cd53f330 R08: ffff8801cd54e680 R09: ffffed003b5e4fc0
+R10: ffffed003b5e4fc0 R11: ffff8801daf27e07 R12: ffff8801cd53f3b0
+R13: ffff8801cd53f3b0 R14: ffff8801cd53f388 R15: 1ffff10039aa7e9e
+FS:  0000000000000000(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000000 CR3: 0000000008e6a000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

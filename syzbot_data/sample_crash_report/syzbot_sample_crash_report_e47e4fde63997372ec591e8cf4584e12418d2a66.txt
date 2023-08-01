@@ -1,0 +1,83 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in erspan_build_header+0x3bf/0x3d0 net/ipv4/ip_gre.c:698
+Read of size 2 at addr ffff8801d637f80b by task syzkaller740696/3698
+
+CPU: 0 PID: 3698 Comm: syzkaller740696 Not tainted 4.15.0-rc9+ #275
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load_n_noabort+0xf/0x20 mm/kasan/report.c:440
+ erspan_build_header+0x3bf/0x3d0 net/ipv4/ip_gre.c:698
+ erspan_xmit+0x3b8/0x13b0 net/ipv4/ip_gre.c:740
+ __netdev_start_xmit include/linux/netdevice.h:4042 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4051 [inline]
+ packet_direct_xmit+0x315/0x6b0 net/packet/af_packet.c:266
+ packet_snd net/packet/af_packet.c:2943 [inline]
+ packet_sendmsg+0x3aed/0x60b0 net/packet/af_packet.c:2968
+ sock_sendmsg_nosec net/socket.c:638 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:648
+ SYSC_sendto+0x361/0x5c0 net/socket.c:1729
+ SyS_sendto+0x40/0x50 net/socket.c:1697
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x4454c9
+RSP: 002b:00007fff40cabac8 EFLAGS: 00000217 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 00000000004454c9
+RDX: 0000000000000000 RSI: 0000000020011000 RDI: 0000000000000004
+RBP: 00000000004a7073 R08: 0000000020008000 R09: 000000000000001c
+R10: 0000000000000000 R11: 0000000000000217 R12: 0000000000402600
+R13: 0000000000402690 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 2134:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3544
+ kmem_cache_zalloc include/linux/slab.h:678 [inline]
+ get_empty_filp+0xfb/0x4f0 fs/file_table.c:123
+ alloc_file+0x26/0x390 fs/file_table.c:164
+ create_pipe_files+0x4cd/0x930 fs/pipe.c:755
+ __do_pipe_flags+0x35/0x220 fs/pipe.c:797
+ SYSC_pipe2 fs/pipe.c:845 [inline]
+ SyS_pipe2 fs/pipe.c:839 [inline]
+ SYSC_pipe fs/pipe.c:863 [inline]
+ SyS_pipe+0x8d/0x2e0 fs/pipe.c:861
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+
+Freed by task 0:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kmem_cache_free+0x83/0x2a0 mm/slab.c:3746
+ file_free_rcu+0x5c/0x70 fs/file_table.c:50
+ __rcu_reclaim kernel/rcu/rcu.h:195 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2758 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:3012 [inline]
+ __rcu_process_callbacks kernel/rcu/tree.c:2979 [inline]
+ rcu_process_callbacks+0xd6c/0x17f0 kernel/rcu/tree.c:2996
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
+
+The buggy address belongs to the object at ffff8801d637f5c0
+ which belongs to the cache filp of size 456
+The buggy address is located 131 bytes to the right of
+ 456-byte region [ffff8801d637f5c0, ffff8801d637f788)
+The buggy address belongs to the page:
+page:ffffea000758dfc0 count:1 mapcount:0 mapping:ffff8801d637f0c0 index:0xffff8801d637f340
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801d637f0c0 ffff8801d637f340 0000000100000001
+raw: ffffea000758f220 ffffea0007588de0 ffff8801dae2c180 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801d637f700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d637f780: fb fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff8801d637f800: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                      ^
+ ffff8801d637f880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8801d637f900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

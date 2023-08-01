@@ -1,0 +1,76 @@
+INFO: task syz-executor742:1725 blocked for more than 143 seconds.
+      Not tainted 5.3.0+ #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor742 D28272  1725   1723 0x00000000
+Call Trace:
+ schedule+0xca/0x250 kernel/sched/core.c:4123
+ schedule_timeout+0x440/0xb20 kernel/time/timer.c:1893
+ do_wait_for_common kernel/sched/completion.c:83 [inline]
+ __wait_for_common kernel/sched/completion.c:104 [inline]
+ wait_for_common kernel/sched/completion.c:115 [inline]
+ wait_for_completion_timeout+0x282/0x3e0 kernel/sched/completion.c:155
+ usb_start_wait_urb+0x14b/0x2b0 drivers/usb/core/message.c:62
+ usb_internal_control_msg drivers/usb/core/message.c:101 [inline]
+ usb_control_msg+0x31c/0x4a0 drivers/usb/core/message.c:152
+ ld_usb_write+0x856/0xa10 drivers/usb/misc/ldusb.c:577
+ __vfs_write+0x76/0x100 fs/read_write.c:494
+ vfs_write+0x262/0x5c0 fs/read_write.c:558
+ ksys_write+0x1e8/0x250 fs/read_write.c:611
+ do_syscall_64+0xb7/0x580 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440819
+Code: Bad RIP value.
+RSP: 002b:00007ffc59c1d2d8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440819
+RDX: 0000000000000001 RSI: 0000000020000080 RDI: 0000000000000004
+RBP: 00000000006cb018 R08: 000000000000000f R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004020a0
+R13: 0000000000402130 R14: 0000000000000000 R15: 0000000000000000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/23:
+ #0: ffffffff86cff360 (rcu_read_lock){....}, at: debug_show_all_locks+0x53/0x269 kernel/locking/lockdep.c:5335
+1 lock held by rsyslogd/1604:
+2 locks held by getty/1694:
+ #0: ffff8881d90d0090 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:272
+ #1: ffffc900004712e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x223/0x1ae0 drivers/tty/n_tty.c:2156
+2 locks held by getty/1695:
+ #0: ffff8881d92d5590 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:272
+ #1: ffffc9000047d2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x223/0x1ae0 drivers/tty/n_tty.c:2156
+2 locks held by getty/1696:
+ #0: ffff8881d90d3c10 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:272
+ #1: ffffc9000045d2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x223/0x1ae0 drivers/tty/n_tty.c:2156
+2 locks held by getty/1697:
+ #0: ffff8881d7506f10 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:272
+ #1: ffffc900004752e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x223/0x1ae0 drivers/tty/n_tty.c:2156
+2 locks held by getty/1698:
+ #0: ffff8881d905a290 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:272
+ #1: ffffc900004652e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x223/0x1ae0 drivers/tty/n_tty.c:2156
+2 locks held by getty/1699:
+ #0: ffff8881d7505590 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:272
+ #1: ffffc900004792e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x223/0x1ae0 drivers/tty/n_tty.c:2156
+2 locks held by getty/1700:
+ #0: ffff8881d9136690 (&tty->ldisc_sem){++++}, at: tty_ldisc_ref_wait+0x22/0x80 drivers/tty/tty_ldisc.c:272
+ #1: ffffc900004452e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x223/0x1ae0 drivers/tty/n_tty.c:2156
+1 lock held by syz-executor742/1725:
+ #0: ffff8881d2d7a560 (&dev->mutex#3){+.+.}, at: ld_usb_write+0x111/0xa10 drivers/usb/misc/ldusb.c:539
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 23 Comm: khungtaskd Not tainted 5.3.0+ #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold+0x55/0x96 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x1b0/0x1c7 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:205 [inline]
+ watchdog+0x9a4/0xe50 kernel/hung_task.c:289
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1 skipped: idling at native_safe_halt arch/x86/include/asm/irqflags.h:60 [inline]
+NMI backtrace for cpu 1 skipped: idling at arch_safe_halt arch/x86/include/asm/irqflags.h:103 [inline]
+NMI backtrace for cpu 1 skipped: idling at default_idle+0x28/0x2e0 arch/x86/kernel/process.c:580

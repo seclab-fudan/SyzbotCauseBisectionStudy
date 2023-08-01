@@ -1,0 +1,62 @@
+EXT4-fs (loop2): mounted filesystem 00000000-0000-0000-0000-000000000000 without journal. Quota mode: writeback.
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000068
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006
+  CM = 0, WnR = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000000163937000
+[0000000000000068] pgd=080000015c3f2003, p4d=080000015c3f2003, pud=080000015c3f9003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 26595 Comm: syz-executor.2 Not tainted 6.2.0-rc7-syzkaller-17907-g2d3827b3f393 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : d_really_is_negative include/linux/dcache.h:466 [inline]
+pc : reiserfs_xattr_jcreate_nblocks fs/reiserfs/xattr.h:79 [inline]
+pc : reiserfs_set_acl+0xdc/0x2b4 fs/reiserfs/xattr_acl.c:37
+lr : reiserfs_xattr_jcreate_nblocks fs/reiserfs/xattr.h:78 [inline]
+lr : reiserfs_set_acl+0xc4/0x2b4 fs/reiserfs/xattr_acl.c:37
+sp : ffff800020a3ba60
+x29: ffff800020a3bab0 x28: ffff000124660000 x27: 0000000000000002
+x26: dead4ead00000000 x25: 0000000000000036 x24: 000000000000004b
+x23: 0000000000000000 x22: ffff000124666000 x21: ffff000118ac0280
+x20: 0000000000008000 x19: ffff0000cab58190 x18: 000000000000bdf0
+x17: ffff80000dd94158 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000002 x13: 0000000000000020 x12: 0000000000040000
+x11: 00000000000011bc x10: 00000000000002a0 x9 : 000000000000006c
+x8 : 0000000000000000 x7 : ffff80000868d57c x6 : 0000000000000000
+x5 : ffff80000e27c7e8 x4 : ffff800020a3ba60 x3 : 0000000000008000
+x2 : ffff000118ac0280 x1 : 0000000000000000 x0 : 0000000000000000
+Call trace:
+ reiserfs_set_acl+0xdc/0x2b4 fs/reiserfs/xattr_acl.c:37
+ set_posix_acl fs/posix_acl.c:957 [inline]
+ vfs_set_acl+0x4e8/0x610 fs/posix_acl.c:1099
+ do_set_acl+0x94/0x14c fs/posix_acl.c:1248
+ do_setxattr fs/xattr.c:605 [inline]
+ setxattr+0x274/0x2cc fs/xattr.c:631
+ path_setxattr+0xd0/0x17c fs/xattr.c:650
+ __do_sys_lsetxattr fs/xattr.c:673 [inline]
+ __se_sys_lsetxattr fs/xattr.c:669 [inline]
+ __arm64_sys_lsetxattr+0x2c/0x40 fs/xattr.c:669
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x64/0x178 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0xbc/0x180 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x110 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x14c arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+Code: 52803809 52800d8a 9a890149 5280540a (f9403508) 
+---[ end trace 0000000000000000 ]---
+pstore: backend (efi_pstore) writing error (-5)
+----------------
+Code disassembly (best guess):
+   0:	52803809 	mov	w9, #0x1c0                 	// #448
+   4:	52800d8a 	mov	w10, #0x6c                  	// #108
+   8:	9a890149 	csel	x9, x10, x9, eq  // eq = none
+   c:	5280540a 	mov	w10, #0x2a0                 	// #672
+* 10:	f9403508 	ldr	x8, [x8, #104] <-- trapping instruction

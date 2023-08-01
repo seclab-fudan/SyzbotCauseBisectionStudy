@@ -1,0 +1,65 @@
+==================================================================
+BUG: KMSAN: uninit-value in ffs arch/x86/include/asm/bitops.h:432 [inline]
+BUG: KMSAN: uninit-value in netlink_sendmsg+0xb26/0x1310 net/netlink/af_netlink.c:1851
+CPU: 0 PID: 3571 Comm: syzkaller466280 Not tainted 4.16.0+ #82
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:53
+ kmsan_report+0x142/0x240 mm/kmsan/kmsan.c:1067
+ __msan_warning_32+0x6c/0xb0 mm/kmsan/kmsan_instr.c:676
+ ffs arch/x86/include/asm/bitops.h:432 [inline]
+ netlink_sendmsg+0xb26/0x1310 net/netlink/af_netlink.c:1851
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg net/socket.c:640 [inline]
+ ___sys_sendmsg+0xec0/0x1310 net/socket.c:2046
+ __sys_sendmsg net/socket.c:2080 [inline]
+ SYSC_sendmsg+0x2a3/0x3d0 net/socket.c:2091
+ SyS_sendmsg+0x54/0x80 net/socket.c:2087
+ do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+RIP: 0033:0x43fd89
+RSP: 002b:00007fffb9cfa7d8 EFLAGS: 00000213 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd89
+RDX: 0000000000000000 RSI: 0000000020000040 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000213 R12: 00000000004016b0
+R13: 0000000000401740 R14: 0000000000000000 R15: 0000000000000000
+
+Local variable description: ----address@___sys_sendmsg
+Variable was created at:
+ ___sys_sendmsg+0xd3/0x1310 net/socket.c:1974
+ __sys_sendmsg net/socket.c:2080 [inline]
+ SYSC_sendmsg+0x2a3/0x3d0 net/socket.c:2091
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 0 PID: 3571 Comm: syzkaller466280 Tainted: G    B            4.16.0+ #82
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:53
+ panic+0x39d/0x940 kernel/panic.c:183
+ kmsan_report+0x238/0x240 mm/kmsan/kmsan.c:1083
+ __msan_warning_32+0x6c/0xb0 mm/kmsan/kmsan_instr.c:676
+ ffs arch/x86/include/asm/bitops.h:432 [inline]
+ netlink_sendmsg+0xb26/0x1310 net/netlink/af_netlink.c:1851
+ sock_sendmsg_nosec net/socket.c:630 [inline]
+ sock_sendmsg net/socket.c:640 [inline]
+ ___sys_sendmsg+0xec0/0x1310 net/socket.c:2046
+ __sys_sendmsg net/socket.c:2080 [inline]
+ SYSC_sendmsg+0x2a3/0x3d0 net/socket.c:2091
+ SyS_sendmsg+0x54/0x80 net/socket.c:2087
+ do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+RIP: 0033:0x43fd89
+RSP: 002b:00007fffb9cfa7d8 EFLAGS: 00000213 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd89
+RDX: 0000000000000000 RSI: 0000000020000040 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000213 R12: 00000000004016b0
+R13: 0000000000401740 R14: 0000000000000000 R15: 0000000000000000
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

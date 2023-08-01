@@ -1,0 +1,57 @@
+
+============================================
+WARNING: possible recursive locking detected
+4.15.0-rc8+ #269 Not tainted
+--------------------------------------------
+syzkaller382504/3658 is trying to acquire lock:
+ (&vq->mutex){+.+.}, at: [<00000000857a331f>] vhost_dev_lock_vqs drivers/vhost/vhost.c:907 [inline]
+ (&vq->mutex){+.+.}, at: [<00000000857a331f>] vhost_process_iotlb_msg drivers/vhost/vhost.c:997 [inline]
+ (&vq->mutex){+.+.}, at: [<00000000857a331f>] vhost_chr_write_iter+0x278/0x1580 drivers/vhost/vhost.c:1046
+
+but task is already holding lock:
+ (&vq->mutex){+.+.}, at: [<00000000857a331f>] vhost_dev_lock_vqs drivers/vhost/vhost.c:907 [inline]
+ (&vq->mutex){+.+.}, at: [<00000000857a331f>] vhost_process_iotlb_msg drivers/vhost/vhost.c:997 [inline]
+ (&vq->mutex){+.+.}, at: [<00000000857a331f>] vhost_chr_write_iter+0x278/0x1580 drivers/vhost/vhost.c:1046
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&vq->mutex);
+  lock(&vq->mutex);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+1 lock held by syzkaller382504/3658:
+ #0:  (&vq->mutex){+.+.}, at: [<00000000857a331f>] vhost_dev_lock_vqs drivers/vhost/vhost.c:907 [inline]
+ #0:  (&vq->mutex){+.+.}, at: [<00000000857a331f>] vhost_process_iotlb_msg drivers/vhost/vhost.c:997 [inline]
+ #0:  (&vq->mutex){+.+.}, at: [<00000000857a331f>] vhost_chr_write_iter+0x278/0x1580 drivers/vhost/vhost.c:1046
+
+stack backtrace:
+CPU: 0 PID: 3658 Comm: syzkaller382504 Not tainted 4.15.0-rc8+ #269
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_deadlock_bug kernel/locking/lockdep.c:1756 [inline]
+ check_deadlock kernel/locking/lockdep.c:1800 [inline]
+ validate_chain kernel/locking/lockdep.c:2396 [inline]
+ __lock_acquire+0xe8f/0x3e00 kernel/locking/lockdep.c:3426
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+ __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+ __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+ vhost_dev_lock_vqs drivers/vhost/vhost.c:907 [inline]
+ vhost_process_iotlb_msg drivers/vhost/vhost.c:997 [inline]
+ vhost_chr_write_iter+0x278/0x1580 drivers/vhost/vhost.c:1046
+ vhost_net_chr_write_iter+0x59/0x70 drivers/vhost/net.c:1353
+ call_write_iter include/linux/fs.h:1772 [inline]
+ new_sync_write fs/read_write.c:469 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:482
+ vfs_write+0x189/0x510 fs/read_write.c:544
+ SYSC_write fs/read_write.c:589 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:581
+ entr

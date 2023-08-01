@@ -1,0 +1,330 @@
+==================================================================
+BUG: KASAN: stack-out-of-bounds in __enqueue_entity+0x133/0x1f0 kernel/sched/fair.c:545
+Read of size 8 at addr ffff8801b42f92a0 by task udevd/20299
+
+kasan: CONFIG_KASAN_INLINE enabled
+CPU: 0 PID: 20299 Comm: udevd Not tainted 4.18.0-rc3+ #53
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+general protection fault: 0000 [#1] SMP KASAN
+Call Trace:
+CPU: 1 PID: -2000753008 Comm:  Not tainted 4.18.0-rc3+ #53
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:update_curr+0xa2/0xc00 kernel/sched/fair.c:806
+Code: 
+40 14 
+00 f2 
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+f2 
+f2 
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+c7 
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+40 
+ __enqueue_entity+0x133/0x1f0 kernel/sched/fair.c:545
+18 
+ put_prev_entity+0xbf/0x2a0 kernel/sched/fair.c:4486
+f2 
+ put_prev_task_fair+0x3e/0x80 kernel/sched/fair.c:7044
+f2 
+ put_prev_task kernel/sched/sched.h:1535 [inline]
+ pick_next_task_stop+0xc0/0x1f0 kernel/sched/stop_task.c:34
+f2 
+ pick_next_task kernel/sched/core.c:3363 [inline]
+ __schedule+0x1401/0x1ed0 kernel/sched/core.c:3478
+f2 
+c7 
+40 
+1c 
+00 
+f2 
+f2 
+f2 
+65 
+ preempt_schedule_common+0x22/0x60 kernel/sched/core.c:3628
+48 
+ _cond_resched+0x1d/0x30 kernel/sched/core.c:4994
+8b 
+ stop_one_cpu+0x173/0x240 kernel/stop_machine.c:133
+04 
+25 28 
+00 00 
+00 
+48 
+89 
+ sched_exec+0x1bf/0x2a0 kernel/sched/core.c:2995
+45 
+d0 
+31 
+ __do_execve_file.isra.36+0xb50/0x2730 fs/exec.c:1760
+c0 
+48 
+89 
+f8 
+48 
+c1 e8 
+03 
+<80> 
+3c 
+10 
+00 
+0f 
+85 0f 
+09 
+00 00 
+49 
+ do_execveat_common fs/exec.c:1866 [inline]
+ do_execve fs/exec.c:1883 [inline]
+ __do_sys_execve fs/exec.c:1964 [inline]
+ __se_sys_execve fs/exec.c:1959 [inline]
+ __x64_sys_execve+0x8f/0xc0 fs/exec.c:1959
+8d 
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+bf 
+70 
+01 00 
+00 
+49 
+8b 
+5f 
+40 
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+48 
+RIP: 0033:0x7f908868c207
+Code: 
+RSP: 0018:ffff8801daf07828 EFLAGS: 00010002
+77 
+19 
+RAX: 0000000000000008 RBX: dffffc0000000000 RCX: 1ffffffff0fd511b
+f4 
+RDX: dffffc0000000000 RSI: ffff8801b20b6640 RDI: 0000000000000040
+48 
+RBP: ffff8801daf07990 R08: ffff88021fff8058 R09: ffff88021fff805b
+89 
+R10: ffffed0043fff009 R11: 0000000000000000 R12: 1ffff1003b5e0f09
+d7 
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+44 
+FS:  00000000017b4940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+89 c0 
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+0f 05 
+CR2: 00007f17d1827848 CR3: 0000000199451000 CR4: 00000000001406e0
+48 
+DR0: 00000000200001c0 DR1: 0000000020000080 DR2: 0000000000000000
+3d 
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+00 
+Call Trace:
+f0 ff 
+ <IRQ>
+ff 
+76 
+e0 
+f7 
+d8 
+64 
+ entity_tick kernel/sched/fair.c:4499 [inline]
+ task_tick_fair+0xdb/0x320 kernel/sched/fair.c:9934
+41 
+ scheduler_tick+0x18b/0x430 kernel/sched/core.c:3087
+89 
+01 
+eb 
+d8 
+f7 
+d8 
+64 
+ update_process_times+0x51/0x70 kernel/time/timer.c:1641
+41 
+ tick_sched_handle+0x9f/0x180 kernel/time/tick-sched.c:164
+89 
+ tick_sched_timer+0x45/0x130 kernel/time/tick-sched.c:1274
+01 
+ __run_hrtimer kernel/time/hrtimer.c:1398 [inline]
+ __hrtimer_run_queues+0x3eb/0x10c0 kernel/time/hrtimer.c:1460
+eb 
+df 
+b8 
+3b 
+00 
+00 
+00 
+0f 
+05 
+<48> 
+3d 
+00 
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+f0 ff 
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x165/0x730 arch/x86/kernel/apic/apic.c:1050
+ff 
+77 
+02 
+f3 
+c3 
+48 
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+8b 
+ </IRQ>
+15 
+Modules linked in:
+00 
+8c 
+Dumping ftrace buffer:
+2d 
+   (ftrace buffer empty)
+00 f7 
+---[ end trace 477eb5a7e89bc623 ]---
+d8 
+RIP: 0010:update_curr+0xa2/0xc00 kernel/sched/fair.c:806
+64 
+Code: 
+89 
+40 
+02 
+14 
+00 f2 
+RSP: 002b:00007ffcc4d0d7d8 EFLAGS: 00000206
+f2 f2 
+ ORIG_RAX: 000000000000003b
+c7 
+RAX: ffffffffffffffda RBX: 00000000ffffffff RCX: 00007f908868c207
+40 
+RDX: 00000000010b7540 RSI: 00007ffcc4d0d8d0 RDI: 00007ffcc4d0e8e0
+18 
+RBP: 0000000000625500 R08: 0000000000000ac4 R09: 0000000000000ac4
+f2 f2 f2 
+R10: 0000000000000000 R11: 0000000000000206 R12: 00000000010b7540
+f2 
+R13: 0000000000000007 R14: 00000000010a6250 R15: 0000000000000005
+c7 
+
+40 1c 
+Allocated by task 0:
+00 
+(stack is not available)
+f2 
+
+f2 
+Freed by task 5412:
+f2 
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+65 
+ set_track mm/kasan/kasan.c:460 [inline]
+ __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+48 
+ kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+8b 
+ __cache_free mm/slab.c:3498 [inline]
+ kfree+0xd9/0x260 mm/slab.c:3813
+04 
+ skb_free_head+0x99/0xc0 net/core/skbuff.c:550
+25 28 
+ skb_release_data+0x6a4/0x880 net/core/skbuff.c:570
+00 
+ skb_release_all+0x4a/0x60 net/core/skbuff.c:627
+00 
+ __kfree_skb net/core/skbuff.c:641 [inline]
+ consume_skb+0x193/0x560 net/core/skbuff.c:701
+00 
+ netlink_broadcast_filtered+0x6aa/0x1620 net/netlink/af_netlink.c:1512
+48 
+ netlink_broadcast net/netlink/af_netlink.c:1534 [inline]
+ nlmsg_multicast include/net/netlink.h:591 [inline]
+ nlmsg_notify+0xa0/0x1a0 net/netlink/af_netlink.c:2491
+89 
+ rtnl_notify+0xce/0xf0 net/core/rtnetlink.c:732
+45 
+ rtmsg_fib+0x369/0x4d0 net/ipv4/fib_semantics.c:428
+d0 
+ fib_table_insert+0x7a8/0x17a0 net/ipv4/fib_trie.c:1287
+31 c0 
+ fib_magic.isra.22+0x66b/0x890 net/ipv4/fib_frontend.c:885
+48 
+ fib_add_ifaddr+0x382/0x500 net/ipv4/fib_frontend.c:920
+89 
+ fib_netdev_event+0x13c/0x3a0 net/ipv4/fib_frontend.c:1263
+f8 48 
+ notifier_call_chain+0x180/0x390 kernel/notifier.c:93
+c1 
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2d/0x40 kernel/notifier.c:401
+e8 
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1734
+03 
+ call_netdevice_notifiers net/core/dev.c:1752 [inline]
+ __dev_notify_flags+0x17a/0x480 net/core/dev.c:7335
+<80> 
+ dev_change_flags+0xfd/0x150 net/core/dev.c:7371
+3c 
+ do_setlink+0xb16/0x3dd0 net/core/rtnetlink.c:2413
+10 
+ rtnl_newlink+0x138d/0x1d60 net/core/rtnetlink.c:3023
+00 0f 
+ rtnetlink_rcv_msg+0x46e/0xc30 net/core/rtnetlink.c:4699
+85 
+ netlink_rcv_skb+0x172/0x440 net/netlink/af_netlink.c:2448
+0f 
+ rtnetlink_rcv+0x1c/0x20 net/core/rtnetlink.c:4717
+09 
+ netlink_unicast_kernel net/netlink/af_netlink.c:1310 [inline]
+ netlink_unicast+0x5a0/0x760 net/netlink/af_netlink.c:1336
+00 
+ netlink_sendmsg+0xa18/0xfc0 net/netlink/af_netlink.c:1901
+00 
+ sock_sendmsg_nosec net/socket.c:641 [inline]
+ sock_sendmsg+0xd5/0x120 net/socket.c:651
+49 
+ ___sys_sendmsg+0x7fd/0x930 net/socket.c:2125
+8d 
+ __sys_sendmsg+0x11d/0x290 net/socket.c:2163
+bf 70 
+ __do_sys_sendmsg net/socket.c:2172 [inline]
+ __se_sys_sendmsg net/socket.c:2170 [inline]
+ __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2170
+01 
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+00 
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+00 
+
+49 
+The buggy address belongs to the object at ffff8801b42f9280
+ which belongs to the cache kmalloc-512 of size 512
+8b 
+The buggy address is located 32 bytes inside of
+ 512-byte region [ffff8801b42f9280, ffff8801b42f9480)
+5f 
+The buggy address belongs to the page:
+40 
+page:ffffea0006d0be40 count:1 mapcount:0 mapping:ffff8801da800940 index:0xffff8801b42f9c80
+48 
+RSP: 0018:ffff8801daf07828 EFLAGS: 00010002
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0006b45c88 ffffea0006ad5408 ffff8801da800940
+raw: ffff8801b42f9c80 ffff8801b42f9000 0000000100000004 0000000000000000
+RAX: 0000000000000008 RBX: dffffc0000000000 RCX: 1ffffffff0fd511b
+page dumped because: kasan: bad access detected
+RDX: dffffc0000000000 RSI: ffff8801b20b6640 RDI: 0000000000000040
+
+RBP: ffff8801daf07990 R08: ffff88021fff8058 R09: ffff88021fff805b
+Memory state around the buggy address:
+R10: ffffed0043fff009 R11: 0000000000000000 R12: 1ffff1003b5e0f09
+ ffff8801b42f9180: f1 f1 f1 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ ffff8801b42f9200: f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2 f8 f2 f2 f2 f2
+FS:  00000000017b4940(0000) GS:ffff8801daf00000(0000) knlGS:0000000000000000
+>ffff8801b42f9280: f2 f2 f2 00 f2 f2 f2 00 00 00 00 00 00 00 00 00
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+                               ^
+CR2: 00007f17d1827848 CR3: 0000000199451000 CR4: 00000000001406e0
+ ffff8801b42f9300: 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1
+DR0: 00000000200001c0 DR1: 0000000020000080 DR2: 0000000000000000
+ ffff8801b42f9380: 00 f2 f2 f2 f2 f2 f2 f2 00 f2 f2 f2 f2 f2 f2 f2
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+==================================================================

@@ -1,0 +1,466 @@
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.15.0+ #288 Not tainted
+------------------------------------------------------
+syzkaller182353/4123 is trying to acquire lock:
+ (rtnl_mutex){+.+.}, at: [<00000000b7215bae>] rtnl_lock+0x17/0x20 net/core/rtnetlink.c:72
+
+but task is already holding lock:
+ (&xt[i].mutex){+.+.}, at: [<000000006a6a9561>] xt_find_table_lock+0x40/0x3d0 net/netfilter/x_tables.c:1036
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&xt[i].mutex){+.+.}:
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       xt_find_target+0x44/0x1e0 net/netfilter/x_tables.c:229
+       xt_request_find_target+0x2c/0xb0 net/netfilter/x_tables.c:255
+       find_check_entry.isra.7+0x669/0xcf0 net/ipv6/netfilter/ip6_tables.c:567
+       translate_table+0xf52/0x1690 net/ipv6/netfilter/ip6_tables.c:744
+       do_replace net/ipv6/netfilter/ip6_tables.c:1162 [inline]
+       do_ip6t_set_ctl+0x370/0x5f0 net/ipv6/netfilter/ip6_tables.c:1688
+       nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+       nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+       ipv6_setsockopt+0x115/0x150 net/ipv6/ipv6_sockglue.c:928
+       udpv6_setsockopt+0x45/0x80 net/ipv6/udp.c:1452
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+       SYSC_setsockopt net/socket.c:1831 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1810
+       entry_SYSCALL_64_fastpath+0x29/0xa0
+
+-> #1 (sk_lock-AF_INET6){+.+.}:
+       lock_sock_nested+0xc2/0x110 net/core/sock.c:2770
+       lock_sock include/net/sock.h:1459 [inline]
+       do_ipv6_setsockopt.isra.8+0x3c5/0x39d0 net/ipv6/ipv6_sockglue.c:167
+       ipv6_setsockopt+0xd7/0x150 net/ipv6/ipv6_sockglue.c:922
+       tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2875
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+       SYSC_setsockopt net/socket.c:1831 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1810
+       entry_SYSCALL_64_fastpath+0x29/0xa0
+
+-> #0 (rtnl_mutex){+.+.}:
+       lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+       __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+       __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+       mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+       rtnl_lock+0x17/0x20 net/core/rtnetlink.c:72
+       unregister_netdevice_notifier+0x91/0x4e0 net/core/dev.c:1656
+       tee_tg_destroy+0x61/0xc0 net/netfilter/xt_TEE.c:123
+       cleanup_entry+0x218/0x350 net/ipv4/netfilter/ip_tables.c:654
+       __do_replace+0x7d7/0xa90 net/ipv4/netfilter/ip_tables.c:1091
+       do_replace net/ipv4/netfilter/ip_tables.c:1147 [inline]
+       do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1677
+       nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+       nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+       ip_setsockopt+0xa1/0xb0 net/ipv4/ip_sockglue.c:1256
+       sctp_setsockopt+0x2a0/0x5de0 net/sctp/socket.c:4074
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+       SYSC_setsockopt net/socket.c:1831 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1810
+       entry_SYSCALL_64_fastpath+0x29/0xa0
+
+other info that might help us debug this:
+
+Chain exists of:
+  rtnl_mutex --> sk_lock-AF_INET6 --> &xt[i].mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&xt[i].mutex);
+                               lock(sk_lock-AF_INET6);
+                               lock(&xt[i].mutex);
+  lock(rtnl_mutex);
+
+ *** DEADLOCK ***
+
+2 locks held by syzkaller182353/4123:
+ #0:  (sk_lock-AF_INET){+.+.}, at: [<00000000c87e41d3>] lock_sock include/net/sock.h:1459 [inline]
+ #0:  (sk_lock-AF_INET){+.+.}, at: [<00000000c87e41d3>] ip_setsockopt+0x8c/0xb0 net/ipv4/ip_sockglue.c:1255
+ #1:  (&xt[i].mutex){+.+.}, at: [<000000006a6a9561>] xt_find_table_lock+0x40/0x3d0 net/netfilter/x_tables.c:1036
+
+stack backtrace:
+CPU: 0 PID: 4123 Comm: syzkaller182353 Not tainted 4.15.0+ #288
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_circular_bug.isra.38+0x2cd/0x2dc kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x30a8/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+ __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+ rtnl_lock+0x17/0x20 net/core/rtnetlink.c:72
+ unregister_netdevice_notifier+0x91/0x4e0 net/core/dev.c:1656
+ tee_tg_destroy+0x61/0xc0 net/netfilter/xt_TEE.c:123
+ cleanup_entry+0x218/0x350 net/ipv4/netfilter/ip_tables.c:654
+ __do_replace+0x7d7/0xa90 net/ipv4/netfilter/ip_tables.c:1091
+ do_replace net/ipv4/netfilter/ip_tables.c:1147 [inline]
+ do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1677
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0xa1/0xb0 net/ipv4/ip_sockglue.c:1256
+ sctp_setsockopt+0x2a0/0x5de0 net/sctp/socket.c:4074
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+ SYSC_setsockopt net/socket.c:1831 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1810
+ entry_SYSCALL_64_fastpath+0x29/0xa0
+RIP: 0033:0x442009
+RSP: 002b:00007ffff758cfc8 EFLAGS: 00000207 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000442009
+RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000007
+RBP: 31affa775212f497 R08: 0000000000000308 R09: 0000000000000000
+R10: 000000002002ccf8 R11: 0000000000000207 R12: f3023f5f5df3bc21
+R13: f6fcce9cd855ec40 R14: fbfe5b6031634428 R15: 0000000000000000
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets
+xt_TCPMSS: Only works on TCP SYN packets

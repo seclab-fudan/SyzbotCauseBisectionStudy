@@ -1,0 +1,47 @@
+
+============================================
+WARNING: possible recursive locking detected
+4.16.0-rc6+ #366 Not tainted
+--------------------------------------------
+vhost-4248/4760 is trying to acquire lock:
+ (&vq->mutex){+.+.}, at: [<000000003482bddc>] vhost_net_rx_peek_head_len drivers/vhost/net.c:633 [inline]
+ (&vq->mutex){+.+.}, at: [<000000003482bddc>] handle_rx+0xeb1/0x19c0 drivers/vhost/net.c:784
+
+but task is already holding lock:
+ (&vq->mutex){+.+.}, at: [<000000004de72f44>] handle_rx+0x1f5/0x19c0 drivers/vhost/net.c:766
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&vq->mutex);
+  lock(&vq->mutex);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+1 lock held by vhost-4248/4760:
+ #0:  (&vq->mutex){+.+.}, at: [<000000004de72f44>] handle_rx+0x1f5/0x19c0 drivers/vhost/net.c:766
+
+stack backtrace:
+CPU: 0 PID: 4760 Comm: vhost-4248 Not tainted 4.16.0-rc6+ #366
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x24d lib/dump_stack.c:53
+ print_deadlock_bug kernel/locking/lockdep.c:1761 [inline]
+ check_deadlock kernel/locking/lockdep.c:1805 [inline]
+ validate_chain kernel/locking/lockdep.c:2401 [inline]
+ __lock_acquire+0xe8f/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ __mutex_lock_common kernel/locking/mutex.c:756 [inline]
+ __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
+ vhost_net_rx_peek_head_len drivers/vhost/net.c:633 [inline]
+ handle_rx+0xeb1/0x19c0 drivers/vhost/net.c:784
+ handle_rx_net+0x19/0x20 drivers/vhost/net.c:910
+ vhost_worker+0x268/0x470 drivers/vhost/vhost.c:361
+ kthread+0x33c/0x400 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406

@@ -1,0 +1,79 @@
+INFO: task syz-executor345:10690 blocked for more than 143 seconds.
+      Not tainted 5.4.0-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syz-executor345 D28160 10690  10071 0x00004004
+Call Trace:
+ context_switch kernel/sched/core.c:3385 [inline]
+ __schedule+0x8e1/0x1f30 kernel/sched/core.c:4081
+ schedule+0xdc/0x2b0 kernel/sched/core.c:4155
+ schedule_timeout+0x717/0xc50 kernel/time/timer.c:1871
+ do_wait_for_common kernel/sched/completion.c:83 [inline]
+ __wait_for_common kernel/sched/completion.c:104 [inline]
+ wait_for_common kernel/sched/completion.c:115 [inline]
+ wait_for_completion+0x29c/0x440 kernel/sched/completion.c:136
+ io_wq_destroy+0x22a/0x450 fs/io-wq.c:1059
+ io_finish_async+0x128/0x1b0 fs/io_uring.c:3476
+ io_ring_ctx_free fs/io_uring.c:4273 [inline]
+ io_ring_ctx_wait_and_kill+0x269/0x7a0 fs/io_uring.c:4346
+ io_uring_release+0x42/0x50 fs/io_uring.c:4354
+ __fput+0x2ff/0x890 fs/file_table.c:280
+ ____fput+0x16/0x20 fs/file_table.c:313
+ task_work_run+0x145/0x1c0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x316/0x380 arch/x86/entry/common.c:164
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:278 [inline]
+ do_syscall_64+0x676/0x790 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4070c1
+Code: 72 67 65 6e 44 65 73 74 72 75 63 74 00 71 71 75 65 75 65 53 65 74 74 6f 45 6e 71 00 6c 65 67 61 63 79 4f 70 74 73 45 6e 71 00 <61> 63 74 69 6f 6e 43 6f 6e 73 74 72 75 63 74 46 69 6e 61 6c 69 7a
+RSP: 002b:00007fff8b1b3870 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000004 RCX: 00000000004070c1
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 0000000000000003
+RBP: 00000000006e49cc R08: 0000000000000000 R09: 0000000000000000
+R10: 00007fff8b1b3890 R11: 0000000000000293 R12: 00000000006e49c0
+R13: 0000000000000000 R14: 20c49ba5e353f7cf R15: 0000000000000000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/1080:
+ #0: ffffffff891ab780 (rcu_read_lock){....}, at: debug_show_all_locks+0x5f/0x279 kernel/locking/lockdep.c:5334
+2 locks held by getty/10026:
+ #0: ffff8880a34a7090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f7d2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/10027:
+ #0: ffff8880a0b3f090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f792e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/10028:
+ #0: ffff8880a5b8e090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f8d2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/10029:
+ #0: ffff888099613090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f6d2e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/10030:
+ #0: ffff8880a95c0090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f752e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/10031:
+ #0: ffff888092cab090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f692e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+2 locks held by getty/10032:
+ #0: ffff8880a1033090 (&tty->ldisc_sem){++++}, at: ldsem_down_read+0x33/0x40 drivers/tty/tty_ldsem.c:340
+ #1: ffffc90005f552e0 (&ldata->atomic_read_lock){+.+.}, at: n_tty_read+0x232/0x1c10 drivers/tty/n_tty.c:2156
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1080 Comm: khungtaskd Not tainted 5.4.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ nmi_cpu_backtrace.cold+0x70/0xb2 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x23b/0x28b lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:205 [inline]
+ watchdog+0xb11/0x10c0 kernel/hung_task.c:289
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1 skipped: idling at native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:60

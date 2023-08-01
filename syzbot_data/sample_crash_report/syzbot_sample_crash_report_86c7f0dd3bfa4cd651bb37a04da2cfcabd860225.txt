@@ -1,0 +1,46 @@
+Started in network mode
+Own node identity 7f000001, cluster identity 4711
+Enabled bearer <udp:syz0>, priority 10
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(class_idx > MAX_LOCKDEP_KEYS)
+WARNING: CPU: 1 PID: 3476 at kernel/locking/lockdep.c:3315 __lock_acquire+0x13bf/0x4700 kernel/locking/lockdep.c:3315
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 1 PID: 3476 Comm: kworker/1:2 Not tainted 5.0.0-rc5+ #59
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue:  addrconf_dad_work (ipv6_addrconf)
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ panic+0x2cb/0x65c kernel/panic.c:214
+ __warn.cold+0x20/0x45 kernel/panic.c:571
+ report_bug+0x263/0x2b0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:178 [inline]
+ fixup_bug arch/x86/kernel/traps.c:173 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
+ do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:290
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:973
+RIP: 0010:__lock_acquire+0x13bf/0x4700 kernel/locking/lockdep.c:3315
+Code: 8b 1d e9 c7 05 08 45 85 db 0f 85 d6 f4 ff ff 48 c7 c6 a0 a4 6b 87 48 c7 c7 00 79 6b 87 44 89 9c 24 98 00 00 00 e8 3f 2f ec ff <0f> 0b 44 8b 9c 24 98 00 00 00 e9 af f4 ff ff 8b 3d 5c 7a fe 08 85
+RSP: 0018:ffff88809b5478b0 EFLAGS: 00010086
+RAX: 0000000000000000 RBX: 00000000005e00a8 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff815a8f66 RDI: ffffed10136a8f08
+RBP: ffff88809b547a78 R08: ffff88809b58e680 R09: fffffbfff1133341
+R10: fffffbfff1133340 R11: ffffffff88999a03 R12: ffff88809b58efb8
+R13: ffff88809b58efc2 R14: 00000000005e00a8 R15: ffff88809b58e680
+ lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:3841
+ __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+ _raw_spin_lock+0x2f/0x40 kernel/locking/spinlock.c:144
+ spin_lock include/linux/spinlock.h:329 [inline]
+ try_to_grab_pending+0x129/0x710 kernel/workqueue.c:1259
+ __cancel_work kernel/workqueue.c:3115 [inline]
+ cancel_delayed_work+0x82/0x2d0 kernel/workqueue.c:3144
+ addrconf_del_dad_work+0x1c/0x50 net/ipv6/addrconf.c:312
+ addrconf_dad_stop+0x129/0x2e0 net/ipv6/addrconf.c:2040
+ addrconf_dad_begin net/ipv6/addrconf.c:3973 [inline]
+ addrconf_dad_work+0xdbf/0x1150 net/ipv6/addrconf.c:4062
+ process_one_work+0x98e/0x1790 kernel/workqueue.c:2173
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2319
+ kthread+0x357/0x430 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

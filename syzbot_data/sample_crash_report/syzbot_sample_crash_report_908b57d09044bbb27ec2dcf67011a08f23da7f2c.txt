@@ -1,0 +1,30 @@
+==================================================================
+BUG: KASAN: vmalloc-out-of-bounds in rcu_seq_current kernel/rcu/rcu.h:99 [inline]
+BUG: KASAN: vmalloc-out-of-bounds in srcu_invoke_callbacks+0x35b/0x3a0 kernel/rcu/srcutree.c:1185
+Read of size 8 at addr ffffc9000272ee30 by task kworker/1:2/8085
+
+CPU: 1 PID: 8085 Comm: kworker/1:2 Not tainted 5.8.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: rcu_gp srcu_invoke_callbacks
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0x5/0x436 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ rcu_seq_current kernel/rcu/rcu.h:99 [inline]
+ srcu_invoke_callbacks+0x35b/0x3a0 kernel/rcu/srcutree.c:1185
+ process_one_work+0x94c/0x1670 kernel/workqueue.c:2269
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2415
+ kthread+0x3b5/0x4a0 kernel/kthread.c:291
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:293
+
+
+Memory state around the buggy address:
+ ffffc9000272ed00: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+ ffffc9000272ed80: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+>ffffc9000272ee00: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+                                     ^
+ ffffc9000272ee80: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+ ffffc9000272ef00: f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9 f9
+==================================================================

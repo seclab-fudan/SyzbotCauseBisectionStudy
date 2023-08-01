@@ -1,0 +1,104 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 1 PID: 5180 Comm: syz-executor387 Not tainted 6.2.0-rc7-next-20230208-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+RIP: 0010:sg_assign_page include/linux/scatterlist.h:109 [inline]
+RIP: 0010:sg_set_page include/linux/scatterlist.h:139 [inline]
+RIP: 0010:__blk_bvec_map_sg block/blk-merge.c:501 [inline]
+RIP: 0010:__blk_bios_map_sg block/blk-merge.c:548 [inline]
+RIP: 0010:__blk_rq_map_sg+0x36e/0xfd0 block/blk-merge.c:575
+Code: 38 e8 d6 57 1a 00 48 89 c3 e8 be 00 88 fd 48 8b 44 24 20 80 38 00 0f 85 fe 0b 00 00 48 8b 04 24 48 89 18 48 89 d8 48 c1 e8 03 <42> 80 3c 20 00 0f 85 f3 0b 00 00 4c 8b 74 24 30 31 ff 48 8b 2b 41
+RSP: 0018:ffffc90003eeedf0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888078bc8000 RSI: ffffffff83fc6d22 RDI: 0000000000000007
+RBP: ffff8880210287b8 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: dffffc0000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000001000
+FS:  00007f2363b75700(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f2363b75718 CR3: 000000007914b000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ scsi_alloc_sgtables+0x236/0xf70 drivers/scsi/scsi_lib.c:1048
+ sd_setup_read_write_cmnd drivers/scsi/sd.c:1134 [inline]
+ sd_init_command+0x67a/0x3290 drivers/scsi/sd.c:1258
+ scsi_prepare_cmd drivers/scsi/scsi_lib.c:1603 [inline]
+ scsi_queue_rq+0x1e7b/0x3a40 drivers/scsi/scsi_lib.c:1737
+ blk_mq_dispatch_rq_list+0x609/0x20b0 block/blk-mq.c:2059
+ __blk_mq_do_dispatch_sched block/blk-mq-sched.c:172 [inline]
+ blk_mq_do_dispatch_sched+0x95e/0xc20 block/blk-mq-sched.c:186
+ __blk_mq_sched_dispatch_requests+0x26d/0x3e0 block/blk-mq-sched.c:312
+ blk_mq_sched_dispatch_requests+0x10a/0x190 block/blk-mq-sched.c:338
+ __blk_mq_run_hw_queue+0x2b7/0x480 block/blk-mq.c:2177
+ __blk_mq_delay_run_hw_queue+0x5f7/0x700 block/blk-mq.c:2253
+ blk_mq_run_hw_queue+0x3b5/0x560 block/blk-mq.c:2301
+ blk_mq_sched_insert_requests+0x1d9/0xb30 block/blk-mq-sched.c:492
+ blk_mq_dispatch_plug_list block/blk-mq.c:2747 [inline]
+ blk_mq_flush_plug_list+0x39c/0xe10 block/blk-mq.c:2789
+ __blk_flush_plug block/blk-core.c:1150 [inline]
+ blk_finish_plug block/blk-core.c:1174 [inline]
+ blk_finish_plug+0xbb/0x170 block/blk-core.c:1171
+ __iomap_dio_rw+0xf85/0x1d80 fs/iomap/direct-io.c:602
+ iomap_dio_rw+0x40/0xa0 fs/iomap/direct-io.c:682
+ ext4_dio_read_iter fs/ext4/file.c:94 [inline]
+ ext4_file_read_iter+0x4be/0x690 fs/ext4/file.c:145
+ call_read_iter include/linux/fs.h:1845 [inline]
+ generic_file_splice_read+0x182/0x4b0 fs/splice.c:309
+ do_splice_to+0x1b9/0x240 fs/splice.c:792
+ splice_direct_to_actor+0x2ab/0x8a0 fs/splice.c:864
+ do_splice_direct+0x1ab/0x280 fs/splice.c:973
+ do_sendfile+0xb19/0x12c0 fs/read_write.c:1255
+ __do_sys_sendfile64 fs/read_write.c:1323 [inline]
+ __se_sys_sendfile64 fs/read_write.c:1309 [inline]
+ __x64_sys_sendfile64+0x1d0/0x210 fs/read_write.c:1309
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f2363be4a59
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 11 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f2363b75318 EFLAGS: 00000246 ORIG_RAX: 0000000000000028
+RAX: ffffffffffffffda RBX: 00007f2363c6c438 RCX: 00007f2363be4a59
+RDX: 0000000000000000 RSI: 0000000000000006 RDI: 0000000000000003
+RBP: 00007f2363c6c430 R08: 0000000000000000 R09: 0000000000000000
+R10: 000000000000de00 R11: 0000000000000246 R12: 00007f2363c3a064
+R13: 00007fffa0536a9f R14: 00007f2363b75400 R15: 0000000000022000
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:sg_assign_page include/linux/scatterlist.h:109 [inline]
+RIP: 0010:sg_set_page include/linux/scatterlist.h:139 [inline]
+RIP: 0010:__blk_bvec_map_sg block/blk-merge.c:501 [inline]
+RIP: 0010:__blk_bios_map_sg block/blk-merge.c:548 [inline]
+RIP: 0010:__blk_rq_map_sg+0x36e/0xfd0 block/blk-merge.c:575
+Code: 38 e8 d6 57 1a 00 48 89 c3 e8 be 00 88 fd 48 8b 44 24 20 80 38 00 0f 85 fe 0b 00 00 48 8b 04 24 48 89 18 48 89 d8 48 c1 e8 03 <42> 80 3c 20 00 0f 85 f3 0b 00 00 4c 8b 74 24 30 31 ff 48 8b 2b 41
+RSP: 0018:ffffc90003eeedf0 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888078bc8000 RSI: ffffffff83fc6d22 RDI: 0000000000000007
+RBP: ffff8880210287b8 R08: 0000000000000007 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: dffffc0000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000001000
+FS:  00007f2363b75700(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f2363b75718 CR3: 000000007914b000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess), 1 bytes skipped:
+   0:	e8 d6 57 1a 00       	callq  0x1a57db
+   5:	48 89 c3             	mov    %rax,%rbx
+   8:	e8 be 00 88 fd       	callq  0xfd8800cb
+   d:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+  12:	80 38 00             	cmpb   $0x0,(%rax)
+  15:	0f 85 fe 0b 00 00    	jne    0xc19
+  1b:	48 8b 04 24          	mov    (%rsp),%rax
+  1f:	48 89 18             	mov    %rbx,(%rax)
+  22:	48 89 d8             	mov    %rbx,%rax
+  25:	48 c1 e8 03          	shr    $0x3,%rax
+* 29:	42 80 3c 20 00       	cmpb   $0x0,(%rax,%r12,1) <-- trapping instruction
+  2e:	0f 85 f3 0b 00 00    	jne    0xc27
+  34:	4c 8b 74 24 30       	mov    0x30(%rsp),%r14
+  39:	31 ff                	xor    %edi,%edi
+  3b:	48 8b 2b             	mov    (%rbx),%rbp
+  3e:	41                   	rex.B

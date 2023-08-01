@@ -1,0 +1,34 @@
+==================================================================
+BUG: KASAN: vmalloc-out-of-bounds in __bpf_trace_run kernel/trace/bpf_trace.c:2045 [inline]
+BUG: KASAN: vmalloc-out-of-bounds in bpf_trace_run3+0x3e0/0x3f0 kernel/trace/bpf_trace.c:2083
+Read of size 8 at addr ffffc90000e6c030 by task kworker/0:3/3754
+
+CPU: 0 PID: 3754 Comm: kworker/0:3 Not tainted 5.9.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue:  0x0 (events)
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0x5/0x4c8 mm/kasan/report.c:385
+ __kasan_report mm/kasan/report.c:545 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:562
+ __bpf_trace_run kernel/trace/bpf_trace.c:2045 [inline]
+ bpf_trace_run3+0x3e0/0x3f0 kernel/trace/bpf_trace.c:2083
+ __bpf_trace_sched_switch+0xdc/0x120 include/trace/events/sched.h:138
+ __traceiter_sched_switch+0x64/0xb0 include/trace/events/sched.h:138
+ trace_sched_switch include/trace/events/sched.h:138 [inline]
+ __schedule+0xeb8/0x2130 kernel/sched/core.c:4520
+ schedule+0xcf/0x270 kernel/sched/core.c:4601
+ worker_thread+0x14c/0x1120 kernel/workqueue.c:2439
+ kthread+0x3af/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+
+Memory state around the buggy address:
+ ffffc90000e6bf00: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90000e6bf80: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+>ffffc90000e6c000: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+                                     ^
+ ffffc90000e6c080: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+ ffffc90000e6c100: f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8 f8
+==================================================================

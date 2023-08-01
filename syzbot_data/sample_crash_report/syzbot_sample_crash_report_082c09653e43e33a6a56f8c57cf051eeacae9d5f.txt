@@ -1,0 +1,37 @@
+usb 4-1: Direct firmware load for isl3887usb failed with error -2
+usb 4-1: Firmware not found.
+==================================================================
+BUG: KASAN: use-after-free in p54u_load_firmware_cb.cold+0x97/0x13d drivers/net/wireless/intersil/p54/p54usb.c:936
+Read of size 8 at addr ffff8881ca22f588 by task kworker/0:6/2861
+
+CPU: 0 PID: 2861 Comm: kworker/0:6 Not tainted 5.2.0-rc1+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events request_firmware_work_func
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xca/0x13e lib/dump_stack.c:113
+ print_address_description+0x67/0x231 mm/kasan/report.c:188
+ __kasan_report.cold+0x1a/0x32 mm/kasan/report.c:317
+ kasan_report+0xe/0x20 mm/kasan/common.c:614
+ p54u_load_firmware_cb.cold+0x97/0x13d drivers/net/wireless/intersil/p54/p54usb.c:936
+ request_firmware_work_func+0x126/0x242 drivers/base/firmware_loader/main.c:785
+ process_one_work+0x905/0x1570 kernel/workqueue.c:2268
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2414
+ kthread+0x30b/0x410 kernel/kthread.c:254
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+The buggy address belongs to the page:
+page:ffffea0007288bc0 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x200000000000000()
+raw: 0200000000000000 0000000000000000 ffffffff07280101 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881ca22f480: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8881ca22f500: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff8881ca22f580: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                      ^
+ ffff8881ca22f600: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff8881ca22f680: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

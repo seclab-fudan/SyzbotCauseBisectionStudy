@@ -1,0 +1,48 @@
+=====================================================
+BUG: KMSAN: kernel-infoleak in kmsan_copy_to_user+0x9c/0xb0 mm/kmsan/kmsan_hooks.c:253
+CPU: 0 PID: 15632 Comm: syz-executor.5 Not tainted 5.9.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x21c/0x280 lib/dump_stack.c:118
+ kmsan_report+0xf7/0x1e0 mm/kmsan/kmsan_report.c:122
+ kmsan_internal_check_memory+0x202/0x520 mm/kmsan/kmsan.c:410
+ kmsan_copy_to_user+0x9c/0xb0 mm/kmsan/kmsan_hooks.c:253
+ instrument_copy_to_user include/linux/instrumented.h:91 [inline]
+ _copy_to_user+0x18e/0x260 lib/usercopy.c:30
+ scsi_put_cdrom_generic_arg include/linux/uaccess.h:177 [inline]
+ scsi_cdrom_send_packet block/scsi_ioctl.c:770 [inline]
+ scsi_cmd_ioctl+0x241f/0x2590 block/scsi_ioctl.c:827
+ scsi_cmd_blk_ioctl+0x1f6/0x240 block/scsi_ioctl.c:876
+ sd_ioctl_common+0x50a/0x5c0 drivers/scsi/sd.c:1531
+ sd_compat_ioctl+0xc5/0x220 drivers/scsi/sd.c:1733
+ compat_blkdev_ioctl+0x705/0x11a0 block/ioctl.c:691
+ __do_compat_sys_ioctl fs/ioctl.c:842 [inline]
+ __se_compat_sys_ioctl+0x53d/0x1100 fs/ioctl.c:793
+ __ia32_compat_sys_ioctl+0x4a/0x70 fs/ioctl.c:793
+ do_syscall_32_irqs_on arch/x86/entry/common.c:80 [inline]
+ __do_fast_syscall_32+0x129/0x180 arch/x86/entry/common.c:139
+ do_fast_syscall_32+0x6a/0xc0 arch/x86/entry/common.c:162
+ do_SYSENTER_32+0x73/0x90 arch/x86/entry/common.c:205
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+RIP: 0023:0xf7f52549
+Code: b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 00 00 00 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000f554c0cc EFLAGS: 00000296 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 0000000000000005 RCX: 0000000000005393
+RDX: 0000000020006400 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+Local variable ----cgc32.i42.i@scsi_cmd_ioctl created at:
+ scsi_put_cdrom_generic_arg block/scsi_ioctl.c:695 [inline]
+ scsi_cdrom_send_packet block/scsi_ioctl.c:770 [inline]
+ scsi_cmd_ioctl+0x2254/0x2590 block/scsi_ioctl.c:827
+ scsi_put_cdrom_generic_arg block/scsi_ioctl.c:695 [inline]
+ scsi_cdrom_send_packet block/scsi_ioctl.c:770 [inline]
+ scsi_cmd_ioctl+0x2254/0x2590 block/scsi_ioctl.c:827
+
+Bytes 29-31 of 44 are uninitialized
+Memory access of size 44 starts at ffff8880291e7ad0
+Data copied to user address 0000000020006400
+=====================================================

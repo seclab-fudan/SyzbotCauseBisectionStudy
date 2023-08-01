@@ -1,0 +1,105 @@
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(lock->magic != lock)
+WARNING: CPU: 0 PID: 4411 at kernel/locking/mutex.c:582 __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+Modules linked in:
+CPU: 0 PID: 4411 Comm: udevd Not tainted 6.2.0-rc3-syzkaller-16369-g358a161a6a9e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+lr : __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+sp : ffff80000ff93b30
+x29: ffff80000ff93ba0 x28: ffff80000f068000 x27: ffff0000cb02b940
+x26: 0000000000000000 x25: ffff0000c609ce00 x24: 0000000000000002
+x23: ffff80000867f530 x22: 0000000000000000 x21: 0000000000000000
+x20: 0000000000000000 x19: ffff0000cb02b800 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000012 x12: ffff80000dadbaa0
+x11: ff808000081cbbc8 x10: 0000000000000000 x9 : 52d299f931448700
+x8 : 52d299f931448700 x7 : 4e5241575f534b43 x6 : ffff80000c11ee8c
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : 0000000100000000 x0 : 0000000000000028
+Call trace:
+ __mutex_lock_common+0x4c4/0xca8 kernel/locking/mutex.c:582
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x38/0x44 kernel/locking/mutex.c:799
+ ep_send_events fs/eventpoll.c:1657 [inline]
+ ep_poll+0x320/0xc70 fs/eventpoll.c:1823
+ do_epoll_wait+0x144/0x18c fs/eventpoll.c:2258
+ do_epoll_pwait fs/eventpoll.c:2292 [inline]
+ __do_sys_epoll_pwait+0x110/0x214 fs/eventpoll.c:2305
+ __se_sys_epoll_pwait fs/eventpoll.c:2299 [inline]
+ __arm64_sys_epoll_pwait+0x30/0x40 fs/eventpoll.c:2299
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+irq event stamp: 157433
+hardirqs last  enabled at (157433): [<ffff800008038bd8>] local_daif_restore arch/arm64/include/asm/daifflags.h:75 [inline]
+hardirqs last  enabled at (157433): [<ffff800008038bd8>] el0_svc_common+0x40/0x220 arch/arm64/kernel/syscall.c:107
+hardirqs last disabled at (157432): [<ffff80000c111220>] el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+softirqs last  enabled at (156924): [<ffff80000801c86c>] local_bh_enable+0x10/0x34 include/linux/bottom_half.h:32
+softirqs last disabled at (156922): [<ffff80000801c838>] local_bh_disable+0x10/0x34 include/linux/bottom_half.h:19
+---[ end trace 0000000000000000 ]---
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000008
+Mem abort info:
+  ESR = 0x0000000096000044
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000044
+  CM = 0, WnR = 1
+user pgtable: 4k pages, 48-bit VAs, pgdp=000000010cbcf000
+[0000000000000008] pgd=0000000000000000, p4d=0000000000000000
+Internal error: Oops: 0000000096000044 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 4411 Comm: udevd Tainted: G        W          6.2.0-rc3-syzkaller-16369-g358a161a6a9e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 804000c5 (Nzcv daIF +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __list_splice include/linux/list.h:449 [inline]
+pc : list_splice_init include/linux/list.h:491 [inline]
+pc : ep_start_scan+0x13c/0x1b4 fs/eventpoll.c:624
+lr : list_splice_init include/linux/list.h:491 [inline]
+lr : ep_start_scan+0x134/0x1b4 fs/eventpoll.c:624
+sp : ffff80000ff93bd0
+x29: ffff80000ff93bd0 x28: ffff80000ff93c78 x27: ffff0000cb02b940
+x26: 0000000000000001 x25: ffff0000c609ce00 x24: ffff0000cb02b930
+x23: 0000000000000000 x22: ffff0000cb02b930 x21: ffff0000cb02b940
+x20: ffff80000ff93c98 x19: ffff0000cb02b800 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000012 x12: ffff80000dadbaa0
+x11: ff8080000867df20 x10: 0000000000000000 x9 : 0000000000000000
+x8 : ffff80000ff93c98 x7 : 4e5241575f534b43 x6 : ffff80000867df0c
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : 00000000000000ff x1 : 0000000000000000 x0 : 0000000000000000
+Call trace:
+ __list_splice include/linux/list.h:447 [inline]
+ list_splice_init include/linux/list.h:491 [inline]
+ ep_start_scan+0x13c/0x1b4 fs/eventpoll.c:624
+ ep_send_events fs/eventpoll.c:1658 [inline]
+ ep_poll+0x32c/0xc70 fs/eventpoll.c:1823
+ do_epoll_wait+0x144/0x18c fs/eventpoll.c:2258
+ do_epoll_pwait fs/eventpoll.c:2292 [inline]
+ __do_sys_epoll_pwait+0x110/0x214 fs/eventpoll.c:2305
+ __se_sys_epoll_pwait fs/eventpoll.c:2299 [inline]
+ __arm64_sys_epoll_pwait+0x30/0x40 fs/eventpoll.c:2299
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+Code: 54000160 97f0c33f f9400288 f9409e69 (f90006f4) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	54000160 	b.eq	0x2c  // b.none
+   4:	97f0c33f 	bl	0xffffffffffc30d00
+   8:	f9400288 	ldr	x8, [x20]
+   c:	f9409e69 	ldr	x9, [x19, #312]
+* 10:	f90006f4 	str	x20, [x23, #8] <-- trapping instruction

@@ -1,0 +1,61 @@
+BUG: kernel NULL pointer dereference, address: 0000000000000000
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 8de20067 P4D 8de20067 PUD 956e0067 PMD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 18796 Comm: syz-executor.3 Not tainted 5.7.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__read_once_size include/linux/compiler.h:252 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x3f/0x60 kernel/kcov.c:202
+Code: c2 00 01 ff 00 74 11 f7 c2 00 01 00 00 74 35 83 b9 04 14 00 00 00 74 2c 8b 91 e0 13 00 00 83 fa 02 75 21 48 8b 91 e8 13 00 00 <48> 8b 32 48 8d 7e 01 8b 89 e4 13 00 00 48 39 cf 73 08 48 89 44 f2
+RSP: 0018:ffffc90017377758 EFLAGS: 00010246
+RAX: ffffffff8119026b RBX: 0000000000000000 RCX: ffff888087f36300
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffffc900173778a7 R08: ffffffff811901af R09: ffffc900173778a7
+R10: ffffed1013de8882 R11: 0000000000000000 R12: ffff88809f298580
+R13: 1ffff92002e6ef13 R14: dffffc0000000000 R15: ffffc90017377898
+FS:  00007f24a3aef700(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000092cb6000 CR4: 00000000001426f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ try_async_pf+0x1db/0x5a0 arch/x86/kvm/mmu/mmu.c:4078
+ direct_page_fault+0xbf6/0x1c50 arch/x86/kvm/mmu/mmu.c:4124
+ kvm_mmu_do_page_fault arch/x86/kvm/mmu.h:115 [inline]
+ kvm_mmu_page_fault+0x13d/0xde0 arch/x86/kvm/mmu/mmu.c:5422
+ vcpu_enter_guest+0x6666/0x89a0 arch/x86/kvm/x86.c:8604
+ vcpu_run+0x352/0xcd0 arch/x86/kvm/x86.c:8669
+ kvm_arch_vcpu_ioctl_run+0x451/0x8f0 arch/x86/kvm/x86.c:8890
+ kvm_vcpu_ioctl+0x64f/0xa60 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3163
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl fs/ioctl.c:771 [inline]
+ __do_sys_ioctl fs/ioctl.c:780 [inline]
+ __se_sys_ioctl+0xf9/0x160 fs/ioctl.c:778
+ do_syscall_64+0xf3/0x1b0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x45ca59
+Code: 0d b7 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 db b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f24a3aeec78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004e84e0 RCX: 000000000045ca59
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000005
+RBP: 000000000078bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000000003cc R14: 00000000004c6799 R15: 00007f24a3aef6d4
+Modules linked in:
+CR2: 0000000000000000
+---[ end trace cdab85025f649c5c ]---
+RIP: 0010:__read_once_size include/linux/compiler.h:252 [inline]
+RIP: 0010:__sanitizer_cov_trace_pc+0x3f/0x60 kernel/kcov.c:202
+Code: c2 00 01 ff 00 74 11 f7 c2 00 01 00 00 74 35 83 b9 04 14 00 00 00 74 2c 8b 91 e0 13 00 00 83 fa 02 75 21 48 8b 91 e8 13 00 00 <48> 8b 32 48 8d 7e 01 8b 89 e4 13 00 00 48 39 cf 73 08 48 89 44 f2
+RSP: 0018:ffffc90017377758 EFLAGS: 00010246
+RAX: ffffffff8119026b RBX: 0000000000000000 RCX: ffff888087f36300
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffffc900173778a7 R08: ffffffff811901af R09: ffffc900173778a7
+R10: ffffed1013de8882 R11: 0000000000000000 R12: ffff88809f298580
+R13: 1ffff92002e6ef13 R14: dffffc0000000000 R15: ffffc90017377898
+FS:  00007f24a3aef700(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00005582a7e62f58 CR3: 0000000092cb6000 CR4: 00000000001426f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

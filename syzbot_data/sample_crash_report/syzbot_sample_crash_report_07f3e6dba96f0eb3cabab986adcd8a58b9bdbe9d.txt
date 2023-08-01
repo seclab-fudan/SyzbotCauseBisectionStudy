@@ -1,0 +1,82 @@
+=====================================================
+BUG: KMSAN: kernel-infoleak in kmsan_copy_to_user+0x9c/0xb0 mm/kmsan/kmsan_hooks.c:249
+CPU: 1 PID: 8470 Comm: syz-executor981 Not tainted 5.12.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x24c/0x2e0 lib/dump_stack.c:120
+ kmsan_report+0xfb/0x1e0 mm/kmsan/kmsan_report.c:121
+ kmsan_internal_check_memory+0x1f5/0x500 mm/kmsan/kmsan.c:399
+ kmsan_copy_to_user+0x9c/0xb0 mm/kmsan/kmsan_hooks.c:249
+ instrument_copy_to_user include/linux/instrumented.h:121 [inline]
+ copyout lib/iov_iter.c:145 [inline]
+ _copy_to_iter+0xf79/0x2bc0 lib/iov_iter.c:624
+ copy_to_iter include/linux/uio.h:137 [inline]
+ simple_copy_to_iter+0xf6/0x150 net/core/datagram.c:519
+ __skb_datagram_iter+0x2cb/0x1210 net/core/datagram.c:425
+ skb_copy_datagram_iter+0xd8/0x200 net/core/datagram.c:533
+ skb_copy_datagram_msg include/linux/skbuff.h:3599 [inline]
+ packet_recvmsg+0x764/0x2060 net/packet/af_packet.c:3405
+ ____sys_recvmsg+0x57f/0xd50 net/socket.c:888
+ ___sys_recvmsg net/socket.c:2611 [inline]
+ do_recvmmsg+0xa97/0x22d0 net/socket.c:2705
+ __sys_recvmmsg net/socket.c:2784 [inline]
+ __do_sys_recvmmsg net/socket.c:2807 [inline]
+ __se_sys_recvmmsg+0x24a/0x410 net/socket.c:2800
+ __x64_sys_recvmmsg+0x62/0x80 net/socket.c:2800
+ do_syscall_64+0x9f/0x140 arch/x86/entry/common.c:48
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4438b9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 41 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd2592bda8 EFLAGS: 00000246 ORIG_RAX: 000000000000012b
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00000000004438b9
+RDX: 0000000000000003 RSI: 00000000200072c0 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000000 R09: 000000000000000d
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffd2592bdc0
+R13: 00000000000f4240 R14: 00000000000219ca R15: 00007ffd2592bdb4
+
+Uninit was stored to memory at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:120 [inline]
+ kmsan_internal_chain_origin+0xad/0x130 mm/kmsan/kmsan.c:288
+ kmsan_memcpy_memmove_metadata+0x25e/0x2d0 mm/kmsan/kmsan.c:225
+ kmsan_memcpy_metadata+0xb/0x10 mm/kmsan/kmsan.c:245
+ __msan_memcpy+0x46/0x60 mm/kmsan/kmsan_instr.c:110
+ pskb_expand_head+0x3d6/0x1e20 net/core/skbuff.c:1685
+ __skb_cow include/linux/skbuff.h:3232 [inline]
+ skb_cow_head include/linux/skbuff.h:3266 [inline]
+ batadv_skb_head_push+0x2cc/0x410 net/batman-adv/soft-interface.c:73
+ batadv_send_skb_packet+0x1ed/0x970 net/batman-adv/send.c:86
+ batadv_send_broadcast_skb+0x76/0x90 net/batman-adv/send.c:127
+ batadv_iv_ogm_send_to_if net/batman-adv/bat_iv_ogm.c:393 [inline]
+ batadv_iv_ogm_emit net/batman-adv/bat_iv_ogm.c:419 [inline]
+ batadv_iv_send_outstanding_bat_ogm_packet+0xb2d/0xef0 net/batman-adv/bat_iv_ogm.c:1711
+ process_one_work+0x1219/0x1fe0 kernel/workqueue.c:2275
+ worker_thread+0x10ec/0x2340 kernel/workqueue.c:2421
+ kthread+0x521/0x560 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:120 [inline]
+ kmsan_internal_poison_shadow+0x66/0xd0 mm/kmsan/kmsan.c:103
+ kmsan_slab_alloc+0x8e/0xe0 mm/kmsan/kmsan_hooks.c:76
+ slab_alloc_node mm/slub.c:2922 [inline]
+ __kmalloc_node_track_caller+0xa4f/0x1470 mm/slub.c:4609
+ kmalloc_reserve net/core/skbuff.c:353 [inline]
+ __alloc_skb+0x4dd/0xe90 net/core/skbuff.c:424
+ __netdev_alloc_skb+0x45d/0x810 net/core/skbuff.c:491
+ __netdev_alloc_skb_ip_align include/linux/skbuff.h:2884 [inline]
+ netdev_alloc_skb_ip_align include/linux/skbuff.h:2894 [inline]
+ batadv_iv_ogm_aggregate_new net/batman-adv/bat_iv_ogm.c:558 [inline]
+ batadv_iv_ogm_queue_add+0x1376/0x1c40 net/batman-adv/bat_iv_ogm.c:670
+ batadv_iv_ogm_schedule_buff net/batman-adv/bat_iv_ogm.c:849 [inline]
+ batadv_iv_ogm_schedule+0x12cd/0x16b0 net/batman-adv/bat_iv_ogm.c:869
+ batadv_iv_send_outstanding_bat_ogm_packet+0xd6e/0xef0 net/batman-adv/bat_iv_ogm.c:1723
+ process_one_work+0x1219/0x1fe0 kernel/workqueue.c:2275
+ worker_thread+0x10ec/0x2340 kernel/workqueue.c:2421
+ kthread+0x521/0x560 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Bytes 52-53 of 146 are uninitialized
+Memory access of size 146 starts at ffff888130248440
+Data copied to user address 0000000020000180
+=====================================================

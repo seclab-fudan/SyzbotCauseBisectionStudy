@@ -1,0 +1,407 @@
+=====================================================
+WARNING: SOFTIRQ-safe -> SOFTIRQ-unsafe lock order detected
+6.1.0-rc5-syzkaller-00103-g81ac25651a62 #0 Not tainted
+-----------------------------------------------------
+syz-executor649/3635 [HC0[0]:SC0[4]:HE1:SE0] is trying to acquire:
+ffff888079771bb8 (k-clock-AF_INET){+++.}-{2:2}, at: sock_orphan include/net/sock.h:2090 [inline]
+ffff888079771bb8 (k-clock-AF_INET){+++.}-{2:2}, at: __mptcp_close+0x349/0x8d0 net/mptcp/protocol.c:2943
+
+and this task is already holding:
+ffff8880797718b0 (k-slock-AF_INET){+.-.}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:355 [inline]
+ffff8880797718b0 (k-slock-AF_INET){+.-.}-{2:2}, at: __lock_sock_fast+0x40/0xe0 net/core/sock.c:3480
+which would create a new lock dependency:
+ (k-slock-AF_INET){+.-.}-{2:2} -> (k-clock-AF_INET){+++.}-{2:2}
+
+but this new dependency connects a SOFTIRQ-irq-safe lock:
+ (k-slock-AF_INET){+.-.}-{2:2}
+
+... which became SOFTIRQ-irq-safe at:
+  lock_acquire kernel/locking/lockdep.c:5668 [inline]
+  lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+  __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+  _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+  spin_lock include/linux/spinlock.h:350 [inline]
+  dccp_v4_ctl_send_reset+0xb00/0x12f0 net/dccp/ipv4.c:569
+  dccp_v4_rcv+0x1283/0x18e0 net/dccp/ipv4.c:924
+  ip_protocol_deliver_rcu+0x9f/0x7c0 net/ipv4/ip_input.c:205
+  ip_local_deliver_finish+0x2ec/0x4c0 net/ipv4/ip_input.c:233
+  NF_HOOK include/linux/netfilter.h:302 [inline]
+  NF_HOOK include/linux/netfilter.h:296 [inline]
+  ip_local_deliver+0x1ae/0x200 net/ipv4/ip_input.c:254
+  dst_input include/net/dst.h:455 [inline]
+  ip_rcv_finish+0x1cf/0x2f0 net/ipv4/ip_input.c:444
+  NF_HOOK include/linux/netfilter.h:302 [inline]
+  NF_HOOK include/linux/netfilter.h:296 [inline]
+  ip_rcv+0xae/0xd0 net/ipv4/ip_input.c:564
+  __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5489
+  __netif_receive_skb+0x1f/0x1c0 net/core/dev.c:5603
+  process_backlog+0x3e4/0x810 net/core/dev.c:5931
+  __napi_poll+0xb8/0x770 net/core/dev.c:6498
+  napi_poll net/core/dev.c:6565 [inline]
+  net_rx_action+0xa00/0xde0 net/core/dev.c:6676
+  __do_softirq+0x1fb/0xadc kernel/softirq.c:571
+  do_softirq.part.0+0xde/0x130 kernel/softirq.c:472
+  do_softirq kernel/softirq.c:464 [inline]
+  __local_bh_enable_ip+0x106/0x130 kernel/softirq.c:396
+  local_bh_enable include/linux/bottom_half.h:33 [inline]
+  rcu_read_unlock_bh include/linux/rcupdate.h:808 [inline]
+  ip_finish_output2+0x7dc/0x2180 net/ipv4/ip_output.c:229
+  __ip_finish_output net/ipv4/ip_output.c:306 [inline]
+  __ip_finish_output+0x396/0x650 net/ipv4/ip_output.c:288
+  ip_finish_output+0x31/0x280 net/ipv4/ip_output.c:316
+  NF_HOOK_COND include/linux/netfilter.h:291 [inline]
+  ip_output+0x1a3/0x320 net/ipv4/ip_output.c:430
+  dst_output include/net/dst.h:445 [inline]
+  ip_local_out net/ipv4/ip_output.c:126 [inline]
+  __ip_queue_xmit+0x8e2/0x1bf0 net/ipv4/ip_output.c:532
+  dccp_transmit_skb+0xcfe/0x1450 net/dccp/output.c:138
+  dccp_connect+0x39b/0x720 net/dccp/output.c:569
+  dccp_v4_connect+0x1098/0x2010 net/dccp/ipv4.c:149
+  __inet_stream_connect+0x69e/0xed0 net/ipv4/af_inet.c:665
+  inet_stream_connect+0x57/0xa0 net/ipv4/af_inet.c:729
+  __sys_connect_file+0x153/0x1a0 net/socket.c:1976
+  __sys_connect+0x165/0x1a0 net/socket.c:1993
+  __do_sys_connect net/socket.c:2003 [inline]
+  __se_sys_connect net/socket.c:2000 [inline]
+  __x64_sys_connect+0x73/0xb0 net/socket.c:2000
+  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+  do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+  entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+to a SOFTIRQ-irq-unsafe lock:
+ (k-clock-AF_INET){+++.}-{2:2}
+
+... which became SOFTIRQ-irq-unsafe at:
+...
+  lock_acquire kernel/locking/lockdep.c:5668 [inline]
+  lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+  __raw_write_lock include/linux/rwlock_api_smp.h:209 [inline]
+  _raw_write_lock+0x2e/0x40 kernel/locking/spinlock.c:300
+  l2tp_tunnel_register+0x126/0x1210 net/l2tp/l2tp_core.c:1477
+  l2tp_nl_cmd_tunnel_create+0x3d6/0x8b0 net/l2tp/l2tp_netlink.c:245
+  genl_family_rcv_msg_doit+0x228/0x320 net/netlink/genetlink.c:756
+  genl_family_rcv_msg net/netlink/genetlink.c:833 [inline]
+  genl_rcv_msg+0x445/0x780 net/netlink/genetlink.c:850
+  netlink_rcv_skb+0x157/0x430 net/netlink/af_netlink.c:2540
+  genl_rcv+0x28/0x40 net/netlink/genetlink.c:861
+  netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+  netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1345
+  netlink_sendmsg+0x91b/0xe10 net/netlink/af_netlink.c:1921
+  sock_sendmsg_nosec net/socket.c:714 [inline]
+  sock_sendmsg+0xd3/0x120 net/socket.c:734
+  ____sys_sendmsg+0x712/0x8c0 net/socket.c:2482
+  ___sys_sendmsg+0x110/0x1b0 net/socket.c:2536
+  __sys_sendmsg+0xf7/0x1c0 net/socket.c:2565
+  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+  do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+  entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+other info that might help us debug this:
+
+ Possible interrupt unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(k-clock-AF_INET);
+                               local_irq_disable();
+                               lock(k-slock-AF_INET);
+                               lock(k-clock-AF_INET);
+  <Interrupt>
+    lock(k-slock-AF_INET);
+
+ *** DEADLOCK ***
+
+4 locks held by syz-executor649/3635:
+ #0: ffff8880726cac10 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #0: ffff8880726cac10 (&sb->s_type->i_mutex_key#10){+.+.}-{3:3}, at: __sock_release+0x86/0x280 net/socket.c:649
+ #1: ffff888074120130 (sk_lock-AF_INET){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1721 [inline]
+ #1: ffff888074120130 (sk_lock-AF_INET){+.+.}-{0:0}, at: mptcp_close+0x1d/0x150 net/mptcp/protocol.c:2967
+ #2: ffff888079771930 (k-sk_lock-AF_INET/1){+.+.}-{0:0}, at: mptcp_close+0x28/0x150 net/mptcp/protocol.c:2969
+ #3: ffff8880797718b0 (k-slock-AF_INET){+.-.}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:355 [inline]
+ #3: ffff8880797718b0 (k-slock-AF_INET){+.-.}-{2:2}, at: __lock_sock_fast+0x40/0xe0 net/core/sock.c:3480
+
+the dependencies between SOFTIRQ-irq-safe lock and the holding lock:
+-> (k-slock-AF_INET){+.-.}-{2:2} {
+   HARDIRQ-ON-W at:
+                    lock_acquire kernel/locking/lockdep.c:5668 [inline]
+                    lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+                    __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+                    _raw_spin_lock_bh+0x33/0x40 kernel/locking/spinlock.c:178
+                    spin_lock_bh include/linux/spinlock.h:355 [inline]
+                    lock_sock_nested+0x5f/0xf0 net/core/sock.c:3450
+                    lock_sock include/net/sock.h:1721 [inline]
+                    __inet_bind+0x8c3/0xc90 net/ipv4/af_inet.c:511
+                    inet_bind+0x177/0x220 net/ipv4/af_inet.c:456
+                    udp_sock_create4+0x1d1/0x490 net/ipv4/udp_tunnel_core.c:30
+                    udp_sock_create include/net/udp_tunnel.h:59 [inline]
+                    rxe_setup_udp_tunnel.constprop.0+0xfc/0x220 drivers/infiniband/sw/rxe/rxe_net.c:186
+                    rxe_net_ipv4_init drivers/infiniband/sw/rxe/rxe_net.c:622 [inline]
+                    rxe_net_init+0x1f/0xd0 drivers/infiniband/sw/rxe/rxe_net.c:667
+                    rxe_module_init+0x10/0x49 drivers/infiniband/sw/rxe/rxe.c:213
+                    do_one_initcall+0x141/0x780 init/main.c:1303
+                    do_initcall_level init/main.c:1376 [inline]
+                    do_initcalls init/main.c:1392 [inline]
+                    do_basic_setup init/main.c:1411 [inline]
+                    kernel_init_freeable+0x6ff/0x788 init/main.c:1631
+                    kernel_init+0x1e/0x1d0 init/main.c:1519
+                    ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+   IN-SOFTIRQ-W at:
+                    lock_acquire kernel/locking/lockdep.c:5668 [inline]
+                    lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+                    __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+                    _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+                    spin_lock include/linux/spinlock.h:350 [inline]
+                    dccp_v4_ctl_send_reset+0xb00/0x12f0 net/dccp/ipv4.c:569
+                    dccp_v4_rcv+0x1283/0x18e0 net/dccp/ipv4.c:924
+                    ip_protocol_deliver_rcu+0x9f/0x7c0 net/ipv4/ip_input.c:205
+                    ip_local_deliver_finish+0x2ec/0x4c0 net/ipv4/ip_input.c:233
+                    NF_HOOK include/linux/netfilter.h:302 [inline]
+                    NF_HOOK include/linux/netfilter.h:296 [inline]
+                    ip_local_deliver+0x1ae/0x200 net/ipv4/ip_input.c:254
+                    dst_input include/net/dst.h:455 [inline]
+                    ip_rcv_finish+0x1cf/0x2f0 net/ipv4/ip_input.c:444
+                    NF_HOOK include/linux/netfilter.h:302 [inline]
+                    NF_HOOK include/linux/netfilter.h:296 [inline]
+                    ip_rcv+0xae/0xd0 net/ipv4/ip_input.c:564
+                    __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5489
+                    __netif_receive_skb+0x1f/0x1c0 net/core/dev.c:5603
+                    process_backlog+0x3e4/0x810 net/core/dev.c:5931
+                    __napi_poll+0xb8/0x770 net/core/dev.c:6498
+                    napi_poll net/core/dev.c:6565 [inline]
+                    net_rx_action+0xa00/0xde0 net/core/dev.c:6676
+                    __do_softirq+0x1fb/0xadc kernel/softirq.c:571
+                    do_softirq.part.0+0xde/0x130 kernel/softirq.c:472
+                    do_softirq kernel/softirq.c:464 [inline]
+                    __local_bh_enable_ip+0x106/0x130 kernel/softirq.c:396
+                    local_bh_enable include/linux/bottom_half.h:33 [inline]
+                    rcu_read_unlock_bh include/linux/rcupdate.h:808 [inline]
+                    ip_finish_output2+0x7dc/0x2180 net/ipv4/ip_output.c:229
+                    __ip_finish_output net/ipv4/ip_output.c:306 [inline]
+                    __ip_finish_output+0x396/0x650 net/ipv4/ip_output.c:288
+                    ip_finish_output+0x31/0x280 net/ipv4/ip_output.c:316
+                    NF_HOOK_COND include/linux/netfilter.h:291 [inline]
+                    ip_output+0x1a3/0x320 net/ipv4/ip_output.c:430
+                    dst_output include/net/dst.h:445 [inline]
+                    ip_local_out net/ipv4/ip_output.c:126 [inline]
+                    __ip_queue_xmit+0x8e2/0x1bf0 net/ipv4/ip_output.c:532
+                    dccp_transmit_skb+0xcfe/0x1450 net/dccp/output.c:138
+                    dccp_connect+0x39b/0x720 net/dccp/output.c:569
+                    dccp_v4_connect+0x1098/0x2010 net/dccp/ipv4.c:149
+                    __inet_stream_connect+0x69e/0xed0 net/ipv4/af_inet.c:665
+                    inet_stream_connect+0x57/0xa0 net/ipv4/af_inet.c:729
+                    __sys_connect_file+0x153/0x1a0 net/socket.c:1976
+                    __sys_connect+0x165/0x1a0 net/socket.c:1993
+                    __do_sys_connect net/socket.c:2003 [inline]
+                    __se_sys_connect net/socket.c:2000 [inline]
+                    __x64_sys_connect+0x73/0xb0 net/socket.c:2000
+                    do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                    do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+                    entry_SYSCALL_64_after_hwframe+0x63/0xcd
+   INITIAL USE at:
+                   lock_acquire kernel/locking/lockdep.c:5668 [inline]
+                   lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+                   __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+                   _raw_spin_lock_bh+0x33/0x40 kernel/locking/spinlock.c:178
+                   spin_lock_bh include/linux/spinlock.h:355 [inline]
+                   lock_sock_nested+0x5f/0xf0 net/core/sock.c:3450
+                   lock_sock include/net/sock.h:1721 [inline]
+                   __inet_bind+0x8c3/0xc90 net/ipv4/af_inet.c:511
+                   inet_bind+0x177/0x220 net/ipv4/af_inet.c:456
+                   udp_sock_create4+0x1d1/0x490 net/ipv4/udp_tunnel_core.c:30
+                   udp_sock_create include/net/udp_tunnel.h:59 [inline]
+                   rxe_setup_udp_tunnel.constprop.0+0xfc/0x220 drivers/infiniband/sw/rxe/rxe_net.c:186
+                   rxe_net_ipv4_init drivers/infiniband/sw/rxe/rxe_net.c:622 [inline]
+                   rxe_net_init+0x1f/0xd0 drivers/infiniband/sw/rxe/rxe_net.c:667
+                   rxe_module_init+0x10/0x49 drivers/infiniband/sw/rxe/rxe.c:213
+                   do_one_initcall+0x141/0x780 init/main.c:1303
+                   do_initcall_level init/main.c:1376 [inline]
+                   do_initcalls init/main.c:1392 [inline]
+                   do_basic_setup init/main.c:1411 [inline]
+                   kernel_init_freeable+0x6ff/0x788 init/main.c:1631
+                   kernel_init+0x1e/0x1d0 init/main.c:1519
+                   ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ }
+ ... key      at: [<ffffffff91d5cd20>] af_family_kern_slock_keys+0x20/0x300
+
+the dependencies between the lock to be acquired
+ and SOFTIRQ-irq-unsafe lock:
+-> (k-clock-AF_INET){+++.}-{2:2} {
+   HARDIRQ-ON-W at:
+                    lock_acquire kernel/locking/lockdep.c:5668 [inline]
+                    lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+                    __raw_write_lock include/linux/rwlock_api_smp.h:209 [inline]
+                    _raw_write_lock+0x2e/0x40 kernel/locking/spinlock.c:300
+                    l2tp_tunnel_register+0x126/0x1210 net/l2tp/l2tp_core.c:1477
+                    l2tp_nl_cmd_tunnel_create+0x3d6/0x8b0 net/l2tp/l2tp_netlink.c:245
+                    genl_family_rcv_msg_doit+0x228/0x320 net/netlink/genetlink.c:756
+                    genl_family_rcv_msg net/netlink/genetlink.c:833 [inline]
+                    genl_rcv_msg+0x445/0x780 net/netlink/genetlink.c:850
+                    netlink_rcv_skb+0x157/0x430 net/netlink/af_netlink.c:2540
+                    genl_rcv+0x28/0x40 net/netlink/genetlink.c:861
+                    netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+                    netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1345
+                    netlink_sendmsg+0x91b/0xe10 net/netlink/af_netlink.c:1921
+                    sock_sendmsg_nosec net/socket.c:714 [inline]
+                    sock_sendmsg+0xd3/0x120 net/socket.c:734
+                    ____sys_sendmsg+0x712/0x8c0 net/socket.c:2482
+                    ___sys_sendmsg+0x110/0x1b0 net/socket.c:2536
+                    __sys_sendmsg+0xf7/0x1c0 net/socket.c:2565
+                    do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                    do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+                    entry_SYSCALL_64_after_hwframe+0x63/0xcd
+   HARDIRQ-ON-R at:
+                    lock_acquire kernel/locking/lockdep.c:5668 [inline]
+                    lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+                    __raw_read_lock_bh include/linux/rwlock_api_smp.h:176 [inline]
+                    _raw_read_lock_bh+0x3f/0x70 kernel/locking/spinlock.c:252
+                    sock_i_uid+0x1f/0xb0 net/core/sock.c:2542
+                    udp_lib_lport_inuse+0x32/0x490 net/ipv4/udp.c:140
+                    udp_lib_get_port+0x835/0x18c0 net/ipv4/udp.c:306
+                    __inet_bind+0x831/0xc90 net/ipv4/af_inet.c:525
+                    inet_bind+0x177/0x220 net/ipv4/af_inet.c:456
+                    udp_sock_create4+0x1d1/0x490 net/ipv4/udp_tunnel_core.c:30
+                    udp_sock_create include/net/udp_tunnel.h:59 [inline]
+                    rxe_setup_udp_tunnel.constprop.0+0xfc/0x220 drivers/infiniband/sw/rxe/rxe_net.c:186
+                    rxe_net_ipv4_init drivers/infiniband/sw/rxe/rxe_net.c:622 [inline]
+                    rxe_net_init+0x1f/0xd0 drivers/infiniband/sw/rxe/rxe_net.c:667
+                    rxe_module_init+0x10/0x49 drivers/infiniband/sw/rxe/rxe.c:213
+                    do_one_initcall+0x141/0x780 init/main.c:1303
+                    do_initcall_level init/main.c:1376 [inline]
+                    do_initcalls init/main.c:1392 [inline]
+                    do_basic_setup init/main.c:1411 [inline]
+                    kernel_init_freeable+0x6ff/0x788 init/main.c:1631
+                    kernel_init+0x1e/0x1d0 init/main.c:1519
+                    ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+   SOFTIRQ-ON-W at:
+                    lock_acquire kernel/locking/lockdep.c:5668 [inline]
+                    lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+                    __raw_write_lock include/linux/rwlock_api_smp.h:209 [inline]
+                    _raw_write_lock+0x2e/0x40 kernel/locking/spinlock.c:300
+                    l2tp_tunnel_register+0x126/0x1210 net/l2tp/l2tp_core.c:1477
+                    l2tp_nl_cmd_tunnel_create+0x3d6/0x8b0 net/l2tp/l2tp_netlink.c:245
+                    genl_family_rcv_msg_doit+0x228/0x320 net/netlink/genetlink.c:756
+                    genl_family_rcv_msg net/netlink/genetlink.c:833 [inline]
+                    genl_rcv_msg+0x445/0x780 net/netlink/genetlink.c:850
+                    netlink_rcv_skb+0x157/0x430 net/netlink/af_netlink.c:2540
+                    genl_rcv+0x28/0x40 net/netlink/genetlink.c:861
+                    netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+                    netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1345
+                    netlink_sendmsg+0x91b/0xe10 net/netlink/af_netlink.c:1921
+                    sock_sendmsg_nosec net/socket.c:714 [inline]
+                    sock_sendmsg+0xd3/0x120 net/socket.c:734
+                    ____sys_sendmsg+0x712/0x8c0 net/socket.c:2482
+                    ___sys_sendmsg+0x110/0x1b0 net/socket.c:2536
+                    __sys_sendmsg+0xf7/0x1c0 net/socket.c:2565
+                    do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                    do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+                    entry_SYSCALL_64_after_hwframe+0x63/0xcd
+   INITIAL USE at:
+                   lock_acquire kernel/locking/lockdep.c:5668 [inline]
+                   lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+                   __raw_write_lock include/linux/rwlock_api_smp.h:209 [inline]
+                   _raw_write_lock+0x2e/0x40 kernel/locking/spinlock.c:300
+                   l2tp_tunnel_register+0x126/0x1210 net/l2tp/l2tp_core.c:1477
+                   l2tp_nl_cmd_tunnel_create+0x3d6/0x8b0 net/l2tp/l2tp_netlink.c:245
+                   genl_family_rcv_msg_doit+0x228/0x320 net/netlink/genetlink.c:756
+                   genl_family_rcv_msg net/netlink/genetlink.c:833 [inline]
+                   genl_rcv_msg+0x445/0x780 net/netlink/genetlink.c:850
+                   netlink_rcv_skb+0x157/0x430 net/netlink/af_netlink.c:2540
+                   genl_rcv+0x28/0x40 net/netlink/genetlink.c:861
+                   netlink_unicast_kernel net/netlink/af_netlink.c:1319 [inline]
+                   netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1345
+                   netlink_sendmsg+0x91b/0xe10 net/netlink/af_netlink.c:1921
+                   sock_sendmsg_nosec net/socket.c:714 [inline]
+                   sock_sendmsg+0xd3/0x120 net/socket.c:734
+                   ____sys_sendmsg+0x712/0x8c0 net/socket.c:2482
+                   ___sys_sendmsg+0x110/0x1b0 net/socket.c:2536
+                   __sys_sendmsg+0xf7/0x1c0 net/socket.c:2565
+                   do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+                   do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+                   entry_SYSCALL_64_after_hwframe+0x63/0xcd
+   INITIAL READ USE at:
+                        lock_acquire kernel/locking/lockdep.c:5668 [inline]
+                        lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+                        __raw_read_lock_bh include/linux/rwlock_api_smp.h:176 [inline]
+                        _raw_read_lock_bh+0x3f/0x70 kernel/locking/spinlock.c:252
+                        sock_i_uid+0x1f/0xb0 net/core/sock.c:2542
+                        udp_lib_lport_inuse+0x32/0x490 net/ipv4/udp.c:140
+                        udp_lib_get_port+0x835/0x18c0 net/ipv4/udp.c:306
+                        __inet_bind+0x831/0xc90 net/ipv4/af_inet.c:525
+                        inet_bind+0x177/0x220 net/ipv4/af_inet.c:456
+                        udp_sock_create4+0x1d1/0x490 net/ipv4/udp_tunnel_core.c:30
+                        udp_sock_create include/net/udp_tunnel.h:59 [inline]
+                        rxe_setup_udp_tunnel.constprop.0+0xfc/0x220 drivers/infiniband/sw/rxe/rxe_net.c:186
+                        rxe_net_ipv4_init drivers/infiniband/sw/rxe/rxe_net.c:622 [inline]
+                        rxe_net_init+0x1f/0xd0 drivers/infiniband/sw/rxe/rxe_net.c:667
+                        rxe_module_init+0x10/0x49 drivers/infiniband/sw/rxe/rxe.c:213
+                        do_one_initcall+0x141/0x780 init/main.c:1303
+                        do_initcall_level init/main.c:1376 [inline]
+                        do_initcalls init/main.c:1392 [inline]
+                        do_basic_setup init/main.c:1411 [inline]
+                        kernel_init_freeable+0x6ff/0x788 init/main.c:1631
+                        kernel_init+0x1e/0x1d0 init/main.c:1519
+                        ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ }
+ ... key      at: [<ffffffff91d5be20>] af_kern_callback_keys+0x20/0x300
+ ... acquired at:
+   lock_acquire kernel/locking/lockdep.c:5668 [inline]
+   lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+   __raw_write_lock_bh include/linux/rwlock_api_smp.h:202 [inline]
+   _raw_write_lock_bh+0x33/0x40 kernel/locking/spinlock.c:334
+   sock_orphan include/net/sock.h:2090 [inline]
+   __mptcp_close+0x349/0x8d0 net/mptcp/protocol.c:2943
+   mptcp_close+0x28/0x150 net/mptcp/protocol.c:2969
+   inet_release+0x132/0x270 net/ipv4/af_inet.c:428
+   __sock_release+0xcd/0x280 net/socket.c:650
+   sock_close+0x1c/0x20 net/socket.c:1365
+   __fput+0x27c/0xa90 fs/file_table.c:320
+   task_work_run+0x16f/0x270 kernel/task_work.c:179
+   exit_task_work include/linux/task_work.h:38 [inline]
+   do_exit+0xb3d/0x2a30 kernel/exit.c:820
+   do_group_exit+0xd4/0x2a0 kernel/exit.c:950
+   __do_sys_exit_group kernel/exit.c:961 [inline]
+   __se_sys_exit_group kernel/exit.c:959 [inline]
+   __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:959
+   do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+   do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+   entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+
+stack backtrace:
+CPU: 0 PID: 3635 Comm: syz-executor649 Not tainted 6.1.0-rc5-syzkaller-00103-g81ac25651a62 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_bad_irq_dependency kernel/locking/lockdep.c:2611 [inline]
+ check_irq_usage.cold+0x4e4/0x761 kernel/locking/lockdep.c:2850
+ check_prev_add kernel/locking/lockdep.c:3101 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain kernel/locking/lockdep.c:3831 [inline]
+ __lock_acquire+0x2a5b/0x56d0 kernel/locking/lockdep.c:5055
+ lock_acquire kernel/locking/lockdep.c:5668 [inline]
+ lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
+ __raw_write_lock_bh include/linux/rwlock_api_smp.h:202 [inline]
+ _raw_write_lock_bh+0x33/0x40 kernel/locking/spinlock.c:334
+ sock_orphan include/net/sock.h:2090 [inline]
+ __mptcp_close+0x349/0x8d0 net/mptcp/protocol.c:2943
+ mptcp_close+0x28/0x150 net/mptcp/protocol.c:2969
+ inet_release+0x132/0x270 net/ipv4/af_inet.c:428
+ __sock_release+0xcd/0x280 net/socket.c:650
+ sock_close+0x1c/0x20 net/socket.c:1365
+ __fput+0x27c/0xa90 fs/file_table.c:320
+ task_work_run+0x16f/0x270 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0xb3d/0x2a30 kernel/exit.c:820
+ do_group_exit+0xd4/0x2a0 kernel/exit.c:950
+ __do_sys_exit_group kernel/exit.c:961 [inline]
+ __se_sys_exit_group kernel/exit.c:959 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:959
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fe6a8b9f199
+Code: Unable to access opcode bytes at 0x7fe6a8b9f16f.
+RSP: 002b:00007ffd14689b88 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007fe6a8c1a410 RCX: 00007fe6a

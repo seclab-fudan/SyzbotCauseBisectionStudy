@@ -1,0 +1,39 @@
+=====================================
+WARNING: bad unlock balance detected!
+5.6.0-syzkaller #0 Not tainted
+-------------------------------------
+syz-executor151/7052 is trying to release lock (&mm->mmap_sem) at:
+[<ffffffff819fbf60>] __get_user_pages_locked mm/gup.c:1366 [inline]
+[<ffffffff819fbf60>] __get_user_pages_remote mm/gup.c:1831 [inline]
+[<ffffffff819fbf60>] __get_user_pages_remote+0x540/0x740 mm/gup.c:1806
+but there are no more locks to release!
+
+other info that might help us debug this:
+no locks held by syz-executor151/7052.
+
+stack backtrace:
+CPU: 0 PID: 7052 Comm: syz-executor151 Not tainted 5.6.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x188/0x20d lib/dump_stack.c:118
+ __lock_release kernel/locking/lockdep.c:4633 [inline]
+ lock_release+0x586/0x800 kernel/locking/lockdep.c:4941
+ up_read+0x79/0x750 kernel/locking/rwsem.c:1573
+ __get_user_pages_locked mm/gup.c:1366 [inline]
+ __get_user_pages_remote mm/gup.c:1831 [inline]
+ __get_user_pages_remote+0x540/0x740 mm/gup.c:1806
+ pin_user_pages_remote+0x67/0xa0 mm/gup.c:2897
+ process_vm_rw_single_vec mm/process_vm_access.c:108 [inline]
+ process_vm_rw_core.isra.0+0x423/0x940 mm/process_vm_access.c:218
+ compat_process_vm_rw+0x21f/0x240 mm/process_vm_access.c:343
+ __do_compat_sys_process_vm_writev mm/process_vm_access.c:370 [inline]
+ __se_compat_sys_process_vm_writev mm/process_vm_access.c:363 [inline]
+ __ia32_compat_sys_process_vm_writev+0xdc/0x1b0 mm/process_vm_access.c:363
+ do_syscall_32_irqs_on arch/x86/entry/common.c:337 [inline]
+ do_fast_syscall_32+0x270/0xe90 arch/x86/entry/common.c:396
+ entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+------------[ cut here ]------------
+DEBUG_RWSEMS_WARN_ON(tmp < 0): count = 0xffffffffffffff00, magic = 0xffff88809e2392f8, owner = 0x3, curr 0xffff88809a6c6240, list empty
+WARNING: CPU: 1 PID: 7052 at kernel/locking/rwsem.c:1435 __up_read kernel/locking/rwsem.c:1435 [inline]
+WARNING: CPU: 1 PID: 7052 at kernel/locking/rwsem.c:1435 up_read+0x5f9/0x750 kernel/locking/rwsem.c:1574

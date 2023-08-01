@@ -1,0 +1,79 @@
+audit: type=1400 audit(1514656959.329:7): avc:  denied  { map } for  pid=3194 comm="syzkaller150350" path="/root/syzkaller150350154" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+==================================================================
+BUG: KASAN: slab-out-of-bounds in cap_convert_nscap+0x501/0x610 security/commoncap.c:498
+Read of size 4 at addr ffff8801c61c7280 by task syzkaller150350/3194
+
+CPU: 0 PID: 3194 Comm: syzkaller150350 Not tainted 4.15.0-rc5+ #242
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ cap_convert_nscap+0x501/0x610 security/commoncap.c:498
+ setxattr+0x365/0x400 fs/xattr.c:446
+ SYSC_fsetxattr fs/xattr.c:508 [inline]
+ SyS_fsetxattr+0x130/0x190 fs/xattr.c:497
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x43fcf9
+RSP: 002b:00007ffdc0d4c408 EFLAGS: 00000203 ORIG_RAX: 00000000000000be
+RAX: ffffffffffffffda RBX: 6f72746e6f632f2e RCX: 000000000043fcf9
+RDX: 00000000208c4fe9 RSI: 0000000020f4c000 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000203 R12: 0000000000401660
+R13: 00000000004016f0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 3194:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc_node mm/slab.c:3672 [inline]
+ __kmalloc_node+0x47/0x70 mm/slab.c:3679
+ kmalloc_node include/linux/slab.h:541 [inline]
+ kvmalloc_node+0x99/0xd0 mm/util.c:397
+ kvmalloc include/linux/mm.h:541 [inline]
+ setxattr+0x152/0x400 fs/xattr.c:435
+ SYSC_fsetxattr fs/xattr.c:508 [inline]
+ SyS_fsetxattr+0x130/0x190 fs/xattr.c:497
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+Freed by task 1679:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3488 [inline]
+ kfree+0xd6/0x260 mm/slab.c:3803
+ kfree_link+0x15/0x20 fs/libfs.c:1066
+ do_delayed_call include/linux/delayed_call.h:28 [inline]
+ put_link fs/namei.c:898 [inline]
+ step_into fs/namei.c:1746 [inline]
+ walk_component+0x54d/0x13d0 fs/namei.c:1803
+ link_path_walk+0x6a9/0x1470 fs/namei.c:2110
+ path_openat+0x2bc/0x3530 fs/namei.c:3519
+ do_filp_open+0x25b/0x3b0 fs/namei.c:3554
+ do_sys_open+0x502/0x6d0 fs/open.c:1059
+ SYSC_open fs/open.c:1077 [inline]
+ SyS_open+0x2d/0x40 fs/open.c:1072
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+
+The buggy address belongs to the object at ffff8801c61c7280
+ which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 0 bytes inside of
+ 32-byte region [ffff8801c61c7280, ffff8801c61c72a0)
+The buggy address belongs to the page:
+page:0000000077f4e811 count:1 mapcount:0 mapping:000000007008f3c4 index:0xffff8801c61c7fc1
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffff8801c61c7000 ffff8801c61c7fc1 000000010000003f
+raw: ffffea000718a160 ffffea00071875a0 ffff8801dac001c0 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801c61c7180: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801c61c7200: fb fb fb fb fc fc fc fc 00 00 00 fc fc fc fc fc
+>ffff8801c61c7280: 01 fc fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+                   ^
+ ffff8801c61c7300: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+ ffff8801c61c7380: fb fb fb fb fc fc fc fc 00 00 01 fc fc fc fc fc
+==================================================================

@@ -1,0 +1,93 @@
+audit: type=1326 audit(1547242557.061:2115): auid=4294967295 uid=0 gid=0 ses=4294967295 subj==unconfined pid=9988 comm="syz-executor667" exe="/root/syz-executor667976370" sig=31 arch=c000003e syscall=202 compat=0 ip=0x447c09 code=0x0
+audit: type=1326 audit(1547242557.061:2116): auid=4294967295 uid=0 gid=0 ses=4294967295 subj==unconfined pid=9980 comm="syz-executor667" exe="/root/syz-executor667976370" sig=31 arch=c000003e syscall=3 compat=0 ip=0x4069e1 code=0x0
+==================================================================
+BUG: KASAN: use-after-free in __lock_acquire+0x3556/0x4a30 kernel/locking/lockdep.c:3215
+Read of size 8 at addr ffff88808c5c8a80 by task syz-executor667/9991
+
+CPU: 0 PID: 9991 Comm: syz-executor667 Not tainted 5.0.0-rc1+ #20
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ __lock_acquire+0x3556/0x4a30 kernel/locking/lockdep.c:3215
+ lock_acquire+0x1db/0x570 kernel/locking/lockdep.c:3841
+ __mutex_lock_common kernel/locking/mutex.c:925 [inline]
+ __mutex_lock+0x12f/0x1670 kernel/locking/mutex.c:1072
+ mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:1087
+ seccomp_notify_release+0x54/0x270 kernel/seccomp.c:979
+ __fput+0x3c5/0xb10 fs/file_table.c:278
+ ____fput+0x16/0x20 fs/file_table.c:309
+ task_work_run+0x1f4/0x2b0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x32a/0x3b0 arch/x86/entry/common.c:166
+ prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+ do_syscall_64+0x696/0x800 arch/x86/entry/common.c:293
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4069e1
+Code: 75 14 b8 03 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 d4 18 00 00 c3 48 83 ec 08 e8 0a fc ff ff 48 89 04 24 b8 03 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 53 fc ff ff 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007ffe443110b0 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000003 RCX: 00000000004069e1
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 0000000000000003
+RBP: 0000000000000002 R08: 0000000000000001 R09: 00000000bb1414ac
+R10: 00007ffe443110d0 R11: 0000000000000293 R12: 00000000006e39fc
+R13: 00000000006e39f0 R14: 00000000000003e8 R15: 000000000000002d
+
+Allocated by task 10001:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_kmalloc mm/kasan/common.c:496 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:469
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:504
+ kmem_cache_alloc_trace+0x151/0x760 mm/slab.c:3609
+ kmalloc include/linux/slab.h:545 [inline]
+ kzalloc include/linux/slab.h:740 [inline]
+ seccomp_prepare_filter kernel/seccomp.c:451 [inline]
+ seccomp_prepare_user_filter kernel/seccomp.c:491 [inline]
+ seccomp_set_mode_filter kernel/seccomp.c:1257 [inline]
+ do_seccomp+0x941/0x2cc0 kernel/seccomp.c:1370
+ __do_sys_seccomp kernel/seccomp.c:1389 [inline]
+ __se_sys_seccomp kernel/seccomp.c:1386 [inline]
+ __x64_sys_seccomp+0x73/0xb0 kernel/seccomp.c:1386
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 10001:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:458
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:466
+ __cache_free mm/slab.c:3487 [inline]
+ kfree+0xcf/0x230 mm/slab.c:3806
+ seccomp_filter_free kernel/seccomp.c:565 [inline]
+ seccomp_filter_free kernel/seccomp.c:561 [inline]
+ seccomp_set_mode_filter kernel/seccomp.c:1311 [inline]
+ do_seccomp+0xda3/0x2cc0 kernel/seccomp.c:1370
+ __do_sys_seccomp kernel/seccomp.c:1389 [inline]
+ __se_sys_seccomp kernel/seccomp.c:1386 [inline]
+ __x64_sys_seccomp+0x73/0xb0 kernel/seccomp.c:1386
+ do_syscall_64+0x1a3/0x800 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88808c5c8a00
+ which belongs to the cache kmalloc-192 of size 192
+The buggy address is located 128 bytes inside of
+ 192-byte region [ffff88808c5c8a00, ffff88808c5c8ac0)
+The buggy address belongs to the page:
+page:ffffea0002317200 count:1 mapcount:0 mapping:ffff88812c3f0040 index:0x0
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea0002276e08 ffff88812c3f1148 ffff88812c3f0040
+raw: 0000000000000000 ffff88808c5c8000 0000000100000010 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88808c5c8980: 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88808c5c8a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88808c5c8a80: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+                   ^
+ ffff88808c5c8b00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88808c5c8b80: 00 fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

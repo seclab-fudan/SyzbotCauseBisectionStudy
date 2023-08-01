@@ -1,0 +1,127 @@
+==================================================================
+BUG: KCSAN: data-race in icmp_global_allow / icmp_global_allow
+
+read to 0xffffffff861a4a54 of 4 bytes by interrupt on cpu 0:
+ icmp_global_allow+0x36/0x1b0 net/ipv4/icmp.c:254
+ icmpv6_global_allow net/ipv6/icmp.c:184 [inline]
+ icmpv6_global_allow net/ipv6/icmp.c:179 [inline]
+ icmp6_send+0x493/0x1140 net/ipv6/icmp.c:514
+ icmpv6_send+0x71/0xb0 net/ipv6/ip6_icmp.c:43
+ ip6_link_failure+0x43/0x180 net/ipv6/route.c:2644
+ dst_link_failure include/net/dst.h:419 [inline]
+ ip6_tnl_xmit+0x296/0x1780 net/ipv6/ip6_tunnel.c:1222
+ ip6ip6_tnl_xmit net/ipv6/ip6_tunnel.c:1376 [inline]
+ ip6_tnl_start_xmit+0xead/0x1160 net/ipv6/ip6_tunnel.c:1402
+ __netdev_start_xmit include/linux/netdevice.h:4413 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4427 [inline]
+ xmit_one net/core/dev.c:3199 [inline]
+ dev_hard_start_xmit+0xef/0x430 net/core/dev.c:3215
+ __dev_queue_xmit+0x14ab/0x1b40 net/core/dev.c:3792
+ dev_queue_xmit+0x21/0x30 net/core/dev.c:3825
+ neigh_direct_output+0x1f/0x30 net/core/neighbour.c:1530
+ neigh_output include/net/neighbour.h:511 [inline]
+ ip6_finish_output2+0x7a2/0xec0 net/ipv6/ip6_output.c:116
+ __ip6_finish_output net/ipv6/ip6_output.c:142 [inline]
+ __ip6_finish_output+0x2d7/0x330 net/ipv6/ip6_output.c:127
+ ip6_finish_output+0x41/0x160 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0xf2/0x280 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip6_xmit+0x6cb/0xcd0 net/ipv6/ip6_output.c:279
+ inet6_csk_xmit+0x170/0x1f0 net/ipv6/inet6_connection_sock.c:135
+ __tcp_transmit_skb+0xe81/0x1d60 net/ipv4/tcp_output.c:1169
+ tcp_transmit_skb net/ipv4/tcp_output.c:1185 [inline]
+ tcp_xmit_probe_skb+0x19b/0x1d0 net/ipv4/tcp_output.c:3735
+ tcp_write_wakeup+0x12e/0x3b0 net/ipv4/tcp_output.c:3788
+ tcp_send_probe0+0x3a/0x286 net/ipv4/tcp_output.c:3803
+ tcp_probe_timer net/ipv4/tcp_timer.c:381 [inline]
+ tcp_write_timer_handler+0x48e/0x510 net/ipv4/tcp_timer.c:603
+ tcp_write_timer+0xd1/0xf0 net/ipv4/tcp_timer.c:619
+ call_timer_fn+0x5f/0x2f0 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0xc0c/0xcd0 kernel/time/timer.c:1786
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0xbb/0xe0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0xe6/0x280 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+ native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:60
+ arch_cpu_idle+0xa/0x10 arch/x86/kernel/process.c:571
+ default_idle_call+0x1e/0x40 kernel/sched/idle.c:94
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x1af/0x280 kernel/sched/idle.c:263
+ cpu_startup_entry+0x1b/0x20 kernel/sched/idle.c:355
+ rest_init+0xec/0xf6 init/main.c:452
+ arch_call_rest_init+0x17/0x37
+ start_kernel+0x838/0x85e init/main.c:786
+ x86_64_start_reservations+0x29/0x2b arch/x86/kernel/head64.c:490
+ x86_64_start_kernel+0x72/0x76 arch/x86/kernel/head64.c:471
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:241
+
+write to 0xffffffff861a4a54 of 4 bytes by interrupt on cpu 1:
+ icmp_global_allow+0x174/0x1b0 net/ipv4/icmp.c:272
+ icmpv6_global_allow net/ipv6/icmp.c:184 [inline]
+ icmpv6_global_allow net/ipv6/icmp.c:179 [inline]
+ icmp6_send+0x493/0x1140 net/ipv6/icmp.c:514
+ icmpv6_send+0x71/0xb0 net/ipv6/ip6_icmp.c:43
+ ip6_link_failure+0x43/0x180 net/ipv6/route.c:2644
+ dst_link_failure include/net/dst.h:419 [inline]
+ ip6_tnl_xmit+0x296/0x1780 net/ipv6/ip6_tunnel.c:1222
+ ip6ip6_tnl_xmit net/ipv6/ip6_tunnel.c:1376 [inline]
+ ip6_tnl_start_xmit+0xead/0x1160 net/ipv6/ip6_tunnel.c:1402
+ __netdev_start_xmit include/linux/netdevice.h:4413 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4427 [inline]
+ xmit_one net/core/dev.c:3199 [inline]
+ dev_hard_start_xmit+0xef/0x430 net/core/dev.c:3215
+ __dev_queue_xmit+0x14ab/0x1b40 net/core/dev.c:3792
+ dev_queue_xmit+0x21/0x30 net/core/dev.c:3825
+ neigh_direct_output+0x1f/0x30 net/core/neighbour.c:1530
+ neigh_output include/net/neighbour.h:511 [inline]
+ ip6_finish_output2+0x7a2/0xec0 net/ipv6/ip6_output.c:116
+ __ip6_finish_output net/ipv6/ip6_output.c:142 [inline]
+ __ip6_finish_output+0x2d7/0x330 net/ipv6/ip6_output.c:127
+ ip6_finish_output+0x41/0x160 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0xf2/0x280 net/ipv6/ip6_output.c:175
+ dst_output include/net/dst.h:436 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip6_xmit+0x6cb/0xcd0 net/ipv6/ip6_output.c:279
+ inet6_csk_xmit+0x170/0x1f0 net/ipv6/inet6_connection_sock.c:135
+ __tcp_transmit_skb+0xe81/0x1d60 net/ipv4/tcp_output.c:1169
+ tcp_transmit_skb net/ipv4/tcp_output.c:1185 [inline]
+ tcp_xmit_probe_skb+0x19b/0x1d0 net/ipv4/tcp_output.c:3735
+ tcp_write_wakeup+0x12e/0x3b0 net/ipv4/tcp_output.c:3788
+ tcp_send_probe0+0x3a/0x286 net/ipv4/tcp_output.c:3803
+ tcp_probe_timer net/ipv4/tcp_timer.c:381 [inline]
+ tcp_write_timer_handler+0x48e/0x510 net/ipv4/tcp_timer.c:603
+ tcp_write_timer+0xd1/0xf0 net/ipv4/tcp_timer.c:619
+ call_timer_fn+0x5f/0x2f0 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0xc0c/0xcd0 kernel/time/timer.c:1786
+ __do_softirq+0x115/0x33f kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0xbb/0xe0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0xe6/0x280 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:830
+ native_safe_halt+0xe/0x10 arch/x86/include/asm/irqflags.h:60
+ arch_cpu_idle+0xa/0x10 arch/x86/kernel/process.c:571
+ default_idle_call+0x1e/0x40 kernel/sched/idle.c:94
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x1af/0x280 kernel/sched/idle.c:263
+ cpu_startup_entry+0x1b/0x20 kernel/sched/idle.c:355
+ start_secondary+0x168/0x1b0 arch/x86/kernel/smpboot.c:264
+ secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:241
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.4.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

@@ -1,0 +1,39 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: null-ptr-deref in test_and_set_bit include/asm-generic/bitops/instrumented-atomic.h:70 [inline]
+BUG: KASAN: null-ptr-deref in try_to_grab_pending.part.0+0x26/0x720 kernel/workqueue.c:1257
+Write of size 8 at addr 0000000000000088 by task kworker/0:5/9838
+
+CPU: 0 PID: 9838 Comm: kworker/0:5 Not tainted 5.11.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events cfg80211_destroy_iface_wk
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ __kasan_report mm/kasan/report.c:400 [inline]
+ kasan_report.cold+0x5f/0xd5 mm/kasan/report.c:413
+ check_memory_region_inline mm/kasan/generic.c:179 [inline]
+ check_memory_region+0x13d/0x180 mm/kasan/generic.c:185
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ test_and_set_bit include/asm-generic/bitops/instrumented-atomic.h:70 [inline]
+ try_to_grab_pending.part.0+0x26/0x720 kernel/workqueue.c:1257
+ try_to_grab_pending+0xa1/0xd0 kernel/workqueue.c:1310
+ __cancel_work_timer+0xa6/0x520 kernel/workqueue.c:3098
+ rhashtable_free_and_destroy+0x2b/0x920 lib/rhashtable.c:1137
+ mesh_table_free net/mac80211/mesh_pathtbl.c:70 [inline]
+ mesh_pathtbl_unregister+0x42/0xa0 net/mac80211/mesh_pathtbl.c:812
+ ieee80211_teardown_sdata+0x216/0x2d0 net/mac80211/iface.c:686
+ rollback_registered_many+0xc38/0x14c0 net/core/dev.c:9513
+ rollback_registered net/core/dev.c:9541 [inline]
+ unregister_netdevice_queue+0x2dd/0x570 net/core/dev.c:10717
+ unregister_netdevice include/linux/netdevice.h:2868 [inline]
+ ieee80211_if_remove+0x213/0x310 net/mac80211/iface.c:2005
+ ieee80211_del_iface+0x12/0x20 net/mac80211/cfg.c:144
+ rdev_del_virtual_intf net/wireless/rdev-ops.h:57 [inline]
+ cfg80211_destroy_ifaces+0x1d9/0x6e0 net/wireless/core.c:334
+ cfg80211_destroy_iface_wk+0x1a/0x20 net/wireless/core.c:346
+ process_one_work+0x98d/0x15f0 kernel/workqueue.c:2275
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2421
+ kthread+0x3b1/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+==================================================================

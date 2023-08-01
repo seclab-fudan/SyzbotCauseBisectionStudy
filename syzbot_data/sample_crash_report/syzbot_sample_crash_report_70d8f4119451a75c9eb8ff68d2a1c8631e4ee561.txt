@@ -1,0 +1,82 @@
+RBP: 0000000000000000 R08: 0000000000000014 R09: 0000000001bbbbbb
+R10: 0000000020000080 R11: 0000000000000246 R12: ffffffffffffffff
+R13: 0000000000000005 R14: 0000000000000000 R15: 0000000000000000
+BUG: unable to handle page fault for address: fffffffffffffff4
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 9870067 P4D 9870067 PUD 9872067 PMD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 9501 Comm: syz-executor779 Not tainted 5.5.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:jhash2 include/linux/jhash.h:125 [inline]
+RIP: 0010:rhashtable_jhash2+0x76/0x2c0 lib/rhashtable.c:963
+Code: b9 00 00 00 00 00 fc ff df 48 c1 e8 03 0f b6 14 08 4c 89 f0 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 30 02 00 00 49 8d 7e 04 <41> 8b 06 48 be 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 0f b6
+RSP: 0018:ffffc90001d77190 EFLAGS: 00010246
+RAX: 0000000000000007 RBX: 00000000f754aefc RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: ffffffff839ba7c8 RDI: fffffffffffffff8
+RBP: ffffc90001d771c0 R08: ffff88808bfe4240 R09: ffffed1015d0703d
+R10: ffffed1015d0703c R11: ffff8880ae8381e3 R12: 00000000f754aefc
+R13: 00000000f754aefc R14: fffffffffffffff4 R15: 0000000000000007
+FS:  00000000023e0880(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffffffffffff4 CR3: 00000000956a5000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ rht_key_get_hash include/linux/rhashtable.h:133 [inline]
+ rht_key_hashfn include/linux/rhashtable.h:159 [inline]
+ rht_head_hashfn include/linux/rhashtable.h:174 [inline]
+ __rhashtable_insert_fast.constprop.0+0xe15/0x1180 include/linux/rhashtable.h:723
+ rhashtable_insert_fast include/linux/rhashtable.h:832 [inline]
+ nsim_fib6_rt_add drivers/net/netdevsim/fib.c:603 [inline]
+ nsim_fib6_rt_insert drivers/net/netdevsim/fib.c:658 [inline]
+ nsim_fib6_event drivers/net/netdevsim/fib.c:719 [inline]
+ nsim_fib_event drivers/net/netdevsim/fib.c:744 [inline]
+ nsim_fib_event_nb+0x1b16/0x2600 drivers/net/netdevsim/fib.c:772
+ notifier_call_chain+0xc2/0x230 kernel/notifier.c:83
+ __atomic_notifier_call_chain+0xa6/0x1a0 kernel/notifier.c:173
+ atomic_notifier_call_chain+0x2e/0x40 kernel/notifier.c:183
+ call_fib_notifiers+0x173/0x2a0 net/core/fib_notifier.c:35
+ call_fib6_notifiers+0x4b/0x60 net/ipv6/fib6_notifier.c:22
+ call_fib6_entry_notifiers+0xfb/0x150 net/ipv6/ip6_fib.c:399
+ fib6_add_rt2node net/ipv6/ip6_fib.c:1216 [inline]
+ fib6_add+0x20cd/0x3ec0 net/ipv6/ip6_fib.c:1471
+ __ip6_ins_rt+0x54/0x80 net/ipv6/route.c:1315
+ ip6_ins_rt+0x96/0xd0 net/ipv6/route.c:1325
+ __ipv6_dev_ac_inc+0x76f/0xb20 net/ipv6/anycast.c:324
+ ipv6_sock_ac_join+0x4c1/0x790 net/ipv6/anycast.c:139
+ do_ipv6_setsockopt.isra.0+0x3908/0x4290 net/ipv6/ipv6_sockglue.c:670
+ ipv6_setsockopt+0xff/0x180 net/ipv6/ipv6_sockglue.c:944
+ udpv6_setsockopt+0x68/0xb0 net/ipv6/udp.c:1564
+ sock_common_setsockopt+0x94/0xd0 net/core/sock.c:3149
+ __sys_setsockopt+0x261/0x4c0 net/socket.c:2130
+ __do_sys_setsockopt net/socket.c:2146 [inline]
+ __se_sys_setsockopt net/socket.c:2143 [inline]
+ __x64_sys_setsockopt+0xbe/0x150 net/socket.c:2143
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4423c9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b 10 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fffb1939858 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00007fffb19398b0 RCX: 00000000004423c9
+RDX: 000000000000001b RSI: 0000000000000029 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000014 R09: 0000000001bbbbbb
+R10: 0000000020000080 R11: 0000000000000246 R12: ffffffffffffffff
+R13: 0000000000000005 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+CR2: fffffffffffffff4
+---[ end trace 6e6eeaa1d4098b10 ]---
+RIP: 0010:jhash2 include/linux/jhash.h:125 [inline]
+RIP: 0010:rhashtable_jhash2+0x76/0x2c0 lib/rhashtable.c:963
+Code: b9 00 00 00 00 00 fc ff df 48 c1 e8 03 0f b6 14 08 4c 89 f0 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 30 02 00 00 49 8d 7e 04 <41> 8b 06 48 be 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 0f b6
+RSP: 0018:ffffc90001d77190 EFLAGS: 00010246
+RAX: 0000000000000007 RBX: 00000000f754aefc RCX: dffffc0000000000
+RDX: 0000000000000000 RSI: ffffffff839ba7c8 RDI: fffffffffffffff8
+RBP: ffffc90001d771c0 R08: ffff88808bfe4240 R09: ffffed1015d0703d
+R10: ffffed1015d0703c R11: ffff8880ae8381e3 R12: 00000000f754aefc
+R13: 00000000f754aefc R14: fffffffffffffff4 R15: 0000000000000007
+FS:  00000000023e0880(0000) GS:ffff8880ae800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffffffffffff4 CR3: 00000000956a5000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

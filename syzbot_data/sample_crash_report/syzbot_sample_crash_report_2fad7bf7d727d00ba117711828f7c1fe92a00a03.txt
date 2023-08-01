@@ -1,0 +1,223 @@
+ODEBUG: free active (active state 0) object type: timer_list hint: led_timeout_callback+0x0/0x20 include/linux/compiler.h:210
+WARNING: CPU: 1 PID: 4163 at lib/debugobjects.c:291 debug_print_object+0x166/0x220 lib/debugobjects.c:288
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 1 PID: 4163 Comm: syzkaller832372 Not tainted 4.16.0-rc1+ #310
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ panic+0x1e4/0x41c kernel/panic.c:183
+ __warn+0x1dc/0x200 kernel/panic.c:547
+ report_bug+0x211/0x2d0 lib/bug.c:184
+ fixup_bug.part.11+0x37/0x80 arch/x86/kernel/traps.c:178
+ fixup_bug arch/x86/kernel/traps.c:247 [inline]
+ do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:296
+ do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+ invalid_op+0x22/0x40 arch/x86/entry/entry_64.S:988
+RIP: 0010:debug_print_object+0x166/0x220 lib/debugobjects.c:288
+RSP: 0018:ffff8801b83f7630 EFLAGS: 00010082
+RAX: dffffc0000000008 RBX: 0000000000000003 RCX: ffffffff815aaf5e
+RDX: 0000000000000000 RSI: 1ffff1003707ee76 RDI: 1ffff1003707ee4b
+RBP: ffff8801b83f7670 R08: 0000000000000000 R09: 1ffff1003707ee1d
+R10: ffffed003707eef5 R11: ffffffff86b39478 R12: 0000000000000001
+R13: ffffffff86b4ace0 R14: ffffffff86007c60 R15: ffffffff815fd9c0
+ __debug_check_no_obj_freed lib/debugobjects.c:745 [inline]
+ debug_check_no_obj_freed+0x662/0xf1f lib/debugobjects.c:774
+ kfree+0xc7/0x260 mm/slab.c:3799
+ led_tg_destroy+0x28a/0x3f0 net/netfilter/xt_LED.c:192
+ cleanup_entry+0x218/0x350 net/ipv4/netfilter/ip_tables.c:654
+ __do_replace+0x79d/0xa50 net/ipv4/netfilter/ip_tables.c:1089
+ do_replace net/ipv4/netfilter/ip_tables.c:1145 [inline]
+ do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1675
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0x97/0xa0 net/ipv4/ip_sockglue.c:1259
+ tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2905
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+ SYSC_setsockopt net/socket.c:1849 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1828
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x444aca
+RSP: 002b:00007ffc5c5e38e8 EFLAGS: 00000206 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000006cf9c0 RCX: 0000000000444aca
+RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 00000000006cf9c0 R08: 00000000000002d8 R09: 0000000000004000
+R10: 00000000006cf960 R11: 0000000000000206 R12: 00007ffc5c5e3910
+R13: 00000000006d1b80 R14: 0000000000000003 R15: 0000000000000000
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.16.0-rc1+ #310 Not tainted
+------------------------------------------------------
+syzkaller832372/4163 is trying to acquire lock:
+ ((console_sem).lock){..-.}, at: [<0000000039fb4208>] down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+
+but task is already holding lock:
+ (&obj_hash[i].lock){-.-.}, at: [<0000000056d2f8d2>] __debug_check_no_obj_freed lib/debugobjects.c:736 [inline]
+ (&obj_hash[i].lock){-.-.}, at: [<0000000056d2f8d2>] debug_check_no_obj_freed+0x1e9/0xf1f lib/debugobjects.c:774
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #3 (&obj_hash[i].lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       __debug_object_init+0x109/0x1040 lib/debugobjects.c:343
+       debug_object_init+0x17/0x20 lib/debugobjects.c:391
+       debug_hrtimer_init kernel/time/hrtimer.c:410 [inline]
+       debug_init kernel/time/hrtimer.c:458 [inline]
+       hrtimer_init+0x8c/0x410 kernel/time/hrtimer.c:1259
+       init_dl_task_timer+0x1b/0x50 kernel/sched/deadline.c:1060
+       __sched_fork+0x2bb/0xb60 kernel/sched/core.c:2189
+       init_idle+0x75/0x820 kernel/sched/core.c:5347
+       sched_init+0xb19/0xc43 kernel/sched/core.c:6044
+       start_kernel+0x452/0x819 init/main.c:585
+       x86_64_start_reservations+0x2a/0x2c arch/x86/kernel/head64.c:378
+       x86_64_start_kernel+0x77/0x7a arch/x86/kernel/head64.c:359
+       secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:237
+
+-> #2 (&rq->lock){-.-.}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2a/0x40 kernel/locking/spinlock.c:144
+       rq_lock kernel/sched/sched.h:1760 [inline]
+       task_fork_fair+0x7a/0x690 kernel/sched/fair.c:9471
+       sched_fork+0x450/0xc10 kernel/sched/core.c:2405
+       copy_process.part.37+0x1758/0x4b60 kernel/fork.c:1774
+       copy_process kernel/fork.c:1617 [inline]
+       _do_fork+0x1f7/0xf70 kernel/fork.c:2098
+       kernel_thread+0x34/0x40 kernel/fork.c:2157
+       rest_init+0x22/0xf0 init/main.c:402
+       start_kernel+0x7f1/0x819 init/main.c:716
+       x86_64_start_reservations+0x2a/0x2c arch/x86/kernel/head64.c:378
+       x86_64_start_kernel+0x77/0x7a arch/x86/kernel/head64.c:359
+       secondary_startup_64+0xa5/0xb0 arch/x86/kernel/head_64.S:237
+
+-> #1 (&p->pi_lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       try_to_wake_up+0xbc/0x15f0 kernel/sched/core.c:1989
+       wake_up_process+0x10/0x20 kernel/sched/core.c:2152
+       __up.isra.0+0x1cc/0x2c0 kernel/locking/semaphore.c:262
+       up+0x13b/0x1d0 kernel/locking/semaphore.c:187
+       __up_console_sem+0xb2/0x1a0 kernel/printk/printk.c:242
+       console_unlock+0x5af/0xfb0 kernel/printk/printk.c:2417
+       vprintk_emit+0x5c3/0xb90 kernel/printk/printk.c:1907
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1947
+       vprintk_func+0x57/0xc0 kernel/printk/printk_safe.c:379
+       printk+0xaa/0xca kernel/printk/printk.c:1980
+       kauditd_printk_skb kernel/audit.c:506 [inline]
+       kauditd_hold_skb+0x163/0x180 kernel/audit.c:539
+       kauditd_send_queue+0xfa/0x140 kernel/audit.c:702
+       kauditd_thread+0x660/0x940 kernel/audit.c:828
+       kthread+0x33c/0x400 kernel/kthread.c:238
+       ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:429
+
+-> #0 ((console_sem).lock){..-.}:
+       lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+       down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+       __down_trylock_console_sem+0xa2/0x1e0 kernel/printk/printk.c:225
+       console_trylock+0x15/0x70 kernel/printk/printk.c:2229
+       console_trylock_spinning kernel/printk/printk.c:1643 [inline]
+       vprintk_emit+0x5b5/0xb90 kernel/printk/printk.c:1906
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1947
+       vprintk_func+0x57/0xc0 kernel/printk/printk_safe.c:379
+       printk+0xaa/0xca kernel/printk/printk.c:1980
+       __warn_printk+0x90/0xf0 kernel/panic.c:599
+       debug_print_object+0x166/0x220 lib/debugobjects.c:288
+       __debug_check_no_obj_freed lib/debugobjects.c:745 [inline]
+       debug_check_no_obj_freed+0x662/0xf1f lib/debugobjects.c:774
+       kfree+0xc7/0x260 mm/slab.c:3799
+       led_tg_destroy+0x28a/0x3f0 net/netfilter/xt_LED.c:192
+       cleanup_entry+0x218/0x350 net/ipv4/netfilter/ip_tables.c:654
+       __do_replace+0x79d/0xa50 net/ipv4/netfilter/ip_tables.c:1089
+       do_replace net/ipv4/netfilter/ip_tables.c:1145 [inline]
+       do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1675
+       nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+       nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+       ip_setsockopt+0x97/0xa0 net/ipv4/ip_sockglue.c:1259
+       tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2905
+       sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+       SYSC_setsockopt net/socket.c:1849 [inline]
+       SyS_setsockopt+0x189/0x360 net/socket.c:1828
+       do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+       entry_SYSCALL_64_after_hwframe+0x26/0x9b
+
+other info that might help us debug this:
+
+Chain exists of:
+  (console_sem).lock --> &rq->lock --> &obj_hash[i].lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&obj_hash[i].lock);
+                               lock(&rq->lock);
+                               lock(&obj_hash[i].lock);
+  lock((console_sem).lock);
+
+ *** DEADLOCK ***
+
+2 locks held by syzkaller832372/4163:
+ #0:  (&xt[i].mutex){+.+.}, at: [<000000000bde75ab>] xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1046
+ #1:  (&obj_hash[i].lock){-.-.}, at: [<0000000056d2f8d2>] __debug_check_no_obj_freed lib/debugobjects.c:736 [inline]
+ #1:  (&obj_hash[i].lock){-.-.}, at: [<0000000056d2f8d2>] debug_check_no_obj_freed+0x1e9/0xf1f lib/debugobjects.c:774
+
+stack backtrace:
+CPU: 1 PID: 4163 Comm: syzkaller832372 Not tainted 4.16.0-rc1+ #310
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:53
+ print_circular_bug.isra.38+0x2cd/0x2dc kernel/locking/lockdep.c:1223
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2417 [inline]
+ __lock_acquire+0x30a8/0x3e00 kernel/locking/lockdep.c:3431
+ lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
+ down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+ __down_trylock_console_sem+0xa2/0x1e0 kernel/printk/printk.c:225
+ console_trylock+0x15/0x70 kernel/printk/printk.c:2229
+ console_trylock_spinning kernel/printk/printk.c:1643 [inline]
+ vprintk_emit+0x5b5/0xb90 kernel/printk/printk.c:1906
+ vprintk_default+0x28/0x30 kernel/printk/printk.c:1947
+ vprintk_func+0x57/0xc0 kernel/printk/printk_safe.c:379
+ printk+0xaa/0xca kernel/printk/printk.c:1980
+ __warn_printk+0x90/0xf0 kernel/panic.c:599
+ debug_print_object+0x166/0x220 lib/debugobjects.c:288
+ __debug_check_no_obj_freed lib/debugobjects.c:745 [inline]
+ debug_check_no_obj_freed+0x662/0xf1f lib/debugobjects.c:774
+ kfree+0xc7/0x260 mm/slab.c:3799
+ led_tg_destroy+0x28a/0x3f0 net/netfilter/xt_LED.c:192
+ cleanup_entry+0x218/0x350 net/ipv4/netfilter/ip_tables.c:654
+ __do_replace+0x79d/0xa50 net/ipv4/netfilter/ip_tables.c:1089
+ do_replace net/ipv4/netfilter/ip_tables.c:1145 [inline]
+ do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1675
+ nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+ nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+ ip_setsockopt+0x97/0xa0 net/ipv4/ip_sockglue.c:1259
+ tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2905
+ sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2975
+ SYSC_setsockopt net/socket.c:1849 [inline]
+ SyS_setsockopt+0x189/0x360 net/socket.c:1828
+ do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x26/0x9b
+RIP: 0033:0x444aca
+RSP: 002b:00007ffc5c5e38e8 EFLAGS: 00000206 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000006cf9c0 RCX: 0000000000444aca
+RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 00000000006cf9c0 R08: 00000000000002d8 R09: 0000000000004000
+R10: 00000000006cf960 R11: 0000000000000206 R12: 00007ffc5c5e3910
+R13: 00000000006d1b80 R14: 0000000000000003 R15: 0000000000000000
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

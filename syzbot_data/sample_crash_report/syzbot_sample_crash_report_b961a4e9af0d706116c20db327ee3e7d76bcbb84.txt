@@ -1,0 +1,136 @@
+INFO: task syz-executor209:6560 blocked for more than 143 seconds.
+      Not tainted 5.15.0-rc6-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor209 state:D stack:27808 pid: 6560 ppid:  6558 flags:0x00004006
+Call Trace:
+ context_switch kernel/sched/core.c:4940 [inline]
+ __schedule+0xb44/0x5960 kernel/sched/core.c:6287
+ schedule+0xd3/0x270 kernel/sched/core.c:6366
+ schedule_preempt_disabled+0xf/0x20 kernel/sched/core.c:6425
+ __mutex_lock_common kernel/locking/mutex.c:669 [inline]
+ __mutex_lock+0xa34/0x12f0 kernel/locking/mutex.c:729
+ io_uring_del_tctx_node+0x105/0x350 fs/io_uring.c:9694
+ io_uring_clean_tctx fs/io_uring.c:9710 [inline]
+ io_uring_cancel_generic+0x5cb/0x760 fs/io_uring.c:9798
+ io_uring_files_cancel include/linux/io_uring.h:16 [inline]
+ do_exit+0x265/0x2a30 kernel/exit.c:780
+ do_group_exit+0x125/0x310 kernel/exit.c:922
+ get_signal+0x47f/0x2160 kernel/signal.c:2868
+ arch_do_signal_or_restart+0x2a9/0x1c40 arch/x86/kernel/signal.c:865
+ handle_signal_work kernel/entry/common.c:148 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x17d/0x290 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:300
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f6718cf4279
+RSP: 002b:00007f6718ca51f8 EFLAGS: 00000246 ORIG_RAX: 00000000000001aa
+RAX: 00000000000002ff RBX: 00007f6718d7c408 RCX: 00007f6718cf4279
+RDX: 0000000000000000 RSI: 00000000000002ff RDI: 0000000000000003
+RBP: 00007f6718d7c400 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f6718d7c40c
+R13: 00007fff127612df R14: 00007f6718ca5300 R15: 0000000000022000
+
+Showing all locks held in the system:
+1 lock held by khungtaskd/26:
+ #0: ffffffff8b981b60 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x53/0x260 kernel/locking/lockdep.c:6446
+1 lock held by in:imklog/6259:
+ #0: ffff88801d9885f0 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0xe9/0x100 fs/file.c:990
+1 lock held by syz-executor209/6560:
+ #0: ffff8880786e20a8 (&ctx->uring_lock){+.+.}-{3:3}, at: io_uring_del_tctx_node+0x105/0x350 fs/io_uring.c:9694
+1 lock held by syz-executor209/6563:
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 26 Comm: khungtaskd Not tainted 5.15.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x47/0x144 lib/nmi_backtrace.c:105
+ nmi_trigger_cpumask_backtrace+0x1ae/0x220 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:210 [inline]
+ watchdog+0xc1d/0xf50 kernel/hung_task.c:295
+ kthread+0x3e5/0x4d0 kernel/kthread.c:319
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:295
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 6563 Comm: syz-executor209 Not tainted 5.15.0-rc6-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__lock_acquire+0xd49/0x54a0 kernel/locking/lockdep.c:5025
+Code: 03 0f b6 04 02 84 c0 74 0d 3c 03 7f 09 48 8b 3c 24 e8 cb 56 62 00 41 8b 85 18 0a 00 00 83 c0 01 83 f8 2f 41 89 85 18 0a 00 00 <0f> 87 18 0b 00 00 3b 05 fb 20 e9 0d 41 be 01 00 00 00 0f 86 c8 00
+RSP: 0018:ffffc9000249f558 EFLAGS: 00000093
+RAX: 0000000000000002 RBX: 000000002e9fb5d5 RCX: 2bef69cb239427f6
+RDX: 1ffff110030644d3 RSI: 0000000000000001 RDI: ffffffff8fd01c40
+RBP: 0000000000000003 R08: 0000000000000000 R09: ffffffff8fcff9e7
+R10: fffffbfff1f9ff3c R11: 0000000000086089 R12: ffff8880183226c8
+R13: ffff888018321c80 R14: 0000000000000000 R15: 2bef69cb239427f6
+FS:  00007f6718c42700(0000) GS:ffff8880b9d00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f6718d49498 CR3: 0000000019aa0000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ lock_acquire kernel/locking/lockdep.c:5625 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+ rcu_lock_acquire include/linux/rcupdate.h:267 [inline]
+ rcu_read_lock include/linux/rcupdate.h:687 [inline]
+ is_bpf_text_address+0x36/0x170 kernel/bpf/core.c:706
+ kernel_text_address kernel/extable.c:151 [inline]
+ kernel_text_address+0xbd/0xf0 kernel/extable.c:120
+ __kernel_text_address+0x9/0x30 kernel/extable.c:105
+ unwind_get_return_address arch/x86/kernel/unwind_orc.c:318 [inline]
+ unwind_get_return_address+0x51/0x90 arch/x86/kernel/unwind_orc.c:313
+ arch_stack_walk+0x93/0xe0 arch/x86/kernel/stacktrace.c:26
+ stack_trace_save+0x8c/0xc0 kernel/stacktrace.c:121
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:434 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:513 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:472 [inline]
+ __kasan_kmalloc+0xa4/0xd0 mm/kasan/common.c:522
+ kmalloc include/linux/slab.h:591 [inline]
+ io_add_buffers fs/io_uring.c:4385 [inline]
+ io_provide_buffers fs/io_uring.c:4419 [inline]
+ io_issue_sqe+0x3289/0x7180 fs/io_uring.c:6731
+ __io_queue_sqe+0x90/0xb50 fs/io_uring.c:6960
+ io_req_task_submit+0xbf/0x1b0 fs/io_uring.c:2234
+ tctx_task_work+0x189/0x6c0 fs/io_uring.c:2159
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ tracehook_notify_signal include/linux/tracehook.h:214 [inline]
+ handle_signal_work kernel/entry/common.c:146 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:172 [inline]
+ exit_to_user_mode_prepare+0x256/0x290 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:300
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f6718cf4279
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 11 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f6718c421f8 EFLAGS: 00000246 ORIG_RAX: 00000000000001aa
+RAX: 00000000000002ff RBX: 00007f6718d7c438 RCX: 00007f6718cf4279
+RDX: 0000000000000000 RSI: 00000000000002ff RDI: 0000000000000003
+RBP: 00007f6718d7c430 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f6718d7c43c
+R13: 00007fff127612df R14: 00007f6718c42300 R15: 0000000000022000
+INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 1.811 msecs
+----------------
+Code disassembly (best guess):
+   0:	03 0f                	add    (%rdi),%ecx
+   2:	b6 04                	mov    $0x4,%dh
+   4:	02 84 c0 74 0d 3c 03 	add    0x33c0d74(%rax,%rax,8),%al
+   b:	7f 09                	jg     0x16
+   d:	48 8b 3c 24          	mov    (%rsp),%rdi
+  11:	e8 cb 56 62 00       	callq  0x6256e1
+  16:	41 8b 85 18 0a 00 00 	mov    0xa18(%r13),%eax
+  1d:	83 c0 01             	add    $0x1,%eax
+  20:	83 f8 2f             	cmp    $0x2f,%eax
+  23:	41 89 85 18 0a 00 00 	mov    %eax,0xa18(%r13)
+* 2a:	0f 87 18 0b 00 00    	ja     0xb48 <-- trapping instruction
+  30:	3b 05 fb 20 e9 0d    	cmp    0xde920fb(%rip),%eax        # 0xde92131
+  36:	41 be 01 00 00 00    	mov    $0x1,%r14d
+  3c:	0f                   	.byte 0xf
+  3d:	86 c8                	xchg   %cl,%al

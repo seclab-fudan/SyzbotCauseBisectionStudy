@@ -1,0 +1,79 @@
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KASAN: slab-out-of-bounds in memcpy include/linux/string.h:345 [inline]
+BUG: KASAN: slab-out-of-bounds in wp384_final+0x93/0xe0 crypto/wp512.c:1105
+Write of size 48 at addr ffff8801b70856b0 by task syz-executor188/4473
+
+CPU: 1 PID: 4473 Comm: syz-executor188 Not tainted 4.17.0+ #92
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+ memcpy+0x37/0x50 mm/kasan/kasan.c:303
+ memcpy include/linux/string.h:345 [inline]
+ wp384_final+0x93/0xe0 crypto/wp512.c:1105
+ crypto_shash_final+0x104/0x260 crypto/shash.c:152
+ kdf_ctr security/keys/dh.c:186 [inline]
+ keyctl_dh_compute_kdf security/keys/dh.c:217 [inline]
+ __keyctl_dh_compute+0x1184/0x1bc0 security/keys/dh.c:389
+ keyctl_dh_compute+0xb9/0x100 security/keys/dh.c:425
+ __do_sys_keyctl security/keys/keyctl.c:1741 [inline]
+ __se_sys_keyctl security/keys/keyctl.c:1637 [inline]
+ __x64_sys_keyctl+0x12a/0x3b0 security/keys/keyctl.c:1637
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440019
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 6b 45 00 00 c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007ffd31e8d908 EFLAGS: 00000217 ORIG_RAX: 00000000000000fa
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440019
+RDX: 0000000020000300 RSI: 0000000020000040 RDI: 0000000000000017
+RBP: 00000000006ca018 R08: 0000000020c61fc8 R09: 00000000004002c8
+R10: 00000000000000fb R11: 0000000000000217 R12: 0000000000401940
+R13: 00000000004019d0 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 4473:
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ __do_kmalloc mm/slab.c:3718 [inline]
+ __kmalloc+0x14e/0x760 mm/slab.c:3727
+ kmalloc include/linux/slab.h:518 [inline]
+ keyctl_dh_compute_kdf security/keys/dh.c:211 [inline]
+ __keyctl_dh_compute+0xfe9/0x1bc0 security/keys/dh.c:389
+ keyctl_dh_compute+0xb9/0x100 security/keys/dh.c:425
+ __do_sys_keyctl security/keys/keyctl.c:1741 [inline]
+ __se_sys_keyctl security/keys/keyctl.c:1637 [inline]
+ __x64_sys_keyctl+0x12a/0x3b0 security/keys/keyctl.c:1637
+ do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff8801b70855c0
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 240 bytes inside of
+ 256-byte region [ffff8801b70855c0, ffff8801b70856c0)
+The buggy address belongs to the page:
+page:ffffea0006dc2140 count:1 mapcount:0 mapping:ffff8801da8007c0 index:0x0
+flags: 0x2fffc0000000100(slab)
+raw: 02fffc0000000100 ffffea0006bb01c8 ffff8801da801648 ffff8801da8007c0
+raw: 0000000000000000 ffff8801b70850c0 000000010000000c 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8801b7085580: fc fc fc fc fc fc fc fc 00 00 00 00 00 00 00 00
+ ffff8801b7085600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8801b7085680: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+                                           ^
+ ffff8801b7085700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8801b7085780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

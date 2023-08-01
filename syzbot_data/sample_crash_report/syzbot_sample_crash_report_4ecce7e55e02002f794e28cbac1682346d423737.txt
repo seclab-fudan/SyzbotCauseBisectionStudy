@@ -1,0 +1,79 @@
+ release_pages+0xcb1/0x1330 mm/swap.c:1072
+ tlb_batch_pages_flush+0xa8/0x1a0 mm/mmu_gather.c:97
+ tlb_flush_mmu_free mm/mmu_gather.c:292 [inline]
+ tlb_flush_mmu mm/mmu_gather.c:299 [inline]
+ tlb_finish_mmu+0x14b/0x7e0 mm/mmu_gather.c:391
+ unmap_region+0x23d/0x2d0 mm/mmap.c:2146
+ do_vmi_align_munmap+0x9ca/0xf60 mm/mmap.c:2395
+ do_vmi_munmap+0x26e/0x2c0 mm/mmap.c:2452
+ __vm_munmap+0x136/0x280 mm/mmap.c:2731
+ __do_sys_munmap mm/mmap.c:2756 [inline]
+ __se_sys_munmap mm/mmap.c:2753 [inline]
+ __x64_sys_munmap+0x59/0x80 mm/mmap.c:2753
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+------------[ cut here ]------------
+kernel BUG at mm/mmu_gather.c:139!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 5122 Comm: syz-executor458 Not tainted 6.2.0-rc7-next-20230208-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+RIP: 0010:__tlb_remove_page_size+0x24c/0x480 mm/mmu_gather.c:139
+Code: 01 00 00 8b 6d 0c e9 e1 fe ff ff e8 ae 4e c1 ff 0f 0b e8 a7 4e c1 ff 4c 89 f7 48 c7 c6 00 7b 58 8a 48 83 e7 fc e8 04 f6 f9 ff <0f> 0b e8 8d 4e c1 ff 4c 8d 6b 24 48 b8 00 00 00 00 00 fc ff df 4c
+RSP: 0018:ffffc90003c7f8d8 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: ffffc90003c7fcd8 RCX: 0000000000000000
+RDX: ffff88801dda3a80 RSI: ffffffff81c31f4c RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000001 R09: ffffffff8e75bd17
+R10: fffffbfff1ceb7a2 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000001 R14: ffffea0001cbbd40 R15: ffffc90003c7fd00
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f8701e621d0 CR3: 0000000072aa7000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __tlb_remove_page include/asm-generic/tlb.h:472 [inline]
+ zap_pte_range mm/memory.c:1416 [inline]
+ zap_pmd_range mm/memory.c:1536 [inline]
+ zap_pud_range mm/memory.c:1565 [inline]
+ zap_p4d_range mm/memory.c:1586 [inline]
+ unmap_page_range+0x1226/0x3ce0 mm/memory.c:1607
+ unmap_single_vma+0x194/0x2a0 mm/memory.c:1653
+ unmap_vmas+0x234/0x380 mm/memory.c:1692
+ exit_mmap+0x190/0x7d0 mm/mmap.c:3036
+ __mmput+0x128/0x4c0 kernel/fork.c:1209
+ mmput+0x60/0x70 kernel/fork.c:1231
+ exit_mm kernel/exit.c:563 [inline]
+ do_exit+0x9d7/0x2b60 kernel/exit.c:856
+ do_group_exit+0xd4/0x2a0 kernel/exit.c:1019
+ __do_sys_exit_group kernel/exit.c:1030 [inline]
+ __se_sys_exit_group kernel/exit.c:1028 [inline]
+ __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:1028
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f8701decc09
+Code: Unable to access opcode bytes at 0x7f8701decbdf.
+RSP: 002b:00007ffdfa7ac068 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007f8701e61330 RCX: 00007f8701decc09
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
+RBP: 0000000000000000 R08: ffffffffffffffc0 R09: 0000000000000000
+R10: 000000000001dd00 R11: 0000000000000246 R12: 00007f8701e61330
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__tlb_remove_page_size+0x24c/0x480 mm/mmu_gather.c:139
+Code: 01 00 00 8b 6d 0c e9 e1 fe ff ff e8 ae 4e c1 ff 0f 0b e8 a7 4e c1 ff 4c 89 f7 48 c7 c6 00 7b 58 8a 48 83 e7 fc e8 04 f6 f9 ff <0f> 0b e8 8d 4e c1 ff 4c 8d 6b 24 48 b8 00 00 00 00 00 fc ff df 4c
+RSP: 0018:ffffc90003c7f8d8 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: ffffc90003c7fcd8 RCX: 0000000000000000
+RDX: ffff88801dda3a80 RSI: ffffffff81c31f4c RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000001 R09: ffffffff8e75bd17
+R10: fffffbfff1ceb7a2 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000001 R14: ffffea0001cbbd40 R15: ffffc90003c7fd00
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f8701e621d0 CR3: 0000000072aa7000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

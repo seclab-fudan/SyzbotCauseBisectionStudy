@@ -1,0 +1,104 @@
+==================================================================
+BUG: KASAN: use-after-free in __read_once_size include/linux/compiler.h:193 [inline]
+BUG: KASAN: use-after-free in task_css include/linux/cgroup.h:480 [inline]
+BUG: KASAN: use-after-free in mem_cgroup_from_task mm/memcontrol.c:822 [inline]
+BUG: KASAN: use-after-free in get_mem_cgroup_from_mm mm/memcontrol.c:851 [inline]
+BUG: KASAN: use-after-free in get_mem_cgroup_from_mm+0x28f/0x2b0 mm/memcontrol.c:834
+Read of size 8 at addr ffff888092ddb798 by task syz-executor297/7798
+
+CPU: 0 PID: 7798 Comm: syz-executor297 Not tainted 5.1.0-rc5+ #70
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ __read_once_size include/linux/compiler.h:193 [inline]
+ task_css include/linux/cgroup.h:480 [inline]
+ mem_cgroup_from_task mm/memcontrol.c:822 [inline]
+ get_mem_cgroup_from_mm mm/memcontrol.c:851 [inline]
+ get_mem_cgroup_from_mm+0x28f/0x2b0 mm/memcontrol.c:834
+ mem_cgroup_try_charge+0x238/0x5e0 mm/memcontrol.c:5932
+ mcopy_atomic_pte mm/userfaultfd.c:71 [inline]
+ mfill_atomic_pte mm/userfaultfd.c:418 [inline]
+ __mcopy_atomic mm/userfaultfd.c:559 [inline]
+ mcopy_atomic+0x893/0x2600 mm/userfaultfd.c:609
+ userfaultfd_copy fs/userfaultfd.c:1713 [inline]
+ userfaultfd_ioctl+0x4d8/0x3aa0 fs/userfaultfd.c:1859
+ vfs_ioctl fs/ioctl.c:46 [inline]
+ file_ioctl fs/ioctl.c:509 [inline]
+ do_vfs_ioctl+0xd6e/0x1390 fs/ioctl.c:696
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:713
+ __do_sys_ioctl fs/ioctl.c:720 [inline]
+ __se_sys_ioctl fs/ioctl.c:718 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:718
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4471a9
+Code: e8 4c bb 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 5b 07 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f38c1852db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000006dcc38 RCX: 00000000004471a9
+RDX: 0000000020000100 RSI: 00000000c028aa03 RDI: 0000000000000004
+RBP: 00000000006dcc30 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dcc3c
+R13: 00007ffc17c2d00f R14: 00007f38c18539c0 R15: 0000000000000001
+
+Allocated by task 7797:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:505
+ slab_post_alloc_hook mm/slab.h:437 [inline]
+ slab_alloc_node mm/slab.c:3337 [inline]
+ kmem_cache_alloc_node+0x131/0x710 mm/slab.c:3647
+ alloc_task_struct_node kernel/fork.c:157 [inline]
+ dup_task_struct kernel/fork.c:844 [inline]
+ copy_process.part.0+0x1d08/0x7980 kernel/fork.c:1752
+ copy_process kernel/fork.c:1709 [inline]
+ _do_fork+0x257/0xfd0 kernel/fork.c:2226
+ __do_sys_clone kernel/fork.c:2333 [inline]
+ __se_sys_clone kernel/fork.c:2327 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2327
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7797:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+ __cache_free mm/slab.c:3500 [inline]
+ kmem_cache_free+0x86/0x260 mm/slab.c:3766
+ free_task_struct kernel/fork.c:162 [inline]
+ free_task+0xdd/0x120 kernel/fork.c:457
+ copy_process.part.0+0x1a3a/0x7980 kernel/fork.c:2158
+ copy_process kernel/fork.c:1709 [inline]
+ _do_fork+0x257/0xfd0 kernel/fork.c:2226
+ __do_sys_clone kernel/fork.c:2333 [inline]
+ __se_sys_clone kernel/fork.c:2327 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2327
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888092dda6c0
+ which belongs to the cache task_struct(17:syz0) of size 6080
+The buggy address is located 4312 bytes inside of
+ 6080-byte region [ffff888092dda6c0, ffff888092ddbe80)
+The buggy address belongs to the page:
+page:ffffea00024b7680 count:1 mapcount:0 mapping:ffff88808d1a2480 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea00024b7608 ffffea000250c608 ffff88808d1a2480
+raw: 0000000000000000 ffff888092dda6c0 0000000100000001 ffff888096d0c180
+page dumped because: kasan: bad access detected
+page->mem_cgroup:ffff888096d0c180
+
+Memory state around the buggy address:
+ ffff888092ddb680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888092ddb700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888092ddb780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff888092ddb800: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888092ddb880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

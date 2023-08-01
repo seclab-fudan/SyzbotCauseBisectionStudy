@@ -1,0 +1,66 @@
+Unable to handle kernel paging request at virtual address fffffbffeff95a14
+Mem abort info:
+  ESR = 0x0000000096000007
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x07: level 3 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000007
+  CM = 0, WnR = 0
+swapper pgtable: 4k pages, 48-bit VAs, pgdp=00000001c5736000
+[fffffbffeff95a14] pgd=00000001c60f0003, p4d=00000001c60f0003, pud=00000001c60f1003, pmd=1000000100eac003, pte=0000000000000000
+Internal error: Oops: 96000007 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 3224 Comm: syz-fuzzer Not tainted 6.0.0-rc2-syzkaller-16455-ga41a877bc12d #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+pstate: 00400005 (nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __percpu_add_case_32 arch/arm64/include/asm/percpu.h:127 [inline]
+pc : sock_prot_inuse_add include/net/sock.h:1527 [inline]
+pc : inet_unhash+0x11c/0x258 net/ipv4/inet_hashtables.c:672
+lr : __hlist_nulls_del include/linux/list_nulls.h:109 [inline]
+lr : hlist_nulls_del_init_rcu include/linux/rculist_nulls.h:36 [inline]
+lr : __sk_nulls_del_node_init_rcu include/net/sock.h:801 [inline]
+lr : inet_unhash+0xe4/0x258 net/ipv4/inet_hashtables.c:671
+sp : ffff80001394baa0
+x29: ffff80001394baa0 x28: dead000000000122 x27: ffff80001394bcc8
+x26: 000000003f400000 x25: 0000000000000003 x24: 0000000000005dc0
+x23: ffff80000d2fb000 x22: 0000000000016ac7 x21: ffff0000fd093500
+x20: ffff0000c10a8ac0 x19: ffff0000cacb1700 x18: 00000000000000c0
+x17: ffff80000dd7a698 x16: ffff80000dbb8658 x15: ffff0000fd093500
+x14: 0000000000000000 x13: 0000007fffffffff x12: ffff0000fd093500
+x11: ff8080000b5e9378 x10: ffff8001f1cf1000 x9 : 00000000ffffffff
+x8 : fffffbffeff95a14 x7 : ffff80000b5e9338 x6 : 0000000000000000
+x5 : ffff80000e235900 x4 : 0000000000000008 x3 : ffff80000dbff3c8
+x2 : 0000000000000001 x1 : 0000000000000001 x0 : 0000000000000000
+Call trace:
+ sock_prot_inuse_add include/net/sock.h:1527 [inline]
+ inet_unhash+0x11c/0x258 net/ipv4/inet_hashtables.c:672
+ tcp_set_state+0x274/0x444 net/ipv4/tcp.c:2736
+ tcp_done+0xdc/0x260 net/ipv4/tcp.c:4621
+ tcp_out_of_resources+0xfc/0x184 net/ipv4/tcp_timer.c:132
+ tcp_probe_timer net/ipv4/tcp_timer.c:385 [inline]
+ tcp_write_timer_handler+0x2d0/0x35c net/ipv4/tcp_timer.c:624
+ tcp_write_timer+0x118/0x208 net/ipv4/tcp_timer.c:637
+ call_timer_fn+0x90/0x144 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers+0x280/0x374 kernel/time/timer.c:1790
+ run_timer_softirq+0x34/0x5c kernel/time/timer.c:1803
+ _stext+0x168/0x37c
+ do_softirq_own_stack include/asm-generic/softirq_stack.h:10 [inline]
+ invoke_softirq+0x70/0xbc kernel/softirq.c:452
+ __irq_exit_rcu+0xf0/0x140 kernel/softirq.c:650
+ irq_exit_rcu+0x10/0x40 kernel/softirq.c:662
+ el0_interrupt+0x7c/0x1bc arch/arm64/kernel/entry-common.c:704
+ __el0_irq_handler_common+0x18/0x24 arch/arm64/kernel/entry-common.c:711
+ el0t_64_irq_handler+0x10/0x1c arch/arm64/kernel/entry-common.c:716
+ el0t_64_irq+0x18c/0x190
+Code: 8b090908 8b0a0108 91001108 12800009 (b829011f) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	8b090908 	add	x8, x8, x9, lsl #2
+   4:	8b0a0108 	add	x8, x8, x10
+   8:	91001108 	add	x8, x8, #0x4
+   c:	12800009 	mov	w9, #0xffffffff            	// #-1
+* 10:	b829011f 	stadd	w9, [x8] <-- trapping instruction

@@ -1,0 +1,41 @@
+=====================================
+WARNING: bad unlock balance detected!
+5.5.0-rc4-syzkaller #0 Not tainted
+-------------------------------------
+kworker/u4:8/469 is trying to release lock (&file->mut) at:
+[<ffffffff85a7a1c1>] ucma_event_handler+0x711/0xef0 drivers/infiniband/core/ucma.c:389
+but there are no more locks to release!
+
+other info that might help us debug this:
+4 locks held by kworker/u4:8/469:
+ #0: ffff88821aa98928 ((wq_completion)ib_addr){+.+.}, at: __write_once_size include/linux/compiler.h:226 [inline]
+ #0: ffff88821aa98928 ((wq_completion)ib_addr){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: ffff88821aa98928 ((wq_completion)ib_addr){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:855 [inline]
+ #0: ffff88821aa98928 ((wq_completion)ib_addr){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:40 [inline]
+ #0: ffff88821aa98928 ((wq_completion)ib_addr){+.+.}, at: set_work_data kernel/workqueue.c:615 [inline]
+ #0: ffff88821aa98928 ((wq_completion)ib_addr){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:642 [inline]
+ #0: ffff88821aa98928 ((wq_completion)ib_addr){+.+.}, at: process_one_work+0x88b/0x1740 kernel/workqueue.c:2235
+ #1: ffffc90002157dc0 ((work_completion)(&(&req->work)->work)){+.+.}, at: process_one_work+0x8c1/0x1740 kernel/workqueue.c:2239
+ #2: ffff8880a878a390 (&id_priv->handler_mutex){+.+.}, at: addr_handler+0xaf/0x3d0 drivers/infiniband/core/cma.c:3059
+ #3: ffff88809dc14060 (&file->mut){+.+.}, at: ucma_event_handler+0xb3/0xef0 drivers/infiniband/core/ucma.c:349
+
+stack backtrace:
+CPU: 1 PID: 469 Comm: kworker/u4:8 Not tainted 5.5.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: ib_addr process_one_req
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_unlock_imbalance_bug kernel/locking/lockdep.c:4008 [inline]
+ print_unlock_imbalance_bug.cold+0x114/0x123 kernel/locking/lockdep.c:3984
+ __lock_release kernel/locking/lockdep.c:4242 [inline]
+ lock_release+0x5f2/0x960 kernel/locking/lockdep.c:4503
+ __mutex_unlock_slowpath+0x86/0x6a0 kernel/locking/mutex.c:1228
+ mutex_unlock+0xd/0x10 kernel/locking/mutex.c:740
+ ucma_event_handler+0x711/0xef0 drivers/infiniband/core/ucma.c:389
+ addr_handler+0x2e9/0x3d0 drivers/infiniband/core/cma.c:3092
+ process_one_req+0x106/0x680 drivers/infiniband/core/addr.c:643
+ process_one_work+0x9af/0x1740 kernel/workqueue.c:2264
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2410
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352

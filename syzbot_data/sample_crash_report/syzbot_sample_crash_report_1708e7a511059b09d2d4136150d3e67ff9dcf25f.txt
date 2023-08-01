@@ -1,0 +1,93 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in decode_data.part.0+0x23b/0x270 drivers/net/hamradio/6pack.c:843
+Write of size 1 at addr ffff888087c5544e by task kworker/u4:0/7
+
+CPU: 0 PID: 7 Comm: kworker/u4:0 Not tainted 5.6.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_unbound flush_to_ldisc
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x32 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:641
+ __asan_report_store1_noabort+0x17/0x20 mm/kasan/generic_report.c:137
+ decode_data.part.0+0x23b/0x270 drivers/net/hamradio/6pack.c:843
+ decode_data drivers/net/hamradio/6pack.c:965 [inline]
+ sixpack_decode drivers/net/hamradio/6pack.c:968 [inline]
+ sixpack_receive_buf drivers/net/hamradio/6pack.c:458 [inline]
+ sixpack_receive_buf+0xde4/0x1420 drivers/net/hamradio/6pack.c:435
+ tty_ldisc_receive_buf+0x15f/0x1c0 drivers/tty/tty_buffer.c:465
+ tty_port_default_receive_buf+0x7d/0xb0 drivers/tty/tty_port.c:38
+ receive_buf drivers/tty/tty_buffer.c:481 [inline]
+ flush_to_ldisc+0x222/0x390 drivers/tty/tty_buffer.c:533
+ process_one_work+0xa05/0x17a0 kernel/workqueue.c:2264
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2410
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 10835:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:488
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:529
+ __do_kmalloc_node mm/slab.c:3616 [inline]
+ __kmalloc_node+0x4e/0x70 mm/slab.c:3623
+ kmalloc_node include/linux/slab.h:578 [inline]
+ kvmalloc_node+0x68/0x100 mm/util.c:574
+ kvmalloc include/linux/mm.h:645 [inline]
+ kvzalloc include/linux/mm.h:653 [inline]
+ alloc_netdev_mqs+0x98/0xe40 net/core/dev.c:9785
+ sixpack_open+0x104/0xaaf drivers/net/hamradio/6pack.c:563
+ tty_ldisc_open.isra.0+0xa3/0x110 drivers/tty/tty_ldisc.c:464
+ tty_set_ldisc+0x30e/0x6b0 drivers/tty/tty_ldisc.c:591
+ tiocsetd drivers/tty/tty_io.c:2337 [inline]
+ tty_ioctl+0xe8d/0x14f0 drivers/tty/tty_io.c:2597
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ ksys_ioctl+0x123/0x180 fs/ioctl.c:763
+ __do_sys_ioctl fs/ioctl.c:772 [inline]
+ __se_sys_ioctl fs/ioctl.c:770 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:770
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 10612:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:476
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:485
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ tomoyo_realpath_from_path+0x1a7/0x660 security/tomoyo/realpath.c:289
+ tomoyo_get_realpath security/tomoyo/file.c:151 [inline]
+ tomoyo_path_number_perm+0x1dd/0x520 security/tomoyo/file.c:723
+ tomoyo_file_ioctl+0x23/0x30 security/tomoyo/tomoyo.c:335
+ security_file_ioctl+0x77/0xc0 security/security.c:1441
+ ksys_ioctl+0x56/0x180 fs/ioctl.c:757
+ __do_sys_ioctl fs/ioctl.c:772 [inline]
+ __se_sys_ioctl fs/ioctl.c:770 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:770
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888087c54000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 1102 bytes to the right of
+ 4096-byte region [ffff888087c54000, ffff888087c55000)
+The buggy address belongs to the page:
+page:ffffea00021f1500 refcount:1 mapcount:0 mapping:ffff8880aa402000 index:0x0 compound_mapcount: 0
+flags: 0xfffe0000010200(slab|head)
+raw: 00fffe0000010200 ffffea0002515008 ffffea00025e1708 ffff8880aa402000
+raw: 0000000000000000 ffff888087c54000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888087c55300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888087c55380: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888087c55400: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                              ^
+ ffff888087c55480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888087c55500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

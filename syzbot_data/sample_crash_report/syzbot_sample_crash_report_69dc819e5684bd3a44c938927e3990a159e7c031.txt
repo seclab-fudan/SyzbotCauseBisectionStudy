@@ -1,0 +1,66 @@
+BUG: unable to handle page fault for address: ffffdc0000000013
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD 11826067 P4D 11826067 PUD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 55 Comm: kworker/u4:4 Not tainted 6.0.0-rc1-next-20220816-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
+Workqueue: events_unbound call_usermodehelper_exec_work
+RIP: 0010:copy_namespaces+0xe8/0x480 kernel/nsproxy.c:154
+Code: ee 6a 2b 00 45 85 ed 0f 84 d4 01 00 00 e8 20 6e 2b 00 49 8d bf 98 00 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 42 03 00 00 4d 8b bf 98 00 00 00 e8 82 b9 15 00
+RSP: 0000:ffffc90001567900 EFLAGS: 00010a02
+RAX: dffffc0000000000 RBX: ffff8880201e0000 RCX: 0000000000000000
+RDX: 1fffe00000000013 RSI: ffffffff8150a700 RDI: ffff000000000098
+RBP: ffff000000000000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000808100
+R13: 0000000000000001 R14: ffff8880201e08a0 R15: ffff000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffdc0000000013 CR3: 000000000bc8e000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ copy_process+0x308a/0x7120 kernel/fork.c:2260
+ kernel_clone+0xe7/0xab0 kernel/fork.c:2675
+ user_mode_thread+0xad/0xe0 kernel/fork.c:2744
+ call_usermodehelper_exec_work kernel/umh.c:174 [inline]
+ call_usermodehelper_exec_work+0xcc/0x180 kernel/umh.c:160
+ process_one_work+0x991/0x1610 kernel/workqueue.c:2312
+ worker_thread+0x665/0x1080 kernel/workqueue.c:2459
+ kthread+0x2e4/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+CR2: ffffdc0000000013
+---[ end trace 0000000000000000 ]---
+RIP: 0010:copy_namespaces+0xe8/0x480 kernel/nsproxy.c:154
+Code: ee 6a 2b 00 45 85 ed 0f 84 d4 01 00 00 e8 20 6e 2b 00 49 8d bf 98 00 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 42 03 00 00 4d 8b bf 98 00 00 00 e8 82 b9 15 00
+RSP: 0000:ffffc90001567900 EFLAGS: 00010a02
+RAX: dffffc0000000000 RBX: ffff8880201e0000 RCX: 0000000000000000
+RDX: 1fffe00000000013 RSI: ffffffff8150a700 RDI: ffff000000000098
+RBP: ffff000000000000 R08: 0000000000000005 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000808100
+R13: 0000000000000001 R14: ffff8880201e08a0 R15: ffff000000000000
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffdc0000000013 CR3: 000000000bc8e000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	ee                   	out    %al,(%dx)
+   1:	6a 2b                	pushq  $0x2b
+   3:	00 45 85             	add    %al,-0x7b(%rbp)
+   6:	ed                   	in     (%dx),%eax
+   7:	0f 84 d4 01 00 00    	je     0x1e1
+   d:	e8 20 6e 2b 00       	callq  0x2b6e32
+  12:	49 8d bf 98 00 00 00 	lea    0x98(%r15),%rdi
+  19:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  20:	fc ff df
+  23:	48 89 fa             	mov    %rdi,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	0f 85 42 03 00 00    	jne    0x376
+  34:	4d 8b bf 98 00 00 00 	mov    0x98(%r15),%r15
+  3b:	e8 82 b9 15 00       	callq  0x15b9c2

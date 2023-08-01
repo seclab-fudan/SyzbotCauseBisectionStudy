@@ -1,0 +1,75 @@
+INFO: task syz-executor931:6845 blocked for more than 143 seconds.
+      Not tainted 5.9.0-rc8-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor931 state:D stack:28128 pid: 6845 ppid:  6839 flags:0x00004000
+Call Trace:
+ context_switch kernel/sched/core.c:3778 [inline]
+ __schedule+0x9b9/0xd20 kernel/sched/core.c:4527
+
+Showing all locks held in the system:
+2 locks held by kworker/u4:0/7:
+ #0: ffff88821ae2d138 ((wq_completion)writeback){+.+.}-{0:0}, at: process_one_work+0x6f4/0xfc0 kernel/workqueue.c:2242
+ #1: ffffc90000cdfd80 ((work_completion)(&(&wb->dwork)->work)){+.+.}-{0:0}, at: process_one_work+0x733/0xfc0 kernel/workqueue.c:2244
+1 lock held by khungtaskd/1178:
+ #0: ffffffff896fe550 (rcu_read_lock){....}-{1:2}, at: rcu_lock_acquire+0x0/0x30 arch/x86/pci/mmconfig_64.c:151
+1 lock held by in:imklog/6529:
+ #0: ffff8880a9243630 (&f->f_pos_lock){+.+.}-{3:3}, at: __fdget_pos+0x253/0x2f0 fs/file.c:930
+2 locks held by syz-executor931/6845:
+ #0: ffff8880939060e0 (&type->s_umount_key#49){+.+.}-{3:3}, at: deactivate_super+0x96/0xd0 fs/super.c:365
+ #1: ffff8880a12aa730 (&bdi->wb_switch_rwsem){+.+.}-{3:3}, at: bdi_down_write_wb_switch_rwsem fs/fs-writeback.c:344 [inline]
+ #1: ffff8880a12aa730 (&bdi->wb_switch_rwsem){+.+.}-{3:3}, at: sync_inodes_sb+0x1d3/0x9b0 fs/fs-writeback.c:2556
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 1178 Comm: khungtaskd Not tainted 5.9.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d6/0x29e lib/dump_stack.c:118
+ nmi_cpu_backtrace+0x9f/0x180 lib/nmi_backtrace.c:101
+ nmi_trigger_cpumask_backtrace+0x16a/0x280 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:146 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:209 [inline]
+ watchdog+0xd65/0xdb0 kernel/hung_task.c:295
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 6850 Comm: segctord Not tainted 5.9.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:arch_test_and_set_bit arch/x86/include/asm/bitops.h:138 [inline]
+RIP: 0010:arch_test_and_set_bit_lock arch/x86/include/asm/bitops.h:144 [inline]
+RIP: 0010:test_and_set_bit_lock include/asm-generic/bitops/instrumented-lock.h:56 [inline]
+RIP: 0010:trylock_page include/linux/pagemap.h:539 [inline]
+RIP: 0010:lock_page include/linux/pagemap.h:548 [inline]
+RIP: 0010:pagecache_get_page+0x123/0xe50 mm/filemap.c:1780
+Code: 01 31 ff e8 9f 76 dd ff 48 89 e8 48 83 e0 01 0f 85 d2 01 00 00 48 89 df be 08 00 00 00 e8 b5 26 1d 00 31 f6 f0 48 0f ba 2b 00 <0f> 92 c3 40 0f 92 c6 31 ff e8 8f 74 dd ff 84 db 0f 85 8c 00 00 00
+RSP: 0018:ffffc90005327730 EFLAGS: 00000246
+RAX: 0000000000000001 RBX: ffffea0002573240 RCX: ffffffff81978c1b
+RDX: 0000000000000001 RSI: 0000000000000000 RDI: ffffea0002573240
+RBP: ffffea0002349008 R08: dffffc0000000000 R09: fffff940004ae649
+R10: fffff940004ae649 R11: 0000000000000000 R12: 1ffffd40004ae649
+R13: ffffea0002573248 R14: dffffc0000000000 R15: 0000000000000007
+FS:  0000000000000000(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f4286aaa000 CR3: 0000000093ca3000 CR4: 00000000001506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ find_or_create_page include/linux/pagemap.h:349 [inline]
+ grab_cache_page include/linux/pagemap.h:425 [inline]
+ nilfs_grab_buffer+0x87/0x680 fs/nilfs2/page.c:57
+ nilfs_mdt_submit_block+0x81/0x6b0 fs/nilfs2/mdt.c:121
+ nilfs_mdt_read_block+0x46/0x3e0 fs/nilfs2/mdt.c:175
+ nilfs_mdt_get_block+0x3f/0xa0 fs/nilfs2/mdt.c:250
+ nilfs_sufile_get_segment_usage_block fs/nilfs2/sufile.c:92 [inline]
+ nilfs_sufile_set_segment_usage+0xdb/0x520 fs/nilfs2/sufile.c:525
+ nilfs_cancel_segusage fs/nilfs2/segment.c:1456 [inline]
+ nilfs_segctor_abort_construction+0x786/0xde0 fs/nilfs2/segment.c:1797
+ nilfs_segctor_do_construct+0x714b/0x78a0 fs/nilfs2/segment.c:2105
+ nilfs_segctor_construct+0x14b/0x940 fs/nilfs2/segment.c:2377
+ nilfs_segctor_thread_construct fs/nilfs2/segment.c:2485 [inline]
+ nilfs_segctor_thread+0x457/0x1040 fs/nilfs2/segment.c:2568
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294

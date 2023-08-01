@@ -1,0 +1,123 @@
+==================================================================
+BUG: KASAN: use-after-free in __xfrm_state_lookup+0x695/0x6b0 net/xfrm/xfrm_state.c:833
+Read of size 4 at addr ffff8801d434e538 by task syzkaller647520/2991
+
+CPU: 1 PID: 2991 Comm: syzkaller647520 Not tainted 4.14.0-rc5+ #89
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:16 [inline]
+ dump_stack+0x194/0x257 lib/dump_stack.c:52
+ print_address_description+0x73/0x250 mm/kasan/report.c:252
+ kasan_report_error mm/kasan/report.c:351 [inline]
+ kasan_report+0x25b/0x340 mm/kasan/report.c:409
+ __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+ __xfrm_state_lookup+0x695/0x6b0 net/xfrm/xfrm_state.c:833
+ xfrm_state_lookup+0x8a/0x160 net/xfrm/xfrm_state.c:1592
+ xfrm_input+0x8e5/0x22f0 net/xfrm/xfrm_input.c:302
+ xfrm6_rcv_spi net/ipv6/xfrm6_input.c:30 [inline]
+ xfrm6_rcv_tnl+0x168/0x1d0 net/ipv6/xfrm6_input.c:64
+ xfrm6_rcv+0x17/0x20 net/ipv6/xfrm6_input.c:71
+ xfrm6_ah_rcv+0x166/0x300 net/ipv6/xfrm6_protocol.c:101
+ ip6_input_finish+0x36f/0x1700 net/ipv6/ip6_input.c:284
+ NF_HOOK include/linux/netfilter.h:249 [inline]
+ ip6_input+0xe9/0x560 net/ipv6/ip6_input.c:327
+ dst_input include/net/dst.h:465 [inline]
+ ip6_rcv_finish+0x1a9/0x7a0 net/ipv6/ip6_input.c:71
+ NF_HOOK include/linux/netfilter.h:249 [inline]
+ ipv6_rcv+0xf28/0x1f80 net/ipv6/ip6_input.c:208
+ __netif_receive_skb_core+0x1a3e/0x34b0 net/core/dev.c:4477
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4542
+ process_backlog+0x203/0x740 net/core/dev.c:5221
+ napi_poll net/core/dev.c:5619 [inline]
+ net_rx_action+0x792/0x1910 net/core/dev.c:5685
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:284
+ do_softirq_own_stack+0x2a/0x40 arch/x86/entry/entry_64.S:957
+ </IRQ>
+ do_softirq.part.22+0x14d/0x190 kernel/softirq.c:328
+ do_softirq kernel/softirq.c:176 [inline]
+ __local_bh_enable_ip+0x135/0x160 kernel/softirq.c:181
+ local_bh_enable include/linux/bottom_half.h:31 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:727 [inline]
+ ip6_finish_output2+0xb26/0x22a0 net/ipv6/ip6_output.c:121
+ ip6_finish_output+0x2f9/0x920 net/ipv6/ip6_output.c:146
+ NF_HOOK_COND include/linux/netfilter.h:238 [inline]
+ ip6_output+0x1f4/0x850 net/ipv6/ip6_output.c:163
+ dst_output include/net/dst.h:459 [inline]
+ ip6_local_out+0x95/0x160 net/ipv6/output_core.c:176
+ ip6_send_skb+0xa1/0x330 net/ipv6/ip6_output.c:1658
+ ip6_push_pending_frames+0xb3/0xe0 net/ipv6/ip6_output.c:1678
+ rawv6_push_pending_frames net/ipv6/raw.c:616 [inline]
+ rawv6_sendmsg+0x2eb9/0x3e40 net/ipv6/raw.c:935
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:763
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ SYSC_sendto+0x352/0x5a0 net/socket.c:1750
+ SyS_sendto+0x40/0x50 net/socket.c:1718
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x4467c9
+RSP: 002b:00007f93ea848cf8 EFLAGS: 00000212 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000004467c9
+RDX: 00000000000007f1 RSI: 000000002013b7ff RDI: 0000000000000003
+RBP: 0000000000000000 R08: 00000000204e8fe4 R09: 000000000000001c
+R10: 0000000000000000 R11: 0000000000000212 R12: 0000000000000000
+R13: 00007ffca6cb535f R14: 00007f93ea8499c0 R15: 0000000000000000
+
+Allocated by task 2989:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+ __do_kmalloc_node mm/slab.c:3689 [inline]
+ __kmalloc_node_track_caller+0x47/0x70 mm/slab.c:3703
+ __kmalloc_reserve.isra.40+0x41/0xd0 net/core/skbuff.c:138
+ __alloc_skb+0x13b/0x780 net/core/skbuff.c:206
+ alloc_skb include/linux/skbuff.h:985 [inline]
+ sock_wmalloc+0x140/0x1d0 net/core/sock.c:1932
+ __ip6_append_data.isra.43+0x2681/0x3340 net/ipv6/ip6_output.c:1397
+ ip6_append_data+0x189/0x290 net/ipv6/ip6_output.c:1552
+ rawv6_sendmsg+0x1dd9/0x3e40 net/ipv6/raw.c:928
+ inet_sendmsg+0x11f/0x5e0 net/ipv4/af_inet.c:763
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ SYSC_sendto+0x352/0x5a0 net/socket.c:1750
+ SyS_sendto+0x40/0x50 net/socket.c:1718
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+
+Freed by task 2991:
+ save_stack_trace+0x16/0x20 arch/x86/kernel/stacktrace.c:59
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+ set_track mm/kasan/kasan.c:459 [inline]
+ kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+ __cache_free mm/slab.c:3503 [inline]
+ kfree+0xca/0x250 mm/slab.c:3820
+ skb_free_head+0x74/0xb0 net/core/skbuff.c:554
+ pskb_expand_head+0x36b/0x1210 net/core/skbuff.c:1494
+ __pskb_pull_tail+0x14a/0x17c0 net/core/skbuff.c:1877
+ pskb_may_pull include/linux/skbuff.h:2102 [inline]
+ xfrm_parse_spi+0x3d3/0x4d0 net/xfrm/xfrm_input.c:170
+ xfrm_input+0xce2/0x22f0 net/xfrm/xfrm_input.c:291
+ xfrm6_rcv_spi net/ipv6/xfrm6_input.c:30 [inline]
+ xfrm6_rcv_tnl+0x168/0x1d0 net/ipv6/xfrm6_input.c:64
+ xfrm6_rcv+0x17/0x20 net/ipv6/xfrm6_input.c:71
+ xfrm6_ah_rcv+0x166/0x300 net/ipv6/xfrm6_protocol.c:101
+ ip6_input_finish+0x36f/0x1700 net/ipv6/ip6_input.c:284
+ NF_HOOK include/linux/netfilter.h:249 [inline]
+ ip6_input+0xe9/0x560 net/ipv6/ip6_input.c:327
+ dst_input include/net/dst.h:465 [inline]
+ ip6_rcv_finish+0x1a9/0x7a0 net/ipv6/ip6_input.c:71
+ NF_HOOK include/linux/netfilter.h:249 [inline]
+ ipv6_rcv+0xf28/0x1f80 net/ipv6/ip6_input.c:208
+ __netif_receive_skb_core+0x1a3e/0x34b0 net/core/dev.c:4477
+ __netif_receive_skb+0x2c/0x1b0 net/core/dev.c:4542
+ process_backlog+0x203/0x740 net/core/dev.c:5221
+ napi_poll net/core/dev.c:5619 [inline]
+ net_rx_action+0x792/0x1910 net/core/dev.c:5685
+ __do_softirq+0x2d7/0xb85 kernel/softirq.c:284
+
+The buggy address belongs to the object at ffff8801d434e500
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 56 bytes inside of
+ 512-byte region [ffff8801d434e500, ffff8801d434e700)
+The buggy address belongs to the page:
+page:ffffea000750d380 count:1 mapcount:0 mapping:ffff8801d434e000 index:0x0

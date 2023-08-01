@@ -1,0 +1,139 @@
+INFO: task dhcpcd:5356 blocked for more than 147 seconds.
+      Not tainted 6.2.0-rc8-syzkaller-00019-g82eac0c830b7 #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:dhcpcd          state:D stack:26520 pid:5356  ppid:4646   flags:0x00000000
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5293 [inline]
+ __schedule+0xb8a/0x5450 kernel/sched/core.c:6606
+ schedule+0xde/0x1b0 kernel/sched/core.c:6682
+ synchronize_rcu_expedited+0x39f/0x780 kernel/rcu/tree_exp.h:961
+ synchronize_rcu+0x306/0x3b0 kernel/rcu/tree.c:3543
+ synchronize_net+0x4e/0x60 net/core/dev.c:10749
+ __unregister_prot_hook+0x48a/0x5a0 net/packet/af_packet.c:382
+ packet_do_bind+0x8bc/0xdc0 net/packet/af_packet.c:3227
+ packet_bind+0x156/0x1b0 net/packet/af_packet.c:3311
+ __sys_bind+0x1ed/0x260 net/socket.c:1776
+ __do_sys_bind net/socket.c:1787 [inline]
+ __se_sys_bind net/socket.c:1785 [inline]
+ __x64_sys_bind+0x73/0xb0 net/socket.c:1785
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f2779c8ece7
+RSP: 002b:00007ffc51a4f398 EFLAGS: 00000217 ORIG_RAX: 0000000000000031
+RAX: ffffffffffffffda RBX: 000055b9eafc7b60 RCX: 00007f2779c8ece7
+RDX: 0000000000000014 RSI: 00007ffc51a4f3a8 RDI: 0000000000000005
+RBP: 0000000000000000 R08: 000055b9eb236aa0 R09: 00007f2779d4fa60
+R10: 0000000000200000 R11: 0000000000000217 R12: 000055b9eb233630
+R13: 000055b9eb236318 R14: 00007ffc51a6fc7c R15: 00007ffc51a6fca4
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/12:
+ #0: ffffffff8c791750 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x26/0xc70 kernel/rcu/tasks.h:507
+1 lock held by rcu_tasks_trace/13:
+ #0: ffffffff8c791450 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x26/0xc70 kernel/rcu/tasks.h:507
+1 lock held by khungtaskd/27:
+ #0: ffffffff8c7922a0 (rcu_read_lock){....}-{1:2}, at: debug_show_all_locks+0x57/0x264 kernel/locking/lockdep.c:6494
+3 locks held by kworker/0:2/1107:
+2 locks held by getty/4749:
+ #0: ffff88814a10a098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x26/0x80 drivers/tty/tty_ldisc.c:244
+ #1: ffffc900015c02f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0xef4/0x13e0 drivers/tty/n_tty.c:2177
+1 lock held by syz-executor239/5347:
+ #0: ffffffff8c79cf78 (rcu_state.exp_mutex){+.+.}-{3:3}, at: exp_funnel_lock kernel/rcu/tree_exp.h:324 [inline]
+ #0: ffffffff8c79cf78 (rcu_state.exp_mutex){+.+.}-{3:3}, at: synchronize_rcu_expedited+0x24f/0x780 kernel/rcu/tree_exp.h:946
+2 locks held by dhcpcd/5356:
+ #0: ffff88807f1e0130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ #0: ffff88807f1e0130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: packet_do_bind+0x2f/0xdc0 net/packet/af_packet.c:3194
+ #1: ffffffff8c79cf78 (rcu_state.exp_mutex){+.+.}-{3:3}, at: exp_funnel_lock kernel/rcu/tree_exp.h:292 [inline]
+ #1: ffffffff8c79cf78 (rcu_state.exp_mutex){+.+.}-{3:3}, at: synchronize_rcu_expedited+0x5df/0x780 kernel/rcu/tree_exp.h:946
+1 lock held by dhcpcd/5396:
+ #0: ffff888028c00130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ #0: ffff888028c00130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: packet_do_bind+0x2f/0xdc0 net/packet/af_packet.c:3194
+1 lock held by dhcpcd/5398:
+ #0: ffff88807b61c130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ #0: ffff88807b61c130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: packet_do_bind+0x2f/0xdc0 net/packet/af_packet.c:3194
+1 lock held by dhcpcd/5399:
+ #0: ffff8881a8b4c130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ #0: ffff8881a8b4c130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: packet_do_bind+0x2f/0xdc0 net/packet/af_packet.c:3194
+1 lock held by dhcpcd/5400:
+ #0: ffff88801d158130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ #0: ffff88801d158130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: packet_do_bind+0x2f/0xdc0 net/packet/af_packet.c:3194
+1 lock held by dhcpcd/5406:
+ #0: ffff88801d62c130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1725 [inline]
+ #0: ffff88801d62c130 (sk_lock-AF_PACKET){+.+.}-{0:0}, at: packet_do_bind+0x2f/0xdc0 net/packet/af_packet.c:3194
+1 lock held by syz-executor239/5441:
+2 locks held by syz-executor239/5442:
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 27 Comm: khungtaskd Not tainted 6.2.0-rc8-syzkaller-00019-g82eac0c830b7 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ nmi_cpu_backtrace.cold+0x24/0x18a lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x333/0x3c0 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:220 [inline]
+ watchdog+0xc75/0xfc0 kernel/hung_task.c:377
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1
+CPU: 1 PID: 5447 Comm: syz-executor239 Not tainted 6.2.0-rc8-syzkaller-00019-g82eac0c830b7 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+RIP: 0010:lock_acquire+0x74/0x630 kernel/locking/lockdep.c:5636
+Code: 45 f1 8b 48 01 d8 48 c7 44 24 28 20 a6 63 81 c7 00 f1 f1 f1 f1 c7 40 04 f1 f1 00 00 c7 40 08 00 00 00 f3 c7 40 0c f3 f3 f3 f3 <65> 48 8b 04 25 28 00 00 00 48 89 84 24 b0 00 00 00 31 c0 0f 1f 44
+RSP: 0018:ffffc9000325f4a0 EFLAGS: 00000282
+RAX: fffff5200064be97 RBX: 1ffff9200064be97 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff8c8f8aa0
+RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
+R10: fffffbfff226bd5a R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: ffffffff8c8f8aa0 R15: 0000000000000000
+FS:  0000555556b67400(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000040 CR3: 0000000041521000 CR4: 0000000000350ee0
+Call Trace:
+ <TASK>
+ fs_reclaim_acquire mm/page_alloc.c:4691 [inline]
+ fs_reclaim_acquire+0xda/0x160 mm/page_alloc.c:4682
+ might_alloc include/linux/sched/mm.h:271 [inline]
+ prepare_alloc_pages+0x159/0x570 mm/page_alloc.c:5320
+ __alloc_pages+0x149/0x5b0 mm/page_alloc.c:5538
+ alloc_pages+0x1aa/0x270 mm/mempolicy.c:2287
+ __get_free_pages+0xc/0x40 mm/page_alloc.c:5599
+ kasan_populate_vmalloc_pte mm/kasan/shadow.c:271 [inline]
+ kasan_populate_vmalloc_pte+0x27/0x150 mm/kasan/shadow.c:262
+ apply_to_pte_range mm/memory.c:2596 [inline]
+ apply_to_pmd_range mm/memory.c:2640 [inline]
+ apply_to_pud_range mm/memory.c:2676 [inline]
+ apply_to_p4d_range mm/memory.c:2712 [inline]
+ __apply_to_page_range+0x68c/0x1030 mm/memory.c:2746
+ alloc_vmap_area+0x512/0x1ed0 mm/vmalloc.c:1647
+ __get_vm_area_node+0x142/0x3f0 mm/vmalloc.c:2515
+ __vmalloc_node_range+0x25b/0x13c0 mm/vmalloc.c:3187
+ __bpf_map_area_alloc+0xd0/0x160 kernel/bpf/syscall.c:332
+ queue_stack_map_alloc+0xfb/0x1b0 kernel/bpf/queue_stack_maps.c:77
+ find_and_alloc_map kernel/bpf/syscall.c:131 [inline]
+ map_create+0x4d3/0x18d0 kernel/bpf/syscall.c:1123
+ __sys_bpf+0x13b7/0x5000 kernel/bpf/syscall.c:4951
+ __do_sys_bpf kernel/bpf/syscall.c:5073 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:5071 [inline]
+ __x64_sys_bpf+0x79/0xc0 kernel/bpf/syscall.c:5071
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f983b984139
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 31 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe44148cf8 EFLAGS: 00000246 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00007f983b984139
+RDX: 0000000000000048 RSI: 0000000020000040 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 00007ffe44148780 R09: 0000000000000003
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007ffe44148d28
+R13: 00007ffe44148d40 R14: 00007ffe44148d80 R15: 000000000000002e
+ </TASK>

@@ -1,0 +1,54 @@
+Unable to handle kernel paging request at virtual address 0032503900080052
+Mem abort info:
+  ESR = 0x0000000096000044
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x04: level 0 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000044
+  CM = 0, WnR = 1
+[0032503900080052] address between user and kernel address ranges
+Internal error: Oops: 0000000096000044 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 1 PID: 3076 Comm: syz-executor424 Not tainted 6.1.0-rc2-syzkaller-154433-g247f34f7b803 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : p9_client_disconnect+0x1c/0x30 net/9p/client.c:1067
+lr : p9_client_disconnect+0x18/0x30 net/9p/client.c:1065
+sp : ffff800012e43ca0
+x29: ffff800012e43ca0 x28: ffff0000cb48cec0 x27: 0000000000000000
+x26: 00000000000000c0 x25: 0000000000000002 x24: ffff80000d37d050
+x23: ffff80000d379000 x22: 0000000000000000 x21: 0000000000000000
+x20: ffff0000cc82cf00 x19: 3032503900080002 x18: 0000000000000035
+x17: 4553006964623d4d x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: ffff0000c5860c18 x12: ffff0000ccb854d8
+x11: ff8080000be7a520 x10: 0000000000000000 x9 : ffff80000be7a520
+x8 : 0000000000000002 x7 : 0000000000000000 x6 : ffff80000c0374d8
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : 0000000000000000
+x2 : ffff0000cb48cec0 x1 : 0000000000000000 x0 : 3032503900080002
+Call trace:
+ p9_client_disconnect+0x1c/0x30
+ v9fs_session_cancel+0x20/0x30 fs/9p/v9fs.c:530
+ v9fs_kill_super+0x2c/0x50 fs/9p/vfs_super.c:225
+ deactivate_locked_super+0x70/0xe8 fs/super.c:331
+ deactivate_super+0xd0/0xd4 fs/super.c:362
+ cleanup_mnt+0x184/0x1c0 fs/namespace.c:1186
+ __cleanup_mnt+0x20/0x30 fs/namespace.c:1193
+ task_work_run+0x100/0x148 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ do_notify_resume+0x174/0x1f0 arch/arm64/kernel/signal.c:1127
+ prepare_exit_to_user_mode arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:142 [inline]
+ el0_svc+0x9c/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:654
+ el0t_64_sync+0x18c/0x190 arch/arm64/kernel/entry.S:581
+Code: 910003fd aa0003f3 9710b2fd 52800048 (b9005268) 
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	910003fd 	mov	x29, sp
+   4:	aa0003f3 	mov	x19, x0
+   8:	9710b2fd 	bl	0xfffffffffc42cbfc
+   c:	52800048 	mov	w8, #0x2                   	// #2
+* 10:	b9005268 	str	w8, [x19, #80] <-- trapping instruction

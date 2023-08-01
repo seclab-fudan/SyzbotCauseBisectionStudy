@@ -1,0 +1,113 @@
+INFO: task jfsCommit:105 blocked for more than 143 seconds.
+      Not tainted 6.2.0-rc1-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:jfsCommit       state:D stack:22720 pid:105   ppid:2      flags:0x00004000
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5244 [inline]
+ __schedule+0x995/0xe20 kernel/sched/core.c:6555
+ schedule+0xcb/0x190 kernel/sched/core.c:6631
+ io_schedule+0x83/0x100 kernel/sched/core.c:8811
+ __lock_metapage+0x209/0x330 fs/jfs/jfs_metapage.c:50
+ lock_metapage fs/jfs/jfs_metapage.c:64 [inline]
+ __get_metapage+0x849/0xff0 fs/jfs/jfs_metapage.c:639
+ diIAGRead+0xca/0x130 fs/jfs/jfs_imap.c:2662
+ diFree+0x8fa/0x2c90 fs/jfs/jfs_imap.c:955
+ jfs_evict_inode+0x323/0x440 fs/jfs/inode.c:156
+ evict+0x2a4/0x620 fs/inode.c:664
+ txUpdateMap+0x8eb/0xaa0 fs/jfs/jfs_txnmgr.c:2362
+ txLazyCommit fs/jfs/jfs_txnmgr.c:2659 [inline]
+ jfs_lazycommit+0x488/0xb80 fs/jfs/jfs_txnmgr.c:2727
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+
+Showing all locks held in the system:
+1 lock held by rcu_tasks_kthre/12:
+ #0: ffffffff8d326e90 (rcu_tasks.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x30/0xd00 kernel/rcu/tasks.h:507
+1 lock held by rcu_tasks_trace/13:
+ #0: ffffffff8d327690 (rcu_tasks_trace.tasks_gp_mutex){+.+.}-{3:3}, at: rcu_tasks_one_gp+0x30/0xd00 kernel/rcu/tasks.h:507
+1 lock held by khungtaskd/28:
+ #0: ffffffff8d326cc0 (rcu_read_lock){....}-{1:2}, at: rcu_lock_acquire+0x0/0x30
+2 locks held by jfsCommit/105:
+ #0: ffff88807b068920 (&(imap->im_aglock[index])){+.+.}-{3:3}, at: diFree+0x285/0x2c90 fs/jfs/jfs_imap.c:885
+ #1: ffff8880730ca638 (&jfs_ip->rdwrlock/1){.+.+}-{3:3}, at: diFree+0x29b/0x2c90 fs/jfs/jfs_imap.c:890
+2 locks held by getty/4753:
+ #0: ffff88802813b098 (&tty->ldisc_sem){++++}-{0:0}, at: tty_ldisc_ref_wait+0x21/0x70 drivers/tty/tty_ldisc.c:244
+ #1: ffffc900015b02f0 (&ldata->atomic_read_lock){+.+.}-{3:3}, at: n_tty_read+0x53b/0x1650 drivers/tty/n_tty.c:2177
+1 lock held by strace-static-x/5065:
+ #0: ffff8880b983a1d8 (&rq->__lock){-.-.}-{2:2}, at: raw_spin_rq_lock_nested+0x25/0x110 kernel/sched/core.c:537
+4 locks held by syz-executor259/6070:
+
+=============================================
+
+NMI backtrace for cpu 1
+CPU: 1 PID: 28 Comm: khungtaskd Not tainted 6.2.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1b1/0x290 lib/dump_stack.c:106
+ nmi_cpu_backtrace+0x46f/0x4f0 lib/nmi_backtrace.c:111
+ nmi_trigger_cpumask_backtrace+0x1ba/0x420 lib/nmi_backtrace.c:62
+ trigger_all_cpu_backtrace include/linux/nmi.h:148 [inline]
+ check_hung_uninterruptible_tasks kernel/hung_task.c:220 [inline]
+ watchdog+0xcd5/0xd20 kernel/hung_task.c:377
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+Sending NMI from CPU 1 to CPUs 0:
+NMI backtrace for cpu 0
+CPU: 0 PID: 6070 Comm: syz-executor259 Not tainted 6.2.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:__sanitizer_cov_trace_const_cmp8+0x9a/0xa0 kernel/kcov.c:313
+Code: 00 00 00 48 89 d0 48 83 c8 08 48 c7 04 01 07 00 00 00 48 89 d0 48 83 c8 10 48 89 3c 01 48 83 ca 18 48 89 34 11 4e 89 44 c9 20 <c3> 0f 1f 44 00 00 41 57 41 56 53 48 8b 46 08 48 83 c0 f8 48 c1 c0
+RSP: 0018:ffffc9000536f530 EFLAGS: 00000093
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888018c68000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffffea0001c08dc0 R08: ffffffff81bf36a5 R09: fffff940003811b9
+R10: fffff940003811b9 R11: 1ffffd40003811b8 R12: 00fff00000080016
+R13: ffff88813fe68000 R14: ffff88813fe68000 R15: ffffea0001c08dc0
+FS:  0000555555931300(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f82ea6b9000 CR3: 000000007c4db000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __folio_memcg+0xe5/0x230 include/linux/memcontrol.h:381
+ folio_memcg include/linux/memcontrol.h:432 [inline]
+ folio_matches_lruvec include/linux/memcontrol.h:1625 [inline]
+ folio_lruvec_relock_irqsave+0x1b6/0x370 include/linux/memcontrol.h:1647
+ release_pages+0x604/0x25e0 mm/swap.c:1049
+ __pagevec_release+0x7d/0xf0 mm/swap.c:1096
+ pagevec_release include/linux/pagevec.h:71 [inline]
+ folio_batch_release include/linux/pagevec.h:135 [inline]
+ shmem_undo_range+0x6d0/0x1fe0 mm/shmem.c:949
+ shmem_truncate_range mm/shmem.c:1044 [inline]
+ shmem_evict_inode+0x276/0xa10 mm/shmem.c:1153
+ evict+0x2a4/0x620 fs/inode.c:664
+ __dentry_kill+0x3b1/0x5b0 fs/dcache.c:607
+ dentry_kill+0xbb/0x290
+ dput+0x1f3/0x410 fs/dcache.c:913
+ __fput+0x5e4/0x880 fs/file_table.c:328
+ task_work_run+0x243/0x300 kernel/task_work.c:179
+ ptrace_notify+0x29a/0x340 kernel/signal.c:2354
+ ptrace_report_syscall include/linux/ptrace.h:411 [inline]
+ ptrace_report_syscall_exit include/linux/ptrace.h:473 [inline]
+ syscall_exit_work+0x8c/0xe0 kernel/entry/common.c:251
+ syscall_exit_to_user_mode_prepare+0x63/0xc0 kernel/entry/common.c:278
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:283 [inline]
+ syscall_exit_to_user_mode+0xa/0x60 kernel/entry/common.c:296
+ do_syscall_64+0x49/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f82f1ac5183
+Code: c7 c2 c0 ff ff ff f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb ba 0f 1f 00 64 8b 04 25 18 00 00 00 85 c0 75 14 b8 03 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 45 c3 0f 1f 40 00 48 83 ec 18 89 7c 24 0c e8
+RSP: 002b:00007ffc0af23b18 EFLAGS: 00000246 ORIG_RAX: 0000000000000003
+RAX: 0000000000000000 RBX: 0000000000000003 RCX: 00007f82f1ac5183
+RDX: 0000000000000010 RSI: 0000000000004c00 RDI: 0000000000000003
+RBP: 00007ffc0af23b30 R08: 0000000000005ea8 R09: 0000000000005ea4
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000004
+R13: 00005555559312c0 R14: 000000000020c082 R15: 00007ffc0af23b70
+ </TASK>
+INFO: NMI handler (nmi_cpu_backtrace_handler) took too long to run: 1.078 msecs

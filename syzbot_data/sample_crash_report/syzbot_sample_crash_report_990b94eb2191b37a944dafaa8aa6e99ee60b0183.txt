@@ -1,0 +1,119 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 0 PID: 12877 Comm: syz-executor.0 Not tainted 5.15.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:sctp_rcv_ootb net/sctp/input.c:705 [inline]
+RIP: 0010:sctp_rcv+0x1d84/0x3220 net/sctp/input.c:196
+Code: fb 03 0f 8e 51 01 00 00 e8 f9 89 17 f9 4c 01 ed e8 f1 89 17 f9 48 8d 7d 02 48 b9 00 00 00 00 00 fc ff df 48 89 f8 48 c1 e8 03 <0f> b6 14 08 48 89 f8 83 e0 07 83 c0 01 38 d0 7c 08 84 d2 0f 85 ea
+RSP: 0018:ffffc900000079a8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 00000000fffffff2 RCX: dffffc0000000000
+RDX: ffff8880af1d3900 RSI: ffffffff885e81ef RDI: 0000000000000002
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff885e8368 R11: 0000000000000000 R12: 000000000000050c
+R13: ffff8881433ae8e4 R14: 0000000000000510 R15: ffff8880b03b08c0
+FS:  00007fac2af9e700(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fac2af5c718 CR3: 00000000a76fe000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ sctp6_rcv+0x38/0x60 net/sctp/ipv6.c:1109
+ ip6_protocol_deliver_rcu+0x2e9/0x1ca0 net/ipv6/ip6_input.c:422
+ ip6_input_finish+0x62/0x170 net/ipv6/ip6_input.c:463
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ip6_input+0x9c/0xd0 net/ipv6/ip6_input.c:472
+ dst_input include/net/dst.h:460 [inline]
+ ip6_rcv_finish net/ipv6/ip6_input.c:76 [inline]
+ NF_HOOK include/linux/netfilter.h:307 [inline]
+ NF_HOOK include/linux/netfilter.h:301 [inline]
+ ipv6_rcv+0x28c/0x3c0 net/ipv6/ip6_input.c:297
+ __netif_receive_skb_one_core+0x114/0x180 net/core/dev.c:5436
+ __netif_receive_skb+0x24/0x1b0 net/core/dev.c:5550
+ process_backlog+0x2a5/0x6c0 net/core/dev.c:6427
+ __napi_poll+0xaf/0x440 net/core/dev.c:6986
+ napi_poll net/core/dev.c:7053 [inline]
+ net_rx_action+0x801/0xb40 net/core/dev.c:7140
+ __do_softirq+0x29b/0x9c2 kernel/softirq.c:558
+ invoke_softirq kernel/softirq.c:432 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:636
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:648
+ sysvec_apic_timer_interrupt+0x93/0xc0 arch/x86/kernel/apic/apic.c:1097
+ </IRQ>
+ asm_sysvec_apic_timer_interrupt+0x12/0x20 arch/x86/include/asm/idtentry.h:638
+RIP: 0010:finish_task_switch.isra.0+0x23c/0xa50 kernel/sched/core.c:4814
+Code: 8b 3a 4c 89 e7 48 c7 02 00 00 00 00 ff d1 4d 85 ff 75 bf 4c 89 e7 e8 73 77 e7 07 e8 fe 2a 2c 00 fb 65 48 8b 1c 25 40 f0 01 00 <48> 8d bb 18 15 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1
+RSP: 0018:ffffc9001e627858 EFLAGS: 00000206
+RAX: 00000000000003f9 RBX: ffff8880af1d3900 RCX: 1ffffffff1adc399
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
+RBP: ffffc9001e627898 R08: 0000000000000001 R09: 0000000000000001
+R10: ffffffff817c35a8 R11: 0000000000000001 R12: ffff8880b9c31a40
+R13: ffff8880b5a81c80 R14: ffff8880716d9c00 R15: ffff8880b9c31a58
+ context_switch kernel/sched/core.c:4943 [inline]
+ __schedule+0x948/0x26f0 kernel/sched/core.c:6287
+ schedule+0xd3/0x270 kernel/sched/core.c:6366
+ schedule_timeout+0x1db/0x2a0 kernel/time/timer.c:1857
+ do_wait_for_common kernel/sched/completion.c:85 [inline]
+ __wait_for_common kernel/sched/completion.c:106 [inline]
+ wait_for_common kernel/sched/completion.c:117 [inline]
+ wait_for_completion_killable+0x1e6/0x360 kernel/sched/completion.c:243
+ call_usermodehelper_exec+0x3ad/0x4c0 kernel/umh.c:440
+ call_modprobe kernel/kmod.c:98 [inline]
+ __request_module+0x430/0xa60 kernel/kmod.c:170
+ __sock_create+0x58d/0x790 net/socket.c:1445
+ sock_create net/socket.c:1515 [inline]
+ __sys_socket+0xef/0x200 net/socket.c:1557
+ __do_sys_socket net/socket.c:1566 [inline]
+ __se_sys_socket net/socket.c:1564 [inline]
+ __x64_sys_socket+0x6f/0xb0 net/socket.c:1564
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7fac2da27709
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fac2af9e188 EFLAGS: 00000246 ORIG_RAX: 0000000000000029
+RAX: ffffffffffffffda RBX: 00007fac2db2bf60 RCX: 00007fac2da27709
+RDX: 0000000000000000 RSI: 0000000000000002 RDI: 0000000000000000
+RBP: 00007fac2da81cb4 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffdb9c04c2f R14: 00007fac2af9e300 R15: 0000000000022000
+Modules linked in:
+---[ end trace d60e4b4c25b39861 ]---
+RIP: 0010:sctp_rcv_ootb net/sctp/input.c:705 [inline]
+RIP: 0010:sctp_rcv+0x1d84/0x3220 net/sctp/input.c:196
+Code: fb 03 0f 8e 51 01 00 00 e8 f9 89 17 f9 4c 01 ed e8 f1 89 17 f9 48 8d 7d 02 48 b9 00 00 00 00 00 fc ff df 48 89 f8 48 c1 e8 03 <0f> b6 14 08 48 89 f8 83 e0 07 83 c0 01 38 d0 7c 08 84 d2 0f 85 ea
+RSP: 0018:ffffc900000079a8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 00000000fffffff2 RCX: dffffc0000000000
+RDX: ffff8880af1d3900 RSI: ffffffff885e81ef RDI: 0000000000000002
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffff885e8368 R11: 0000000000000000 R12: 000000000000050c
+R13: ffff8881433ae8e4 R14: 0000000000000510 R15: ffff8880b03b08c0
+FS:  00007fac2af9e700(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fac2af5c718 CR3: 00000000a76fe000 CR4: 00000000001506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	fb                   	sti
+   1:	03 0f                	add    (%rdi),%ecx
+   3:	8e 51 01             	mov    0x1(%rcx),%ss
+   6:	00 00                	add    %al,(%rax)
+   8:	e8 f9 89 17 f9       	callq  0xf9178a06
+   d:	4c 01 ed             	add    %r13,%rbp
+  10:	e8 f1 89 17 f9       	callq  0xf9178a06
+  15:	48 8d 7d 02          	lea    0x2(%rbp),%rdi
+  19:	48 b9 00 00 00 00 00 	movabs $0xdffffc0000000000,%rcx
+  20:	fc ff df
+  23:	48 89 f8             	mov    %rdi,%rax
+  26:	48 c1 e8 03          	shr    $0x3,%rax
+* 2a:	0f b6 14 08          	movzbl (%rax,%rcx,1),%edx <-- trapping instruction
+  2e:	48 89 f8             	mov    %rdi,%rax
+  31:	83 e0 07             	and    $0x7,%eax
+  34:	83 c0 01             	add    $0x1,%eax
+  37:	38 d0                	cmp    %dl,%al
+  39:	7c 08                	jl     0x43
+  3b:	84 d2                	test   %dl,%dl
+  3d:	0f                   	.byte 0xf
+  3e:	85 ea                	test   %ebp,%edx

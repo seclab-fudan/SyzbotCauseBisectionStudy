@@ -1,0 +1,134 @@
+gfs2: fsid=syz:syz.0: found 1 quota changes
+syz-executor285: attempt to access beyond end of device
+loop0: rw=1, sector=131324, nr_sectors = 4 limit=32768
+gfs2: fsid=syz:syz.0: Error 10 writing to journal, jid=0
+gfs2: fsid=syz:syz.0: fatal: I/O error(s)
+gfs2: fsid=syz:syz.0: about to withdraw this file system
+BUG: sleeping function called from invalid context at fs/gfs2/glock.c:1316
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 5070, name: syz-executor285
+preempt_count: 1, expected: 0
+RCU nest depth: 0, expected: 0
+4 locks held by syz-executor285/5070:
+ #0: ffff888075f0e0e0 (&type->s_umount_key#46){+.+.}-{3:3}, at: deactivate_super+0x96/0xd0 fs/super.c:362
+ #1: ffff8880787e0b70 (&sdp->sd_quota_sync_mutex){+.+.}-{3:3}, at: gfs2_quota_sync+0x9b/0x8b0 fs/gfs2/quota.c:1302
+ #2: ffff8880787e1058 (&sdp->sd_log_flush_lock){++++}-{3:3}, at: gfs2_log_flush+0xe7/0x26a0 fs/gfs2/log.c:1034
+ #3: ffff8880787e0e80 (&sdp->sd_log_lock){+.+.}-{2:2}, at: spin_lock include/linux/spinlock.h:350 [inline]
+ #3: ffff8880787e0e80 (&sdp->sd_log_lock){+.+.}-{2:2}, at: gfs2_log_lock fs/gfs2/log.h:32 [inline]
+ #3: ffff8880787e0e80 (&sdp->sd_log_lock){+.+.}-{2:2}, at: gfs2_flush_revokes+0x4e/0x80 fs/gfs2/log.c:805
+Preemption disabled at:
+[<0000000000000000>] 0x0
+CPU: 0 PID: 5070 Comm: syz-executor285 Not tainted 6.2.0-rc4-syzkaller-00009-gd532dd102151 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1b1/0x290 lib/dump_stack.c:106
+ __might_resched+0x4e9/0x6b0 kernel/sched/core.c:10036
+ gfs2_glock_wait+0x52/0x2a0 fs/gfs2/glock.c:1316
+ gfs2_glock_nq_init fs/gfs2/glock.h:262 [inline]
+ gfs2_freeze_lock+0x5f/0xc0 fs/gfs2/util.c:107
+ signal_our_withdraw fs/gfs2/util.c:160 [inline]
+ gfs2_withdraw+0x5cc/0x1540 fs/gfs2/util.c:351
+ gfs2_ail1_empty+0x8c9/0x950 fs/gfs2/log.c:368
+ gfs2_flush_revokes+0x59/0x80 fs/gfs2/log.c:806
+ revoke_lo_before_commit+0x2b/0xcf0 fs/gfs2/lops.c:869
+ lops_before_commit fs/gfs2/lops.h:40 [inline]
+ gfs2_log_flush+0xc8e/0x26a0 fs/gfs2/log.c:1093
+ do_sync+0xa3c/0xc80 fs/gfs2/quota.c:975
+ gfs2_quota_sync+0x3da/0x8b0 fs/gfs2/quota.c:1318
+ gfs2_sync_fs+0x49/0xb0 fs/gfs2/super.c:650
+ sync_filesystem+0xe8/0x220 fs/sync.c:56
+ generic_shutdown_super+0x6b/0x310 fs/super.c:474
+ kill_block_super+0x79/0xd0 fs/super.c:1386
+ deactivate_locked_super+0xa7/0xf0 fs/super.c:332
+ cleanup_mnt+0x494/0x520 fs/namespace.c:1291
+ task_work_run+0x243/0x300 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x644/0x2150 kernel/exit.c:867
+ do_group_exit+0x1fd/0x2b0 kernel/exit.c:1012
+ __do_sys_exit_group kernel/exit.c:1023 [inline]
+ __se_sys_exit_group kernel/exit.c:1021 [inline]
+ __x64_sys_exit_group+0x3b/0x40 kernel/exit.c:1021
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fe8088149b9
+Code: Unable to access opcode bytes at 0x7fe80881498f.
+RSP: 002b:00007fffd903e0f8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007fe8088a9330 RCX: 00007fe8088149b9
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000001
+RBP: 0000000000000001 R08: ffffffffffffffc0 R09: 000000000001f6db
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fe8088a9330
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+
+=============================
+[ BUG: Invalid wait context ]
+6.2.0-rc4-syzkaller-00009-gd532dd102151 #0 Tainted: G        W         
+-----------------------------
+syz-executor285/5070 is trying to lock:
+ffff88801c8d4088 (&wq->mutex){+.+.}-{3:3}, at: __flush_workqueue+0x1a3/0x1680 kernel/workqueue.c:2812
+other info that might help us debug this:
+context-{4:4}
+4 locks held by syz-executor285/5070:
+ #0: ffff888075f0e0e0 (&type->s_umount_key#46){+.+.}-{3:3}, at: deactivate_super+0x96/0xd0 fs/super.c:362
+ #1: ffff8880787e0b70 (&sdp->sd_quota_sync_mutex){+.+.}-{3:3}, at: gfs2_quota_sync+0x9b/0x8b0 fs/gfs2/quota.c:1302
+ #2: ffff8880787e1058 (&sdp->sd_log_flush_lock){++++}-{3:3}, at: gfs2_log_flush+0xe7/0x26a0 fs/gfs2/log.c:1034
+ #3: ffff8880787e0e80 (&sdp->sd_log_lock){+.+.}-{2:2}, at: spin_lock include/linux/spinlock.h:350 [inline]
+ #3: ffff8880787e0e80 (&sdp->sd_log_lock){+.+.}-{2:2}, at: gfs2_log_lock fs/gfs2/log.h:32 [inline]
+ #3: ffff8880787e0e80 (&sdp->sd_log_lock){+.+.}-{2:2}, at: gfs2_flush_revokes+0x4e/0x80 fs/gfs2/log.c:805
+stack backtrace:
+CPU: 0 PID: 5070 Comm: syz-executor285 Tainted: G        W          6.2.0-rc4-syzkaller-00009-gd532dd102151 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1b1/0x290 lib/dump_stack.c:106
+ print_lock_invalid_wait_context kernel/locking/lockdep.c:4707 [inline]
+ check_wait_context kernel/locking/lockdep.c:4768 [inline]
+ __lock_acquire+0x14f2/0x1f60 kernel/locking/lockdep.c:5005
+ lock_acquire+0x182/0x3c0 kernel/locking/lockdep.c:5668
+ __mutex_lock_common+0x1bd/0x26e0 kernel/locking/mutex.c:603
+ __mutex_lock kernel/locking/mutex.c:747 [inline]
+ mutex_lock_nested+0x17/0x20 kernel/locking/mutex.c:799
+ __flush_workqueue+0x1a3/0x1680 kernel/workqueue.c:2812
+ gfs2_make_fs_ro+0xd1/0x610 fs/gfs2/super.c:532
+ signal_our_withdraw fs/gfs2/util.c:166 [inline]
+ gfs2_withdraw+0x609/0x1540 fs/gfs2/util.c:351
+ gfs2_ail1_empty+0x8c9/0x950 fs/gfs2/log.c:368
+ gfs2_flush_revokes+0x59/0x80 fs/gfs2/log.c:806
+ revoke_lo_before_commit+0x2b/0xcf0 fs/gfs2/lops.c:869
+ lops_before_commit fs/gfs2/lops.h:40 [inline]
+ gfs2_log_flush+0xc8e/0x26a0 fs/gfs2/log.c:1093
+ do_sync+0xa3c/0xc80 fs/gfs2/quota.c:975
+ gfs2_quota_sync+0x3da/0x8b0 fs/gfs2/quota.c:1318
+ gfs2_sync_fs+0x49/0xb0 fs/gfs2/super.c:650
+ sync_filesystem+0xe8/0x220 fs/sync.c:56
+ generic_shutdown_super+0x6b/0x310 fs/super.c:474
+ kill_block_super+0x79/0xd0 fs/super.c:1386
+ deactivate_locked_super+0xa7/0xf0 fs/super.c:332
+ cleanup_mnt+0x494/0x520 fs/namespace.c:1291
+ task_work_run+0x243/0x300 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x644/0x2150 kernel/exit.c:867
+ do_group_exit+0x1fd/0x2b0 kernel/exit.c:1012
+ __do_sys_exit_group kernel/exit.c:1023 [inline]
+ __se_sys_exit_group kernel/exit.c:1021 [inline]
+ __x64_sys_exit_group+0x3b/0x40 kernel/exit.c:1021
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x3d/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fe8088149b9
+Code: Unable to access opcode bytes at 0x7fe80881498f.
+RSP: 002b:00007fffd903e0f8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 00007fe8088a9330 RCX: 00007fe8088149b9
+RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000001
+RBP: 0000000000000001 R08: ffffffffffffffc0 R09: 000000000001f6db
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fe8088a9330
+R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000001
+ </TASK>
+BUG: scheduling while atomic: syz-executor285/5070/0x00000002
+INFO: lockdep is turned off.
+Modules linked in:
+Preemption disabled at:
+[<0000000000000000>] 0x0

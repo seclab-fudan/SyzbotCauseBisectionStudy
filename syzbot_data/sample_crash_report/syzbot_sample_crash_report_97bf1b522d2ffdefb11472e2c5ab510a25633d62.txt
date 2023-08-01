@@ -1,0 +1,208 @@
+ODEBUG: object 0000000015e9012c is on stack 00000000115bcb67, but NOT annotated.
+WARNING: CPU: 0 PID: 5594 at lib/debugobjects.c:369 debug_object_is_on_stack lib/debugobjects.c:363 [inline]
+WARNING: CPU: 0 PID: 5594 at lib/debugobjects.c:369 __debug_object_init.cold.14+0x51/0xdf lib/debugobjects.c:395
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 5594 Comm: syz-executor740 Not tainted 4.19.0-rc8-next-20181019+ #98
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ panic+0x2ad/0x55c kernel/panic.c:188
+ __warn.cold.8+0x20/0x45 kernel/panic.c:540
+ report_bug+0x254/0x2d0 lib/bug.c:186
+ fixup_bug arch/x86/kernel/traps.c:178 [inline]
+ do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
+ do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:290
+ invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:969
+RIP: 0010:debug_object_is_on_stack lib/debugobjects.c:363 [inline]
+RIP: 0010:__debug_object_init.cold.14+0x51/0xdf lib/debugobjects.c:395
+Code: ea 03 80 3c 02 00 75 7c 49 8b 54 24 18 48 89 de 48 c7 c7 c0 f1 40 88 4c 89 85 d0 fd ff ff e8 09 8c d1 fd 4c 8b 85 d0 fd ff ff <0f> 0b e9 09 d6 ff ff 41 83 c4 01 b8 ff ff 37 00 44 89 25 b7 4e 66
+RSP: 0018:ffff8801bb387308 EFLAGS: 00010086
+RAX: 0000000000000050 RBX: ffff8801bb387af8 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: ffffffff816585a5 RDI: 0000000000000005
+RBP: ffff8801bb387560 R08: ffff8801cb208a20 R09: ffffed003b5c5008
+R10: ffffed003b5c5008 R11: ffff8801dae28047 R12: ffff8801d82ea300
+R13: 0000000000069700 R14: ffff8801d82ea300 R15: ffff8801cb208a10
+ debug_object_init+0x16/0x20 lib/debugobjects.c:432
+ debug_timer_init kernel/time/timer.c:704 [inline]
+ debug_init kernel/time/timer.c:757 [inline]
+ init_timer_key+0xa9/0x480 kernel/time/timer.c:806
+ sock_init_data+0xe1/0xdc0 net/core/sock.c:2696
+ bpf_prog_test_run_skb+0x255/0xc40 net/bpf/test_run.c:144
+ bpf_prog_test_run+0x130/0x1a0 kernel/bpf/syscall.c:1790
+ __do_sys_bpf kernel/bpf/syscall.c:2427 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:2371 [inline]
+ __x64_sys_bpf+0x3d8/0x510 kernel/bpf/syscall.c:2371
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440259
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffc212cf818 EFLAGS: 00000213 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440259
+RDX: 0000000000000028 RSI: 0000000020000080 RDI: 000000000000000a
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000213 R12: 0000000000401ae0
+R13: 0000000000401b70 R14: 0000000000000000 R15: 0000000000000000
+
+======================================================
+WARNING: possible circular locking dependency detected
+4.19.0-rc8-next-20181019+ #98 Not tainted
+------------------------------------------------------
+syz-executor740/5594 is trying to acquire lock:
+00000000688fcc6b ((console_sem).lock){-.-.}, at: down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+
+but task is already holding lock:
+00000000505ead1b (&obj_hash[i].lock){-.-.}, at: __debug_object_init+0x127/0x1290 lib/debugobjects.c:384
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #3 (&obj_hash[i].lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x99/0xd0 kernel/locking/spinlock.c:152
+       __debug_object_init+0x127/0x1290 lib/debugobjects.c:384
+       debug_object_init+0x16/0x20 lib/debugobjects.c:432
+       debug_hrtimer_init kernel/time/hrtimer.c:410 [inline]
+       debug_init kernel/time/hrtimer.c:458 [inline]
+       hrtimer_init+0x97/0x490 kernel/time/hrtimer.c:1308
+       init_dl_task_timer+0x1b/0x50 kernel/sched/deadline.c:1057
+       __sched_fork+0x2ae/0x590 kernel/sched/core.c:2166
+       init_idle+0x75/0x740 kernel/sched/core.c:5382
+       sched_init+0xb33/0xc02 kernel/sched/core.c:6065
+       start_kernel+0x4be/0xa2b init/main.c:608
+       x86_64_start_reservations+0x2e/0x30 arch/x86/kernel/head64.c:472
+       x86_64_start_kernel+0x76/0x79 arch/x86/kernel/head64.c:451
+       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+
+-> #2 (&rq->lock){-.-.}:
+       __raw_spin_lock include/linux/spinlock_api_smp.h:142 [inline]
+       _raw_spin_lock+0x2d/0x40 kernel/locking/spinlock.c:144
+       rq_lock kernel/sched/sched.h:1127 [inline]
+       task_fork_fair+0xb0/0x6d0 kernel/sched/fair.c:9768
+       sched_fork+0x443/0xba0 kernel/sched/core.c:2359
+       copy_process+0x2585/0x8770 kernel/fork.c:1887
+       _do_fork+0x1cb/0x11c0 kernel/fork.c:2216
+       kernel_thread+0x34/0x40 kernel/fork.c:2275
+       rest_init+0x28/0x372 init/main.c:409
+       arch_call_rest_init+0xe/0x1b
+       start_kernel+0x9f0/0xa2b init/main.c:745
+       x86_64_start_reservations+0x2e/0x30 arch/x86/kernel/head64.c:472
+       x86_64_start_kernel+0x76/0x79 arch/x86/kernel/head64.c:451
+       secondary_startup_64+0xa4/0xb0 arch/x86/kernel/head_64.S:243
+
+-> #1 (&p->pi_lock){-.-.}:
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x99/0xd0 kernel/locking/spinlock.c:152
+       try_to_wake_up+0xd2/0x12e0 kernel/sched/core.c:1965
+       wake_up_process+0x10/0x20 kernel/sched/core.c:2129
+       __up.isra.1+0x1c0/0x2a0 kernel/locking/semaphore.c:262
+       up+0x13c/0x1c0 kernel/locking/semaphore.c:187
+       __up_console_sem+0xbe/0x1b0 kernel/printk/printk.c:236
+       console_unlock+0x80c/0x1190 kernel/printk/printk.c:2432
+       vprintk_emit+0x391/0x990 kernel/printk/printk.c:1922
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1964
+       vprintk_func+0x7e/0x181 kernel/printk/printk_safe.c:398
+       printk+0xa7/0xcf kernel/printk/printk.c:1997
+       check_stack_usage kernel/exit.c:755 [inline]
+       do_exit.cold.18+0x57/0x16f kernel/exit.c:916
+       do_group_exit+0x177/0x440 kernel/exit.c:970
+       __do_sys_exit_group kernel/exit.c:981 [inline]
+       __se_sys_exit_group kernel/exit.c:979 [inline]
+       __x64_sys_exit_group+0x3e/0x50 kernel/exit.c:979
+       do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+-> #0 ((console_sem).lock){-.-.}:
+       lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+       __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+       _raw_spin_lock_irqsave+0x99/0xd0 kernel/locking/spinlock.c:152
+       down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+       __down_trylock_console_sem+0xae/0x1f0 kernel/printk/printk.c:219
+       console_trylock+0x15/0xa0 kernel/printk/printk.c:2247
+       console_trylock_spinning kernel/printk/printk.c:1653 [inline]
+       vprintk_emit+0x372/0x990 kernel/printk/printk.c:1921
+       vprintk_default+0x28/0x30 kernel/printk/printk.c:1964
+       vprintk_func+0x7e/0x181 kernel/printk/printk_safe.c:398
+       printk+0xa7/0xcf kernel/printk/printk.c:1997
+       debug_object_is_on_stack lib/debugobjects.c:363 [inline]
+       __debug_object_init.cold.14+0x4a/0xdf lib/debugobjects.c:395
+       debug_object_init+0x16/0x20 lib/debugobjects.c:432
+       debug_timer_init kernel/time/timer.c:704 [inline]
+       debug_init kernel/time/timer.c:757 [inline]
+       init_timer_key+0xa9/0x480 kernel/time/timer.c:806
+       sock_init_data+0xe1/0xdc0 net/core/sock.c:2696
+       bpf_prog_test_run_skb+0x255/0xc40 net/bpf/test_run.c:144
+       bpf_prog_test_run+0x130/0x1a0 kernel/bpf/syscall.c:1790
+       __do_sys_bpf kernel/bpf/syscall.c:2427 [inline]
+       __se_sys_bpf kernel/bpf/syscall.c:2371 [inline]
+       __x64_sys_bpf+0x3d8/0x510 kernel/bpf/syscall.c:2371
+       do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+       entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+other info that might help us debug this:
+
+Chain exists of:
+  (console_sem).lock --> &rq->lock --> &obj_hash[i].lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&obj_hash[i].lock);
+                               lock(&rq->lock);
+                               lock(&obj_hash[i].lock);
+  lock((console_sem).lock);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor740/5594:
+ #0: 00000000505ead1b (&obj_hash[i].lock){-.-.}, at: __debug_object_init+0x127/0x1290 lib/debugobjects.c:384
+
+stack backtrace:
+CPU: 0 PID: 5594 Comm: syz-executor740 Not tainted 4.19.0-rc8-next-20181019+ #98
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x244/0x39d lib/dump_stack.c:113
+ print_circular_bug.isra.35.cold.54+0x1bd/0x27d kernel/locking/lockdep.c:1221
+ check_prev_add kernel/locking/lockdep.c:1863 [inline]
+ check_prevs_add kernel/locking/lockdep.c:1976 [inline]
+ validate_chain kernel/locking/lockdep.c:2347 [inline]
+ __lock_acquire+0x3399/0x4c20 kernel/locking/lockdep.c:3341
+ lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3844
+ __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
+ _raw_spin_lock_irqsave+0x99/0xd0 kernel/locking/spinlock.c:152
+ down_trylock+0x13/0x70 kernel/locking/semaphore.c:136
+ __down_trylock_console_sem+0xae/0x1f0 kernel/printk/printk.c:219
+ console_trylock+0x15/0xa0 kernel/printk/printk.c:2247
+ console_trylock_spinning kernel/printk/printk.c:1653 [inline]
+ vprintk_emit+0x372/0x990 kernel/printk/printk.c:1921
+ vprintk_default+0x28/0x30 kernel/printk/printk.c:1964
+ vprintk_func+0x7e/0x181 kernel/printk/printk_safe.c:398
+ printk+0xa7/0xcf kernel/printk/printk.c:1997
+ debug_object_is_on_stack lib/debugobjects.c:363 [inline]
+ __debug_object_init.cold.14+0x4a/0xdf lib/debugobjects.c:395
+ debug_object_init+0x16/0x20 lib/debugobjects.c:432
+ debug_timer_init kernel/time/timer.c:704 [inline]
+ debug_init kernel/time/timer.c:757 [inline]
+ init_timer_key+0xa9/0x480 kernel/time/timer.c:806
+ sock_init_data+0xe1/0xdc0 net/core/sock.c:2696
+ bpf_prog_test_run_skb+0x255/0xc40 net/bpf/test_run.c:144
+ bpf_prog_test_run+0x130/0x1a0 kernel/bpf/syscall.c:1790
+ __do_sys_bpf kernel/bpf/syscall.c:2427 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:2371 [inline]
+ __x64_sys_bpf+0x3d8/0x510 kernel/bpf/syscall.c:2371
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440259
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffc212cf818 EFLAGS: 00000213 ORIG_RAX: 0000000000000141
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440259
+RDX: 0000000000000028 RSI: 0000000020000080 RDI: 000000000000000a
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000213 R12: 0000000000401ae0
+R13: 0000000000401b70 R14: 0000000000000000 R15: 0000000000000000
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

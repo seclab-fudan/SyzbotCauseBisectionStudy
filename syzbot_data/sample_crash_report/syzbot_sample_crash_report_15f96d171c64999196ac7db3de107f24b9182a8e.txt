@@ -1,0 +1,68 @@
+IPVS: ftp: loaded support on port[0] = 21
+infiniband syz0: set active
+infiniband syz0: added syz_tun
+general protection fault, probably for non-canonical address 0xdffffc000000008e: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000470-0x0000000000000477]
+CPU: 0 PID: 6789 Comm: syz-executor704 Not tainted 5.7.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:rds_ib_add_one net/rds/ib.c:139 [inline]
+RIP: 0010:rds_ib_add_one+0xbb/0xc90 net/rds/ib.c:130
+Code: 80 3c 02 00 0f 85 45 0a 00 00 49 8b 9c 24 f0 06 00 00 48 b8 00 00 00 00 00 fc ff df 48 8d bb 70 04 00 00 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 5a
+RSP: 0000:ffffc90001276fe0 EFLAGS: 00010206
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff875a104a
+RDX: 000000000000008e RSI: ffffffff875a1068 RDI: 0000000000000470
+RBP: 0000000000000001 R08: ffff88809076c300 R09: ffffed1012aba89f
+R10: ffff8880955d44f7 R11: ffffed1012aba89e R12: ffff8880955d4000
+R13: ffffffff8a75b1a0 R14: 1ffff9200024ee07 R15: ffff8880955d44e8
+FS:  0000000002438880(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fec535d3428 CR3: 00000000a90e0000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ add_client_context+0x3b4/0x520 drivers/infiniband/core/device.c:681
+ enable_device_and_get+0x1cd/0x3b0 drivers/infiniband/core/device.c:1318
+ ib_register_device drivers/infiniband/core/device.c:1384 [inline]
+ ib_register_device+0xa12/0xda0 drivers/infiniband/core/device.c:1345
+ rxe_register_device+0x50a/0x634 drivers/infiniband/sw/rxe/rxe_verbs.c:1231
+ rxe_add+0x1353/0x17df drivers/infiniband/sw/rxe/rxe.c:304
+ rxe_net_add+0x8c/0xe0 drivers/infiniband/sw/rxe/rxe_net.c:539
+ rxe_newlink+0x34/0x90 drivers/infiniband/sw/rxe/rxe.c:320
+ nldev_newlink+0x29e/0x420 drivers/infiniband/core/nldev.c:1541
+ rdma_nl_rcv_msg drivers/infiniband/core/netlink.c:195 [inline]
+ rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
+ rdma_nl_rcv+0x586/0x900 drivers/infiniband/core/netlink.c:259
+ netlink_unicast_kernel net/netlink/af_netlink.c:1303 [inline]
+ netlink_unicast+0x537/0x740 net/netlink/af_netlink.c:1329
+ netlink_sendmsg+0x882/0xe10 net/netlink/af_netlink.c:1918
+ sock_sendmsg_nosec net/socket.c:652 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:672
+ ____sys_sendmsg+0x6e6/0x810 net/socket.c:2352
+ ___sys_sendmsg+0x100/0x170 net/socket.c:2406
+ __sys_sendmsg+0xe5/0x1b0 net/socket.c:2439
+ do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x49/0xb3
+RIP: 0033:0x4413d9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 6b 0e fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffc27ce4c38 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 00000000004413d9
+RDX: 0000000000000000 RSI: 0000000020000200 RDI: 0000000000000003
+RBP: 00007ffc27ce4c50 R08: 00000000bb1414ac R09: 00000000bb1414ac
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+---[ end trace 061eda9ae9f42146 ]---
+RIP: 0010:rds_ib_add_one net/rds/ib.c:139 [inline]
+RIP: 0010:rds_ib_add_one+0xbb/0xc90 net/rds/ib.c:130
+Code: 80 3c 02 00 0f 85 45 0a 00 00 49 8b 9c 24 f0 06 00 00 48 b8 00 00 00 00 00 fc ff df 48 8d bb 70 04 00 00 48 89 fa 48 c1 ea 03 <0f> b6 14 02 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 5a
+RSP: 0000:ffffc90001276fe0 EFLAGS: 00010206
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: ffffffff875a104a
+RDX: 000000000000008e RSI: ffffffff875a1068 RDI: 0000000000000470
+RBP: 0000000000000001 R08: ffff88809076c300 R09: ffffed1012aba89f
+R10: ffff8880955d44f7 R11: ffffed1012aba89e R12: ffff8880955d4000
+R13: ffffffff8a75b1a0 R14: 1ffff9200024ee07 R15: ffff8880955d44e8
+FS:  0000000002438880(0000) GS:ffff8880ae600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ff3b8d74000 CR3: 00000000a90e0000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

@@ -1,0 +1,41 @@
+RBP: 00000000006dbc50 R08: 000000002000a000 R09: 0000000000003437
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fe464ffed80
+R13: 0030656c69662f2e R14: ffffffffffffffff R15: 0000000000000006
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 1861 Comm: kworker/u4:4 Not tainted 4.16.0+ #2
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: rpciod rpc_async_schedule
+RIP: 0010:strlen+0x1f/0xa0 lib/string.c:479
+RSP: 0018:ffff8801cf75f318 EFLAGS: 00010296
+RAX: dffffc0000000000 RBX: ffff8801cf68f200 RCX: ffffffff86a8c407
+RDX: 0000000000000000 RSI: ffffffff86a84d7b RDI: 0000000000000000
+RBP: ffff8801cf75f330 R08: ffff8801cf7de080 R09: ffffed0039ea3d43
+R10: ffffed0039ea3d43 R11: ffff8801cf51ea1f R12: 0000000000000000
+R13: 0000000002000000 R14: 0000000000000000 R15: ffff8801cf75f3e0
+FS:  0000000000000000(0000) GS:ffff8801db000000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f64808a4000 CR3: 00000001b566a000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ strlen include/linux/string.h:267 [inline]
+ encode_rpcb_string+0x23/0x70 net/sunrpc/rpcb_clnt.c:914
+ rpcb_enc_getaddr+0x146/0x1f0 net/sunrpc/rpcb_clnt.c:940
+ rpcauth_wrap_req_encode net/sunrpc/auth.c:777 [inline]
+ rpcauth_wrap_req+0x1a8/0x230 net/sunrpc/auth.c:791
+ rpc_xdr_encode net/sunrpc/clnt.c:1754 [inline]
+ call_transmit+0x8a9/0xfe0 net/sunrpc/clnt.c:1949
+ __rpc_execute+0x28a/0xfe0 net/sunrpc/sched.c:784
+ rpc_async_schedule+0x16/0x20 net/sunrpc/sched.c:857
+ process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+ worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+ kthread+0x345/0x410 kernel/kthread.c:238
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:411
+Code: 37 ff ff ff 0f 1f 84 00 00 00 00 00 48 b8 00 00 00 00 00 fc ff df 55 48 89 fa 48 c1 ea 03 48 89 e5 41 54 49 89 fc 53 48 83 ec 08 <0f> b6 04 02 48 89 fa 83 e2 07 38 d0 7f 04 84 c0 75 4d 41 80 3c 
+RIP: strlen+0x1f/0xa0 lib/string.c:479 RSP: ffff8801cf75f318
+---[ end trace bd76ed0378a56845 ]---

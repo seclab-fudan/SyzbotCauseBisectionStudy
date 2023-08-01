@@ -1,0 +1,38 @@
+BUG: sleeping function called from invalid context at mm/util.c:758
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 30700, name: syz-executor.2
+2 locks held by syz-executor.2/30700:
+ #0: ffff88806ee498a8 (&mm->mmap_lock#2){++++}-{3:3}, at: mmap_write_lock include/linux/mmap_lock.h:71 [inline]
+ #0: ffff88806ee498a8 (&mm->mmap_lock#2){++++}-{3:3}, at: do_mbind+0x25d/0xeb0 mm/mempolicy.c:1314
+ #1: ffff888145989e18 (&mapping->private_lock){+.+.}-{2:2}, at: spin_lock include/linux/spinlock.h:363 [inline]
+ #1: ffff888145989e18 (&mapping->private_lock){+.+.}-{2:2}, at: __buffer_migrate_page+0x3af/0xca0 mm/migrate.c:723
+Preemption disabled at:
+[<0000000000000000>] 0x0
+CPU: 1 PID: 30700 Comm: syz-executor.2 Not tainted 5.15.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ ___might_sleep.cold+0x1f3/0x239 kernel/sched/core.c:9538
+ copy_huge_page+0x126/0x360 mm/util.c:758
+ migrate_page_copy+0xfc/0x340 mm/migrate.c:619
+ __buffer_migrate_page+0x8cb/0xca0 mm/migrate.c:758
+ move_to_new_page+0x339/0xef0 mm/migrate.c:905
+ __unmap_and_move mm/migrate.c:1070 [inline]
+ unmap_and_move mm/migrate.c:1211 [inline]
+ migrate_pages+0xfc5/0x39e0 mm/migrate.c:1488
+ do_mbind+0xbc7/0xeb0 mm/mempolicy.c:1340
+ kernel_mbind mm/mempolicy.c:1483 [inline]
+ __do_sys_mbind mm/mempolicy.c:1490 [inline]
+ __se_sys_mbind mm/mempolicy.c:1486 [inline]
+ __x64_sys_mbind+0x233/0x2b0 mm/mempolicy.c:1486
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f408623f8d9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f40837b6188 EFLAGS: 00000246 ORIG_RAX: 00000000000000ed
+RAX: ffffffffffffffda RBX: 00007f4086343f60 RCX: 00007f408623f8d9
+RDX: 0000000000000000 RSI: 0000000000c00000 RDI: 0000000020012000
+RBP: 00007f4086299cb4 R08: 0000000000000000 R09: 0000010000000002
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007fff13d3589f R14: 00007f40837b6300 R15: 0000000000022000

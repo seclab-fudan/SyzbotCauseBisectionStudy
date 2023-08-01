@@ -1,0 +1,44 @@
+=============================
+WARNING: suspicious RCU usage
+5.13.0-rc3-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:8304 Illegal context switch in RCU-bh read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+1 lock held by syz-executor.2/18305:
+ #0: 
+ffff888029448858
+ (
+&mm->mmap_lock
+#2
+){++++}-{3:3}
+, at: mmap_read_lock include/linux/mmap_lock.h:117 [inline]
+, at: __mm_populate+0x264/0x3e0 mm/gup.c:1488
+
+stack backtrace:
+CPU: 2 PID: 18305 Comm: syz-executor.2 Not tainted 5.13.0-rc3-syzkaller #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x141/0x1d7 lib/dump_stack.c:120
+ ___might_sleep+0x229/0x2c0 kernel/sched/core.c:8304
+ __get_user_pages+0x6e0/0x1490 mm/gup.c:1123
+ populate_vma_page_range+0x24d/0x330 mm/gup.c:1460
+ __mm_populate+0x1ea/0x3e0 mm/gup.c:1508
+ mm_populate include/linux/mm.h:2621 [inline]
+ __do_sys_mlockall+0x429/0x4b0 mm/mlock.c:798
+ do_syscall_32_irqs_on arch/x86/entry/common.c:78 [inline]
+ __do_fast_syscall_32+0x67/0xe0 arch/x86/entry/common.c:143
+ do_fast_syscall_32+0x2f/0x70 arch/x86/entry/common.c:168
+ entry_SYSENTER_compat_after_hwframe+0x4d/0x5c
+RIP: 0023:0xf7f65549
+Code: 03 74 c0 01 10 05 03 74 b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 8d b4 26 00 00 00 00 8d b4 26 00 00 00 00
+RSP: 002b:00000000f555f5fc EFLAGS: 00000296 ORIG_RAX: 0000000000000098
+RAX: ffffffffffffffda RBX: 0000000000000005 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000

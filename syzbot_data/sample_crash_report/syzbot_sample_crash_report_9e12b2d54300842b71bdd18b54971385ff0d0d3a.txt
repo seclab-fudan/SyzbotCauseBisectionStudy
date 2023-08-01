@@ -1,0 +1,141 @@
+==================================================================
+BUG: KASAN: use-after-free in ar5523_cmd_tx_cb+0x224/0x240 drivers/net/wireless/ath/ar5523/ar5523.c:228
+Read of size 8 at addr ffff888020ecb450 by task swapper/1/0
+
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 6.1.0-rc5-syzkaller-00320-gb6e7fdfd6f6a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:284 [inline]
+ print_report+0x15e/0x461 mm/kasan/report.c:395
+ kasan_report+0xbf/0x1f0 mm/kasan/report.c:495
+ ar5523_cmd_tx_cb+0x224/0x240 drivers/net/wireless/ath/ar5523/ar5523.c:228
+ __usb_hcd_giveback_urb+0x2b0/0x5c0 drivers/usb/core/hcd.c:1671
+ usb_hcd_giveback_urb+0x384/0x430 drivers/usb/core/hcd.c:1754
+ dummy_timer+0x1203/0x32d0 drivers/usb/gadget/udc/dummy_hcd.c:1988
+ call_timer_fn+0x1da/0x7c0 kernel/time/timer.c:1474
+ expire_timers kernel/time/timer.c:1519 [inline]
+ __run_timers.part.0+0x6a2/0xaf0 kernel/time/timer.c:1790
+ __run_timers kernel/time/timer.c:1768 [inline]
+ run_timer_softirq+0xb7/0x1d0 kernel/time/timer.c:1803
+ __do_softirq+0x1fb/0xadc kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x123/0x180 kernel/softirq.c:650
+ irq_exit_rcu+0x9/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x97/0xc0 arch/x86/kernel/apic/apic.c:1107
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:native_save_fl arch/x86/include/asm/irqflags.h:29 [inline]
+RIP: 0010:arch_local_save_flags arch/x86/include/asm/irqflags.h:70 [inline]
+RIP: 0010:arch_irqs_disabled arch/x86/include/asm/irqflags.h:130 [inline]
+RIP: 0010:acpi_safe_halt drivers/acpi/processor_idle.c:113 [inline]
+RIP: 0010:acpi_idle_do_entry+0x1fd/0x2a0 drivers/acpi/processor_idle.c:572
+Code: 89 de e8 d6 08 8b f7 84 db 75 ac e8 5d 0c 8b f7 e8 e8 8c 91 f7 66 90 e8 51 0c 8b f7 0f 00 2d 4a 8f be 00 e8 45 0c 8b f7 fb f4 <9c> 5b 81 e3 00 02 00 00 fa 31 ff 48 89 de e8 00 09 8b f7 48 85 db
+RSP: 0018:ffffc9000037fd10 EFLAGS: 00000293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: ffff888012958180 RSI: ffffffff89f42fdb RDI: 0000000000000000
+RBP: ffff888145a02864 R08: 0000000000000001 R09: 0000000000000001
+R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000001
+R13: ffff888145a02800 R14: ffff888145a02864 R15: ffff888146ad6004
+ acpi_idle_enter+0x368/0x510 drivers/acpi/processor_idle.c:709
+ cpuidle_enter_state+0x1af/0xd40 drivers/cpuidle/cpuidle.c:239
+ cpuidle_enter+0x4e/0xa0 drivers/cpuidle/cpuidle.c:356
+ call_cpuidle kernel/sched/idle.c:155 [inline]
+ cpuidle_idle_call kernel/sched/idle.c:236 [inline]
+ do_idle+0x3f7/0x590 kernel/sched/idle.c:303
+ cpu_startup_entry+0x18/0x20 kernel/sched/idle.c:400
+ start_secondary+0x256/0x300 arch/x86/kernel/smpboot.c:262
+ secondary_startup_64_no_verify+0xce/0xdb
+ </TASK>
+
+The buggy address belongs to the physical page:
+page:ffffea000083b2c0 refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x20ecb
+flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000000000 0000000000000000 ffffffff00830101 0000000000000000
+raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as freed
+page last allocated via order 2, migratetype Unmovable, gfp_mask 0x2800(GFP_NOWAIT|__GFP_NOWARN), pid 25, tgid 25 (kworker/1:1), ts 64072837958, free_ts 64072840490
+ prep_new_page mm/page_alloc.c:2539 [inline]
+ get_page_from_freelist+0x10b5/0x2d50 mm/page_alloc.c:4288
+ __alloc_pages+0x1cb/0x5b0 mm/page_alloc.c:5555
+ alloc_pages+0x1aa/0x270 mm/mempolicy.c:2285
+ __stack_depot_save+0x3ed/0x560 lib/stackdepot.c:474
+ kasan_save_stack+0x35/0x40 mm/kasan/common.c:46
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2b/0x40 mm/kasan/generic.c:511
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x13b/0x1a0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ __cache_free mm/slab.c:3389 [inline]
+ __do_kmem_cache_free mm/slab.c:3585 [inline]
+ kmem_cache_free mm/slab.c:3610 [inline]
+ kmem_cache_free+0x108/0x4c0 mm/slab.c:3603
+ kernfs_put.part.0+0x2c4/0x540 fs/kernfs/dir.c:562
+ kernfs_put+0x46/0x50 fs/kernfs/dir.c:536
+ kernfs_remove_by_name_ns+0xbc/0x120 fs/kernfs/dir.c:1637
+ driver_sysfs_remove drivers/base/dd.c:477 [inline]
+ really_probe+0x4f7/0xb90 drivers/base/dd.c:696
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d4/0x2e0 drivers/base/dd.c:936
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1459 [inline]
+ free_pcp_prepare+0x65c/0xd90 mm/page_alloc.c:1509
+ free_unref_page_prepare mm/page_alloc.c:3387 [inline]
+ free_unref_page+0x1d/0x4d0 mm/page_alloc.c:3483
+ __stack_depot_save+0x16d/0x560 lib/stackdepot.c:506
+ kasan_save_stack+0x35/0x40 mm/kasan/common.c:46
+ kasan_set_track+0x25/0x30 mm/kasan/common.c:52
+ kasan_save_free_info+0x2b/0x40 mm/kasan/generic.c:511
+ ____kasan_slab_free mm/kasan/common.c:236 [inline]
+ ____kasan_slab_free+0x13b/0x1a0 mm/kasan/common.c:200
+ kasan_slab_free include/linux/kasan.h:177 [inline]
+ __cache_free mm/slab.c:3389 [inline]
+ __do_kmem_cache_free mm/slab.c:3585 [inline]
+ kmem_cache_free mm/slab.c:3610 [inline]
+ kmem_cache_free+0x108/0x4c0 mm/slab.c:3603
+ kernfs_put.part.0+0x2c4/0x540 fs/kernfs/dir.c:562
+ kernfs_put+0x46/0x50 fs/kernfs/dir.c:536
+ kernfs_remove_by_name_ns+0xbc/0x120 fs/kernfs/dir.c:1637
+ driver_sysfs_remove drivers/base/dd.c:477 [inline]
+ really_probe+0x4f7/0xb90 drivers/base/dd.c:696
+ __driver_probe_device+0x1df/0x4d0 drivers/base/dd.c:778
+ driver_probe_device+0x4c/0x1a0 drivers/base/dd.c:808
+ __device_attach_driver+0x1d4/0x2e0 drivers/base/dd.c:936
+ bus_for_each_drv+0x163/0x1e0 drivers/base/bus.c:427
+
+Memory state around the buggy address:
+ ffff888020ecb300: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888020ecb380: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff888020ecb400: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                                 ^
+ ffff888020ecb480: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888020ecb500: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================
+----------------
+Code disassembly (best guess):
+   0:	89 de                	mov    %ebx,%esi
+   2:	e8 d6 08 8b f7       	callq  0xf78b08dd
+   7:	84 db                	test   %bl,%bl
+   9:	75 ac                	jne    0xffffffb7
+   b:	e8 5d 0c 8b f7       	callq  0xf78b0c6d
+  10:	e8 e8 8c 91 f7       	callq  0xf7918cfd
+  15:	66 90                	xchg   %ax,%ax
+  17:	e8 51 0c 8b f7       	callq  0xf78b0c6d
+  1c:	0f 00 2d 4a 8f be 00 	verw   0xbe8f4a(%rip)        # 0xbe8f6d
+  23:	e8 45 0c 8b f7       	callq  0xf78b0c6d
+  28:	fb                   	sti
+  29:	f4                   	hlt
+* 2a:	9c                   	pushfq <-- trapping instruction
+  2b:	5b                   	pop    %rbx
+  2c:	81 e3 00 02 00 00    	and    $0x200,%ebx
+  32:	fa                   	cli
+  33:	31 ff                	xor    %edi,%edi
+  35:	48 89 de             	mov    %rbx,%rsi
+  38:	e8 00 09 8b f7       	callq  0xf78b093d
+  3d:	48 85 db             	test   %rbx,%rbx

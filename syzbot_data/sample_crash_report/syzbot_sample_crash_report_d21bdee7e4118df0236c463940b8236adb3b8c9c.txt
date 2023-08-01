@@ -1,0 +1,169 @@
+==================================================================
+BUG: KASAN: use-after-free in dev_uevent+0x712/0x780 drivers/base/core.c:2320
+Read of size 8 at addr ffff88802b934098 by task udevd/3689
+
+CPU: 2 PID: 3689 Comm: udevd Not tainted 5.17.0-rc4-syzkaller-00229-g4f12b742eb2b #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:106
+ print_address_description.constprop.0.cold+0x8d/0x303 mm/kasan/report.c:255
+ __kasan_report mm/kasan/report.c:442 [inline]
+ kasan_report.cold+0x83/0xdf mm/kasan/report.c:459
+ dev_uevent+0x712/0x780 drivers/base/core.c:2320
+ uevent_show+0x1b8/0x380 drivers/base/core.c:2391
+ dev_attr_show+0x4b/0x90 drivers/base/core.c:2094
+ sysfs_kf_seq_show+0x219/0x3d0 fs/sysfs/file.c:59
+ seq_read_iter+0x4f5/0x1280 fs/seq_file.c:230
+ kernfs_fop_read_iter+0x514/0x6f0 fs/kernfs/file.c:241
+ call_read_iter include/linux/fs.h:2068 [inline]
+ new_sync_read+0x429/0x6e0 fs/read_write.c:400
+ vfs_read+0x35c/0x600 fs/read_write.c:481
+ ksys_read+0x12d/0x250 fs/read_write.c:619
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f964cc558fe
+Code: c0 e9 e6 fe ff ff 50 48 8d 3d 0e c7 09 00 e8 c9 cf 01 00 66 0f 1f 84 00 00 00 00 00 64 8b 04 25 18 00 00 00 85 c0 75 14 0f 05 <48> 3d 00 f0 ff ff 77 5a c3 66 0f 1f 84 00 00 00 00 00 48 83 ec 28
+RSP: 002b:00007ffc0133d258 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 000056497b21a140 RCX: 00007f964cc558fe
+RDX: 0000000000001000 RSI: 000056497b218650 RDI: 0000000000000008
+RBP: 00007f964cd22380 R08: 0000000000000008 R09: 00007f964cd25a60
+R10: 0000000000000008 R11: 0000000000000246 R12: 000056497b21a140
+R13: 0000000000000d68 R14: 00007f964cd21780 R15: 0000000000000d68
+ </TASK>
+
+Allocated by task 4316:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:45 [inline]
+ set_alloc_info mm/kasan/common.c:436 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:515 [inline]
+ ____kasan_kmalloc mm/kasan/common.c:474 [inline]
+ __kasan_kmalloc+0xa6/0xd0 mm/kasan/common.c:524
+ kasan_kmalloc include/linux/kasan.h:270 [inline]
+ kmem_cache_alloc_trace+0x1ea/0x4a0 mm/slab.c:3567
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ dev_new drivers/usb/gadget/legacy/raw_gadget.c:183 [inline]
+ raw_open+0x8d/0x4c0 drivers/usb/gadget/legacy/raw_gadget.c:373
+ misc_open+0x372/0x4a0 drivers/char/misc.c:141
+ chrdev_open+0x266/0x770 fs/char_dev.c:414
+ do_dentry_open+0x4b9/0x1250 fs/open.c:824
+ do_open fs/namei.c:3476 [inline]
+ path_openat+0x1c9e/0x2940 fs/namei.c:3609
+ do_filp_open+0x1aa/0x400 fs/namei.c:3636
+ do_sys_openat2+0x16d/0x4d0 fs/open.c:1214
+ do_sys_open fs/open.c:1230 [inline]
+ __do_sys_openat fs/open.c:1246 [inline]
+ __se_sys_openat fs/open.c:1241 [inline]
+ __x64_sys_openat+0x13f/0x1f0 fs/open.c:1241
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Freed by task 4315:
+ kasan_save_stack+0x1e/0x40 mm/kasan/common.c:38
+ kasan_set_track+0x21/0x30 mm/kasan/common.c:45
+ kasan_set_free_info+0x20/0x30 mm/kasan/generic.c:370
+ ____kasan_slab_free mm/kasan/common.c:366 [inline]
+ ____kasan_slab_free+0xff/0x140 mm/kasan/common.c:328
+ kasan_slab_free include/linux/kasan.h:236 [inline]
+ __cache_free mm/slab.c:3437 [inline]
+ kfree+0xf8/0x2b0 mm/slab.c:3794
+ kref_put include/linux/kref.h:65 [inline]
+ raw_release+0x218/0x290 drivers/usb/gadget/legacy/raw_gadget.c:412
+ __fput+0x286/0x9f0 fs/file_table.c:317
+ task_work_run+0xdd/0x1a0 kernel/task_work.c:164
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:175 [inline]
+ exit_to_user_mode_prepare+0x27e/0x290 kernel/entry/common.c:207
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:289 [inline]
+ syscall_exit_to_user_mode+0x19/0x60 kernel/entry/common.c:300
+ do_syscall_64+0x42/0xb0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+The buggy address belongs to the object at ffff88802b934000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 152 bytes inside of
+ 4096-byte region [ffff88802b934000, ffff88802b935000)
+The buggy address belongs to the page:
+page:ffffea0000ae4d00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x2b934
+head:ffffea0000ae4d00 order:1 compound_mapcount:0
+flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffffea00008be908 ffffea0000612d08 ffff888010c40900
+raw: 0000000000000000 ffff88802b934000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 1, migratetype Unmovable, gfp_mask 0x2420c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_COMP|__GFP_THISNODE), pid 4316, ts 254636955499, free_ts 240714313612
+ prep_new_page mm/page_alloc.c:2434 [inline]
+ get_page_from_freelist+0xa72/0x2f50 mm/page_alloc.c:4165
+ __alloc_pages_slowpath.constprop.0+0x2eb/0x20d0 mm/page_alloc.c:4934
+ __alloc_pages+0x412/0x500 mm/page_alloc.c:5402
+ __alloc_pages_node include/linux/gfp.h:572 [inline]
+ kmem_getpages mm/slab.c:1378 [inline]
+ cache_grow_begin+0x75/0x390 mm/slab.c:2584
+ cache_alloc_refill+0x27f/0x380 mm/slab.c:2957
+ ____cache_alloc mm/slab.c:3040 [inline]
+ ____cache_alloc mm/slab.c:3023 [inline]
+ __do_cache_alloc mm/slab.c:3267 [inline]
+ slab_alloc mm/slab.c:3308 [inline]
+ kmem_cache_alloc_trace+0x380/0x4a0 mm/slab.c:3565
+ kmalloc include/linux/slab.h:581 [inline]
+ kzalloc include/linux/slab.h:715 [inline]
+ dev_new drivers/usb/gadget/legacy/raw_gadget.c:183 [inline]
+ raw_open+0x8d/0x4c0 drivers/usb/gadget/legacy/raw_gadget.c:373
+ misc_open+0x372/0x4a0 drivers/char/misc.c:141
+ chrdev_open+0x266/0x770 fs/char_dev.c:414
+ do_dentry_open+0x4b9/0x1250 fs/open.c:824
+ do_open fs/namei.c:3476 [inline]
+ path_openat+0x1c9e/0x2940 fs/namei.c:3609
+ do_filp_open+0x1aa/0x400 fs/namei.c:3636
+ do_sys_openat2+0x16d/0x4d0 fs/open.c:1214
+ do_sys_open fs/open.c:1230 [inline]
+ __do_sys_openat fs/open.c:1246 [inline]
+ __se_sys_openat fs/open.c:1241 [inline]
+ __x64_sys_openat+0x13f/0x1f0 fs/open.c:1241
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1352 [inline]
+ free_pcp_prepare+0x374/0x870 mm/page_alloc.c:1404
+ free_unref_page_prepare mm/page_alloc.c:3325 [inline]
+ free_unref_page+0x19/0x690 mm/page_alloc.c:3404
+ slab_destroy mm/slab.c:1630 [inline]
+ slabs_destroy+0x89/0xc0 mm/slab.c:1650
+ cache_flusharray mm/slab.c:3410 [inline]
+ ___cache_free+0x303/0x600 mm/slab.c:3472
+ qlink_free mm/kasan/quarantine.c:157 [inline]
+ qlist_free_all+0x50/0x1a0 mm/kasan/quarantine.c:176
+ kasan_quarantine_reduce+0x180/0x200 mm/kasan/quarantine.c:283
+ __kasan_slab_alloc+0x97/0xb0 mm/kasan/common.c:446
+ kasan_slab_alloc include/linux/kasan.h:260 [inline]
+ slab_post_alloc_hook mm/slab.h:732 [inline]
+ slab_alloc_node mm/slab.c:3253 [inline]
+ kmem_cache_alloc_node+0x2ea/0x590 mm/slab.c:3591
+ __alloc_skb+0x215/0x340 net/core/skbuff.c:414
+ alloc_skb include/linux/skbuff.h:1158 [inline]
+ alloc_skb_with_frags+0x93/0x620 net/core/skbuff.c:5956
+ sock_alloc_send_pskb+0x793/0x920 net/core/sock.c:2586
+ unix_dgram_sendmsg+0x414/0x1a10 net/unix/af_unix.c:1896
+ sock_sendmsg_nosec net/socket.c:705 [inline]
+ sock_sendmsg+0xcf/0x120 net/socket.c:725
+ __sys_sendto+0x21c/0x320 net/socket.c:2040
+ __do_sys_sendto net/socket.c:2052 [inline]
+ __se_sys_sendto net/socket.c:2048 [inline]
+ __x64_sys_sendto+0xdd/0x1b0 net/socket.c:2048
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+
+Memory state around the buggy address:
+ ffff88802b933f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88802b934000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff88802b934080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff88802b934100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff88802b934180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

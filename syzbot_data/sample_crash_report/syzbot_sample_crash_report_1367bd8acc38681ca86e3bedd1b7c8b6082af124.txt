@@ -1,0 +1,95 @@
+==================================================================
+BUG: KASAN: use-after-free in dev_net include/linux/netdevice.h:2220 [inline]
+BUG: KASAN: use-after-free in __neigh_notify+0x149/0x160 net/core/neighbour.c:3348
+Read of size 8 at addr ffff888073e5a588 by task kworker/1:64/2991
+
+CPU: 1 PID: 2991 Comm: kworker/1:64 Not tainted 5.6.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: events_power_efficient neigh_periodic_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x32 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:641
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ dev_net include/linux/netdevice.h:2220 [inline]
+ __neigh_notify+0x149/0x160 net/core/neighbour.c:3348
+ neigh_cleanup_and_release+0x9a/0x3c0 net/core/neighbour.c:102
+ neigh_periodic_work+0x6e5/0xa10 net/core/neighbour.c:939
+ process_one_work+0xa05/0x17a0 kernel/workqueue.c:2264
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2410
+ kthread+0x361/0x430 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Allocated by task 20881:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:515 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:488
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:529
+ kmem_cache_alloc_trace+0x158/0x790 mm/slab.c:3551
+ kmalloc include/linux/slab.h:555 [inline]
+ kzalloc include/linux/slab.h:669 [inline]
+ tomoyo_dump_page+0x480/0x600 security/tomoyo/domain.c:905
+ tomoyo_scan_bprm security/tomoyo/condition.c:130 [inline]
+ tomoyo_condition+0x7ba/0x2a90 security/tomoyo/condition.c:1120
+ tomoyo_check_acl+0x1b7/0x3e0 security/tomoyo/domain.c:177
+ tomoyo_execute_permission+0x188/0x4a0 security/tomoyo/file.c:615
+ tomoyo_find_next_domain+0x348/0x1f6c security/tomoyo/domain.c:754
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:107 [inline]
+ tomoyo_bprm_check_security+0x124/0x1a0 security/tomoyo/tomoyo.c:97
+ security_bprm_check+0x63/0xb0 security/security.c:816
+ search_binary_handler+0x71/0x570 fs/exec.c:1649
+ exec_binprm fs/exec.c:1705 [inline]
+ __do_execve_file.isra.0+0x12fc/0x2270 fs/exec.c:1825
+ do_execveat_common fs/exec.c:1871 [inline]
+ do_execve fs/exec.c:1888 [inline]
+ __do_sys_execve fs/exec.c:1964 [inline]
+ __se_sys_execve fs/exec.c:1959 [inline]
+ __x64_sys_execve+0x8f/0xc0 fs/exec.c:1959
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 20881:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:337 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:476
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:485
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ tomoyo_find_next_domain+0x762/0x1f6c security/tomoyo/domain.c:884
+ tomoyo_bprm_check_security security/tomoyo/tomoyo.c:107 [inline]
+ tomoyo_bprm_check_security+0x124/0x1a0 security/tomoyo/tomoyo.c:97
+ security_bprm_check+0x63/0xb0 security/security.c:816
+ search_binary_handler+0x71/0x570 fs/exec.c:1649
+ exec_binprm fs/exec.c:1705 [inline]
+ __do_execve_file.isra.0+0x12fc/0x2270 fs/exec.c:1825
+ do_execveat_common fs/exec.c:1871 [inline]
+ do_execve fs/exec.c:1888 [inline]
+ __do_sys_execve fs/exec.c:1964 [inline]
+ __se_sys_execve fs/exec.c:1959 [inline]
+ __x64_sys_execve+0x8f/0xc0 fs/exec.c:1959
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888073e5a000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 1416 bytes inside of
+ 4096-byte region [ffff888073e5a000, ffff888073e5b000)
+The buggy address belongs to the page:
+page:ffffea0001cf9680 refcount:1 mapcount:0 mapping:ffff8880aa402000 index:0x0 compound_mapcount: 0
+flags: 0xfffe0000010200(slab|head)
+raw: 00fffe0000010200 ffffea0001906208 ffffea0002917c88 ffff8880aa402000
+raw: 0000000000000000 ffff888073e5a000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888073e5a480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888073e5a500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888073e5a580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff888073e5a600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888073e5a680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

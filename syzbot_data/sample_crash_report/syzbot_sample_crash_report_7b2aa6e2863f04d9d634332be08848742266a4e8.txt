@@ -1,0 +1,50 @@
+audit: type=1400 audit(1519323871.266:6): avc:  denied  { map } for  pid=4129 comm="bash" path="/bin/bash" dev="sda1" ino=1457 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=system_u:object_r:file_t:s0 tclass=file permissive=1
+audit: type=1400 audit(1519323877.529:7): avc:  denied  { map } for  pid=4143 comm="syzkaller165096" path="/root/syzkaller165096144" dev="sda1" ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 4143 Comm: syzkaller165096 Not tainted 4.16.0-rc2+ #237
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:rds_cmsg_zcopy net/rds/send.c:947 [inline]
+RIP: 0010:rds_cmsg_send net/rds/send.c:994 [inline]
+RIP: 0010:rds_sendmsg+0x10fd/0x2550 net/rds/send.c:1167
+RSP: 0018:ffff8801b5f7f690 EFLAGS: 00010202
+RAX: 0000000000000004 RBX: ffff8801b5f7f978 RCX: ffffffff8530dbed
+RDX: 000000003f1c97ab RSI: dffffc0000000000 RDI: 0000000000000020
+RBP: ffff8801b5f7f9a0 R08: 0000000000000000 R09: 1ffff10036befe3a
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff8801b5f7fb10
+R13: ffff8801b5f7fd30 R14: ffff8801b1ca0000 R15: 0000000000000000
+FS:  0000000001769880(0000) GS:ffff8801db400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055c7207450f0 CR3: 00000001b599a005 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ sock_sendmsg_nosec net/socket.c:629 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:639
+ ___sys_sendmsg+0x767/0x8b0 net/socket.c:2047
+ __sys_sendmsg+0xe5/0x210 net/socket.c:2081
+ SYSC_sendmsg net/socket.c:2092 [inline]
+ SyS_sendmsg+0x2d/0x50 net/socket.c:2088
+ do_syscall_64+0x280/0x940 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43fe49
+RSP: 002b:00007ffd031511f8 EFLAGS: 00000217 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fe49
+RDX: 0000000000000000 RSI: 0000000020000300 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000217 R12: 0000000000401770
+R13: 0000000000401800 R14: 0000000000000000 R15: 0000000000000000
+Code: e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 41 14 00 00 49 8d 7f 20 48 be 00 00 00 00 00 fc ff df 41 8b 54 24 10 48 89 f8 48 c1 e8 03 <0f> b6 04 30 84 c0 74 08 3c 03 0f 8e 6b 11 00 00 41 89 57 20 e8 
+RIP: rds_cmsg_zcopy net/rds/send.c:947 [inline] RSP: ffff8801b5f7f690
+RIP: rds_cmsg_send net/rds/send.c:994 [inline] RSP: ffff8801b5f7f690
+RIP: rds_sendmsg+0x10fd/0x2550 net/rds/send.c:1167 RSP: ffff8801b5f7f690
+---[ end trace a6cffb297815c791 ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

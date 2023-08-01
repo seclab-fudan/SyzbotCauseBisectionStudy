@@ -1,0 +1,70 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in record_print_text+0x33f/0x380 kernel/printk/printk.c:1401
+Write of size 1 at addr ffff888027e5d764 by task in:imklog/8158
+
+CPU: 1 PID: 8158 Comm: in:imklog Not tainted 5.11.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:120
+ print_address_description.constprop.0.cold+0x5b/0x2c6 mm/kasan/report.c:230
+ __kasan_report mm/kasan/report.c:396 [inline]
+ kasan_report.cold+0x79/0xd5 mm/kasan/report.c:413
+ record_print_text+0x33f/0x380 kernel/printk/printk.c:1401
+ syslog_print+0x2bb/0x430 kernel/printk/printk.c:1459
+ do_syslog.part.0+0x2a8/0x7c0 kernel/printk/printk.c:1586
+ do_syslog+0x49/0x60 kernel/printk/printk.c:1567
+ kmsg_read+0x90/0xb0 fs/proc/kmsg.c:40
+ pde_read fs/proc/inode.c:321 [inline]
+ proc_reg_read+0x119/0x300 fs/proc/inode.c:331
+ vfs_read+0x1b5/0x570 fs/read_write.c:494
+ ksys_read+0x12d/0x250 fs/read_write.c:634
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7fe0e808f22d
+Code: c1 20 00 00 75 10 b8 00 00 00 00 0f 05 48 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 4e fc ff ff 48 89 04 24 b8 00 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 97 fc ff ff 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007fe0e5a2b580 EFLAGS: 00000293 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fe0e808f22d
+RDX: 0000000000001fa0 RSI: 00007fe0e5a2bda0 RDI: 0000000000000004
+RBP: 00005572425759d0 R08: 0000000000000000 R09: 0000000004000001
+R10: 0000000000000001 R11: 0000000000000293 R12: 00007fe0e5a2bda0
+R13: 0000000000001fa0 R14: 0000000000001f9f R15: 00007fe0e5a2be04
+
+Allocated by task 8158:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:38
+ kasan_set_track mm/kasan/common.c:46 [inline]
+ set_alloc_info mm/kasan/common.c:401 [inline]
+ ____kasan_kmalloc.constprop.0+0x7f/0xa0 mm/kasan/common.c:429
+ kasan_kmalloc include/linux/kasan.h:219 [inline]
+ kmem_cache_alloc_trace+0x1e0/0x400 mm/slab.c:3554
+ kmalloc include/linux/slab.h:552 [inline]
+ syslog_print+0xb2/0x430 kernel/printk/printk.c:1430
+ do_syslog.part.0+0x2a8/0x7c0 kernel/printk/printk.c:1586
+ do_syslog+0x49/0x60 kernel/printk/printk.c:1567
+ kmsg_read+0x90/0xb0 fs/proc/kmsg.c:40
+ pde_read fs/proc/inode.c:321 [inline]
+ proc_reg_read+0x119/0x300 fs/proc/inode.c:331
+ vfs_read+0x1b5/0x570 fs/read_write.c:494
+ ksys_read+0x12d/0x250 fs/read_write.c:634
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+The buggy address belongs to the object at ffff888027e5d000
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 868 bytes to the right of
+ 1024-byte region [ffff888027e5d000, ffff888027e5d400)
+The buggy address belongs to the page:
+page:000000004be8ec80 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x27e5d
+flags: 0xfff00000000200(slab)
+raw: 00fff00000000200 ffffea00009f9708 ffff888010041850 ffff888010040700
+raw: 0000000000000000 ffff888027e5d000 0000000100000002 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888027e5d600: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888027e5d680: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888027e5d700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                                       ^
+ ffff888027e5d780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888027e5d800: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

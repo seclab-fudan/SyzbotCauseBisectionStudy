@@ -1,0 +1,79 @@
+==================================================================
+BUG: KASAN: use-after-free in instrument_atomic_write include/linux/instrumented.h:71 [inline]
+BUG: KASAN: use-after-free in atomic_inc include/asm-generic/atomic-instrumented.h:240 [inline]
+BUG: KASAN: use-after-free in io_wqe_inc_running fs/io-wq.c:301 [inline]
+BUG: KASAN: use-after-free in io_wq_worker_running+0xb4/0x100 fs/io-wq.c:613
+Write of size 4 at addr ffff888216dfa08c by task io_wqe_worker-0/8204
+
+CPU: 0 PID: 8204 Comm: io_wqe_worker-0 Not tainted 5.9.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1d6/0x29e lib/dump_stack.c:118
+ print_address_description+0x66/0x620 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report+0x132/0x1d0 mm/kasan/report.c:530
+ check_memory_region_inline mm/kasan/generic.c:183 [inline]
+ check_memory_region+0x2b5/0x2f0 mm/kasan/generic.c:192
+ instrument_atomic_write include/linux/instrumented.h:71 [inline]
+ atomic_inc include/asm-generic/atomic-instrumented.h:240 [inline]
+ io_wqe_inc_running fs/io-wq.c:301 [inline]
+ io_wq_worker_running+0xb4/0x100 fs/io-wq.c:613
+ schedule_timeout+0x15c/0x250 kernel/time/timer.c:1879
+ io_wqe_worker+0x60b/0x810 fs/io-wq.c:580
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+Allocated by task 8201:
+ kasan_save_stack mm/kasan/common.c:48 [inline]
+ kasan_set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc+0x100/0x130 mm/kasan/common.c:461
+ kmem_cache_alloc_node_trace+0x1f7/0x2a0 mm/slab.c:3594
+ kmalloc_node include/linux/slab.h:572 [inline]
+ kzalloc_node include/linux/slab.h:677 [inline]
+ io_wq_create+0x295/0x880 fs/io-wq.c:1064
+ io_init_wq_offload fs/io_uring.c:7432 [inline]
+ io_sq_offload_start fs/io_uring.c:7504 [inline]
+ io_uring_create fs/io_uring.c:8625 [inline]
+ io_uring_setup fs/io_uring.c:8694 [inline]
+ __do_sys_io_uring_setup fs/io_uring.c:8700 [inline]
+ __se_sys_io_uring_setup+0x18ed/0x2a00 fs/io_uring.c:8697
+ do_syscall_64+0x31/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Freed by task 36:
+ kasan_save_stack mm/kasan/common.c:48 [inline]
+ kasan_set_track+0x3d/0x70 mm/kasan/common.c:56
+ kasan_set_free_info+0x17/0x30 mm/kasan/generic.c:355
+ __kasan_slab_free+0xdd/0x110 mm/kasan/common.c:422
+ __cache_free mm/slab.c:3418 [inline]
+ kfree+0x113/0x200 mm/slab.c:3756
+ __io_wq_destroy fs/io-wq.c:1138 [inline]
+ io_wq_destroy+0x470/0x510 fs/io-wq.c:1146
+ io_finish_async fs/io_uring.c:6836 [inline]
+ io_ring_ctx_free fs/io_uring.c:7870 [inline]
+ io_ring_exit_work+0x195/0x520 fs/io_uring.c:7954
+ process_one_work+0x789/0xfc0 kernel/workqueue.c:2269
+ worker_thread+0xaa4/0x1460 kernel/workqueue.c:2415
+ kthread+0x37e/0x3a0 drivers/block/aoe/aoecmd.c:1234
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+The buggy address belongs to the object at ffff888216dfa000
+ which belongs to the cache kmalloc-1k of size 1024
+The buggy address is located 140 bytes inside of
+ 1024-byte region [ffff888216dfa000, ffff888216dfa400)
+The buggy address belongs to the page:
+page:00000000558456ca refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x216dfa
+flags: 0x57ffe0000000200(slab)
+raw: 057ffe0000000200 ffffea00086bb3c8 ffffea0008615a08 ffff8880aa440700
+raw: 0000000000000000 ffff888216dfa000 0000000100000002 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888216df9f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888216dfa000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888216dfa080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                      ^
+ ffff888216dfa100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888216dfa180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

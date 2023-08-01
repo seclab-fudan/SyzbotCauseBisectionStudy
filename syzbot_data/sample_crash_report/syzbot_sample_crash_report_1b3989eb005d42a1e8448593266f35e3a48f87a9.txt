@@ -1,0 +1,112 @@
+==================================================================
+BUG: KASAN: use-after-free in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
+BUG: KASAN: use-after-free in tty_port_kopened include/linux/tty.h:673 [inline]
+BUG: KASAN: use-after-free in tty_open_by_driver drivers/tty/tty_io.c:1966 [inline]
+BUG: KASAN: use-after-free in tty_open+0x6f8/0xbb0 drivers/tty/tty_io.c:2035
+Read of size 8 at addr ffff888094827200 by task syz-executor028/7270
+
+CPU: 1 PID: 7270 Comm: syz-executor028 Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x197/0x210 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xd4/0x30b mm/kasan/report.c:374
+ __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
+ kasan_report+0x12/0x20 mm/kasan/common.c:639
+ check_memory_region_inline mm/kasan/generic.c:185 [inline]
+ check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
+ __kasan_check_read+0x11/0x20 mm/kasan/common.c:95
+ test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
+ tty_port_kopened include/linux/tty.h:673 [inline]
+ tty_open_by_driver drivers/tty/tty_io.c:1966 [inline]
+ tty_open+0x6f8/0xbb0 drivers/tty/tty_io.c:2035
+ chrdev_open+0x245/0x6b0 fs/char_dev.c:414
+ do_dentry_open+0x4e6/0x1380 fs/open.c:797
+ vfs_open+0xa0/0xd0 fs/open.c:914
+ do_last fs/namei.c:3420 [inline]
+ path_openat+0x10df/0x4500 fs/namei.c:3537
+ do_filp_open+0x1a1/0x280 fs/namei.c:3567
+ do_sys_open+0x3fe/0x5d0 fs/open.c:1097
+ __do_sys_open fs/open.c:1115 [inline]
+ __se_sys_open fs/open.c:1110 [inline]
+ __x64_sys_open+0x7e/0xc0 fs/open.c:1110
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x405bc1
+Code: 75 14 b8 02 00 00 00 0f 05 48 3d 01 f0 ff ff 0f 83 a4 18 00 00 c3 48 83 ec 08 e8 0a fc ff ff 48 89 04 24 b8 02 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 53 fc ff ff 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007f4c82a59830 EFLAGS: 00000293 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 00000000006dcc28 RCX: 0000000000405bc1
+RDX: 0000000000000000 RSI: 0000000000000002 RDI: 00007f4c82a59860
+RBP: 00000000006dcc20 R08: 0000000000000000 R09: 000000000000000d
+R10: 0000000000000064 R11: 0000000000000293 R12: 00000000006dcc2c
+R13: 00007ffd46915f6f R14: 00007f4c82a5a9c0 R15: 0000000000000000
+
+Allocated by task 9185:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:513 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:486
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:527
+ kmem_cache_alloc_trace+0x158/0x790 mm/slab.c:3551
+ kmalloc include/linux/slab.h:556 [inline]
+ kzalloc include/linux/slab.h:670 [inline]
+ vc_allocate drivers/tty/vt/vt.c:1085 [inline]
+ vc_allocate+0x1fc/0x760 drivers/tty/vt/vt.c:1066
+ con_install+0x52/0x410 drivers/tty/vt/vt.c:3229
+ tty_driver_install_tty drivers/tty/tty_io.c:1228 [inline]
+ tty_init_dev drivers/tty/tty_io.c:1341 [inline]
+ tty_init_dev+0xf9/0x470 drivers/tty/tty_io.c:1318
+ tty_open_by_driver drivers/tty/tty_io.c:1987 [inline]
+ tty_open+0x4a5/0xbb0 drivers/tty/tty_io.c:2035
+ chrdev_open+0x245/0x6b0 fs/char_dev.c:414
+ do_dentry_open+0x4e6/0x1380 fs/open.c:797
+ vfs_open+0xa0/0xd0 fs/open.c:914
+ do_last fs/namei.c:3420 [inline]
+ path_openat+0x10df/0x4500 fs/namei.c:3537
+ do_filp_open+0x1a1/0x280 fs/namei.c:3567
+ do_sys_open+0x3fe/0x5d0 fs/open.c:1097
+ __do_sys_open fs/open.c:1115 [inline]
+ __se_sys_open fs/open.c:1110 [inline]
+ __x64_sys_open+0x7e/0xc0 fs/open.c:1110
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7272:
+ save_stack+0x23/0x90 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:335 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:474
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:483
+ __cache_free mm/slab.c:3426 [inline]
+ kfree+0x10a/0x2c0 mm/slab.c:3757
+ vt_disallocate_all+0x2bd/0x3e0 drivers/tty/vt/vt_ioctl.c:323
+ vt_ioctl+0xc38/0x26d0 drivers/tty/vt/vt_ioctl.c:816
+ tty_ioctl+0xa37/0x14f0 drivers/tty/tty_io.c:2660
+ vfs_ioctl fs/ioctl.c:47 [inline]
+ file_ioctl fs/ioctl.c:545 [inline]
+ do_vfs_ioctl+0x977/0x14e0 fs/ioctl.c:732
+ ksys_ioctl+0xab/0xd0 fs/ioctl.c:749
+ __do_sys_ioctl fs/ioctl.c:756 [inline]
+ __se_sys_ioctl fs/ioctl.c:754 [inline]
+ __x64_sys_ioctl+0x73/0xb0 fs/ioctl.c:754
+ do_syscall_64+0xfa/0x790 arch/x86/entry/common.c:294
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888094827000
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 512 bytes inside of
+ 2048-byte region [ffff888094827000, ffff888094827800)
+The buggy address belongs to the page:
+page:ffffea00025209c0 refcount:1 mapcount:0 mapping:ffff8880aa400e00 index:0x0
+raw: 00fffe0000000200 ffffea00028ea288 ffffea00028a5208 ffff8880aa400e00
+raw: 0000000000000000 ffff888094827000 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888094827100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888094827180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff888094827200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff888094827280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888094827300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

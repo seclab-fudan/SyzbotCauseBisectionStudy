@@ -1,0 +1,63 @@
+Process accounting resumed
+==================================================================
+BUG: KASAN: use-after-free in add_chain fs/minix/itree_common.c:14 [inline]
+BUG: KASAN: use-after-free in get_branch fs/minix/itree_common.c:52 [inline]
+BUG: KASAN: use-after-free in get_block+0x1103/0x13a0 fs/minix/itree_common.c:160
+Read of size 2 at addr ffff88808298518a by task syz-executor816/8125
+
+CPU: 0 PID: 8125 Comm: syz-executor816 Not tainted 5.8.0-rc4-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x18f/0x20d lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xae/0x436 mm/kasan/report.c:383
+ __kasan_report mm/kasan/report.c:513 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:530
+ add_chain fs/minix/itree_common.c:14 [inline]
+ get_branch fs/minix/itree_common.c:52 [inline]
+ get_block+0x1103/0x13a0 fs/minix/itree_common.c:160
+ minix_get_block+0xe5/0x110 fs/minix/inode.c:376
+ __block_write_begin_int+0x464/0x1a80 fs/buffer.c:2012
+ __block_write_begin fs/buffer.c:2062 [inline]
+ block_write_begin+0x58/0x2e0 fs/buffer.c:2121
+ minix_write_begin+0x35/0x220 fs/minix/inode.c:412
+ generic_perform_write+0x20a/0x4f0 mm/filemap.c:3318
+ __generic_file_write_iter+0x24b/0x610 mm/filemap.c:3447
+ generic_file_write_iter+0x3a6/0x5c0 mm/filemap.c:3479
+ call_write_iter include/linux/fs.h:1908 [inline]
+ new_sync_write+0x422/0x650 fs/read_write.c:503
+ __kernel_write+0x3f8/0x500 fs/read_write.c:530
+ do_acct_process+0xcc2/0x10c0 kernel/acct.c:522
+ slow_acct_process kernel/acct.c:581 [inline]
+ acct_process+0x3b7/0x4e6 kernel/acct.c:607
+ do_exit+0x197e/0x2a40 kernel/exit.c:795
+ do_group_exit+0x125/0x310 kernel/exit.c:903
+ __do_sys_exit_group kernel/exit.c:914 [inline]
+ __se_sys_exit_group kernel/exit.c:912 [inline]
+ __x64_sys_exit_group+0x3a/0x50 kernel/exit.c:912
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:384
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x447088
+Code: Bad RIP value.
+RSP: 002b:00007ffd7f7893d8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000447088
+RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+RBP: 00000000004c9850 R08: 00000000000000e7 R09: ffffffffffffffd4
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000001
+R13: 00000000006dca40 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea00020a6140 refcount:0 mapcount:0 mapping:0000000000000000 index:0x1
+flags: 0xfffe0000000000()
+raw: 00fffe0000000000 ffffea00020a6048 ffff8880ae639608 0000000000000000
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888082985080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888082985100: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff888082985180: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                      ^
+ ffff888082985200: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888082985280: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================

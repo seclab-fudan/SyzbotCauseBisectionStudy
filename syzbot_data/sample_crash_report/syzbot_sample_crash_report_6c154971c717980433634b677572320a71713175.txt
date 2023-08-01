@@ -1,0 +1,82 @@
+=====================================================
+BUG: KMSAN: uninit-value in tcp_sack net/netfilter/nf_conntrack_proto_tcp.c:425 [inline]
+BUG: KMSAN: uninit-value in tcp_in_window net/netfilter/nf_conntrack_proto_tcp.c:489 [inline]
+BUG: KMSAN: uninit-value in nf_conntrack_tcp_packet+0x3266/0x7650 net/netfilter/nf_conntrack_proto_tcp.c:1091
+CPU: 0 PID: 9 Comm: ksoftirqd/0 Not tainted 5.4.0-rc8-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0x128/0x220 mm/kmsan/kmsan_report.c:108
+ __msan_warning+0x64/0xc0 mm/kmsan/kmsan_instr.c:245
+ tcp_sack net/netfilter/nf_conntrack_proto_tcp.c:425 [inline]
+ tcp_in_window net/netfilter/nf_conntrack_proto_tcp.c:489 [inline]
+ nf_conntrack_tcp_packet+0x3266/0x7650 net/netfilter/nf_conntrack_proto_tcp.c:1091
+ nf_conntrack_handle_packet net/netfilter/nf_conntrack_core.c:1632 [inline]
+ nf_conntrack_in+0x1064/0x2664 net/netfilter/nf_conntrack_core.c:1726
+ ipv4_conntrack_local+0x1b7/0x300 net/netfilter/nf_conntrack_proto.c:200
+ nf_hook_entry_hookfn include/linux/netfilter.h:135 [inline]
+ nf_hook_slow+0x18b/0x3f0 net/netfilter/core.c:512
+ nf_hook include/linux/netfilter.h:260 [inline]
+ __ip_local_out+0x69b/0x800 net/ipv4/ip_output.c:114
+ ip_local_out net/ipv4/ip_output.c:123 [inline]
+ __ip_queue_xmit+0x1bdc/0x21f0 net/ipv4/ip_output.c:532
+ ip_queue_xmit+0xcc/0xf0 include/net/ip.h:237
+ __tcp_transmit_skb+0x40e3/0x5d90 net/ipv4/tcp_output.c:1169
+ __tcp_send_ack+0x701/0x840 net/ipv4/tcp_output.c:3696
+ tcp_send_ack+0x68/0x90 net/ipv4/tcp_output.c:3702
+ __tcp_ack_snd_check+0x643/0xb40 net/ipv4/tcp_input.c:5243
+ tcp_ack_snd_check net/ipv4/tcp_input.c:5289 [inline]
+ tcp_rcv_state_process+0x53f7/0x6f80 net/ipv4/tcp_input.c:6355
+ tcp_v4_do_rcv+0xb11/0xd70 net/ipv4/tcp_ipv4.c:1586
+ tcp_v4_rcv+0x647b/0x6a70 net/ipv4/tcp_ipv4.c:1945
+ ip_protocol_deliver_rcu+0x4c7/0xbd0 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish net/ipv4/ip_input.c:231 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ip_local_deliver+0x62a/0x7c0 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:442 [inline]
+ ip_rcv_finish net/ipv4/ip_input.c:413 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ip_rcv+0x6c5/0x740 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core net/core/dev.c:4929 [inline]
+ __netif_receive_skb net/core/dev.c:5043 [inline]
+ process_backlog+0xece/0x13c0 net/core/dev.c:5874
+ napi_poll net/core/dev.c:6311 [inline]
+ net_rx_action+0x7a6/0x1aa0 net/core/dev.c:6379
+ __do_softirq+0x4a1/0x83a kernel/softirq.c:293
+ run_ksoftirqd+0x25/0x40 kernel/softirq.c:607
+ smpboot_thread_fn+0x4a3/0x990 kernel/smpboot.c:165
+ kthread+0x4b5/0x4f0 kernel/kthread.c:256
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:353
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:149 [inline]
+ kmsan_internal_poison_shadow+0x5c/0x110 mm/kmsan/kmsan.c:132
+ kmsan_slab_alloc+0x97/0x100 mm/kmsan/kmsan_hooks.c:86
+ slab_alloc_node mm/slub.c:2773 [inline]
+ __kmalloc_node_track_caller+0xe27/0x11a0 mm/slub.c:4381
+ __kmalloc_reserve net/core/skbuff.c:141 [inline]
+ __alloc_skb+0x306/0xa10 net/core/skbuff.c:209
+ alloc_skb include/linux/skbuff.h:1049 [inline]
+ __tcp_send_ack+0xfb/0x840 net/ipv4/tcp_output.c:3675
+ tcp_send_ack+0x68/0x90 net/ipv4/tcp_output.c:3702
+ __tcp_ack_snd_check+0x643/0xb40 net/ipv4/tcp_input.c:5243
+ tcp_ack_snd_check net/ipv4/tcp_input.c:5289 [inline]
+ tcp_rcv_state_process+0x53f7/0x6f80 net/ipv4/tcp_input.c:6355
+ tcp_v4_do_rcv+0xb11/0xd70 net/ipv4/tcp_ipv4.c:1586
+ tcp_v4_rcv+0x647b/0x6a70 net/ipv4/tcp_ipv4.c:1945
+ ip_protocol_deliver_rcu+0x4c7/0xbd0 net/ipv4/ip_input.c:204
+ ip_local_deliver_finish net/ipv4/ip_input.c:231 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ip_local_deliver+0x62a/0x7c0 net/ipv4/ip_input.c:252
+ dst_input include/net/dst.h:442 [inline]
+ ip_rcv_finish net/ipv4/ip_input.c:413 [inline]
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ ip_rcv+0x6c5/0x740 net/ipv4/ip_input.c:523
+ __netif_receive_skb_one_core net/core/dev.c:4929 [inline]
+ __netif_receive_skb net/core/dev.c:5043 [inline]
+ process_backlog+0xece/0x13c0 net/core/dev.c:5874
+ napi_poll net/core/dev.c:6311 [inline]
+ net_rx_action+0x7a6/0x1aa0 net/core/dev.c:6379
+ __do_softirq+0x4a1/0x83a kernel/softirq.c:293
+=====================================================

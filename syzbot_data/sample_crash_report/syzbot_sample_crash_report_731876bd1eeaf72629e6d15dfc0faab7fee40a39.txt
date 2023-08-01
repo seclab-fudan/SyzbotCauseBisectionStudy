@@ -1,0 +1,177 @@
+exfat: Deprecated parameter 'utf8'
+exFAT-fs (loop0): failed to load upcase table (idx : 0x00010000, chksum : 0x207d53fc, utbl_chksum : 0xe619d30d)
+======================================================
+WARNING: possible circular locking dependency detected
+6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0 Not tainted
+------------------------------------------------------
+syz-executor581/3072 is trying to acquire lock:
+ffff0000caee1060 (mapping.invalidate_lock#3){.+.+}-{3:3}, at: filemap_invalidate_lock_shared include/linux/fs.h:811 [inline]
+ffff0000caee1060 (mapping.invalidate_lock#3){.+.+}-{3:3}, at: filemap_fault+0x104/0x7fc mm/filemap.c:3127
+
+but task is already holding lock:
+ffff0000c02520c8 (&mm->mmap_lock){++++}-{3:3}, at: mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ffff0000c02520c8 (&mm->mmap_lock){++++}-{3:3}, at: do_page_fault+0x1ec/0x79c arch/arm64/mm/fault.c:589
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&mm->mmap_lock){++++}-{3:3}:
+       __might_fault+0x7c/0xb4 mm/memory.c:5645
+       filldir64+0x1e8/0x574 fs/readdir.c:335
+       dir_emit_dot include/linux/fs.h:3569 [inline]
+       dir_emit_dots include/linux/fs.h:3580 [inline]
+       exfat_iterate+0xd4/0xcb4 fs/exfat/dir.c:231
+       iterate_dir+0x114/0x28c
+       __do_sys_getdents64 fs/readdir.c:369 [inline]
+       __se_sys_getdents64 fs/readdir.c:354 [inline]
+       __arm64_sys_getdents64+0x80/0x204 fs/readdir.c:354
+       __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+       invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+       el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+       do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+       el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+       el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+       el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+
+-> #1 (&sbi->s_lock){+.+.}-{3:3}:
+       __mutex_lock_common+0xd4/0xca8 kernel/locking/mutex.c:603
+       __mutex_lock kernel/locking/mutex.c:747 [inline]
+       mutex_lock_nested+0x38/0x44 kernel/locking/mutex.c:799
+       exfat_get_block+0x6c/0x9ec fs/exfat/inode.c:282
+       do_mpage_readpage+0x474/0xd38 fs/mpage.c:208
+       mpage_readahead+0xf0/0x1b8 fs/mpage.c:361
+       exfat_readahead+0x28/0x38 fs/exfat/inode.c:345
+       read_pages+0x8c/0x4f0 mm/readahead.c:161
+       page_cache_ra_unbounded+0x374/0x400 mm/readahead.c:270
+       do_page_cache_ra mm/readahead.c:300 [inline]
+       page_cache_ra_order+0x348/0x380 mm/readahead.c:560
+       ondemand_readahead+0x340/0x720 mm/readahead.c:682
+       page_cache_sync_ra+0xc4/0xdc mm/readahead.c:709
+       page_cache_sync_readahead include/linux/pagemap.h:1213 [inline]
+       filemap_get_pages+0x118/0x598 mm/filemap.c:2581
+       filemap_read+0x14c/0x6f4 mm/filemap.c:2675
+       generic_file_read_iter+0x6c/0x25c mm/filemap.c:2821
+       call_read_iter include/linux/fs.h:2193 [inline]
+       aio_read+0x170/0x254 fs/aio.c:1560
+       __io_submit_one+0x218/0x5e4
+       io_submit_one+0x2c4/0x4bc fs/aio.c:2019
+       __do_sys_io_submit+0x16c/0x2ac fs/aio.c:2078
+       __se_sys_io_submit fs/aio.c:2048 [inline]
+       __arm64_sys_io_submit+0x24/0x34 fs/aio.c:2048
+       __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+       invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+       el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+       do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+       el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+       el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+       el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+
+-> #0 (mapping.invalidate_lock#3){.+.+}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3097 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+       validate_chain kernel/locking/lockdep.c:3831 [inline]
+       __lock_acquire+0x1530/0x3084 kernel/locking/lockdep.c:5055
+       lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5668
+       down_read+0x5c/0x78 kernel/locking/rwsem.c:1509
+       filemap_invalidate_lock_shared include/linux/fs.h:811 [inline]
+       filemap_fault+0x104/0x7fc mm/filemap.c:3127
+       __do_fault+0x60/0x358 mm/memory.c:4202
+       do_read_fault mm/memory.c:4553 [inline]
+       do_fault+0x338/0x550 mm/memory.c:4682
+       handle_pte_fault mm/memory.c:4954 [inline]
+       __handle_mm_fault mm/memory.c:5096 [inline]
+       handle_mm_fault+0x78c/0xa48 mm/memory.c:5217
+       __do_page_fault arch/arm64/mm/fault.c:508 [inline]
+       do_page_fault+0x428/0x79c arch/arm64/mm/fault.c:608
+       do_translation_fault+0x78/0x194 arch/arm64/mm/fault.c:691
+       do_mem_abort+0x54/0x130 arch/arm64/mm/fault.c:827
+       el1_abort+0x3c/0x5c arch/arm64/kernel/entry-common.c:367
+       el1h_64_sync_handler+0x60/0xac arch/arm64/kernel/entry-common.c:427
+       el1h_64_sync+0x64/0x68 arch/arm64/kernel/entry.S:579
+       do_strncpy_from_user lib/strncpy_from_user.c:41 [inline]
+       strncpy_from_user+0x1a8/0x3d8 lib/strncpy_from_user.c:139
+       getname_flags+0x84/0x278 fs/namei.c:150
+       getname+0x28/0x38 fs/namei.c:218
+       do_sys_openat2+0x78/0x22c fs/open.c:1304
+       do_sys_open fs/open.c:1326 [inline]
+       __do_sys_openat fs/open.c:1342 [inline]
+       __se_sys_openat fs/open.c:1337 [inline]
+       __arm64_sys_openat+0xb0/0xe0 fs/open.c:1337
+       __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+       invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+       el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+       do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+       el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+       el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+       el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584
+
+other info that might help us debug this:
+
+Chain exists of:
+  mapping.invalidate_lock#3 --> &sbi->s_lock --> &mm->mmap_lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&mm->mmap_lock);
+                               lock(&sbi->s_lock);
+                               lock(&mm->mmap_lock);
+  lock(mapping.invalidate_lock#3);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor581/3072:
+ #0: ffff0000c02520c8 (&mm->mmap_lock){++++}-{3:3}, at: mmap_read_trylock include/linux/mmap_lock.h:136 [inline]
+ #0: ffff0000c02520c8 (&mm->mmap_lock){++++}-{3:3}, at: do_page_fault+0x1ec/0x79c arch/arm64/mm/fault.c:589
+
+stack backtrace:
+CPU: 0 PID: 3072 Comm: syz-executor581 Not tainted 6.1.0-rc8-syzkaller-33330-ga5541c0811a0 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/30/2022
+Call trace:
+ dump_backtrace+0x1c4/0x1f0 arch/arm64/kernel/stacktrace.c:156
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:163
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x104/0x16c lib/dump_stack.c:106
+ dump_stack+0x1c/0x58 lib/dump_stack.c:113
+ print_circular_bug+0x2c4/0x2c8 kernel/locking/lockdep.c:2055
+ check_noncircular+0x14c/0x154 kernel/locking/lockdep.c:2177
+ check_prev_add kernel/locking/lockdep.c:3097 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3216 [inline]
+ validate_chain kernel/locking/lockdep.c:3831 [inline]
+ __lock_acquire+0x1530/0x3084 kernel/locking/lockdep.c:5055
+ lock_acquire+0x100/0x1f8 kernel/locking/lockdep.c:5668
+ down_read+0x5c/0x78 kernel/locking/rwsem.c:1509
+ filemap_invalidate_lock_shared include/linux/fs.h:811 [inline]
+ filemap_fault+0x104/0x7fc mm/filemap.c:3127
+ __do_fault+0x60/0x358 mm/memory.c:4202
+ do_read_fault mm/memory.c:4553 [inline]
+ do_fault+0x338/0x550 mm/memory.c:4682
+ handle_pte_fault mm/memory.c:4954 [inline]
+ __handle_mm_fault mm/memory.c:5096 [inline]
+ handle_mm_fault+0x78c/0xa48 mm/memory.c:5217
+ __do_page_fault arch/arm64/mm/fault.c:508 [inline]
+ do_page_fault+0x428/0x79c arch/arm64/mm/fault.c:608
+ do_translation_fault+0x78/0x194 arch/arm64/mm/fault.c:691
+ do_mem_abort+0x54/0x130 arch/arm64/mm/fault.c:827
+ el1_abort+0x3c/0x5c arch/arm64/kernel/entry-common.c:367
+ el1h_64_sync_handler+0x60/0xac arch/arm64/kernel/entry-common.c:427
+ el1h_64_sync+0x64/0x68 arch/arm64/kernel/entry.S:579
+ do_strncpy_from_user lib/strncpy_from_user.c:41 [inline]
+ strncpy_from_user+0x1a8/0x3d8 lib/strncpy_from_user.c:139
+ getname_flags+0x84/0x278 fs/namei.c:150
+ getname+0x28/0x38 fs/namei.c:218
+ do_sys_openat2+0x78/0x22c fs/open.c:1304
+ do_sys_open fs/open.c:1326 [inline]
+ __do_sys_openat fs/open.c:1342 [inline]
+ __se_sys_openat fs/open.c:1337 [inline]
+ __arm64_sys_openat+0xb0/0xe0 fs/open.c:1337
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall arch/arm64/kernel/syscall.c:52 [inline]
+ el0_svc_common+0x138/0x220 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x48/0x140 arch/arm64/kernel/syscall.c:197
+ el0_svc+0x58/0x150 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:584

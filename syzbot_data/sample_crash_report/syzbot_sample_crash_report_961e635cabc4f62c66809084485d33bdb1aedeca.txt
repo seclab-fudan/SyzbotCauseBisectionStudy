@@ -1,0 +1,72 @@
+syz-executor497[5060]: segfault at 0 ip 00007f5b24f32af0 sp 00007ffda0d5bbc8 error 4 in syz-executor497039415[7f5b24ecc000+88000] likely on CPU 0 (core 0, socket 0)
+Code: 66 0f ef c0 66 0f ef c9 66 0f ef d2 66 0f ef db 48 89 f8 48 89 f9 48 81 e1 ff 0f 00 00 48 81 f9 cf 0f 00 00 77 74 48 83 e0 f0 <66> 0f 74 00 66 0f 74 48 10 66 0f 74 50 20 66 0f 74 58 30 66 0f d7
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 5060 at include/linux/backing-dev.h:256 folio_account_dirtied+0x4e9/0x6e0 mm/page-writeback.c:2677
+Modules linked in:
+CPU: 1 PID: 5060 Comm: syz-executor497 Not tainted 6.2.0-rc2-syzkaller-00203-g1f5abbd77e2c #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:inode_to_wb include/linux/backing-dev.h:253 [inline]
+RIP: 0010:folio_account_dirtied+0x4e9/0x6e0 mm/page-writeback.c:2677
+Code: 5d 41 5e 41 5f 5d c3 e8 b5 44 cf ff 4c 89 ef 4c 89 e6 48 83 c4 20 5b 41 5c 41 5d 41 5e 41 5f 5d e9 3c 64 2c 00 e8 97 44 cf ff <0f> 0b e9 8a fd ff ff 89 d9 80 e1 07 80 c1 03 38 c1 0f 8c 7a fb ff
+RSP: 0018:ffffc90003abf630 EFLAGS: 00010093
+RAX: ffffffff81bc96c9 RBX: 0000000000000000 RCX: ffff888019649d40
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffff888140d31278 R08: ffffffff81bc944d R09: ffffed10281a6250
+R10: ffffed10281a6250 R11: 1ffff110281a624f R12: dffffc0000000000
+R13: ffffea0000a4ad40 R14: 0000000000000001 R15: 1ffff110281a624f
+FS:  0000000000000000(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000055c162dad000 CR3: 00000000299ff000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __folio_mark_dirty+0x125/0x260 mm/page-writeback.c:2728
+ __set_page_dirty include/linux/pagemap.h:1052 [inline]
+ mark_buffer_dirty+0x253/0x550 fs/buffer.c:1105
+ gfs2_unpin+0x10b/0xa20 fs/gfs2/lops.c:111
+ buf_lo_after_commit+0x172/0x1d0 fs/gfs2/lops.c:747
+ lops_after_commit fs/gfs2/lops.h:49 [inline]
+ gfs2_log_flush+0x1179/0x26a0 fs/gfs2/log.c:1107
+ gfs2_kill_sb+0x50/0xd0 fs/gfs2/ops_fstype.c:1732
+ deactivate_locked_super+0xa7/0xf0 fs/super.c:332
+ cleanup_mnt+0x494/0x520 fs/namespace.c:1291
+ task_work_run+0x243/0x300 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x644/0x2150 kernel/exit.c:867
+ do_group_exit+0x1fd/0x2b0 kernel/exit.c:1012
+ get_signal+0x1701/0x17c0 kernel/signal.c:2859
+ arch_do_signal_or_restart+0x7b/0x5e0 arch/x86/kernel/signal.c:306
+ exit_to_user_mode_loop+0x74/0x150 kernel/entry/common.c:168
+ exit_to_user_mode_prepare+0xb2/0x140 kernel/entry/common.c:203
+ irqentry_exit_to_user_mode+0x5/0x30 kernel/entry/common.c:309
+ exc_page_fault+0x9a/0x110 arch/x86/mm/fault.c:1578
+ asm_exc_page_fault+0x22/0x30 arch/x86/include/asm/idtentry.h:570
+RIP: 0033:0x7f5b24f32af0
+Code: Unable to access opcode bytes at 0x7f5b24f32ac6.
+RSP: 002b:00007ffda0d5bbc8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 00000000000000e0 RCX: 0000000000000000
+RDX: 00000000000000e0 RSI: 00000000000000e0 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000000000c0 R11: 00000000000000e0 R12: 00000000ffffffff
+R13: 00007ffda0d5bca0 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+----------------
+Code disassembly (best guess):
+   0:	66 0f ef c0          	pxor   %xmm0,%xmm0
+   4:	66 0f ef c9          	pxor   %xmm1,%xmm1
+   8:	66 0f ef d2          	pxor   %xmm2,%xmm2
+   c:	66 0f ef db          	pxor   %xmm3,%xmm3
+  10:	48 89 f8             	mov    %rdi,%rax
+  13:	48 89 f9             	mov    %rdi,%rcx
+  16:	48 81 e1 ff 0f 00 00 	and    $0xfff,%rcx
+  1d:	48 81 f9 cf 0f 00 00 	cmp    $0xfcf,%rcx
+  24:	77 74                	ja     0x9a
+  26:	48 83 e0 f0          	and    $0xfffffffffffffff0,%rax
+* 2a:	66 0f 74 00          	pcmpeqb (%rax),%xmm0 <-- trapping instruction
+  2e:	66 0f 74 48 10       	pcmpeqb 0x10(%rax),%xmm1
+  33:	66 0f 74 50 20       	pcmpeqb 0x20(%rax),%xmm2
+  38:	66 0f 74 58 30       	pcmpeqb 0x30(%rax),%xmm3
+  3d:	66                   	data16
+  3e:	0f                   	.byte 0xf
+  3f:	d7                   	xlat   %ds:(%rbx)

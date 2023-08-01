@@ -1,0 +1,74 @@
+netlink: 8 bytes leftover after parsing attributes in process `syz-executor6'.
+IPv6: ADDRCONF(NETDEV_CHANGE): vcan0: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): vcan0: link becomes ready
+==================================================================
+BUG: KASAN: stack-out-of-bounds in neigh_flush_dev+0x82f/0x900 net/core/neighbour.c:249
+Read of size 8 at addr ffff880190b382c0 by task syz-executor0/14089
+
+CPU: 1 PID: 14089 Comm: syz-executor0 Not tainted 4.18.0-rc4+ #144
+PANIC: double fault, error_code: 0x0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+CPU: 0 PID: 14090 Comm: syz-executor5 Not tainted 4.18.0-rc4+ #144
+Call Trace:
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:mark_lock+0x46/0x19f0 kernel/locking/lockdep.c:3118
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+Code: 00 
+00 00 
+41 56 
+41 d3 
+e7 41 
+ print_address_description+0x6c/0x20b mm/kasan/report.c:256
+55 4c 
+8d 6e 
+ kasan_report_error mm/kasan/report.c:354 [inline]
+ kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+20 41 
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+54 49 
+ neigh_flush_dev+0x82f/0x900 net/core/neighbour.c:249
+89 f4 
+53 48 
+8d 9d 
+f8 fe 
+ff ff 
+48 c1 
+eb 03 
+48 8d 04 13 
+ neigh_changeaddr+0x2f/0x40 net/core/neighbour.c:288
+48 81 
+ ndisc_netdev_event+0x509/0x580 net/ipv6/ndisc.c:1786
+ec 08 
+01 00 
+00 <48> 
+c7 85 
+ notifier_call_chain+0x180/0x390 kernel/notifier.c:93
+f8 fe 
+ff ff 
+b3 8a 
+b5 41 
+48 c7 
+ __raw_notifier_call_chain kernel/notifier.c:394 [inline]
+ raw_notifier_call_chain+0x2d/0x40 kernel/notifier.c:401
+85 00 
+ call_netdevice_notifiers_info+0x3f/0x90 net/core/dev.c:1735
+ff ff 
+ __dev_notify_flags+0x3dc/0x480 net/core/dev.c:7043
+ff 80 
+77 bd 
+88 
+RSP: 0018:ffff88018edfffc0 EFLAGS: 00010086
+RAX: ffffed0031dbfffd RBX: 1ffff10031dbfffd RCX: 0000000000000008
+RDX: dffffc0000000000 RSI: ffff8801b0e38f20 RDI: ffff8801b0e386c0
+RBP: ffff88018ee000f0 R08: 0000000000000008 R09: 0000000000000001
+R10: ffff8801b0e386c0 R11: ffff8801b0e38ee4 R12: ffff8801b0e38f20
+ dev_change_flags+0xfd/0x150 net/core/dev.c:7065
+R13: ffff8801b0e38f40 R14: ffff8801b0e386c0 R15: 0000000000000100
+FS:  00000000015c8940(0000) GS:ffff8801dae00000(0000) knlGS:0000000000000000
+ do_setlink+0xb1d/0x3e10 net/core/rtnetlink.c:2376
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff88018edfffb8 CR3: 00000001d92d0000 CR4: 00000000001406f0
+DR0: 0000000020000000 DR1: 0000000020000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000600
+Call Trace:

@@ -1,0 +1,139 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in __extract drivers/hid/hid-core.c:1345 [inline]
+BUG: KASAN: slab-out-of-bounds in hid_field_extract+0x150/0x170 drivers/hid/hid-core.c:1365
+Read of size 1 at addr ffff8881cfe15000 by task swapper/0/0
+
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.5.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0xef/0x16e lib/dump_stack.c:118
+ print_address_description.constprop.0+0x16/0x200 mm/kasan/report.c:374
+ __kasan_report.cold+0x37/0x7f mm/kasan/report.c:506
+ kasan_report+0xe/0x20 mm/kasan/common.c:639
+ __extract drivers/hid/hid-core.c:1345 [inline]
+ hid_field_extract+0x150/0x170 drivers/hid/hid-core.c:1365
+ hid_input_field drivers/hid/hid-core.c:1537 [inline]
+ hid_report_raw_event+0x448/0xed0 drivers/hid/hid-core.c:1757
+ hid_input_report+0x315/0x3f0 drivers/hid/hid-core.c:1824
+ hid_irq_in+0x50e/0x690 drivers/hid/usbhid/hid-core.c:284
+ __usb_hcd_giveback_urb+0x1f2/0x470 drivers/usb/core/hcd.c:1648
+ usb_hcd_giveback_urb+0x368/0x420 drivers/usb/core/hcd.c:1713
+ dummy_timer+0x123d/0x2fdb drivers/usb/gadget/udc/dummy_hcd.c:1966
+ call_timer_fn+0x179/0x650 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers kernel/time/timer.c:1773 [inline]
+ __run_timers kernel/time/timer.c:1740 [inline]
+ run_timer_softirq+0x5e3/0x1490 kernel/time/timer.c:1786
+ __do_softirq+0x221/0x912 kernel/softirq.c:292
+ invoke_softirq kernel/softirq.c:373 [inline]
+ irq_exit+0x178/0x1a0 kernel/softirq.c:413
+ exiting_irq arch/x86/include/asm/apic.h:536 [inline]
+ smp_apic_timer_interrupt+0x12f/0x500 arch/x86/kernel/apic/apic.c:1137
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:829
+ </IRQ>
+RIP: 0010:default_idle+0x28/0x2e0 arch/x86/kernel/process.c:700
+Code: cc cc 41 56 41 55 65 44 8b 2d 6c 7c 86 7a 41 54 55 53 0f 1f 44 00 00 e8 76 08 c9 fb e9 07 00 00 00 0f 00 2d 7a 02 47 00 fb f4 <65> 44 8b 2d 48 7c 86 7a 0f 1f 44 00 00 5b 5d 41 5c 41 5d 41 5e c3
+RSP: 0018:ffffffff86e07da8 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000007 RBX: ffffffff86e2c200 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000006 RDI: ffffffff86e2ca4c
+RBP: fffffbfff0dc5840 R08: ffffffff86e2c200 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ cpuidle_idle_call kernel/sched/idle.c:154 [inline]
+ do_idle+0x3c3/0x4e0 kernel/sched/idle.c:269
+ cpu_startup_entry+0x14/0x20 kernel/sched/idle.c:361
+ start_kernel+0x8b1/0x8eb init/main.c:785
+ secondary_startup_64+0xb6/0xc0 arch/x86/kernel/head_64.S:242
+
+Allocated by task 12:
+ save_stack+0x1b/0x80 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ __kasan_kmalloc mm/kasan/common.c:513 [inline]
+ __kasan_kmalloc.constprop.0+0xbf/0xd0 mm/kasan/common.c:486
+ kmalloc include/linux/slab.h:561 [inline]
+ hcd_buffer_alloc+0x1ed/0x290 drivers/usb/core/buffer.c:132
+ usb_alloc_coherent+0x5d/0x80 drivers/usb/core/usb.c:910
+ hid_alloc_buffers drivers/hid/usbhid/hid-core.c:846 [inline]
+ usbhid_start+0x60b/0x22f0 drivers/hid/usbhid/hid-core.c:1075
+ hid_hw_start+0x5d/0x130 drivers/hid/hid-core.c:2022
+ ms_probe+0x159/0x4d0 drivers/hid/hid-microsoft.c:394
+ hid_device_probe+0x2be/0x3f0 drivers/hid/hid-core.c:2255
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:430
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:490
+ device_add+0x1480/0x1c20 drivers/base/core.c:2487
+ hid_add_device drivers/hid/hid-core.c:2411 [inline]
+ hid_add_device+0x33c/0x9a0 drivers/hid/hid-core.c:2360
+ usbhid_probe+0xa81/0xfa0 drivers/hid/usbhid/hid-core.c:1386
+ usb_probe_interface+0x305/0x7a0 drivers/usb/core/driver.c:361
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:430
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:490
+ device_add+0x1480/0x1c20 drivers/base/core.c:2487
+ usb_set_configuration+0xe67/0x1740 drivers/usb/core/message.c:2023
+ generic_probe+0x9d/0xd5 drivers/usb/core/generic.c:210
+ usb_probe_device+0x99/0x100 drivers/usb/core/driver.c:266
+ really_probe+0x281/0x6d0 drivers/base/dd.c:548
+ driver_probe_device+0x104/0x210 drivers/base/dd.c:721
+ __device_attach_driver+0x1c2/0x220 drivers/base/dd.c:828
+ bus_for_each_drv+0x162/0x1e0 drivers/base/bus.c:430
+ __device_attach+0x217/0x360 drivers/base/dd.c:894
+ bus_probe_device+0x1e4/0x290 drivers/base/bus.c:490
+ device_add+0x1480/0x1c20 drivers/base/core.c:2487
+ usb_new_device.cold+0x6a4/0xe79 drivers/usb/core/hub.c:2537
+ hub_port_connect drivers/usb/core/hub.c:5184 [inline]
+ hub_port_connect_change drivers/usb/core/hub.c:5324 [inline]
+ port_event drivers/usb/core/hub.c:5470 [inline]
+ hub_event+0x1e59/0x3860 drivers/usb/core/hub.c:5552
+ process_one_work+0x92b/0x1530 kernel/workqueue.c:2264
+ worker_thread+0x96/0xe20 kernel/workqueue.c:2410
+ kthread+0x318/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+Freed by task 268:
+ save_stack+0x1b/0x80 mm/kasan/common.c:72
+ set_track mm/kasan/common.c:80 [inline]
+ kasan_set_free_info mm/kasan/common.c:335 [inline]
+ __kasan_slab_free+0x129/0x170 mm/kasan/common.c:474
+ slab_free_hook mm/slub.c:1425 [inline]
+ slab_free_freelist_hook mm/slub.c:1458 [inline]
+ slab_free mm/slub.c:3005 [inline]
+ kfree+0xda/0x310 mm/slub.c:3957
+ kvfree+0x6a/0xd0 mm/util.c:603
+ seq_release+0x4f/0x80 fs/seq_file.c:360
+ kernfs_fop_release+0xf2/0x190 fs/kernfs/file.c:780
+ __fput+0x2d7/0x840 fs/file_table.c:280
+ task_work_run+0x13f/0x1c0 kernel/task_work.c:113
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_usermode_loop+0x1d2/0x200 arch/x86/entry/common.c:164
+ prepare_exit_to_usermode arch/x86/entry/common.c:195 [inline]
+ syscall_return_slowpath arch/x86/entry/common.c:278 [inline]
+ do_syscall_64+0x4e0/0x5c0 arch/x86/entry/common.c:304
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff8881cfe14000
+ which belongs to the cache kmalloc-4k of size 4096
+The buggy address is located 0 bytes to the right of
+ 4096-byte region [ffff8881cfe14000, ffff8881cfe15000)
+The buggy address belongs to the page:
+page:ffffea00073f8400 refcount:1 mapcount:0 mapping:ffff8881da00c280 index:0x0 compound_mapcount: 0
+raw: 0200000000010200 dead000000000100 dead000000000122 ffff8881da00c280
+raw: 0000000000000000 0000000000040004 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8881cfe14f00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8881cfe14f80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8881cfe15000: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                   ^
+ ffff8881cfe15080: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8881cfe15100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================

@@ -1,0 +1,71 @@
+=====================================================
+BUG: KMSAN: uninit-value in variable_test_bit arch/x86/include/asm/bitops.h:214 [inline]
+BUG: KMSAN: uninit-value in test_bit include/asm-generic/bitops/instrumented-non-atomic.h:111 [inline]
+BUG: KMSAN: uninit-value in macvlan_broadcast+0x3de/0xac0 drivers/net/macvlan.c:278
+CPU: 1 PID: 11282 Comm: syz-executor152 Not tainted 5.5.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x220 lib/dump_stack.c:118
+ kmsan_report+0xf8/0x1e0 mm/kmsan/kmsan_report.c:118
+ __msan_warning+0x58/0xa0 mm/kmsan/kmsan_instr.c:215
+ variable_test_bit arch/x86/include/asm/bitops.h:214 [inline]
+ test_bit include/asm-generic/bitops/instrumented-non-atomic.h:111 [inline]
+ macvlan_broadcast+0x3de/0xac0 drivers/net/macvlan.c:278
+ macvlan_queue_xmit drivers/net/macvlan.c:520 [inline]
+ macvlan_start_xmit+0x456/0xad0 drivers/net/macvlan.c:559
+ __netdev_start_xmit include/linux/netdevice.h:4447 [inline]
+ netdev_start_xmit include/linux/netdevice.h:4461 [inline]
+ dev_direct_xmit+0x85c/0xb50 net/core/dev.c:4079
+ packet_direct_xmit+0x289/0x470 net/packet/af_packet.c:240
+ packet_snd net/packet/af_packet.c:2965 [inline]
+ packet_sendmsg+0x836f/0x92a0 net/packet/af_packet.c:2990
+ sock_sendmsg_nosec net/socket.c:639 [inline]
+ sock_sendmsg net/socket.c:659 [inline]
+ __sys_sendto+0xc44/0xc70 net/socket.c:1985
+ __do_sys_sendto net/socket.c:1997 [inline]
+ __se_sys_sendto+0x107/0x130 net/socket.c:1993
+ __x64_sys_sendto+0x6e/0x90 net/socket.c:1993
+ do_syscall_64+0xb6/0x160 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x442e99
+Code: e8 0c e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 6b 09 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffda8b16508 EFLAGS: 00000246 ORIG_RAX: 000000000000002c
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000442e99
+RDX: 000000000000000e RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 000000000001c769 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000403d20 R14: 0000000000000000 R15: 0000000000000000
+
+Uninit was created at:
+ kmsan_save_stack_with_flags+0x3c/0x90 mm/kmsan/kmsan.c:144
+ kmsan_internal_alloc_meta_for_pages mm/kmsan/kmsan_shadow.c:307 [inline]
+ kmsan_alloc_page+0x134/0x310 mm/kmsan/kmsan_shadow.c:336
+ __alloc_pages_nodemask+0x1421/0x5fd0 mm/page_alloc.c:4800
+ alloc_pages_current+0x68d/0x9a0 mm/mempolicy.c:2207
+ alloc_pages include/linux/gfp.h:534 [inline]
+ alloc_slab_page+0x111/0x12f0 mm/slub.c:1511
+ allocate_slab mm/slub.c:1656 [inline]
+ new_slab+0x2cc/0x1120 mm/slub.c:1722
+ new_slab_objects mm/slub.c:2473 [inline]
+ ___slab_alloc+0x1423/0x1fb0 mm/slub.c:2624
+ __slab_alloc mm/slub.c:2664 [inline]
+ slab_alloc_node mm/slub.c:2738 [inline]
+ __kmalloc_node_track_caller+0xc9d/0x11f0 mm/slub.c:4382
+ __kmalloc_reserve net/core/skbuff.c:141 [inline]
+ __alloc_skb+0x309/0xa50 net/core/skbuff.c:209
+ alloc_skb include/linux/skbuff.h:1049 [inline]
+ alloc_skb_with_frags+0x18c/0xa80 net/core/skbuff.c:5664
+ sock_alloc_send_pskb+0xae9/0xc70 net/core/sock.c:2242
+ sock_alloc_send_skb+0xca/0xe0 net/core/sock.c:2259
+ mld_newpack+0x2ad/0xd30 net/ipv6/mcast.c:1609
+ add_grhead net/ipv6/mcast.c:1713 [inline]
+ add_grec+0x1cdf/0x2120 net/ipv6/mcast.c:1844
+ mld_send_cr net/ipv6/mcast.c:1970 [inline]
+ mld_ifc_timer_expire+0xf79/0x1790 net/ipv6/mcast.c:2477
+ call_timer_fn+0x232/0x530 kernel/time/timer.c:1404
+ expire_timers kernel/time/timer.c:1449 [inline]
+ __run_timers+0xd60/0x1270 kernel/time/timer.c:1773
+ run_timer_softirq+0x2d/0x50 kernel/time/timer.c:1786
+ __do_softirq+0x4a1/0x83a kernel/softirq.c:293
+=====================================================

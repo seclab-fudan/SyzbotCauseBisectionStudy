@@ -1,0 +1,71 @@
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr_slave_1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): hsr0: link becomes ready
+IPv6: ADDRCONF(NETDEV_UP): vxcan1: link is not ready
+8021q: adding VLAN 0 to HW filter on device batadv0
+==================================================================
+BUG: KASAN: slab-out-of-bounds in tick_sched_handle+0x16f/0x190 kernel/time/tick-sched.c:161
+Read of size 8 at addr ffff88809aa37ea0 by task syz-executor404/7863
+
+CPU: 0 PID: 7863 Comm: syz-executor404 Not tainted 5.0.0-rc1+ #24
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1db/0x2d0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:135
+ tick_sched_handle+0x16f/0x190 kernel/time/tick-sched.c:161
+ tick_sched_timer+0x47/0x130 kernel/time/tick-sched.c:1271
+ __run_hrtimer kernel/time/hrtimer.c:1389 [inline]
+ __hrtimer_run_queues+0x3a7/0x1050 kernel/time/hrtimer.c:1451
+ hrtimer_interrupt+0x314/0x770 kernel/time/hrtimer.c:1509
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1035 [inline]
+ smp_apic_timer_interrupt+0x18d/0x760 arch/x86/kernel/apic/apic.c:1060
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:807
+ </IRQ>
+
+Allocated by task 1:
+ save_stack+0x45/0xd0 mm/kasan/common.c:73
+ set_track mm/kasan/common.c:85 [inline]
+ __kasan_kmalloc mm/kasan/common.c:496 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:469
+ kasan_kmalloc+0x9/0x10 mm/kasan/common.c:504
+ kmem_cache_alloc_trace+0x151/0x760 mm/slab.c:3609
+ kmalloc include/linux/slab.h:545 [inline]
+ kzalloc include/linux/slab.h:740 [inline]
+ device_create_groups_vargs+0x8e/0x270 drivers/base/core.c:2537
+ device_create_with_groups+0xe3/0x120 drivers/base/core.c:2674
+ misc_register+0x51e/0x780 drivers/char/misc.c:206
+ init_binder_device drivers/android/binder.c:5843 [inline]
+ binder_init+0x3f8/0x6e6 drivers/android/binder.c:5913
+ do_one_initcall+0x129/0x937 init/main.c:888
+ do_initcall_level init/main.c:956 [inline]
+ do_initcalls init/main.c:964 [inline]
+ do_basic_setup init/main.c:982 [inline]
+ kernel_init_freeable+0x4d5/0x5c4 init/main.c:1135
+ kernel_init+0x12/0x1c5 init/main.c:1055
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
+
+Freed by task 0:
+(stack is not available)
+
+The buggy address belongs to the object at ffff88809aa372c0
+ which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 992 bytes to the right of
+ 2048-byte region [ffff88809aa372c0, ffff88809aa37ac0)
+The buggy address belongs to the page:
+page:ffffea00026a8d80 count:1 mapcount:0 mapping:ffff88812c3f0c40 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea00026a7c88 ffffea00026a9408 ffff88812c3f0c40
+raw: 0000000000000000 ffff88809aa361c0 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff88809aa37d80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88809aa37e00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88809aa37e80: fc fc fc fc fc fc fc fc 00 f1 f1 f1 f1 00 f3 f3
+                               ^
+ ffff88809aa37f00: f3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1
+ ffff88809aa37f80: f1 f1 f1 f8 f3 f3 f3 fc fc 00 00 00 00 00 00 00
+==================================================================

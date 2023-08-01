@@ -1,0 +1,34 @@
+------------[ cut here ]------------
+refcount_t: addition on 0; use-after-free.
+WARNING: CPU: 1 PID: 5437 at lib/refcount.c:25 refcount_warn_saturate+0x13d/0x1a0 lib/refcount.c:25
+Modules linked in:
+CPU: 1 PID: 5437 Comm: kworker/u4:15 Not tainted 5.18.0-rc6-syzkaller-00015-g0ac824f379fb #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: krdsd rds_connect_worker
+RIP: 0010:refcount_warn_saturate+0x13d/0x1a0 lib/refcount.c:25
+Code: c7 20 4a e8 8a 31 c0 e8 21 81 26 fd 0f 0b eb a3 e8 98 15 5d fd c6 05 38 00 c5 09 01 48 c7 c7 80 4a e8 8a 31 c0 e8 03 81 26 fd <0f> 0b eb 85 e8 7a 15 5d fd c6 05 1b 00 c5 09 01 48 c7 c7 e0 4a e8
+RSP: 0018:ffffc9000aa1fa48 EFLAGS: 00010246
+RAX: 4efec6e383203200 RBX: 0000000000000002 RCX: ffff88801b035880
+RDX: 0000000000000000 RSI: 0000000080000000 RDI: 0000000000000000
+RBP: 0000000000000002 R08: ffffffff816ad542 R09: ffffed1017366809
+R10: ffffed1017366809 R11: 1ffff11017366808 R12: ffff88802540d3cc
+R13: ffff88802540d280 R14: ffff888058c97700 R15: ffff88804cbc8cc0
+FS:  0000000000000000(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000001b33421000 CR3: 000000000c88e000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ __refcount_inc include/linux/refcount.h:250 [inline]
+ refcount_inc include/linux/refcount.h:267 [inline]
+ get_net include/net/net_namespace.h:248 [inline]
+ get_net_track include/net/net_namespace.h:334 [inline]
+ rds_tcp_tune+0x2bc/0x3a0 net/rds/tcp.c:503
+ rds_tcp_conn_path_connect+0x2f6/0xb40 net/rds/tcp_connect.c:127
+ rds_connect_worker+0x1c3/0x270 net/rds/threads.c:176
+ process_one_work+0x81c/0xd10 kernel/workqueue.c:2289
+ worker_thread+0xb14/0x1330 kernel/workqueue.c:2436
+ kthread+0x266/0x300 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30
+ </TASK>

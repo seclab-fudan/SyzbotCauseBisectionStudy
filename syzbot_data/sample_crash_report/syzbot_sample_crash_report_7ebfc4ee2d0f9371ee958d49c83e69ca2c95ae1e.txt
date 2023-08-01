@@ -1,0 +1,101 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in skb_gro_receive+0xf5f/0x10e0 net/core/skbuff.c:3826
+Read of size 16 at addr ffff888089b97ff0 by task syz-executor192/7912
+
+CPU: 0 PID: 7912 Comm: syz-executor192 Not tainted 5.1.0-rc7+ #95
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+ kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ __asan_report_load16_noabort+0x14/0x20 mm/kasan/generic_report.c:133
+ skb_gro_receive+0xf5f/0x10e0 net/core/skbuff.c:3826
+ udp_gro_receive_segment net/ipv4/udp_offload.c:382 [inline]
+ call_gro_receive include/linux/netdevice.h:2349 [inline]
+ udp_gro_receive+0xb61/0xfd0 net/ipv4/udp_offload.c:414
+ udp4_gro_receive+0x763/0xeb0 net/ipv4/udp_offload.c:478
+ inet_gro_receive+0xe72/0x1110 net/ipv4/af_inet.c:1510
+ dev_gro_receive+0x1cd0/0x23c0 net/core/dev.c:5581
+ napi_gro_frags+0x36b/0xd10 net/core/dev.c:5843
+ tun_get_user+0x2f24/0x3fb0 drivers/net/tun.c:1981
+ tun_chr_write_iter+0xbd/0x156 drivers/net/tun.c:2027
+ call_write_iter include/linux/fs.h:1866 [inline]
+ do_iter_readv_writev+0x5e1/0x8e0 fs/read_write.c:681
+ do_iter_write fs/read_write.c:957 [inline]
+ do_iter_write+0x184/0x610 fs/read_write.c:938
+ vfs_writev+0x1b3/0x2f0 fs/read_write.c:1002
+ do_writev+0x15e/0x370 fs/read_write.c:1037
+ __do_sys_writev fs/read_write.c:1110 [inline]
+ __se_sys_writev fs/read_write.c:1107 [inline]
+ __x64_sys_writev+0x75/0xb0 fs/read_write.c:1107
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441cc0
+Code: 05 48 3d 01 f0 ff ff 0f 83 9d 09 fc ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 83 3d 51 93 29 00 00 75 14 b8 14 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 74 09 fc ff c3 48 83 ec 08 e8 ba 2b 00 00
+RSP: 002b:00007fff38a3b408 EFLAGS: 00000246 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 00007fff38a3b440 RCX: 0000000000441cc0
+RDX: 0000000000000001 RSI: 00007fff38a3b460 RDI: 00000000000000f0
+RBP: 0000000000000000 R08: 000000000000ffff R09: 0000000002020668
+R10: 0000000020000040 R11: 0000000000000246 R12: 000000000000d208
+R13: 0000000000402b50 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 7005:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_kmalloc mm/kasan/common.c:497 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:505
+ slab_post_alloc_hook mm/slab.h:437 [inline]
+ slab_alloc mm/slab.c:3393 [inline]
+ kmem_cache_alloc+0x11a/0x6f0 mm/slab.c:3555
+ getname_flags fs/namei.c:138 [inline]
+ getname_flags+0xd6/0x5b0 fs/namei.c:128
+ user_path_at_empty+0x2f/0x50 fs/namei.c:2606
+ user_path_at include/linux/namei.h:60 [inline]
+ vfs_statx+0x129/0x200 fs/stat.c:187
+ vfs_lstat include/linux/fs.h:3186 [inline]
+ __do_sys_newlstat+0xa4/0x130 fs/stat.c:354
+ __se_sys_newlstat fs/stat.c:348 [inline]
+ __x64_sys_newlstat+0x54/0x80 fs/stat.c:348
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7005:
+ save_stack+0x45/0xd0 mm/kasan/common.c:75
+ set_track mm/kasan/common.c:87 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+ __cache_free mm/slab.c:3499 [inline]
+ kmem_cache_free+0x86/0x260 mm/slab.c:3765
+ putname+0xef/0x130 fs/namei.c:259
+ filename_lookup+0x28f/0x410 fs/namei.c:2355
+ user_path_at_empty+0x43/0x50 fs/namei.c:2606
+ user_path_at include/linux/namei.h:60 [inline]
+ vfs_statx+0x129/0x200 fs/stat.c:187
+ vfs_lstat include/linux/fs.h:3186 [inline]
+ __do_sys_newlstat+0xa4/0x130 fs/stat.c:354
+ __se_sys_newlstat fs/stat.c:348 [inline]
+ __x64_sys_newlstat+0x54/0x80 fs/stat.c:348
+ do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888089b96540
+ which belongs to the cache names_cache of size 4096
+The buggy address is located 2736 bytes to the right of
+ 4096-byte region [ffff888089b96540, ffff888089b97540)
+The buggy address belongs to the page:
+page:ffffea000226e580 count:1 mapcount:0 mapping:ffff88821bc45b00 index:0x0 compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea0002a0fa88 ffffea0002221088 ffff88821bc45b00
+raw: 0000000000000000 ffff888089b96540 0000000100000001 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888089b97e80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888089b97f00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888089b97f80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                                                             ^
+ ffff888089b98000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff888089b98080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================

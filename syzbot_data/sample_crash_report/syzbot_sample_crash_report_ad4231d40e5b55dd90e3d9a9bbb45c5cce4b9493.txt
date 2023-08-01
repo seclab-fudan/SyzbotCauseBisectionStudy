@@ -1,0 +1,188 @@
+loop5: detected capacity change from 0 to 1024
+==================================================================
+BUG: KASAN: use-after-free in hfsplus_btree_open+0x92b/0xd10 fs/hfsplus/btree.c:155
+Read of size 4 at addr ffff8880761b3ce4 by task syz-executor.5/22285
+
+CPU: 0 PID: 22285 Comm: syz-executor.5 Not tainted 6.2.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x163/0x4f0 mm/kasan/report.c:417
+ kasan_report+0x13a/0x170 mm/kasan/report.c:517
+ hfsplus_btree_open+0x92b/0xd10 fs/hfsplus/btree.c:155
+ hfsplus_fill_super+0xabe/0x1c90 fs/hfsplus/super.c:473
+ mount_bdev+0x271/0x3a0 fs/super.c:1359
+ legacy_get_tree+0xef/0x190 fs/fs_context.c:610
+ vfs_get_tree+0x8c/0x270 fs/super.c:1489
+ do_new_mount+0x28f/0xae0 fs/namespace.c:3145
+ do_mount fs/namespace.c:3488 [inline]
+ __do_sys_mount fs/namespace.c:3697 [inline]
+ __se_sys_mount+0x2d9/0x3c0 fs/namespace.c:3674
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f7851c8d62a
+Code: 48 c7 c2 b8 ff ff ff f7 d8 64 89 02 b8 ff ff ff ff eb d2 e8 b8 04 00 00 0f 1f 84 00 00 00 00 00 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f7852a96f88 EFLAGS: 00000202 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00000000000005fa RCX: 00007f7851c8d62a
+RDX: 0000000020000000 RSI: 0000000020000040 RDI: 00007f7852a96fe0
+RBP: 00007f7852a97020 R08: 00007f7852a97020 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000202 R12: 0000000020000000
+R13: 0000000020000040 R14: 00007f7852a96fe0 R15: 00000000200003c0
+ </TASK>
+
+Allocated by task 20678:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4f/0x80 mm/kasan/common.c:52
+ __kasan_slab_alloc+0x69/0x80 mm/kasan/common.c:328
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook+0x68/0x390 mm/slab.h:761
+ slab_alloc_node mm/slub.c:3452 [inline]
+ slab_alloc mm/slub.c:3460 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+ kmem_cache_alloc_lru+0x127/0x270 mm/slub.c:3483
+ alloc_inode_sb include/linux/fs.h:3119 [inline]
+ f2fs_alloc_inode+0x175/0x540 fs/f2fs/super.c:1380
+ alloc_inode fs/inode.c:259 [inline]
+ new_inode_pseudo+0x65/0x1d0 fs/inode.c:1018
+ new_inode+0x29/0x1d0 fs/inode.c:1046
+ f2fs_new_inode+0x11c/0x1090 fs/f2fs/namei.c:217
+ f2fs_create+0x197/0x530 fs/f2fs/namei.c:353
+ lookup_open fs/namei.c:3413 [inline]
+ open_last_lookups fs/namei.c:3481 [inline]
+ path_openat+0x12cb/0x2e40 fs/namei.c:3711
+ do_filp_open+0x234/0x490 fs/namei.c:3741
+ do_sys_openat2+0x13f/0x500 fs/open.c:1310
+ do_sys_open fs/open.c:1326 [inline]
+ __do_sys_openat fs/open.c:1342 [inline]
+ __se_sys_openat fs/open.c:1337 [inline]
+ __x64_sys_openat+0x247/0x290 fs/open.c:1337
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Last potentially related work creation:
+ kasan_save_stack+0x3f/0x60 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xb0/0xc0 mm/kasan/generic.c:493
+ __call_rcu_common kernel/rcu/tree.c:2755 [inline]
+ call_rcu+0x167/0xac0 kernel/rcu/tree.c:2868
+ dispose_list fs/inode.c:697 [inline]
+ evict_inodes+0x605/0x6a0 fs/inode.c:747
+ generic_shutdown_super+0x98/0x310 fs/super.c:480
+ kill_block_super+0x7e/0xe0 fs/super.c:1386
+ kill_f2fs_super+0x303/0x3d0 fs/f2fs/super.c:4640
+ deactivate_locked_super+0xa4/0x110 fs/super.c:332
+ cleanup_mnt+0x490/0x520 fs/namespace.c:1291
+ task_work_run+0x24a/0x300 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop+0xd9/0x100 kernel/entry/common.c:171
+ exit_to_user_mode_prepare+0xb1/0x140 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x64/0x2e0 kernel/entry/common.c:296
+ do_syscall_64+0x4d/0xc0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+Second to last potentially related work creation:
+ kasan_save_stack+0x3f/0x60 mm/kasan/common.c:45
+ __kasan_record_aux_stack+0xb0/0xc0 mm/kasan/generic.c:493
+ __call_rcu_common kernel/rcu/tree.c:2755 [inline]
+ call_rcu+0x167/0xac0 kernel/rcu/tree.c:2868
+ f2fs_put_super+0x618/0xcb0 fs/f2fs/super.c:1609
+ generic_shutdown_super+0x134/0x310 fs/super.c:492
+ kill_block_super+0x7e/0xe0 fs/super.c:1386
+ kill_f2fs_super+0x303/0x3d0 fs/f2fs/super.c:4640
+ deactivate_locked_super+0xa4/0x110 fs/super.c:332
+ cleanup_mnt+0x490/0x520 fs/namespace.c:1291
+ task_work_run+0x24a/0x300 kernel/task_work.c:179
+ resume_user_mode_work include/linux/resume_user_mode.h:49 [inline]
+ exit_to_user_mode_loop+0xd9/0x100 kernel/entry/common.c:171
+ exit_to_user_mode_prepare+0xb1/0x140 kernel/entry/common.c:203
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x64/0x2e0 kernel/entry/common.c:296
+ do_syscall_64+0x4d/0xc0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff8880761b35a0
+ which belongs to the cache f2fs_inode_cache of size 2160
+The buggy address is located 1860 bytes inside of
+ 2160-byte region [ffff8880761b35a0, ffff8880761b3e10)
+
+The buggy address belongs to the physical page:
+page:ffffea0001d86c00 refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff8880761b11e0 pfn:0x761b0
+head:ffffea0001d86c00 order:3 compound_mapcount:0 subpages_mapcount:0 compound_pincount:0
+memcg:ffff88802990d001
+anon flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+raw: 00fff00000010200 ffff88801bffe640 0000000000000000 0000000000000001
+raw: ffff8880761b11e0 00000000800e000b 00000001ffffffff ffff88802990d001
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Reclaimable, gfp_mask 0x1d2050(__GFP_IO|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC|__GFP_HARDWALL|__GFP_RECLAIMABLE), pid 7279, tgid 7277 (syz-executor.3), ts 264277935118, free_ts 261607568550
+ prep_new_page mm/page_alloc.c:2531 [inline]
+ get_page_from_freelist+0x3449/0x35c0 mm/page_alloc.c:4283
+ __alloc_pages+0x291/0x7e0 mm/page_alloc.c:5549
+ alloc_slab_page+0x6a/0x160 mm/slub.c:1851
+ allocate_slab mm/slub.c:1998 [inline]
+ new_slab+0x84/0x2f0 mm/slub.c:2051
+ ___slab_alloc+0xa85/0x10a0 mm/slub.c:3193
+ __slab_alloc mm/slub.c:3292 [inline]
+ __slab_alloc_node mm/slub.c:3345 [inline]
+ slab_alloc_node mm/slub.c:3442 [inline]
+ slab_alloc mm/slub.c:3460 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+ kmem_cache_alloc_lru+0x1ad/0x270 mm/slub.c:3483
+ alloc_inode_sb include/linux/fs.h:3119 [inline]
+ f2fs_alloc_inode+0x175/0x540 fs/f2fs/super.c:1380
+ alloc_inode fs/inode.c:259 [inline]
+ iget_locked+0x1cc/0x830 fs/inode.c:1286
+ f2fs_iget+0x55/0x4e20 fs/f2fs/inode.c:508
+ f2fs_fill_super+0x4ab8/0x7c80 fs/f2fs/super.c:4259
+ mount_bdev+0x271/0x3a0 fs/super.c:1359
+ legacy_get_tree+0xef/0x190 fs/fs_context.c:610
+ vfs_get_tree+0x8c/0x270 fs/super.c:1489
+ do_new_mount+0x28f/0xae0 fs/namespace.c:3145
+ do_mount fs/namespace.c:3488 [inline]
+ __do_sys_mount fs/namespace.c:3697 [inline]
+ __se_sys_mount+0x2d9/0x3c0 fs/namespace.c:3674
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+page last free stack trace:
+ reset_page_owner include/linux/page_owner.h:24 [inline]
+ free_pages_prepare mm/page_alloc.c:1446 [inline]
+ free_pcp_prepare mm/page_alloc.c:1496 [inline]
+ free_unref_page_prepare+0xf3a/0x1040 mm/page_alloc.c:3369
+ free_unref_page+0x37/0x3f0 mm/page_alloc.c:3464
+ qlist_free_all+0x22/0x60 mm/kasan/quarantine.c:187
+ kasan_quarantine_reduce+0x15a/0x170 mm/kasan/quarantine.c:294
+ __kasan_slab_alloc+0x23/0x80 mm/kasan/common.c:305
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook+0x68/0x390 mm/slab.h:761
+ slab_alloc_node mm/slub.c:3452 [inline]
+ __kmem_cache_alloc_node+0x14c/0x2a0 mm/slub.c:3491
+ __do_kmalloc_node mm/slab_common.c:967 [inline]
+ __kmalloc+0xa2/0x1a0 mm/slab_common.c:981
+ kmalloc include/linux/slab.h:584 [inline]
+ tomoyo_realpath_from_path+0xcf/0x5e0 security/tomoyo/realpath.c:251
+ tomoyo_get_realpath security/tomoyo/file.c:151 [inline]
+ tomoyo_check_open_permission+0x254/0x4e0 security/tomoyo/file.c:771
+ security_file_open+0x63/0xa0 security/security.c:1718
+ do_dentry_open+0x308/0x10f0 fs/open.c:869
+ do_open fs/namei.c:3557 [inline]
+ path_openat+0x2606/0x2e40 fs/namei.c:3714
+ do_filp_open+0x234/0x490 fs/namei.c:3741
+ do_sys_openat2+0x13f/0x500 fs/open.c:1310
+ do_sys_open fs/open.c:1326 [inline]
+ __do_sys_openat fs/open.c:1342 [inline]
+ __se_sys_openat fs/open.c:1337 [inline]
+ __x64_sys_openat+0x247/0x290 fs/open.c:1337
+
+Memory state around the buggy address:
+ ffff8880761b3b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880761b3c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>ffff8880761b3c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                       ^
+ ffff8880761b3d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff8880761b3d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

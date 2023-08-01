@@ -1,0 +1,116 @@
+==================================================================
+BUG: KASAN: slab-out-of-bounds in crc16+0xc0/0x104 lib/crc16.c:58
+Read of size 1 at addr ffff0000d5eff0a8 by task syz-executor175/8245
+
+CPU: 1 PID: 8245 Comm: syz-executor175 Not tainted 6.2.0-syzkaller-18302-g596b6b709632 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/21/2023
+Call trace:
+ dump_backtrace+0x1c8/0x1f4 arch/arm64/kernel/stacktrace.c:158
+ show_stack+0x2c/0x3c arch/arm64/kernel/stacktrace.c:165
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd0/0x124 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:306 [inline]
+ print_report+0x174/0x4c0 mm/kasan/report.c:417
+ kasan_report+0xd4/0x130 mm/kasan/report.c:517
+ __asan_report_load1_noabort+0x2c/0x38 mm/kasan/report_generic.c:348
+ crc16+0xc0/0x104 lib/crc16.c:58
+ ext4_group_desc_csum+0x6a8/0x99c fs/ext4/super.c:3187
+ ext4_group_desc_csum_set+0x17c/0x210 fs/ext4/super.c:3210
+ __ext4_new_inode+0x20dc/0x3acc fs/ext4/ialloc.c:1227
+ ext4_create+0x234/0x480 fs/ext4/namei.c:2809
+ lookup_open fs/namei.c:3413 [inline]
+ open_last_lookups fs/namei.c:3481 [inline]
+ path_openat+0xe6c/0x2578 fs/namei.c:3711
+ do_filp_open+0x1bc/0x3cc fs/namei.c:3741
+ do_sys_openat2+0x128/0x3d8 fs/open.c:1310
+ do_sys_open fs/open.c:1326 [inline]
+ __do_sys_openat fs/open.c:1342 [inline]
+ __se_sys_openat fs/open.c:1337 [inline]
+ __arm64_sys_openat+0x1f0/0x240 fs/open.c:1337
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x98/0x2c0 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0x138/0x258 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x168 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+
+Allocated by task 5961:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4c/0x80 mm/kasan/common.c:52
+ kasan_save_alloc_info+0x24/0x30 mm/kasan/generic.c:512
+ __kasan_slab_alloc+0x74/0x8c mm/kasan/common.c:328
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook+0x80/0x478 mm/slab.h:761
+ slab_alloc_node mm/slub.c:3452 [inline]
+ slab_alloc mm/slub.c:3460 [inline]
+ __kmem_cache_alloc_lru mm/slub.c:3467 [inline]
+ kmem_cache_alloc+0x288/0x37c mm/slub.c:3476
+ kmem_cache_zalloc include/linux/slab.h:710 [inline]
+ __kernfs_new_node+0xe4/0x66c fs/kernfs/dir.c:614
+ kernfs_new_node+0x98/0x184 fs/kernfs/dir.c:676
+ __kernfs_create_file+0x60/0x2d4 fs/kernfs/file.c:1047
+ sysfs_add_file_mode_ns+0x1dc/0x298 fs/sysfs/file.c:294
+ create_files fs/sysfs/group.c:64 [inline]
+ internal_create_group+0x428/0xbec fs/sysfs/group.c:148
+ internal_create_groups fs/sysfs/group.c:188 [inline]
+ sysfs_create_groups+0x60/0x130 fs/sysfs/group.c:214
+ create_dir lib/kobject.c:68 [inline]
+ kobject_add_internal+0x5d4/0xb14 lib/kobject.c:223
+ kobject_add_varg lib/kobject.c:358 [inline]
+ kobject_init_and_add+0x130/0x1a0 lib/kobject.c:441
+ netdev_queue_add_kobject net/core/net-sysfs.c:1666 [inline]
+ netdev_queue_update_kobjects+0x1d8/0x470 net/core/net-sysfs.c:1718
+ register_queue_kobjects net/core/net-sysfs.c:1779 [inline]
+ netdev_register_kobject+0x22c/0x2d8 net/core/net-sysfs.c:2019
+ register_netdevice+0xcb8/0x1270 net/core/dev.c:10037
+ bond_newlink+0x50/0xa8 drivers/net/bonding/bond_netlink.c:560
+ rtnl_newlink_create net/core/rtnetlink.c:3407 [inline]
+ __rtnl_newlink net/core/rtnetlink.c:3624 [inline]
+ rtnl_newlink+0x1174/0x1b1c net/core/rtnetlink.c:3637
+ rtnetlink_rcv_msg+0x6ec/0xc8c net/core/rtnetlink.c:6141
+ netlink_rcv_skb+0x214/0x3c4 net/netlink/af_netlink.c:2574
+ rtnetlink_rcv+0x28/0x38 net/core/rtnetlink.c:6159
+ netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+ netlink_unicast+0x660/0x8d4 net/netlink/af_netlink.c:1365
+ netlink_sendmsg+0x800/0xae0 net/netlink/af_netlink.c:1942
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ sock_sendmsg net/socket.c:734 [inline]
+ __sys_sendto+0x3b4/0x504 net/socket.c:2120
+ __do_sys_sendto net/socket.c:2132 [inline]
+ __se_sys_sendto net/socket.c:2128 [inline]
+ __arm64_sys_sendto+0xd8/0xf8 net/socket.c:2128
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall+0x98/0x2c0 arch/arm64/kernel/syscall.c:52
+ el0_svc_common+0x138/0x258 arch/arm64/kernel/syscall.c:142
+ do_el0_svc+0x64/0x198 arch/arm64/kernel/syscall.c:193
+ el0_svc+0x58/0x168 arch/arm64/kernel/entry-common.c:637
+ el0t_64_sync_handler+0x84/0xf0 arch/arm64/kernel/entry-common.c:655
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:591
+
+The buggy address belongs to the object at ffff0000d5eff000
+ which belongs to the cache kernfs_node_cache of size 168
+The buggy address is located 0 bytes to the right of
+ 168-byte region [ffff0000d5eff000, ffff0000d5eff0a8)
+
+The buggy address belongs to the physical page:
+page:0000000016584f53 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x115eff
+flags: 0x5ffc00000000200(slab|node=0|zone=2|lastcpupid=0x7ff)
+raw: 05ffc00000000200 ffff0000c0844c00 dead000000000122 0000000000000000
+raw: 0000000000000000 0000000000110011 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff0000d5efef80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff0000d5eff000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff0000d5eff080: 00 00 00 00 00 fc fc fc fc fc fc fc fc 00 00 00
+                                  ^
+ ffff0000d5eff100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff0000d5eff180: 00 00 fc fc fc fc fc fc fc fc 00 00 00 00 00 00
+==================================================================
+EXT4-fs error (device loop3): __ext4_get_inode_loc:4560: comm syz-executor175: Invalid inode table block 4 in block_group 0
+EXT4-fs error (device loop3) in ext4_reserve_inode_write:5906: Corrupt filesystem
+EXT4-fs error (device loop3): __ext4_get_inode_loc:4560: comm syz-executor175: Invalid inode table block 4 in block_group 0
+EXT4-fs error (device loop3) in ext4_reserve_inode_write:5906: Corrupt filesystem
+EXT4-fs error (device loop3): ext4_evict_inode:279: inode #18: comm syz-executor175: mark_inode_dirty error
+EXT4-fs warning (device loop3): ext4_evict_inode:282: couldn't mark inode dirty (err -117)

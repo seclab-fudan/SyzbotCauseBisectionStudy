@@ -1,0 +1,32 @@
+==================================================================
+BUG: KMSAN: uninit-value in htohl net/tipc/subscr.c:66 [inline]
+BUG: KMSAN: uninit-value in tipc_subscrb_rcv_cb+0x418/0xe80 net/tipc/subscr.c:339
+CPU: 0 PID: 19 Comm: kworker/u4:1 Not tainted 4.16.0+ #83
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: tipc_rcv tipc_recv_work
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:53
+ kmsan_report+0x142/0x240 mm/kmsan/kmsan.c:1067
+ __msan_warning_32+0x6c/0xb0 mm/kmsan/kmsan_instr.c:676
+ htohl net/tipc/subscr.c:66 [inline]
+ tipc_subscrb_rcv_cb+0x418/0xe80 net/tipc/subscr.c:339
+ tipc_receive_from_sock+0x64c/0x800 net/tipc/server.c:271
+ tipc_recv_work+0xd8/0x1f0 net/tipc/server.c:618
+ process_one_work+0x12c6/0x1f60 kernel/workqueue.c:2113
+ worker_thread+0x113c/0x24f0 kernel/workqueue.c:2247
+ kthread+0x539/0x720 kernel/kthread.c:239
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:406
+
+Uninit was created at:
+ kmsan_save_stack_with_flags mm/kmsan/kmsan.c:278 [inline]
+ kmsan_internal_poison_shadow+0xb8/0x1b0 mm/kmsan/kmsan.c:188
+ kmsan_kmalloc+0x94/0x100 mm/kmsan/kmsan.c:314
+ kmem_cache_alloc+0xaab/0xb90 mm/slub.c:2756
+ tipc_receive_from_sock+0x15c/0x800 net/tipc/server.c:253
+ tipc_recv_work+0xd8/0x1f0 net/tipc/server.c:618
+ process_one_work+0x12c6/0x1f60 kernel/workqueue.c:2113
+ worker_thread+0x113c/0x24f0 kernel/workqueue.c:2247
+ kthread+0x539/0x720 kernel/kthread.c:239
+ ret_from_fork+0x35/0x40 arch/x86/entry/entry_64.S:406
+==================================================================

@@ -1,0 +1,37 @@
+==================================================================
+BUG: KASAN: use-after-free in vsnprintf+0x1727/0x19a0 lib/vsprintf.c:2503
+Read of size 8 at addr ffff8880952500a0 by task syz-executor.1/9180
+
+CPU: 0 PID: 9180 Comm: syz-executor.1 Not tainted 5.2.0-rc5+ #43
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+
+Allocated by task 8:
+ save_stack+0x23/0x90 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_kmalloc mm/kasan/common.c:489 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:462
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:497
+ slab_post_alloc_hook mm/slab.h:437 [inline]
+ slab_alloc mm/slab.c:3326 [inline]
+ kmem_cache_alloc+0x11a/0x6f0 mm/slab.c:3488
+ vm_area_dup+0x21/0x170 kernel/fork.c:343
+ dup_mmap kernel/fork.c:528 [inline]
+ dup_mm+0x8c4/0x13b0 kernel/fork.c:1341
+ copy_mm kernel/fork.c:1397 [inline]
+ copy_process.part.0+0x2cde/0x6790 kernel/fork.c:2032
+ copy_process kernel/fork.c:1800 [inline]
+ _do_fork+0x25d/0xfe0 kernel/fork.c:2369
+ __do_sys_clone kernel/fork.c:2476 [inline]
+ __se_sys_clone kernel/fork.c:2470 [inline]
+ __x64_sys_clone+0xbf/0x150 kernel/fork.c:2470
+ do_syscall_64+0xfd/0x680 arch/x86/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 2502230480:
+------------[ cut here ]------------
+Bad or missing usercopy whitelist? Kernel memory overwrite attempt detected to SLAB object 'shmem_inode_cache' (offset 1040, size 1)!
+WARNING: CPU: 0 PID: 9180 at mm/usercopy.c:74 usercopy_warn+0xeb/0x110 mm/usercopy.c:74
+Kernel panic - not syncing: panic_on_warn set ...
+Shutting down cpus with NMI
+Kernel Offset: disabled

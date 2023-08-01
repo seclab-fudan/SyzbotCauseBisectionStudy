@@ -1,0 +1,130 @@
+==================================================================
+BUG: KASAN: use-after-free in ip6_dst_idev include/net/ip6_fib.h:211 [inline]
+BUG: KASAN: use-after-free in ip6_fragment+0x3783/0x3820 net/ipv6/ip6_output.c:737
+Read of size 8 at addr ffff8880a87c3470 by task syz-executor.1/9684
+
+CPU: 0 PID: 9684 Comm: syz-executor.1 Not tainted 5.1.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_address_description.cold+0x7c/0x20d mm/kasan/report.c:188
+ __kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+ kasan_report+0x12/0x20 mm/kasan/common.c:614
+ __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+ ip6_dst_idev include/net/ip6_fib.h:211 [inline]
+ ip6_fragment+0x3783/0x3820 net/ipv6/ip6_output.c:737
+ ip6_finish_output+0x6a0/0xc20 net/ipv6/ip6_output.c:152
+ NF_HOOK_COND include/linux/netfilter.h:294 [inline]
+ ip6_output+0x235/0x7f0 net/ipv6/ip6_output.c:171
+ dst_output include/net/dst.h:433 [inline]
+ ip6_local_out+0xbb/0x1b0 net/ipv6/output_core.c:178
+ ip6_send_skb+0xbb/0x350 net/ipv6/ip6_output.c:1735
+ udp_v6_send_skb.isra.0+0x839/0x14f0 net/ipv6/udp.c:1180
+ udp_v6_push_pending_frames+0x295/0x3b0 net/ipv6/udp.c:1213
+ udpv6_sendmsg+0x1b18/0x28d0 net/ipv6/udp.c:1504
+ inet_sendmsg+0x141/0x5d0 net/ipv4/af_inet.c:802
+ sock_sendmsg_nosec net/socket.c:660 [inline]
+ sock_sendmsg+0xd7/0x130 net/socket.c:671
+ sock_write_iter+0x27c/0x3e0 net/socket.c:1000
+ call_write_iter include/linux/fs.h:1872 [inline]
+ new_sync_write+0x4d3/0x770 fs/read_write.c:483
+ __vfs_write+0xe1/0x110 fs/read_write.c:496
+ vfs_write+0x20c/0x580 fs/read_write.c:558
+ ksys_write+0x14f/0x290 fs/read_write.c:611
+ __do_sys_write fs/read_write.c:623 [inline]
+ __se_sys_write fs/read_write.c:620 [inline]
+ __x64_sys_write+0x73/0xb0 fs/read_write.c:620
+ do_syscall_64+0xfd/0x680 arch/x86/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x458da9
+Code: ad b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f2ae7f9dc78 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000458da9
+RDX: 000000000000ffdc RSI: 0000000020000200 RDI: 0000000000000004
+RBP: 000000000073bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f2ae7f9e6d4
+R13: 00000000004c88e5 R14: 00000000004df348 R15: 00000000ffffffff
+
+Allocated by task 2086:
+ save_stack+0x23/0x90 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_kmalloc mm/kasan/common.c:489 [inline]
+ __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:462
+ kasan_slab_alloc+0xf/0x20 mm/kasan/common.c:497
+ slab_post_alloc_hook mm/slab.h:437 [inline]
+ slab_alloc mm/slab.c:3356 [inline]
+ kmem_cache_alloc+0x11a/0x6f0 mm/slab.c:3518
+ dst_alloc+0x10e/0x200 net/core/dst.c:92
+ ip6_dst_alloc+0x34/0xa0 net/ipv6/route.c:356
+ ip6_rt_cache_alloc+0xaa/0x640 net/ipv6/route.c:1218
+ __ip6_rt_update_pmtu net/ipv6/route.c:2371 [inline]
+ __ip6_rt_update_pmtu+0x50c/0xb30 net/ipv6/route.c:2328
+ ip6_update_pmtu+0x33b/0x3a0 net/ipv6/route.c:2403
+ ip6gre_err+0x2d1/0x5e0 net/ipv6/ip6_gre.c:477
+ icmpv6_notify+0x356/0x790 net/ipv6/icmp.c:801
+ icmpv6_rcv+0xfd4/0x19e0 net/ipv6/icmp.c:931
+ ip6_protocol_deliver_rcu+0x2fe/0x16c0 net/ipv6/ip6_input.c:401
+ ip6_input_finish+0x84/0x170 net/ipv6/ip6_input.c:442
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip6_input+0xe4/0x3f0 net/ipv6/ip6_input.c:451
+ ip6_mc_input+0x4aa/0xf30 net/ipv6/ip6_input.c:545
+ dst_input include/net/dst.h:439 [inline]
+ ip6_rcv_finish+0x1de/0x310 net/ipv6/ip6_input.c:80
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ipv6_rcv+0x10e/0x420 net/ipv6/ip6_input.c:276
+ __netif_receive_skb_one_core+0x113/0x1a0 net/core/dev.c:4990
+ __netif_receive_skb+0x2c/0x1d0 net/core/dev.c:5104
+ netif_receive_skb_internal+0x117/0x5c0 net/core/dev.c:5207
+ napi_frags_finish net/core/dev.c:5774 [inline]
+ napi_gro_frags+0xada/0xd10 net/core/dev.c:5848
+ tun_get_user+0x2f3c/0x3ff0 drivers/net/tun.c:1991
+ tun_chr_write_iter+0xbd/0x156 drivers/net/tun.c:2037
+ call_write_iter include/linux/fs.h:1872 [inline]
+ do_iter_readv_writev+0x5f8/0x8f0 fs/read_write.c:693
+ do_iter_write fs/read_write.c:970 [inline]
+ do_iter_write+0x184/0x610 fs/read_write.c:951
+ vfs_writev+0x1b3/0x2f0 fs/read_write.c:1015
+ do_writev+0x15b/0x330 fs/read_write.c:1058
+ __do_sys_writev fs/read_write.c:1131 [inline]
+ __se_sys_writev fs/read_write.c:1128 [inline]
+ __x64_sys_writev+0x75/0xb0 fs/read_write.c:1128
+ do_syscall_64+0xfd/0x680 arch/x86/entry/common.c:301
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 9696:
+ save_stack+0x23/0x90 mm/kasan/common.c:71
+ set_track mm/kasan/common.c:79 [inline]
+ __kasan_slab_free+0x102/0x150 mm/kasan/common.c:451
+ kasan_slab_free+0xe/0x10 mm/kasan/common.c:459
+ __cache_free mm/slab.c:3462 [inline]
+ kmem_cache_free+0x86/0x260 mm/slab.c:3728
+ dst_destroy+0x29e/0x3c0 net/core/dst.c:128
+ dst_destroy_rcu+0x16/0x19 net/core/dst.c:141
+ __rcu_reclaim kernel/rcu/rcu.h:227 [inline]
+ rcu_do_batch kernel/rcu/tree.c:2092 [inline]
+ invoke_rcu_callbacks kernel/rcu/tree.c:2310 [inline]
+ rcu_core+0x96c/0x1420 kernel/rcu/tree.c:2291
+ __do_softirq+0x25c/0x94c kernel/softirq.c:293
+
+The buggy address belongs to the object at ffff8880a87c33c0
+ which belongs to the cache ip6_dst_cache of size 224
+The buggy address is located 176 bytes inside of
+ 224-byte region [ffff8880a87c33c0, ffff8880a87c34a0)
+The buggy address belongs to the page:
+page:ffffea0002a1f0c0 count:1 mapcount:0 mapping:ffff88809b281e00 index:0xffff8880a87c3640
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea00029fdf48 ffffea0002381288 ffff88809b281e00
+raw: ffff8880a87c3640 ffff8880a87c3000 0000000100000005 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff8880a87c3300: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+ ffff8880a87c3380: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>ffff8880a87c3400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                             ^
+ ffff8880a87c3480: fb fb fb fb fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8880a87c3500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================

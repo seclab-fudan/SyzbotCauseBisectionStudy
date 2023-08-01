@@ -1,0 +1,61 @@
+watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [syzkaller990428:3433]
+Modules linked in:
+irq event stamp: 211800
+hardirqs last  enabled at (211799): [<ffffffff84d61521>] restore_regs_and_iret+0x0/0x1d
+hardirqs last disabled at (211800): [<ffffffff84d625de>] apic_timer_interrupt+0x8e/0xa0 arch/x86/entry/entry_64.S:702
+softirqs last  enabled at (211370): [<ffffffff84d68b0a>] __do_softirq+0x7ba/0xba3 kernel/softirq.c:310
+softirqs last disabled at (211361): [<ffffffff8142271c>] invoke_softirq kernel/softirq.c:364 [inline]
+softirqs last disabled at (211361): [<ffffffff8142271c>] irq_exit+0x1cc/0x200 kernel/softirq.c:405
+CPU: 0 PID: 3433 Comm: syzkaller990428 Not tainted 4.13.0-rc5+ #41
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: ffff8801cf772740 task.stack: ffff8801cf410000
+RIP: 0010:debug_lockdep_rcu_enabled.part.3+0xe/0x60 kernel/rcu/update.c:297
+RSP: 0018:ffff8801cf416b60 EFLAGS: 00000202 ORIG_RAX: ffffffffffffff10
+RAX: dffffc0000000000 RBX: ffffffff86067500 RCX: 0000000000000000
+RDX: 0000000000000004 RSI: 000000003edab929 RDI: ffffffff85cbd600
+RBP: ffff8801cf416b60 R08: 0000000000000002 R09: 0000000000000002
+R10: ffff8801cf416a58 R11: ffffffff84c10708 R12: 0000000000000013
+R13: ffff8801cf416da0 R14: 0000000000000000 R15: ffffffff86067500
+FS:  00007f429be64700(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f42a9e7fe78 CR3: 00000001d1341000 CR4: 00000000001406f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ debug_lockdep_rcu_enabled+0x77/0x90 kernel/rcu/update.c:299
+ rcu_read_lock include/linux/rcupdate.h:610 [inline]
+ net_generic include/net/netns/generic.h:43 [inline]
+ tipc_sk_lookup+0x120/0xdf0 net/tipc/socket.c:2275
+ tipc_nl_publ_dump+0x21d/0xef0 net/tipc/socket.c:2886
+ __tipc_nl_compat_dumpit.isra.10+0x20c/0xa10 net/tipc/netlink_compat.c:192
+ tipc_nl_compat_publ_dump net/tipc/netlink_compat.c:914 [inline]
+ tipc_nl_compat_sk_dump+0x834/0xbb0 net/tipc/netlink_compat.c:962
+ __tipc_nl_compat_dumpit.isra.10+0x30d/0xa10 net/tipc/netlink_compat.c:201
+ tipc_nl_compat_dumpit+0x1d2/0x3c0 net/tipc/netlink_compat.c:264
+ tipc_nl_compat_handle net/tipc/netlink_compat.c:1136 [inline]
+ tipc_nl_compat_recv+0x419/0x18f0 net/tipc/netlink_compat.c:1199
+ genl_family_rcv_msg+0x7b7/0xfb0 net/netlink/genetlink.c:598
+ genl_rcv_msg+0xb2/0x140 net/netlink/genetlink.c:623
+ netlink_rcv_skb+0x216/0x440 net/netlink/af_netlink.c:2397
+ genl_rcv+0x28/0x40 net/netlink/genetlink.c:634
+ netlink_unicast_kernel net/netlink/af_netlink.c:1265 [inline]
+ netlink_unicast+0x4e8/0x6f0 net/netlink/af_netlink.c:1291
+ netlink_sendmsg+0xa4a/0xe60 net/netlink/af_netlink.c:1854
+ sock_sendmsg_nosec net/socket.c:633 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:643
+ sock_write_iter+0x31a/0x5d0 net/socket.c:898
+ call_write_iter include/linux/fs.h:1743 [inline]
+ new_sync_write fs/read_write.c:457 [inline]
+ __vfs_write+0x684/0x970 fs/read_write.c:470
+ vfs_write+0x189/0x510 fs/read_write.c:518
+ SYSC_write fs/read_write.c:565 [inline]
+ SyS_write+0xef/0x220 fs/read_write.c:557
+ entry_SYSCALL_64_fastpath+0x1f/0xbe
+RIP: 0033:0x446969
+RSP: 002b:00007f429be63dc8 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000446969
+RDX: 0000000000000022 RSI: 0000000020fdb000 RDI: 000000000000001e
+RBP: 0000000000000086 R08: 00007f429be64700 R09: 00007f429be64700
+R10: 00007f429be64700 R11: 0000000000000202 R12: 0000000000000000
+R13: 00007ffc1321aaaf R14: 00007f429be649c0 R15: 0000000000000000
+Code: 01 89 35 a6 6a d8 05 e8 f6 fb fd ff 5d c3 0f 1f 44 00 00 66 2e 0f 1f 84 00 00 00 00 00 55 48 b8 00 00 00 00 00 fc ff df 48 89 e5 <53> 65 48 8b 1c 25 c0 64 01 00 48 8d bb 7c 08 00 00 48 89 fa 48 

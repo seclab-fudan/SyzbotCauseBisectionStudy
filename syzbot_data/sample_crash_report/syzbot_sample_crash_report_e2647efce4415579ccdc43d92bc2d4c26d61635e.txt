@@ -1,0 +1,85 @@
+------------[ cut here ]------------
+kernel BUG at include/linux/skbuff.h:2225!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 8575 Comm: syz-executor067 Not tainted 5.3.0-rc3+ #139
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:__skb_pull include/linux/skbuff.h:2225 [inline]
+RIP: 0010:__skb_pull include/linux/skbuff.h:2222 [inline]
+RIP: 0010:skb_pull_inline include/linux/skbuff.h:2231 [inline]
+RIP: 0010:skb_pull+0xea/0x110 net/core/skbuff.c:1902
+Code: 9d c8 00 00 00 49 89 dc 49 89 9d c8 00 00 00 e8 9c d5 dd fb 4c 89 e0 5b 41 5c 41 5d 41 5e 5d c3 45 31 e4 eb ea e8 86 d5 dd fb <0f> 0b e8 df 03 18 fc e9 44 ff ff ff e8 d5 03 18 fc eb 8a e8 ee 03
+RSP: 0018:ffff88809893ee10 EFLAGS: 00010293
+RAX: ffff8880940bc180 RBX: 0000000000000004 RCX: ffffffff8594b3a6
+RDX: 0000000000000000 RSI: ffffffff8594b3fa RDI: 0000000000000004
+RBP: ffff88809893ee30 R08: ffff8880940bc180 R09: fffffbfff14a914f
+R10: fffffbfff14a914e R11: ffffffff8a548a77 R12: 000000008e9ad98c
+R13: ffff88809893f478 R14: 00000000ffff8880 R15: ffff88809893f478
+FS:  0000555556fe1880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000040 CR3: 00000000a056c000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ sctp_inq_pop+0x2f1/0xd80 net/sctp/inqueue.c:202
+ sctp_endpoint_bh_rcv+0x184/0x8d0 net/sctp/endpointola.c:385
+ sctp_inq_push+0x1e4/0x280 net/sctp/inqueue.c:80
+ sctp_rcv+0x2807/0x3590 net/sctp/input.c:256
+ sctp6_rcv+0x17/0x30 net/sctp/ipv6.c:1049
+ ip6_protocol_deliver_rcu+0x2fe/0x1660 net/ipv6/ip6_input.c:397
+ ip6_input_finish+0x84/0x170 net/ipv6/ip6_input.c:438
+ NF_HOOK include/linux/netfilter.h:305 [inline]
+ NF_HOOK include/linux/netfilter.h:299 [inline]
+ ip6_input+0xe4/0x3f0 net/ipv6/ip6_input.c:447
+ dst_input include/net/dst.h:442 [inline]
+ ip6_sublist_rcv_finish+0x98/0x1e0 net/ipv6/ip6_input.c:84
+ ip6_list_rcv_finish net/ipv6/ip6_input.c:118 [inline]
+ ip6_sublist_rcv+0x80c/0xcf0 net/ipv6/ip6_input.c:282
+ ipv6_list_rcv+0x373/0x4b0 net/ipv6/ip6_input.c:316
+ __netif_receive_skb_list_ptype net/core/dev.c:5049 [inline]
+ __netif_receive_skb_list_core+0x5fc/0x9d0 net/core/dev.c:5097
+ __netif_receive_skb_list net/core/dev.c:5149 [inline]
+ netif_receive_skb_list_internal+0x7eb/0xe60 net/core/dev.c:5244
+ gro_normal_list.part.0+0x1e/0xb0 net/core/dev.c:5757
+ gro_normal_list net/core/dev.c:5755 [inline]
+ gro_normal_one net/core/dev.c:5769 [inline]
+ napi_frags_finish net/core/dev.c:5782 [inline]
+ napi_gro_frags+0xa6a/0xea0 net/core/dev.c:5855
+ tun_get_user+0x2e98/0x3fa0 drivers/net/tun.c:1974
+ tun_chr_write_iter+0xbd/0x156 drivers/net/tun.c:2020
+ call_write_iter include/linux/fs.h:1870 [inline]
+ do_iter_readv_writev+0x5f8/0x8f0 fs/read_write.c:693
+ do_iter_write fs/read_write.c:970 [inline]
+ do_iter_write+0x184/0x610 fs/read_write.c:951
+ vfs_writev+0x1b3/0x2f0 fs/read_write.c:1015
+ do_writev+0x15b/0x330 fs/read_write.c:1058
+ __do_sys_writev fs/read_write.c:1131 [inline]
+ __se_sys_writev fs/read_write.c:1128 [inline]
+ __x64_sys_writev+0x75/0xb0 fs/read_write.c:1128
+ do_syscall_64+0xfd/0x6a0 arch/x86/entry/common.c:296
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x441b10
+Code: 05 48 3d 01 f0 ff ff 0f 83 5d 09 fc ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 83 3d 01 95 29 00 00 75 14 b8 14 00 00 00 0f 05 <48> 3d 01 f0 ff ff 0f 83 34 09 fc ff c3 48 83 ec 08 e8 ba 2b 00 00
+RSP: 002b:00007ffd62a1d0a8 EFLAGS: 00000246 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 00007ffd62a1d0c0 RCX: 0000000000441b10
+RDX: 0000000000000001 RSI: 00007ffd62a1d0f0 RDI: 00000000000000f0
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000004
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000000f466
+R13: 0000000000402960 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+---[ end trace 89c934079baa0274 ]---
+RIP: 0010:__skb_pull include/linux/skbuff.h:2225 [inline]
+RIP: 0010:__skb_pull include/linux/skbuff.h:2222 [inline]
+RIP: 0010:skb_pull_inline include/linux/skbuff.h:2231 [inline]
+RIP: 0010:skb_pull+0xea/0x110 net/core/skbuff.c:1902
+Code: 9d c8 00 00 00 49 89 dc 49 89 9d c8 00 00 00 e8 9c d5 dd fb 4c 89 e0 5b 41 5c 41 5d 41 5e 5d c3 45 31 e4 eb ea e8 86 d5 dd fb <0f> 0b e8 df 03 18 fc e9 44 ff ff ff e8 d5 03 18 fc eb 8a e8 ee 03
+RSP: 0018:ffff88809893ee10 EFLAGS: 00010293
+RAX: ffff8880940bc180 RBX: 0000000000000004 RCX: ffffffff8594b3a6
+RDX: 0000000000000000 RSI: ffffffff8594b3fa RDI: 0000000000000004
+RBP: ffff88809893ee30 R08: ffff8880940bc180 R09: fffffbfff14a914f
+R10: fffffbfff14a914e R11: ffffffff8a548a77 R12: 000000008e9ad98c
+R13: ffff88809893f478 R14: 00000000ffff8880 R15: ffff88809893f478
+FS:  0000555556fe1880(0000) GS:ffff8880ae900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020000040 CR3: 00000000a056c000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

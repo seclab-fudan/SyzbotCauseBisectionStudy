@@ -1,0 +1,51 @@
+kasan: CONFIG_KASAN_INLINE enabled
+kasan: GPF could be caused by NULL-ptr deref or user memory access
+general protection fault: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 1 PID: 3084 Comm: syzkaller426369 Not tainted 4.15.0-rc1+ #203
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+task: 000000009887e938 task.stack: 00000000ae5f34d5
+RIP: 0010:compound_head include/linux/page-flags.h:147 [inline]
+RIP: 0010:put_page include/linux/mm.h:850 [inline]
+RIP: 0010:af_alg_free_areq_sgls+0x5d1/0xab0 crypto/af_alg.c:678
+RSP: 0018:ffff8801cc2d7790 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: dffffc0000000000 RCX: ffffffff8239cc1a
+RDX: 0000000000000000 RSI: ffffffff85f44540 RDI: 0000000000000000
+RBP: ffff8801cc2d7988 R08: 1ffff1003985ae76 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 00000000fffffff4 R15: ffffed003985af24
+FS:  00000000021ae940(0000) GS:ffff8801db500000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000020233fd0 CR3: 00000001cb97b000 CR4: 00000000001406e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ af_alg_free_resources+0x36/0x80 crypto/af_alg.c:1030
+ _aead_recvmsg crypto/algif_aead.c:316 [inline]
+ aead_recvmsg+0x14e1/0x1bc0 crypto/algif_aead.c:329
+ sock_recvmsg_nosec net/socket.c:805 [inline]
+ sock_recvmsg+0xc9/0x110 net/socket.c:812
+ ___sys_recvmsg+0x29b/0x630 net/socket.c:2207
+ __sys_recvmsg+0xe2/0x210 net/socket.c:2252
+ SYSC_recvmsg net/socket.c:2264 [inline]
+ SyS_recvmsg+0x2d/0x50 net/socket.c:2259
+ entry_SYSCALL_64_fastpath+0x1f/0x96
+RIP: 0033:0x440f09
+RSP: 002b:00007fff6ddf3098 EFLAGS: 00000246 ORIG_RAX: 000000000000002f
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 0000000000440f09
+RDX: 0000000000000000 RSI: 00000000209c6fc8 RDI: 0000000000000004
+RBP: 0000000000000005 R08: 0000000000000001 R09: 00000000021a0032
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000402830
+R13: 00000000004028c0 R14: 0000000000000000 R15: 0000000000000000
+Code: 00 00 48 8d 45 98 48 bb 00 00 00 00 00 fc ff df 48 89 85 48 fe ff ff 48 c1 e8 03 4c 8d 3c 18 e8 16 2c 36 ff 4c 89 e0 48 c1 e8 03 <80> 3c 18 00 0f 85 4b 03 00 00 49 8b 04 24 48 83 e0 fc 48 89 85 
+RIP: compound_head include/linux/page-flags.h:147 [inline] RSP: ffff8801cc2d7790
+RIP: put_page include/linux/mm.h:850 [inline] RSP: ffff8801cc2d7790
+RIP: af_alg_free_areq_sgls+0x5d1/0xab0 crypto/af_alg.c:678 RSP: ffff8801cc2d7790
+---[ end trace de1b188df438eb0f ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

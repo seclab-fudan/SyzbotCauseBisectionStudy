@@ -1,0 +1,56 @@
+=============================
+WARNING: suspicious RCU usage
+5.12.0-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:4912 Illegal context switch in RCU-sched read-side critical section!
+
+other info that might help us debug this:
+
+
+rcu_scheduler_active = 2, debug_locks = 0
+no locks held by syz-executor.1/10539.
+
+stack backtrace:
+CPU: 0 PID: 10539 Comm: syz-executor.1 Not tainted 5.12.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x202/0x31e lib/dump_stack.c:120
+ schedule_debug+0x146/0x310 kernel/sched/core.c:4912
+ __schedule+0xfb/0x1120 kernel/sched/core.c:5038
+ preempt_schedule_common kernel/sched/core.c:5307 [inline]
+ preempt_schedule+0x12c/0x170 kernel/sched/core.c:5332
+ preempt_schedule_thunk+0x16/0x18 arch/x86/entry/thunk_64.S:35
+ lru_add_drain+0xf7/0x130 mm/swap.c:711
+ free_pages_and_swap_cache+0x18/0x90 mm/swap_state.c:326
+ tlb_batch_pages_flush mm/mmu_gather.c:49 [inline]
+ tlb_flush_mmu_free mm/mmu_gather.c:242 [inline]
+ tlb_flush_mmu+0x780/0x910 mm/mmu_gather.c:249
+ zap_pte_range+0x19c7/0x1b60 mm/memory.c:1336
+ zap_pmd_range mm/memory.c:1374 [inline]
+ zap_pud_range mm/memory.c:1403 [inline]
+ zap_p4d_range mm/memory.c:1424 [inline]
+ unmap_page_range+0x55a/0x890 mm/memory.c:1445
+ unmap_vmas+0x1d1/0x360 mm/memory.c:1522
+ exit_mmap+0x2af/0x5f0 mm/mmap.c:3224
+ __mmput+0x111/0x370 kernel/fork.c:1091
+ exit_mm+0x67e/0x7d0 kernel/exit.c:502
+ do_exit+0x6b9/0x23d0 kernel/exit.c:813
+ do_group_exit+0x168/0x2d0 kernel/exit.c:923
+ get_signal+0x1770/0x2180 kernel/signal.c:2818
+ arch_do_signal_or_restart+0x8e/0x6c0 arch/x86/kernel/signal.c:789
+ handle_signal_work kernel/entry/common.c:147 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:171 [inline]
+ exit_to_user_mode_prepare+0xac/0x200 kernel/entry/common.c:208
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:290 [inline]
+ syscall_exit_to_user_mode+0x26/0x70 kernel/entry/common.c:301
+ do_syscall_64+0x4b/0xb0 arch/x86/entry/common.c:57
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x4665f9
+Code: Unable to access opcode bytes at RIP 0x4665cf.
+RSP: 002b:00007fe48ee26218 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 000000000056c0b8 RCX: 00000000004665f9
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 000000000056c0b8
+RBP: 000000000056c0b0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 000000000056c0bc
+R13: 00007ffdd71b689f R14: 00007fe48ee26300 R15: 0000000000022000

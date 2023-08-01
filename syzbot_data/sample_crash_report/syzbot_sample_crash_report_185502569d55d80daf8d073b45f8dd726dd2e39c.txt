@@ -1,0 +1,41 @@
+==================================================================
+BUG: KASAN: null-ptr-deref in instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+BUG: KASAN: null-ptr-deref in atomic_inc include/asm-generic/atomic-instrumented.h:240 [inline]
+BUG: KASAN: null-ptr-deref in io_uring_cancel_sqpoll+0x2c7/0x450 fs/io_uring.c:8871
+Write of size 4 at addr 0000000000000110 by task iou-sqp-16851/16863
+
+CPU: 0 PID: 16863 Comm: iou-sqp-16851 Not tainted 5.12.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0xfa/0x151 lib/dump_stack.c:120
+ __kasan_report mm/kasan/report.c:403 [inline]
+ kasan_report.cold+0x5f/0xd8 mm/kasan/report.c:416
+ check_region_inline mm/kasan/generic.c:180 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:186
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_inc include/asm-generic/atomic-instrumented.h:240 [inline]
+ io_uring_cancel_sqpoll+0x2c7/0x450 fs/io_uring.c:8871
+ io_sq_thread+0x1109/0x1ae0 fs/io_uring.c:6782
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 16863 Comm: iou-sqp-16851 Tainted: G    B             5.12.0-rc1-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0xfa/0x151 lib/dump_stack.c:120
+ panic+0x306/0x73d kernel/panic.c:231
+ end_report mm/kasan/report.c:102 [inline]
+ end_report.cold+0x5a/0x5a mm/kasan/report.c:88
+ __kasan_report mm/kasan/report.c:406 [inline]
+ kasan_report.cold+0x6a/0xd8 mm/kasan/report.c:416
+ check_region_inline mm/kasan/generic.c:180 [inline]
+ kasan_check_range+0x13d/0x180 mm/kasan/generic.c:186
+ instrument_atomic_read_write include/linux/instrumented.h:101 [inline]
+ atomic_inc include/asm-generic/atomic-instrumented.h:240 [inline]
+ io_uring_cancel_sqpoll+0x2c7/0x450 fs/io_uring.c:8871
+ io_sq_thread+0x1109/0x1ae0 fs/io_uring.c:6782
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+Kernel Offset: disabled
+Rebooting in 86400 seconds..

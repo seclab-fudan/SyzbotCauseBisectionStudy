@@ -1,0 +1,80 @@
+general protection fault, probably for non-canonical address 0xffff000000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: maybe wild-memory-access in range [0xfff8200000000000-0xfff8200000000007]
+CPU: 0 PID: 305 Comm: kworker/u4:1 Not tainted 6.0.0-rc1-syzkaller-00049-g4e55e22d3d9a #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/26/2022
+RIP: 0010:rcu_do_batch kernel/rcu/tree.c:2245 [inline]
+RIP: 0010:rcu_core+0x7af/0x1780 kernel/rcu/tree.c:2505
+Code: 07 f3 f7 ff 49 8d 7f 08 5e 48 89 f8 48 c1 e8 03 42 80 3c 20 00 0f 85 f8 0b 00 00 49 8b 47 08 4c 89 ff 49 c7 47 08 00 00 00 00 <ff> d0 48 c7 c6 f0 2f 32 81 48 c7 c7 c0 4e a9 87 e8 4c eb f7 ff 65
+RSP: 0000:ffffc90000007e68 EFLAGS: 00010246
+RAX: ffff000000000000 RBX: 0000000000000000 RCX: 603ad66270707a3c
+RDX: 1ffff11021d1f4ce RSI: ffffffff81322f8d RDI: ffff88810e7530a8
+RBP: 0000000000000005 R08: 0000000000000000 R09: ffffffff8b0766df
+R10: fffffbfff160ecdb R11: 0000000000000001 R12: dffffc0000000000
+R13: ffffc90000007ed8 R14: 0000000000000004 R15: ffff88810e7530a8
+FS:  0000000000000000(0000) GS:ffff8881f6800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff88823ffff000 CR3: 0000000007825000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <IRQ>
+ __do_softirq+0x1c0/0x9a9 kernel/softirq.c:571
+ invoke_softirq kernel/softirq.c:445 [inline]
+ __irq_exit_rcu+0x113/0x170 kernel/softirq.c:650
+ irq_exit_rcu+0x5/0x20 kernel/softirq.c:662
+ sysvec_apic_timer_interrupt+0x8e/0xc0 arch/x86/kernel/apic/apic.c:1106
+ </IRQ>
+ <TASK>
+ asm_sysvec_apic_timer_interrupt+0x16/0x20 arch/x86/include/asm/idtentry.h:649
+RIP: 0010:lock_acquire+0x1ef/0x570 kernel/locking/lockdep.c:5634
+Code: 52 d8 7e 83 f8 01 0f 85 e8 02 00 00 9c 58 f6 c4 02 0f 85 fb 02 00 00 48 83 7c 24 08 00 74 01 fb 48 b8 00 00 00 00 00 fc ff df <48> 01 c3 48 c7 03 00 00 00 00 48 c7 43 08 00 00 00 00 48 8b 84 24
+RSP: 0000:ffffc9000194fc00 EFLAGS: 00000206
+
+RAX: dffffc0000000000 RBX: 1ffff92000329f82 RCX: ffffffff8129cf3e
+RDX: 1ffff11021d1f4ce RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000001 R08: 0000000000000000 R09: ffffffff8b0766ef
+R10: fffffbfff160ecdd R11: 0000000000000000 R12: 0000000000000001
+R13: 0000000000000000 R14: ffff88810e8bf128 R15: 0000000000000000
+ down_read+0x98/0x450 kernel/locking/rwsem.c:1499
+ mmap_read_lock include/linux/mmap_lock.h:117 [inline]
+ get_arg_page+0x9f/0x2a0 fs/exec.c:221
+ copy_string_kernel+0x169/0x460 fs/exec.c:639
+ copy_strings_kernel+0xb3/0x190 fs/exec.c:655
+ kernel_execve+0x377/0x500 fs/exec.c:2001
+ call_usermodehelper_exec_async+0x2e3/0x580 kernel/umh.c:112
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:rcu_do_batch kernel/rcu/tree.c:2245 [inline]
+RIP: 0010:rcu_core+0x7af/0x1780 kernel/rcu/tree.c:2505
+Code: 07 f3 f7 ff 49 8d 7f 08 5e 48 89 f8 48 c1 e8 03 42 80 3c 20 00 0f 85 f8 0b 00 00 49 8b 47 08 4c 89 ff 49 c7 47 08 00 00 00 00 <ff> d0 48 c7 c6 f0 2f 32 81 48 c7 c7 c0 4e a9 87 e8 4c eb f7 ff 65
+RSP: 0000:ffffc90000007e68 EFLAGS: 00010246
+RAX: ffff000000000000 RBX: 0000000000000000 RCX: 603ad66270707a3c
+RDX: 1ffff11021d1f4ce RSI: ffffffff81322f8d RDI: ffff88810e7530a8
+RBP: 0000000000000005 R08: 0000000000000000 R09: ffffffff8b0766df
+R10: fffffbfff160ecdb R11: 0000000000000001 R12: dffffc0000000000
+R13: ffffc90000007ed8 R14: 0000000000000004 R15: ffff88810e7530a8
+FS:  0000000000000000(0000) GS:ffff8881f6800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffff88823ffff000 CR3: 0000000007825000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess), 1 bytes skipped:
+   0:	f3 f7 ff             	repz idiv %edi
+   3:	49 8d 7f 08          	lea    0x8(%r15),%rdi
+   7:	5e                   	pop    %rsi
+   8:	48 89 f8             	mov    %rdi,%rax
+   b:	48 c1 e8 03          	shr    $0x3,%rax
+   f:	42 80 3c 20 00       	cmpb   $0x0,(%rax,%r12,1)
+  14:	0f 85 f8 0b 00 00    	jne    0xc12
+  1a:	49 8b 47 08          	mov    0x8(%r15),%rax
+  1e:	4c 89 ff             	mov    %r15,%rdi
+  21:	49 c7 47 08 00 00 00 	movq   $0x0,0x8(%r15)
+  28:	00
+* 29:	ff d0                	callq  *%rax <-- trapping instruction
+  2b:	48 c7 c6 f0 2f 32 81 	mov    $0xffffffff81322ff0,%rsi
+  32:	48 c7 c7 c0 4e a9 87 	mov    $0xffffffff87a94ec0,%rdi
+  39:	e8 4c eb f7 ff       	callq  0xfff7eb8a
+  3e:	65                   	gs

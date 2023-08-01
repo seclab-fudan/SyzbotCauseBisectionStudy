@@ -1,0 +1,66 @@
+general protection fault, probably for non-canonical address 0xdffffc0000000002: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000010-0x0000000000000017]
+CPU: 1 PID: 3639 Comm: syz-executor332 Not tainted 6.1.0-syzkaller-03225-g764822972d64 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
+RIP: 0010:mark_buffer_dirty_inode+0x55/0x3d0 fs/buffer.c:573
+Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 ec 02 00 00 48 8d 7b 10 48 8b 6d 30 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 b5 02 00 00 48 b8 00 00 00 00 00 fc ff df 4c 8b
+RSP: 0018:ffffc90003f9f998 EFLAGS: 00010212
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000002 RSI: ffffffff81ecf6ed RDI: 0000000000000010
+RBP: ffff888071d489e8 R08: 0000000000000001 R09: 0000000000000003
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff888071d48158
+R13: 0000000000000001 R14: 0000000000000000 R15: ffff888071d487c0
+FS:  00007ff0ea088700(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ff0ea088718 CR3: 000000001d407000 CR4: 0000000000350ee0
+Call Trace:
+ <TASK>
+ udf_rename+0x7f4/0x1260 fs/udf/namei.c:1190
+ vfs_rename+0x1162/0x1a90 fs/namei.c:4779
+ do_renameat2+0xb22/0xc30 fs/namei.c:4930
+ __do_sys_rename fs/namei.c:4976 [inline]
+ __se_sys_rename fs/namei.c:4974 [inline]
+ __x64_sys_rename+0x81/0xa0 fs/namei.c:4974
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7ff0f2cfa699
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 91 18 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ff0ea088208 EFLAGS: 00000246 ORIG_RAX: 0000000000000052
+RAX: ffffffffffffffda RBX: 00007ff0f2d79798 RCX: 00007ff0f2cfa699
+RDX: 00007ff0ea088700 RSI: 0000000020000100 RDI: 0000000020000040
+RBP: 00007ff0f2d79790 R08: 00007ff0ea088700 R09: 0000000000000000
+R10: 00007ff0ea088700 R11: 0000000000000246 R12: 00007ff0f2d7979c
+R13: 00007ffc28596d7f R14: 00007ff0ea088300 R15: 0000000000022000
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:mark_buffer_dirty_inode+0x55/0x3d0 fs/buffer.c:573
+Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 ec 02 00 00 48 8d 7b 10 48 8b 6d 30 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 b5 02 00 00 48 b8 00 00 00 00 00 fc ff df 4c 8b
+RSP: 0018:ffffc90003f9f998 EFLAGS: 00010212
+RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+RDX: 0000000000000002 RSI: ffffffff81ecf6ed RDI: 0000000000000010
+RBP: ffff888071d489e8 R08: 0000000000000001 R09: 0000000000000003
+R10: 0000000000000001 R11: 0000000000000000 R12: ffff888071d48158
+R13: 0000000000000001 R14: 0000000000000000 R15: ffff888071d487c0
+FS:  00007ff0ea088700(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000560de74c9068 CR3: 000000001d407000 CR4: 0000000000350ef0
+----------------
+Code disassembly (best guess):
+   0:	48 89 fa             	mov    %rdi,%rdx
+   3:	48 c1 ea 03          	shr    $0x3,%rdx
+   7:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+   b:	0f 85 ec 02 00 00    	jne    0x2fd
+  11:	48 8d 7b 10          	lea    0x10(%rbx),%rdi
+  15:	48 8b 6d 30          	mov    0x30(%rbp),%rbp
+  19:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  20:	fc ff df
+  23:	48 89 fa             	mov    %rdi,%rdx
+  26:	48 c1 ea 03          	shr    $0x3,%rdx
+* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
+  2e:	0f 85 b5 02 00 00    	jne    0x2e9
+  34:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  3b:	fc ff df
+  3e:	4c                   	rex.WR
+  3f:	8b                   	.byte 0x8b

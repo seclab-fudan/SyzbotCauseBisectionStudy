@@ -1,0 +1,146 @@
+INFO: rcu_sched self-detected stall on CPU
+	0-...!: (104996 ticks this GP) idle=d8a/1/4611686018427387908 softirq=219526/219526 fqs=1 
+	 (t=105000 jiffies g=111071 c=111070 q=5844)
+rcu_sched kthread starved for 104996 jiffies! g111071 c111070 f0x0 RCU_GP_WAIT_FQS(3) ->state=0x0 ->cpu=1
+RCU grace-period kthread stack dump:
+rcu_sched       R  running task    22392    10      2 0x80000000
+Call Trace:
+ context_switch kernel/sched/core.c:2853 [inline]
+ __schedule+0x87c/0x1ed0 kernel/sched/core.c:3501
+ schedule+0xfb/0x450 kernel/sched/core.c:3545
+ schedule_timeout+0x140/0x260 kernel/time/timer.c:1801
+ rcu_gp_kthread+0x717/0x1c90 kernel/rcu/tree.c:2179
+ kthread+0x345/0x410 kernel/kthread.c:246
+ ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+NMI backtrace for cpu 0
+CPU: 0 PID: 9181 Comm: syz-executor7 Not tainted 4.18.0-rc3+ #137
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ <IRQ>
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+ nmi_cpu_backtrace.cold.4+0x19/0xce lib/nmi_backtrace.c:103
+ nmi_trigger_cpumask_backtrace+0x151/0x192 lib/nmi_backtrace.c:62
+ arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+ trigger_single_cpu_backtrace include/linux/nmi.h:156 [inline]
+ rcu_dump_cpu_stacks+0x175/0x1c2 kernel/rcu/tree.c:1336
+ print_cpu_stall kernel/rcu/tree.c:1485 [inline]
+ check_cpu_stall.isra.60.cold.78+0x36c/0x5a6 kernel/rcu/tree.c:1553
+ __rcu_pending kernel/rcu/tree.c:3244 [inline]
+ rcu_pending kernel/rcu/tree.c:3291 [inline]
+ rcu_check_callbacks+0x23f/0xcd0 kernel/rcu/tree.c:2646
+ update_process_times+0x2d/0x70 kernel/time/timer.c:1636
+ tick_sched_handle+0x9f/0x180 kernel/time/tick-sched.c:164
+ tick_sched_timer+0x45/0x130 kernel/time/tick-sched.c:1274
+ __run_hrtimer kernel/time/hrtimer.c:1398 [inline]
+ __hrtimer_run_queues+0x3eb/0x10c0 kernel/time/hrtimer.c:1460
+ hrtimer_interrupt+0x2f3/0x750 kernel/time/hrtimer.c:1518
+ local_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1025 [inline]
+ smp_apic_timer_interrupt+0x165/0x730 arch/x86/kernel/apic/apic.c:1050
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+RIP: 0010:unwind_next_frame+0x30/0x50 arch/x86/kernel/unwind_frame.c:287
+Code: 00 fc ff df 55 48 89 fa 48 c1 ea 03 48 89 e5 53 0f b6 14 02 48 89 f8 83 e0 07 48 89 fb 83 c0 03 38 d0 7c 04 84 d2 75 13 8b 13 <31> c0 85 d2 74 08 48 89 df e8 e2 f5 ff ff 5b 5d c3 e8 5a 82 84 00 
+RSP: 0018:ffff8801dae05458 EFLAGS: 00000246 ORIG_RAX: ffffffffffffff13
+RAX: 0000000000000003 RBX: ffff8801dae05470 RCX: 0000000000000009
+RDX: 0000000000000002 RSI: ffffffff86280dbb RDI: ffff8801dae05470
+RBP: ffff8801dae05460 R08: ffff8801dae054a8 R09: ffff8801aba48680
+R10: ffffed003b5c0a98 R11: ffff8801dae054c7 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff8801aba48680 R15: ffff88019b0b68e7
+ __save_stack_trace+0x7d/0xf0 arch/x86/kernel/stacktrace.c:44
+ save_stack_trace+0x1a/0x20 arch/x86/kernel/stacktrace.c:60
+ save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+ set_track mm/kasan/kasan.c:460 [inline]
+ kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+ kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+ kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+ kmem_cache_zalloc include/linux/slab.h:697 [inline]
+ fill_pool lib/debugobjects.c:134 [inline]
+ __debug_object_init+0xbe1/0x12e0 lib/debugobjects.c:377
+ debug_object_init lib/debugobjects.c:429 [inline]
+ debug_object_activate+0x32e/0x690 lib/debugobjects.c:510
+ debug_rcu_head_queue kernel/rcu/rcu.h:135 [inline]
+ __call_rcu.constprop.67+0xc8/0xc00 kernel/rcu/tree.c:2906
+ kfree_call_rcu+0x15/0x20 kernel/rcu/tree.c:3027
+ nf_ct_ext_free include/net/netfilter/nf_conntrack_extend.h:81 [inline]
+ nf_conntrack_free+0x16b/0x220 net/netfilter/nf_conntrack_core.c:1185
+ destroy_conntrack+0x278/0x350 net/netfilter/nf_conntrack_core.c:432
+ nf_conntrack_destroy+0x18a/0x30c net/netfilter/core.c:601
+ nf_conntrack_put include/linux/skbuff.h:3813 [inline]
+ nf_ct_put include/net/netfilter/nf_conntrack.h:157 [inline]
+ nf_ct_gc_expired+0x2c6/0x330 net/netfilter/nf_conntrack_core.c:514
+ ____nf_conntrack_find net/netfilter/nf_conntrack_core.c:540 [inline]
+ __nf_conntrack_find_get.part.44+0xe92/0x1ac0 net/netfilter/nf_conntrack_core.c:573
+ __nf_conntrack_find_get include/linux/rcupdate.h:632 [inline]
+ resolve_normal_ct net/netfilter/nf_conntrack_core.c:1331 [inline]
+ nf_conntrack_in+0x79c/0x1640 net/netfilter/nf_conntrack_core.c:1416
+ ipv6_conntrack_in+0x61/0x90 net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c:172
+ ipv6_conntrack_local+0x25/0x30 net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c:172
+ nf_hook_entry_hookfn include/linux/netfilter.h:119 [inline]
+ nf_hook_slow+0xc2/0x1c0 net/netfilter/core.c:511
+ nf_hook include/linux/netfilter.h:242 [inline]
+ NF_HOOK include/linux/netfilter.h:285 [inline]
+ ip6_xmit+0x1371/0x23f0 net/ipv6/ip6_output.c:277
+ sctp_v6_xmit+0x4ad/0x6d0 net/sctp/ipv6.c:225
+ sctp_packet_transmit+0x27c6/0x3bb0 net/sctp/output.c:650
+ sctp_outq_flush_transports net/sctp/outqueue.c:1164 [inline]
+ sctp_outq_flush+0x613/0x34c0 net/sctp/outqueue.c:1212
+ sctp_outq_uncork+0x6a/0x80 net/sctp/outqueue.c:776
+ sctp_cmd_interpreter net/sctp/sm_sideeffect.c:1820 [inline]
+ sctp_side_effects net/sctp/sm_sideeffect.c:1220 [inline]
+ sctp_do_sm+0x5c8/0x71d0 net/sctp/sm_sideeffect.c:1191
+ sctp_generate_heartbeat_event+0x218/0x450 net/sctp/sm_sideeffect.c:406
+ call_timer_fn+0x242/0x970 kernel/time/timer.c:1326
+ expire_timers kernel/time/timer.c:1363 [inline]
+ __run_timers+0x7a6/0xc70 kernel/time/timer.c:1666
+ run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1692
+ __do_softirq+0x2e8/0xb17 kernel/softirq.c:288
+ invoke_softirq kernel/softirq.c:368 [inline]
+ irq_exit+0x1d1/0x200 kernel/softirq.c:408
+ exiting_irq arch/x86/include/asm/apic.h:527 [inline]
+ smp_apic_timer_interrupt+0x186/0x730 arch/x86/kernel/apic/apic.c:1052
+ apic_timer_interrupt+0xf/0x20 arch/x86/entry/entry_64.S:863
+ </IRQ>
+RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:783 [inline]
+RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
+RIP: 0010:_raw_spin_unlock_irqrestore+0xa1/0xc0 kernel/locking/spinlock.c:184
+Code: 68 b0 f1 88 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 75 21 48 83 3d 0e b6 5d 01 00 74 0e 48 89 df 57 9d <0f> 1f 44 00 00 eb bb 0f 0b 0f 0b e8 7f eb 25 fa eb 97 e8 78 eb 25 
+RSP: 0018:ffff880194f8ed58 EFLAGS: 00000286 ORIG_RAX: ffffffffffffff13
+RAX: dffffc0000000000 RBX: 0000000000000286 RCX: 1ffff100357491e5
+RDX: 1ffffffff11e360d RSI: 0000000000000000 RDI: 0000000000000286
+RBP: ffff880194f8ed68 R08: ffff8801aba48eb8 R09: 0000000000000006
+R10: ffff8801aba48680 R11: 0000000000000000 R12: ffffffff8ac10028
+R13: 00000000000df740 R14: ffffffff8ac10020 R15: ffff8801af8d7380
+ __debug_object_init+0x581/0x12e0 lib/debugobjects.c:416
+ debug_object_init lib/debugobjects.c:429 [inline]
+ debug_object_activate+0x32e/0x690 lib/debugobjects.c:510
+ debug_rcu_head_queue kernel/rcu/rcu.h:135 [inline]
+ __call_rcu.constprop.67+0xc8/0xc00 kernel/rcu/tree.c:2906
+ kfree_call_rcu+0x15/0x20 kernel/rcu/tree.c:3027
+ __free_vmap_area+0x34b/0x4e0 mm/vmalloc.c:585
+ __purge_vmap_area_lazy+0x175/0x270 mm/vmalloc.c:682
+ vm_unmap_aliases+0x4a1/0x610 mm/vmalloc.c:1108
+ change_page_attr_set_clr+0x82b/0x11d0 arch/x86/mm/pageattr.c:1473
+ change_page_attr_clear arch/x86/mm/pageattr.c:1533 [inline]
+ set_memory_ro+0x7b/0xa0 arch/x86/mm/pageattr.c:1762
+ bpf_jit_binary_lock_ro include/linux/filter.h:690 [inline]
+ bpf_int_jit_compile+0xbba/0xe96 arch/x86/net/bpf_jit_comp.c:1168
+ bpf_prog_select_runtime+0x46d/0x650 kernel/bpf/core.c:1487
+ bpf_migrate_filter net/core/filter.c:1263 [inline]
+ bpf_prepare_filter+0xbd6/0x1100 net/core/filter.c:1311
+ __get_filter+0x1e0/0x280 net/core/filter.c:1504
+ sk_attach_filter+0x1d/0x90 net/core/filter.c:1519
+ sock_setsockopt+0x1192/0x1fe0 net/core/sock.c:935
+ __sys_setsockopt+0x2f3/0x3b0 net/socket.c:1907
+ __do_sys_setsockopt net/socket.c:1922 [inline]
+ __se_sys_setsockopt net/socket.c:1919 [inline]
+ __x64_sys_setsockopt+0xbe/0x150 net/socket.c:1919
+ do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x455e29
+Code: 1d ba fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 eb b9 fb ff c3 66 2e 0f 1f 84 00 00 00 00 
+RSP: 002b:00007fd0b953bc68 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00007fd0b953c6d4 RCX: 0000000000455e29
+RDX: 000000000000001a RSI: 0000000000000001 RDI: 0000000000000017
+RBP: 000000000072bea0 R08: 0000000000000010 R09: 0000000000000000
+R10: 0000000020000040 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000004c173e R14: 00000000004d1ed0 R15: 0000000000000000

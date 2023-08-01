@@ -1,0 +1,35 @@
+==================================================================
+BUG: KCSAN: data-race in page_counter_try_charge / page_counter_try_charge
+
+write to 0xffff88812b78c158 of 8 bytes by task 16024 on cpu 1:
+ page_counter_try_charge+0x21f/0x450 mm/page_counter.c:134
+ try_charge+0x1a5/0xac0 mm/memcontrol.c:2644
+ mem_cgroup_charge+0xbe/0x490 mm/memcontrol.c:6704
+ __do_huge_pmd_anonymous_page+0x64/0x820 mm/huge_memory.c:596
+ do_huge_pmd_anonymous_page+0x635/0x870 mm/huge_memory.c:775
+ create_huge_pmd mm/memory.c:4110 [inline]
+ __handle_mm_fault mm/memory.c:4331 [inline]
+ handle_mm_fault+0xf5c/0x1950 mm/memory.c:4397
+ do_user_addr_fault+0x393/0x810 arch/x86/mm/fault.c:1294
+ handle_page_fault arch/x86/mm/fault.c:1364 [inline]
+ exc_page_fault+0xb8/0x330 arch/x86/mm/fault.c:1417
+ asm_exc_page_fault+0x1e/0x30 arch/x86/include/asm/idtentry.h:538
+
+read to 0xffff88812b78c158 of 8 bytes by task 16014 on cpu 0:
+ page_counter_try_charge+0x1fd/0x450 mm/page_counter.c:133
+ try_charge+0x1a5/0xac0 mm/memcontrol.c:2644
+ mem_cgroup_charge+0xbe/0x490 mm/memcontrol.c:6704
+ __do_huge_pmd_anonymous_page+0x64/0x820 mm/huge_memory.c:596
+ do_huge_pmd_anonymous_page+0x635/0x870 mm/huge_memory.c:775
+ create_huge_pmd mm/memory.c:4110 [inline]
+ __handle_mm_fault mm/memory.c:4331 [inline]
+ handle_mm_fault+0xf5c/0x1950 mm/memory.c:4397
+ do_user_addr_fault+0x393/0x810 arch/x86/mm/fault.c:1294
+ handle_page_fault arch/x86/mm/fault.c:1364 [inline]
+ exc_page_fault+0xb8/0x330 arch/x86/mm/fault.c:1417
+ asm_exc_page_fault+0x1e/0x30 arch/x86/include/asm/idtentry.h:538
+
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 0 PID: 16014 Comm: syz-executor.3 Not tainted 5.8.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+==================================================================

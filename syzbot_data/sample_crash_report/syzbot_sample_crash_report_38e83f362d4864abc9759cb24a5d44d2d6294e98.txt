@@ -1,0 +1,227 @@
+======================================================
+WARNING: possible circular locking dependency detected
+6.3.0-rc4-syzkaller-00039-gffe78bbd5121 #0 Not tainted
+------------------------------------------------------
+ksoftirqd/0/15 is trying to acquire lock:
+ffff888078f35088 (&priv->active_session_list_lock){+.-.}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:355 [inline]
+ffff888078f35088 (&priv->active_session_list_lock){+.-.}-{2:2}, at: j1939_session_list_lock net/can/j1939/transport.c:238 [inline]
+ffff888078f35088 (&priv->active_session_list_lock){+.-.}-{2:2}, at: j1939_session_activate+0x47/0x4b0 net/can/j1939/transport.c:1557
+
+but task is already holding lock:
+ffff88801e6cd5c8 (&jsk->sk_session_queue_lock){+.-.}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:355 [inline]
+ffff88801e6cd5c8 (&jsk->sk_session_queue_lock){+.-.}-{2:2}, at: j1939_sk_queue_activate_next+0x5f/0x4d0 net/can/j1939/socket.c:207
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&jsk->sk_session_queue_lock){+.-.}-{2:2}:
+       __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+       _raw_spin_lock_bh+0x33/0x40 kernel/locking/spinlock.c:178
+       spin_lock_bh include/linux/spinlock.h:355 [inline]
+       j1939_sk_queue_drop_all+0x3b/0x2f0 net/can/j1939/socket.c:139
+       j1939_sk_netdev_event_netdown+0x7f/0x160 net/can/j1939/socket.c:1275
+       j1939_netdev_notify+0x19d/0x1d0 net/can/j1939/main.c:379
+       notifier_call_chain+0xb5/0x200 kernel/notifier.c:87
+       call_netdevice_notifiers_info+0xb5/0x130 net/core/dev.c:1937
+       call_netdevice_notifiers_extack net/core/dev.c:1975 [inline]
+       call_netdevice_notifiers net/core/dev.c:1989 [inline]
+       __dev_notify_flags+0x1ea/0x2d0 net/core/dev.c:8568
+       dev_change_flags+0x11b/0x170 net/core/dev.c:8604
+       do_setlink+0x9f4/0x3d30 net/core/rtnetlink.c:2833
+       __rtnl_newlink+0xd69/0x1840 net/core/rtnetlink.c:3623
+       rtnl_newlink+0x68/0xa0 net/core/rtnetlink.c:3670
+       rtnetlink_rcv_msg+0x43d/0xd50 net/core/rtnetlink.c:6174
+       netlink_rcv_skb+0x165/0x440 net/netlink/af_netlink.c:2574
+       netlink_unicast_kernel net/netlink/af_netlink.c:1339 [inline]
+       netlink_unicast+0x547/0x7f0 net/netlink/af_netlink.c:1365
+       netlink_sendmsg+0x925/0xe30 net/netlink/af_netlink.c:1942
+       sock_sendmsg_nosec net/socket.c:724 [inline]
+       sock_sendmsg+0xde/0x190 net/socket.c:747
+       ____sys_sendmsg+0x71c/0x900 net/socket.c:2501
+       ___sys_sendmsg+0x110/0x1b0 net/socket.c:2555
+       __sys_sendmsg+0xf7/0x1c0 net/socket.c:2584
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #1 (&priv->j1939_socks_lock){+.-.}-{2:2}:
+       __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+       _raw_spin_lock_bh+0x33/0x40 kernel/locking/spinlock.c:178
+       spin_lock_bh include/linux/spinlock.h:355 [inline]
+       j1939_sk_errqueue+0xa3/0x1a0 net/can/j1939/socket.c:1081
+       __j1939_session_cancel+0x3b9/0x460 net/can/j1939/transport.c:1128
+       j1939_tp_rxtimer+0x3df/0x4b0 net/can/j1939/transport.c:1253
+       __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+       __hrtimer_run_queues+0x5fa/0xbe0 kernel/time/hrtimer.c:1749
+       hrtimer_run_softirq+0x17f/0x360 kernel/time/hrtimer.c:1766
+       __do_softirq+0x1d4/0x905 kernel/softirq.c:571
+       invoke_softirq kernel/softirq.c:445 [inline]
+       __irq_exit_rcu+0x114/0x190 kernel/softirq.c:650
+       irq_exit_rcu+0x9/0x20 kernel/softirq.c:662
+       sysvec_apic_timer_interrupt+0x49/0xc0 arch/x86/kernel/apic/apic.c:1107
+       asm_sysvec_apic_timer_interrupt+0x1a/0x20 arch/x86/include/asm/idtentry.h:645
+
+-> #0 (&priv->active_session_list_lock){+.-.}-{2:2}:
+       check_prev_add kernel/locking/lockdep.c:3098 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+       validate_chain kernel/locking/lockdep.c:3832 [inline]
+       __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+       lock_acquire kernel/locking/lockdep.c:5669 [inline]
+       lock_acquire+0x1af/0x520 kernel/locking/lockdep.c:5634
+       __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+       _raw_spin_lock_bh+0x33/0x40 kernel/locking/spinlock.c:178
+       spin_lock_bh include/linux/spinlock.h:355 [inline]
+       j1939_session_list_lock net/can/j1939/transport.c:238 [inline]
+       j1939_session_activate+0x47/0x4b0 net/can/j1939/transport.c:1557
+       j1939_sk_queue_activate_next_locked net/can/j1939/socket.c:181 [inline]
+       j1939_sk_queue_activate_next+0x2bf/0x4d0 net/can/j1939/socket.c:208
+       j1939_simple_txnext net/can/j1939/transport.c:1060 [inline]
+       j1939_tp_txtimer+0x1653/0x2be0 net/can/j1939/transport.c:1153
+       __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+       __hrtimer_run_queues+0x5fa/0xbe0 kernel/time/hrtimer.c:1749
+       hrtimer_run_softirq+0x17f/0x360 kernel/time/hrtimer.c:1766
+       __do_softirq+0x1d4/0x905 kernel/softirq.c:571
+       run_ksoftirqd kernel/softirq.c:934 [inline]
+       run_ksoftirqd+0x31/0x60 kernel/softirq.c:926
+       smpboot_thread_fn+0x659/0x9e0 kernel/smpboot.c:164
+       kthread+0x2e8/0x3a0 kernel/kthread.c:376
+       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+
+other info that might help us debug this:
+
+Chain exists of:
+  &priv->active_session_list_lock --> &priv->j1939_socks_lock --> &jsk->sk_session_queue_lock
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&jsk->sk_session_queue_lock);
+                               lock(&priv->j1939_socks_lock);
+                               lock(&jsk->sk_session_queue_lock);
+  lock(&priv->active_session_list_lock);
+
+ *** DEADLOCK ***
+
+1 lock held by ksoftirqd/0/15:
+ #0: ffff88801e6cd5c8 (&jsk->sk_session_queue_lock){+.-.}-{2:2}, at: spin_lock_bh include/linux/spinlock.h:355 [inline]
+ #0: ffff88801e6cd5c8 (&jsk->sk_session_queue_lock){+.-.}-{2:2}, at: j1939_sk_queue_activate_next+0x5f/0x4d0 net/can/j1939/socket.c:207
+
+stack backtrace:
+CPU: 0 PID: 15 Comm: ksoftirqd/0 Not tainted 6.3.0-rc4-syzkaller-00039-gffe78bbd5121 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/02/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2178
+ check_prev_add kernel/locking/lockdep.c:3098 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3217 [inline]
+ validate_chain kernel/locking/lockdep.c:3832 [inline]
+ __lock_acquire+0x2ec7/0x5d40 kernel/locking/lockdep.c:5056
+ lock_acquire kernel/locking/lockdep.c:5669 [inline]
+ lock_acquire+0x1af/0x520 kernel/locking/lockdep.c:5634
+ __raw_spin_lock_bh include/linux/spinlock_api_smp.h:126 [inline]
+ _raw_spin_lock_bh+0x33/0x40 kernel/locking/spinlock.c:178
+ spin_lock_bh include/linux/spinlock.h:355 [inline]
+ j1939_session_list_lock net/can/j1939/transport.c:238 [inline]
+ j1939_session_activate+0x47/0x4b0 net/can/j1939/transport.c:1557
+ j1939_sk_queue_activate_next_locked net/can/j1939/socket.c:181 [inline]
+ j1939_sk_queue_activate_next+0x2bf/0x4d0 net/can/j1939/socket.c:208
+ j1939_simple_txnext net/can/j1939/transport.c:1060 [inline]
+ j1939_tp_txtimer+0x1653/0x2be0 net/can/j1939/transport.c:1153
+ __run_hrtimer kernel/time/hrtimer.c:1685 [inline]
+ __hrtimer_run_queues+0x5fa/0xbe0 kernel/time/hrtimer.c:1749
+ hrtimer_run_softirq+0x17f/0x360 kernel/time/hrtimer.c:1766
+ __do_softirq+0x1d4/0x905 kernel/softirq.c:571
+ run_ksoftirqd kernel/softirq.c:934 [inline]
+ run_ksoftirqd+0x31/0x60 kernel/softirq.c:926
+ smpboot_thread_fn+0x659/0x9e0 kernel/smpboot.c:164
+ kthread+0x2e8/0x3a0 kernel/kthread.c:376
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+ </TASK>
+vcan0: j1939_tp_rxtimer: 0xffff888026a45c00: abort rx timeout. Force session deactivation
+vcan0: j1939_tp_rxtimer: 0xffff88807e9bf800: rx timeout, send abort
+vcan0: j1939_xtp_rx_abort_one: 0xffff888040354400: 0x00000: (3) A timeout occurred and this is the connection abort to close the session.
+vcan0: j1939_xtp_rx_abort_one: 0xffff888021501000: 0x00000: (3) A timeout occurred and this is the connection abort to close the session.
+vcan0: j1939_tp_rxtimer: 0xffff88803e0eec00: rx timeout, send abort
+vcan0: j1939_xtp_rx_abort_one: 0xffff888040357400: 0x00000: (3) A timeout occurred and this is the connection abort to close the session.
+vcan0: j1939_xtp_rx_abort_one: 0xffff888040357c00: 0x00000: (3) A timeout occurred and this is the connection abort to close the session.
+vcan0: j1939_tp_rxtimer: 0xffff88807e9bf800: abort rx timeout. Force session deactivation
+vcan0: j1939_tp_rxtimer: 0xffff88803e0eec00: abort rx timeout. Force session deactivation
+vcan0: j1939_tp_rxtimer: 0xffff888078705c00: rx timeout, send abort
+vcan0: j1939_tp_rxtimer: 0xffff888078707800: rx timeout, send abort
+vcan0: j1939_xtp_rx_abort_one: 0xffff888078705c00: 0x00000: (3) A timeout occurred and this is the connection abort to close the session.
+vcan0: j1939_xtp_rx_abort_one: 0xffff888078707800: 0x00000: (3) A timeout occurred and this is the connection abort to close the session.
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found
+vcan0: j1939_xtp_rx_dat: no rx connection found
+vcan0: j1939_xtp_rx_dat: no tx connection found

@@ -1,0 +1,59 @@
+L1TF CPU bug present and SMT on, data leak possible. See CVE-2018-3646 and https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/l1tf.html for details.
+------------[ cut here ]------------
+kernel BUG at arch/x86/kvm/mmu/mmu.c:3719!
+invalid opcode: 0000 [#1] PREEMPT SMP KASAN
+CPU: 1 PID: 6780 Comm: syz-executor756 Not tainted 5.7.0-rc7-next-20200529-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+RIP: 0010:mmu_alloc_direct_roots arch/x86/kvm/mmu/mmu.c:3719 [inline]
+RIP: 0010:mmu_alloc_roots arch/x86/kvm/mmu/mmu.c:3819 [inline]
+RIP: 0010:kvm_mmu_load+0xbfa/0xe00 arch/x86/kvm/mmu/mmu.c:5152
+Code: ac 23 99 00 48 8b 44 24 08 e9 cf f5 ff ff e8 6d 23 99 00 e9 b7 f4 ff ff 4c 89 f7 e8 90 23 99 00 e9 78 f4 ff ff e8 56 1a 5a 00 <0f> 0b 48 89 df e8 7c 23 99 00 e9 7e f8 ff ff e8 72 23 99 00 e9 c4
+RSP: 0018:ffffc90001477b30 EFLAGS: 00010293
+RAX: ffff88808ba68400 RBX: 0000000000000000 RCX: ffffffff8118d661
+RDX: 0000000000000000 RSI: ffffffff8118e14a RDI: 0000000000000001
+RBP: ffff888089dfc040 R08: ffff88808ba68400 R09: ffffed1015ce719c
+R10: ffff8880ae738cdb R11: ffffed1015ce719b R12: 0000000000000000
+R13: 0000000000000001 R14: ffff888089dfc458 R15: 0000000000000000
+FS:  00000000016b1880(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f2329d226c0 CR3: 000000009c2ee000 CR4: 00000000001426e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ kvm_mmu_reload arch/x86/kvm/mmu.h:81 [inline]
+ vcpu_enter_guest arch/x86/kvm/x86.c:8389 [inline]
+ vcpu_run arch/x86/kvm/x86.c:8600 [inline]
+ kvm_arch_vcpu_ioctl_run+0x4016/0x68d0 arch/x86/kvm/x86.c:8823
+ kvm_vcpu_ioctl+0x467/0xe10 arch/x86/kvm/../../../virt/kvm/kvm_main.c:3147
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ ksys_ioctl+0x11a/0x180 fs/ioctl.c:753
+ __do_sys_ioctl fs/ioctl.c:762 [inline]
+ __se_sys_ioctl fs/ioctl.c:760 [inline]
+ __x64_sys_ioctl+0x6f/0xb0 fs/ioctl.c:760
+ do_syscall_64+0x60/0xe0 arch/x86/entry/common.c:359
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x4401f9
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffcb2f66848 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 00000000004401f9
+RDX: 0000000000000000 RSI: 000000000000ae80 RDI: 0000000000000005
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000246 R12: 0000000000401a80
+R13: 0000000000401b10 R14: 0000000000000000 R15: 0000000000000000
+Modules linked in:
+---[ end trace 1fd83544911686e9 ]---
+RIP: 0010:mmu_alloc_direct_roots arch/x86/kvm/mmu/mmu.c:3719 [inline]
+RIP: 0010:mmu_alloc_roots arch/x86/kvm/mmu/mmu.c:3819 [inline]
+RIP: 0010:kvm_mmu_load+0xbfa/0xe00 arch/x86/kvm/mmu/mmu.c:5152
+Code: ac 23 99 00 48 8b 44 24 08 e9 cf f5 ff ff e8 6d 23 99 00 e9 b7 f4 ff ff 4c 89 f7 e8 90 23 99 00 e9 78 f4 ff ff e8 56 1a 5a 00 <0f> 0b 48 89 df e8 7c 23 99 00 e9 7e f8 ff ff e8 72 23 99 00 e9 c4
+RSP: 0018:ffffc90001477b30 EFLAGS: 00010293
+RAX: ffff88808ba68400 RBX: 0000000000000000 RCX: ffffffff8118d661
+RDX: 0000000000000000 RSI: ffffffff8118e14a RDI: 0000000000000001
+RBP: ffff888089dfc040 R08: ffff88808ba68400 R09: ffffed1015ce719c
+R10: ffff8880ae738cdb R11: ffffed1015ce719b R12: 0000000000000000
+R13: 0000000000000001 R14: ffff888089dfc458 R15: 0000000000000000
+FS:  00000000016b1880(0000) GS:ffff8880ae700000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f3b1b454000 CR3: 000000009c2ee000 CR4: 00000000001426e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400

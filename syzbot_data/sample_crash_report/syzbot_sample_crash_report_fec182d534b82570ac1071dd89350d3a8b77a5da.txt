@@ -1,0 +1,98 @@
+==================================================================
+BUG: KASAN: use-after-free in hci_chan_del+0x1c5/0x200 net/bluetooth/hci_conn.c:1728
+Read of size 8 at addr ffff888015337918 by task syz-executor033/8525
+
+CPU: 1 PID: 8525 Comm: syz-executor033 Not tainted 5.10.0-rc3-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x107/0x163 lib/dump_stack.c:118
+ print_address_description.constprop.0.cold+0xae/0x4c8 mm/kasan/report.c:385
+ __kasan_report mm/kasan/report.c:545 [inline]
+ kasan_report.cold+0x1f/0x37 mm/kasan/report.c:562
+ hci_chan_del+0x1c5/0x200 net/bluetooth/hci_conn.c:1728
+ l2cap_conn_del+0x478/0x7b0 net/bluetooth/l2cap_core.c:1900
+ l2cap_disconn_cfm net/bluetooth/l2cap_core.c:8161 [inline]
+ l2cap_disconn_cfm+0x98/0xd0 net/bluetooth/l2cap_core.c:8154
+ hci_disconn_cfm include/net/bluetooth/hci_core.h:1441 [inline]
+ hci_conn_hash_flush+0x127/0x260 net/bluetooth/hci_conn.c:1557
+ hci_dev_do_close+0x569/0x1110 net/bluetooth/hci_core.c:1770
+ hci_unregister_dev+0x223/0xfe0 net/bluetooth/hci_core.c:3827
+ vhci_release+0x70/0xe0 drivers/bluetooth/hci_vhci.c:340
+ __fput+0x285/0x920 fs/file_table.c:281
+ task_work_run+0xdd/0x190 kernel/task_work.c:151
+ exit_task_work include/linux/task_work.h:30 [inline]
+ do_exit+0xb64/0x29b0 kernel/exit.c:809
+ do_group_exit+0x125/0x310 kernel/exit.c:906
+ get_signal+0x428/0x1f00 kernel/signal.c:2758
+ arch_do_signal+0x82/0x2390 arch/x86/kernel/signal.c:811
+ exit_to_user_mode_loop kernel/entry/common.c:161 [inline]
+ exit_to_user_mode_prepare+0x100/0x1a0 kernel/entry/common.c:191
+ syscall_exit_to_user_mode+0x38/0x260 kernel/entry/common.c:266
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x4468b9
+Code: Unable to access opcode bytes at RIP 0x44688f.
+RSP: 002b:00007ff435fccdb8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 00000000006dbc38 RCX: 00000000004468b9
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 00000000006dbc38
+RBP: 00000000006dbc30 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc3c
+R13: 00007ffcbf363e5f R14: 00007ff435fcd9c0 R15: 00000000006dbc3c
+
+Allocated by task 2042:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:48
+ kasan_set_track mm/kasan/common.c:56 [inline]
+ __kasan_kmalloc.constprop.0+0xc2/0xd0 mm/kasan/common.c:461
+ kmalloc include/linux/slab.h:552 [inline]
+ kzalloc include/linux/slab.h:664 [inline]
+ hci_chan_create+0xaa/0x3c0 net/bluetooth/hci_conn.c:1713
+ l2cap_conn_add.part.0+0x1e/0xdf0 net/bluetooth/l2cap_core.c:7699
+ l2cap_conn_add include/net/bluetooth/l2cap.h:858 [inline]
+ l2cap_connect_cfm+0x5be/0xf50 net/bluetooth/l2cap_core.c:8099
+ hci_connect_cfm include/net/bluetooth/hci_core.h:1426 [inline]
+ le_conn_complete_evt+0x123d/0x18a0 net/bluetooth/hci_event.c:5195
+ hci_le_conn_complete_evt net/bluetooth/hci_event.c:5220 [inline]
+ hci_le_meta_evt+0x433/0x4400 net/bluetooth/hci_event.c:5920
+ hci_event_packet+0x5d9/0x7d60 net/bluetooth/hci_event.c:6269
+ hci_rx_work+0x511/0xd30 net/bluetooth/hci_core.c:4926
+ process_one_work+0x933/0x15a0 kernel/workqueue.c:2272
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2418
+ kthread+0x3af/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+Freed by task 8496:
+ kasan_save_stack+0x1b/0x40 mm/kasan/common.c:48
+ kasan_set_track+0x1c/0x30 mm/kasan/common.c:56
+ kasan_set_free_info+0x1b/0x30 mm/kasan/generic.c:355
+ __kasan_slab_free+0x102/0x140 mm/kasan/common.c:422
+ slab_free_hook mm/slub.c:1544 [inline]
+ slab_free_freelist_hook+0x5d/0x150 mm/slub.c:1577
+ slab_free mm/slub.c:3142 [inline]
+ kfree+0xdb/0x360 mm/slub.c:4124
+ hci_disconn_loglink_complete_evt.isra.0+0x1cf/0x240 net/bluetooth/hci_event.c:5023
+ hci_event_packet+0x2ded/0x7d60 net/bluetooth/hci_event.c:6290
+ hci_rx_work+0x511/0xd30 net/bluetooth/hci_core.c:4926
+ process_one_work+0x933/0x15a0 kernel/workqueue.c:2272
+ worker_thread+0x64c/0x1120 kernel/workqueue.c:2418
+ kthread+0x3af/0x4a0 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+The buggy address belongs to the object at ffff888015337900
+ which belongs to the cache kmalloc-128 of size 128
+The buggy address is located 24 bytes inside of
+ 128-byte region [ffff888015337900, ffff888015337980)
+The buggy address belongs to the page:
+page:00000000a4b08fa7 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x15337
+flags: 0xfff00000000200(slab)
+raw: 00fff00000000200 ffffea00007ff480 0000000c0000000c ffff888010041640
+raw: 0000000000000000 0000000000100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+ ffff888015337800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff888015337880: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888015337900: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                            ^
+ ffff888015337980: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff888015337a00: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
