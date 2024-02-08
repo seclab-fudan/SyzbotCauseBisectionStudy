@@ -1,4 +1,4 @@
-# How Well Delta Debugging Works in Real-world Fault Localization - A Study on Linux Kernel.
+# How Well Industry-level Cause Bisection Works in Real-world - A Study on Linux Kernel.
 
 ## Prerequisites
 - python environment
