@@ -6,6 +6,8 @@ from collections import Counter
 from scipy import stats
 
 from config import DB_IP, DB_PORT, DB_USER, DB_PWD, DB_NAME
+from efficiency_analysis import get_time_info
+
 
 def format_int(num):
     return "{:,}".format(num)
@@ -100,7 +102,6 @@ def table_different_cause_bisection_fix_time():
     print("correct vs. incorrect p-value: %s" % p_value)
     _, p_value = stats.ranksums(wrong_bug_fix_time_list, no_bisect_commit_output_fix_time_list)
     print("incorrect vs. no-output p-value: %s" % p_value)
-
 
 def parse_time_str(time_str):
     result = re.match("(\d+h)?(\d+m)?(\d+\.\d+s)", time_str)
@@ -216,15 +217,15 @@ def table_overall_performance():
                          user=DB_USER, passwd=DB_PWD, db=DB_NAME)
     cursor = conn.cursor()
 
-    sql = "SELECT crash_commit_version, version_test_num, testing_commit_num, bisect_time, bad_commit, inconclusive_commit, ground_truth FROM syzbot_bug_info WHERE ground_truth is not NULL"
+    sql = "SELECT cause_bisect_log, crash_commit_version, version_test_num, testing_commit_num, bisect_time, bad_commit, inconclusive_commit, ground_truth FROM syzbot_bug_info WHERE ground_truth is not NULL"
     cursor.execute(sql)
     data = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
-    info_dict = {"Total": {"version_commit_num_list": [], "testing_commit_num_list": [], "bisect_time_list": [], "bug_wo_iso": 0, "correct": 0, "incorrect": 0}}
-    for crash_commit_version, version_test_num, testing_commit_num, bisect_time, bad_commit, inconclusive_commit, ground_truth in data:
+    info_dict = {"Total": {"version_commit_num_list": [], "testing_commit_num_list": [], "bisect_time_list": [], "bug_wo_iso": 0, "correct": 0, "incorrect": 0, "build_time_list": [], "test_time_list": []}}
+    for cause_bisect_log, crash_commit_version, version_test_num, testing_commit_num, bisect_time, bad_commit, inconclusive_commit, ground_truth in data:
         if crash_commit_version.startswith('v6.'):
             crash_commit_version = 'v6.0'
         elif crash_commit_version.startswith('v5.'):
@@ -233,7 +234,7 @@ def table_overall_performance():
             crash_commit_version = 'v4.0'
 
         if crash_commit_version not in info_dict:
-            info_dict[crash_commit_version] = {"version_commit_num_list": [], "testing_commit_num_list": [], "bisect_time_list": [], "bug_wo_iso": 0, "correct": 0, "incorrect": 0}
+            info_dict[crash_commit_version] = {"version_commit_num_list": [], "testing_commit_num_list": [], "bisect_time_list": [], "bug_wo_iso": 0, "correct": 0, "incorrect": 0, "build_time_list": [], "test_time_list": []}
 
         bad_num = len(str2list(bad_commit))
         inconclusive_num = len(str2list(inconclusive_commit))
@@ -264,6 +265,13 @@ def table_overall_performance():
         info_dict[crash_commit_version]["bisect_time_list"].append(bisect_time_h)
         info_dict["Total"]["bisect_time_list"].append(bisect_time_h)
 
+        # ablation of build and test time
+        total_time, build_time = get_time_info(cause_bisect_log)
+        info_dict["Total"]["build_time_list"].append(build_time)
+        info_dict["Total"]["test_time_list"].append(total_time - build_time)
+        info_dict[crash_commit_version]["build_time_list"].append(build_time)
+        info_dict[crash_commit_version]["test_time_list"].append(total_time-build_time)
+
     related_version_list = []
     for k, _ in info_dict.items():
         if k != "Total":
@@ -275,7 +283,7 @@ def table_overall_performance():
 
     for version in sorted_version_list:
         bug_num = info_dict[version]["bug_wo_iso"] + info_dict[version]["correct"] + info_dict[version]["incorrect"]
-        print("%s & %s & %s (%.0f\%%) & %s (%.0f\%%) & %s (%.0f\%%) & & %s & %s & %sh\\\\" % (
+        print("%s & %s & %s (%.0f\%%) & %s (%.0f\%%) & %s (%.0f\%%) & & %s & %s & %sh & %sh & %sh\\\\" % (
             version, format_int(bug_num),
             format_int(info_dict[version]["bug_wo_iso"]),
             info_dict[version]["bug_wo_iso"] / bug_num * 100,
@@ -288,6 +296,10 @@ def table_overall_performance():
             format_float(
                 np.mean(info_dict[version]["testing_commit_num_list"])),
             format_float(
+                np.mean(info_dict[version]["build_time_list"])),
+            format_float(
+                np.mean(info_dict[version]["test_time_list"])),
+            format_float(
                 np.mean(info_dict[version]["bisect_time_list"])),
         ))
 
@@ -295,7 +307,7 @@ def table_overall_performance():
 
     version = "Total"
     bug_num = info_dict[version]["bug_wo_iso"] + info_dict[version]["correct"] + info_dict[version]["incorrect"]
-    print("%s & %s & %s (%.0f\%%) & %s (%.0f\%%) & %s (%.0f\%%) & & %s & %s & %sh\\\\" % (
+    print("%s & %s & %s (%.0f\%%) & %s (%.0f\%%) & %s (%.0f\%%) & & %s & %s & %sh & %sh & %sh\\\\" % (
         "\\textbf{Total}", format_int(bug_num),
         format_int(info_dict[version]["bug_wo_iso"]),
         info_dict[version]["bug_wo_iso"] / bug_num * 100,
@@ -307,6 +319,10 @@ def table_overall_performance():
             np.mean(info_dict[version]["version_commit_num_list"])),
         format_float(
             np.mean(info_dict[version]["testing_commit_num_list"])),
+        format_float(
+            np.mean(info_dict[version]["build_time_list"])),
+        format_float(
+            np.mean(info_dict[version]["test_time_list"])),
         format_float(
             np.mean(info_dict[version]["bisect_time_list"])),
     ))
