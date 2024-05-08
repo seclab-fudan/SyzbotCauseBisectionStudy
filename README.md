@@ -1,5 +1,9 @@
 # How Well Industry-level Cause Bisection Works in Real-world - A Study on Linux Kernel.
 
+The artifact repository for
+
+Kangzheng Gu, Yuan Zhang, Jiajun Cao, Xin Tan, and Min Yang. 2024. How Well Industry-Level Cause Bisection Works in Real-World: A Study on Linux Kernel. In Companion Proceedings of the 32nd ACM International Conference on the Foundations of Software Engineering (FSE Companion ’24)
+
 ## Prerequisites
 - python environment
     ```
